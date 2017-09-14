@@ -96,7 +96,7 @@
       <AdditionalDependencies>Debug\sfml-audio-d.lib;Debug\sfml-graphics-d.lib;Debug\sfml-window-d.lib;Debug\sfml-system-d.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(SolutionDir)dlls\debug\*.dll" "$(TargetDir)"</Command>
+      <Command>copy /Y "$(SolutionDir)resources\dlls\debug\*.dll" "$(TargetDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -113,7 +113,7 @@
       <AdditionalDependencies>Debug\sfml-audio-d.lib;Debug\sfml-graphics-d.lib;Debug\sfml-window-d.lib;Debug\sfml-system-d.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(SolutionDir)dlls\debug\*.dll" "$(TargetDir)"</Command>
+      <Command>copy /Y "$(SolutionDir)resources\dlls\debug\*.dll" "$(TargetDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -134,7 +134,7 @@
       <AdditionalDependencies>Release\sfml-audio.lib;Release\sfml-graphics.lib;Release\sfml-window.lib;Release\sfml-system.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(SolutionDir)dlls\release\*.dll" "$(TargetDir)"</Command>
+      <Command>copy /Y "$(SolutionDir)resources\dlls\release\*.dll" "$(TargetDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -155,7 +155,7 @@
       <AdditionalDependencies>Release\sfml-audio.lib;Release\sfml-graphics.lib;Release\sfml-window.lib;Release\sfml-system.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(SolutionDir)dlls\release\*.dll" "$(TargetDir)"</Command>
+      <Command>copy /Y "$(SolutionDir)resources\dlls\release\*.dll" "$(TargetDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
