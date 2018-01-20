@@ -14,7 +14,6 @@
 #include <ole2.h>
 
 #include <NuiApi.h>
-
 #include <NuiImageCamera.h>
 #include <NuiSensor.h>
 
