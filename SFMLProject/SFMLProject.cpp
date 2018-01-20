@@ -28,6 +28,13 @@ GLubyte data[width*height * 4];  // BGRA array containing the texture data
 //Kinect Variables
 HANDLE rgbStream;               // The identifier of the Kinect's RGB Camera
 INuiSensor* sensor;             // The Kinect Sensor
+//Skeleton Tracking
+Vector4 skeletonPosition[NUI_SKELETON_POSITION_COUNT];  //Body Tracking
+sf::Vector2f m_points[NUI_SKELETON_POSITION_COUNT]; // Converted to screen space
+float g_TrackedBoneThickness = 3.0f;
+float g_InferredBoneThickness = 2.0f;
+
+sf::VertexArray boneVertexLines(sf::Lines);
 
 bool initKinect() {
     //Get a working Kinect Sensor
@@ -38,7 +45,11 @@ bool initKinect() {
         return false;
     
     //Initialise Sensor
-    sensor->NuiInitialize(NUI_INITIALIZE_FLAG_USES_DEPTH | NUI_INITIALIZE_FLAG_USES_COLOR | NUI_INITIALIZE_FLAG_USES_SKELETON);
+    sensor->NuiInitialize(
+        NUI_INITIALIZE_FLAG_USES_DEPTH_AND_PLAYER_INDEX 
+        | NUI_INITIALIZE_FLAG_USES_COLOR 
+        | NUI_INITIALIZE_FLAG_USES_SKELETON);
+    
     sensor->NuiImageStreamOpen(
         NUI_IMAGE_TYPE_COLOR,               //Depth Camera or RGB Camera?
         NUI_IMAGE_RESOLUTION_640x480,       //Image Resolution
@@ -46,6 +57,11 @@ bool initKinect() {
         2,                                  //Number of frames to buffer
         NULL,                               //Event handle
         &rgbStream);
+        
+    sensor->NuiSkeletonTrackingEnable(
+        NULL,
+        0       // Enable seat support (Upper body only)
+    );
     return sensor;
 }
 
@@ -54,7 +70,7 @@ INuiFrameTexture* lockKinectPixelData(NUI_IMAGE_FRAME &imageFrame, NUI_LOCKED_RE
 void copyKinectPixelData(NUI_LOCKED_RECT &LockedRect, GLubyte* dest);
 void unlockKinectPixelData(INuiFrameTexture* texture);
 void releaseKinectFrame(NUI_IMAGE_FRAME &imageFrame);
-
+void getSkeletalData();
 
 
 void getKinectData(GLubyte* dest) {
@@ -67,6 +83,7 @@ void getKinectData(GLubyte* dest) {
     unlockKinectPixelData(texture);
 
     releaseKinectFrame(imageFrame);
+    getSkeletalData();
 }
 bool acquireKinectFrame(NUI_IMAGE_FRAME &imageFrame)
 {
@@ -99,7 +116,29 @@ void releaseKinectFrame(NUI_IMAGE_FRAME &imageFrame)
     sensor->NuiImageStreamReleaseFrame(rgbStream, &imageFrame);
 }
 
-void drawKinectData() {
+void getSkeletalData() {
+    NUI_SKELETON_FRAME skeletonFrame = { 0 };
+    if (sensor->NuiSkeletonGetNextFrame(0, &skeletonFrame) >= 0) {
+        sensor->NuiTransformSmooth(&skeletonFrame, NULL);   //Smooths jittery tracking
+        //Loop over all sensed skeletons
+        for (int z = 0; z < NUI_SKELETON_COUNT; ++z) {
+            const NUI_SKELETON_DATA& skeleton = skeletonFrame.SkeletonData[z];
+            //Check the state of the skeleton
+            if (skeleton.eTrackingState == NUI_SKELETON_TRACKED) {
+                // Copy the joint positions into the array
+                for (int i = 0; i < NUI_SKELETON_POSITION_COUNT; ++i) {
+                    skeletonPosition[i] = skeleton.SkeletonPositions[i];
+                    if (skeleton.eSkeletonPositionTrackingState[i] == NUI_SKELETON_POSITION_NOT_TRACKED) {
+                        skeletonPosition[i].w = 0;
+                    }
+                }
+                return; //Only take the data for one skeleton
+            }
+        }
+    }
+}
+
+void drawKinectImageData() {
     
     glBindTexture(GL_TEXTURE_2D, textureId);
     getKinectData(data);
@@ -117,7 +156,114 @@ void drawKinectData() {
         glVertex3f(0, height, 0.0f);
     
     glEnd();
-    
+}
+void drawKinectSkeletalData() {
+    //drawKinectImageData();
+    /*
+    glBindTexture(GL_TEXTURE_2D, textureId);
+    getKinectData(data);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, (GLvoid*)data);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    */
+
+
+}
+
+sf::Vector2f SkeletonToScreen(Vector4 skeletonPoint, int _width, int _height) {
+    LONG x, y;
+    USHORT depth;
+
+    // Calculate the skeleton's position on the screen
+    // NuiTransformSkeletonToDepthImage returns coordinates in NUI_IMAGE_RESOLUTION_320x240 space
+    NuiTransformSkeletonToDepthImage(skeletonPoint, &x, &y, &depth);
+
+    float screenPointX = static_cast<float>(x * _width) / width;
+    float screenPointY = static_cast<float>(y * _height) / height;
+
+    return sf::Vector2f(screenPointX, screenPointY);
+}
+
+void addBoneLine(sf::Vector2f start, sf::Vector2f end, sf::Color colour, float lineThickness) {
+    boneVertexLines.append(start);
+    boneVertexLines.append(end);
+
+}
+void DrawBone(const NUI_SKELETON_DATA & skel, NUI_SKELETON_POSITION_INDEX joint0,
+    NUI_SKELETON_POSITION_INDEX joint1) 
+{
+    NUI_SKELETON_POSITION_TRACKING_STATE joint0State = skel.eSkeletonPositionTrackingState[joint0];
+    NUI_SKELETON_POSITION_TRACKING_STATE joint1State = skel.eSkeletonPositionTrackingState[joint1];
+
+    // If we can't find either of these joints, exit
+    if (joint0State == NUI_SKELETON_POSITION_NOT_TRACKED || joint1State == NUI_SKELETON_POSITION_NOT_TRACKED)
+    {
+        return;
+    }
+
+    // Don't draw if both points are inferred
+    if (joint0State == NUI_SKELETON_POSITION_INFERRED && joint1State == NUI_SKELETON_POSITION_INFERRED)
+    {
+        return;
+    }
+    // Assume all bones are inferred unless BOTH joints are tracked
+    if (joint0State == NUI_SKELETON_POSITION_TRACKED && joint1State == NUI_SKELETON_POSITION_TRACKED)
+    {
+        addBoneLine(m_points[joint0], m_points[joint1], sf::Color::Green, g_TrackedBoneThickness);
+    }
+    else
+    {
+        addBoneLine(m_points[joint0], m_points[joint1], sf::Color::Cyan, g_InferredBoneThickness);
+    }
+}
+void DrawSkeleton() {
+    for (int i = 0; i < NUI_SKELETON_POSITION_COUNT; ++i) {
+        m_points[i] = SkeletonToScreen(skeletonPosition[i], width, height);
+    }
+    // Render Torso
+    DrawBone(skel, NUI_SKELETON_POSITION_HEAD, NUI_SKELETON_POSITION_SHOULDER_CENTER);
+    DrawBone(skel, NUI_SKELETON_POSITION_SHOULDER_CENTER, NUI_SKELETON_POSITION_SHOULDER_LEFT);
+    DrawBone(skel, NUI_SKELETON_POSITION_SHOULDER_CENTER, NUI_SKELETON_POSITION_SHOULDER_RIGHT);
+    DrawBone(skel, NUI_SKELETON_POSITION_SHOULDER_CENTER, NUI_SKELETON_POSITION_SPINE);
+    DrawBone(skel, NUI_SKELETON_POSITION_SPINE, NUI_SKELETON_POSITION_HIP_CENTER);
+    DrawBone(skel, NUI_SKELETON_POSITION_HIP_CENTER, NUI_SKELETON_POSITION_HIP_LEFT);
+    DrawBone(skel, NUI_SKELETON_POSITION_HIP_CENTER, NUI_SKELETON_POSITION_HIP_RIGHT);
+
+    // Left Arm
+    DrawBone(skel, NUI_SKELETON_POSITION_SHOULDER_LEFT, NUI_SKELETON_POSITION_ELBOW_LEFT);
+    DrawBone(skel, NUI_SKELETON_POSITION_ELBOW_LEFT, NUI_SKELETON_POSITION_WRIST_LEFT);
+    DrawBone(skel, NUI_SKELETON_POSITION_WRIST_LEFT, NUI_SKELETON_POSITION_HAND_LEFT);
+
+    // Right Arm
+    DrawBone(skel, NUI_SKELETON_POSITION_SHOULDER_RIGHT, NUI_SKELETON_POSITION_ELBOW_RIGHT);
+    DrawBone(skel, NUI_SKELETON_POSITION_ELBOW_RIGHT, NUI_SKELETON_POSITION_WRIST_RIGHT);
+    DrawBone(skel, NUI_SKELETON_POSITION_WRIST_RIGHT, NUI_SKELETON_POSITION_HAND_RIGHT);
+
+    // Left Leg
+    DrawBone(skel, NUI_SKELETON_POSITION_HIP_LEFT, NUI_SKELETON_POSITION_KNEE_LEFT);
+    DrawBone(skel, NUI_SKELETON_POSITION_KNEE_LEFT, NUI_SKELETON_POSITION_ANKLE_LEFT);
+    DrawBone(skel, NUI_SKELETON_POSITION_ANKLE_LEFT, NUI_SKELETON_POSITION_FOOT_LEFT);
+
+    // Right Leg
+    DrawBone(skel, NUI_SKELETON_POSITION_HIP_RIGHT, NUI_SKELETON_POSITION_KNEE_RIGHT);
+    DrawBone(skel, NUI_SKELETON_POSITION_KNEE_RIGHT, NUI_SKELETON_POSITION_ANKLE_RIGHT);
+    DrawBone(skel, NUI_SKELETON_POSITION_ANKLE_RIGHT, NUI_SKELETON_POSITION_FOOT_RIGHT);
+
+    /*
+    // Draw the joints in a different color
+    for (i = 0; i < NUI_SKELETON_POSITION_COUNT; ++i)
+    {
+        D2D1_ELLIPSE ellipse = D2D1::Ellipse(m_Points[i], g_JointThickness, g_JointThickness);
+
+        if (skel.eSkeletonPositionTrackingState[i] == NUI_SKELETON_POSITION_INFERRED)
+        {
+            m_pRenderTarget->DrawEllipse(ellipse, m_pBrushJointInferred);
+        }
+        else if (skel.eSkeletonPositionTrackingState[i] == NUI_SKELETON_POSITION_TRACKED)
+        {
+            m_pRenderTarget->DrawEllipse(ellipse, m_pBrushJointTracked);
+        }
+    }
+    */
 }
 
 
@@ -167,7 +313,24 @@ int main()
 
         //Render Here
         //Prepare for drawing
-        drawKinectData();
+        drawKinectImageData();
+        
+        window.pushGLStates();
+        window.resetGLStates();
+        /*
+        for (int i = 0; i < NUI_SKELETON_POSITION_COUNT; i++) {
+            std::cout << '[' << i << ']'; 
+            std::cout << "x = " << skeletonPosition[i].x;
+            std::cout << "y = " << skeletonPosition[i].y;
+            std::cout << "z = " << skeletonPosition[i].z;
+            std::cout << "w = " << skeletonPosition[i].w << '\n';
+        }   // It IS detecting skeleton, but draw isn't working...
+        */
+        
+        
+
+        window.draw(boneVertexLines);
+        window.popGLStates(); //Must have this after lines for it to draw both line and kinect camera
         //End Frame
         window.display();
         
