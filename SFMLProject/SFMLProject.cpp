@@ -250,19 +250,10 @@ void DrawBone(const NUI_SKELETON_DATA & skel, NUI_SKELETON_POSITION_INDEX joint0
 void DrawLine(sf::Vector2f start, sf::Vector2f end, sf::Color colour, float lineThickness, sf::RenderWindow &window) {
     window.pushGLStates();
     
-    //sf::VertexArray VertexLines(sf::Lines);
-
     sfLine line(start, end);
     line.setColor(colour);
     window.draw(line);
-    /*
-    VertexLines.append(start);
-    VertexLines[0].color = colour;
-    VertexLines.append(end);
-    VertexLines[1].color = colour;
-
-    window.draw(VertexLines);
-    */
+    
     window.popGLStates();
 }
 
