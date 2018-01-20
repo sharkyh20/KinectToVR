@@ -18,8 +18,12 @@
 #include <NuiSensor.h>
 
 //Window Variables
-int width = 640;
-int height = 480;
+const int width = 640;
+const int height = 480;
+
+//OpenGL Variables
+GLuint textureId;              // ID of the texture to contain Kinect RGB Data
+GLubyte data[width*height * 4];  // BGRA array containing the texture data
 
 //Kinect Variables
 HANDLE rgbStream;               // The identifier of the Kinect's RGB Camera
@@ -45,7 +49,7 @@ bool initKinect() {
     return sensor;
 }
 
-void acquireKinectFrame(NUI_IMAGE_FRAME &imageFrame);
+bool acquireKinectFrame(NUI_IMAGE_FRAME &imageFrame);
 INuiFrameTexture* lockKinectPixelData(NUI_IMAGE_FRAME &imageFrame, NUI_LOCKED_RECT &LockedRect);
 void copyKinectPixelData(NUI_LOCKED_RECT &LockedRect, GLubyte* dest);
 void unlockKinectPixelData(INuiFrameTexture* texture);
@@ -54,26 +58,25 @@ void releaseKinectFrame(NUI_IMAGE_FRAME &imageFrame);
 
 
 void getKinectData(GLubyte* dest) {
-    NUI_IMAGE_FRAME imageFrame;
-    NUI_LOCKED_RECT LockedRect;
-    acquireKinectFrame(imageFrame);
-
+    NUI_IMAGE_FRAME imageFrame{};
+    NUI_LOCKED_RECT LockedRect{};
+    if (acquireKinectFrame(imageFrame))
+        return;
     INuiFrameTexture* texture = lockKinectPixelData(imageFrame, LockedRect);
     copyKinectPixelData(LockedRect, dest);
     unlockKinectPixelData(texture);
 
     releaseKinectFrame(imageFrame);
 }
-void acquireKinectFrame(NUI_IMAGE_FRAME &imageFrame)
+bool acquireKinectFrame(NUI_IMAGE_FRAME &imageFrame)
 {
-    if (sensor->NuiImageStreamGetNextFrame(rgbStream, 0, &imageFrame) < 0)
-        return;
+    return (sensor->NuiImageStreamGetNextFrame(rgbStream, 0, &imageFrame) < 0);
 }
 INuiFrameTexture* lockKinectPixelData(NUI_IMAGE_FRAME &imageFrame, NUI_LOCKED_RECT &LockedRect)
 {
     INuiFrameTexture* texture = imageFrame.pFrameTexture;
     texture->LockRect(0, &LockedRect, NULL, 0);
-    return texture;
+    return imageFrame.pFrameTexture;
 }
 void copyKinectPixelData(NUI_LOCKED_RECT &LockedRect, GLubyte* dest)
 {
@@ -96,20 +99,60 @@ void releaseKinectFrame(NUI_IMAGE_FRAME &imageFrame)
     sensor->NuiImageStreamReleaseFrame(rgbStream, &imageFrame);
 }
 
+void drawKinectData() {
+    
+    glBindTexture(GL_TEXTURE_2D, textureId);
+    getKinectData(data);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, (GLvoid*)data);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    glBegin(GL_QUADS);
+        glTexCoord2f(0.0f, 0.0f);
+        glVertex3f(0, 0, 0);
+        glTexCoord2f(1.0f, 0.0f);
+        glVertex3f(width, 0, 0);
+        glTexCoord2f(1.0f, 1.0f);
+        glVertex3f(width, height, 0.0f);
+        glTexCoord2f(0.0f, 1.0f);
+        glVertex3f(0, height, 0.0f);
+    
+    glEnd();
+    
+}
 
 
 int main()
 {
     sf::RenderWindow window(sf::VideoMode(width, height), "SFML WORKS");
-    
+    if (!initKinect()) return 1;
+
+    // Initialize textures
+    glGenTextures(1, &textureId);
+    glBindTexture(GL_TEXTURE_2D, textureId);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height,
+        0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, (GLvoid*)data);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    // OpenGL setup
+    glClearColor(0, 0, 0, 0);
+    glClearDepth(1.0f);
+    glEnable(GL_TEXTURE_2D);
+
+    // Camera setup
+    glViewport(0, 0, width, height);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0, width, height, 0, 1, -1);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+
+
     while (window.isOpen()) 
     {
 
-        sf::RectangleShape rect(sf::Vector2f(0.0, 0.0));
-        rect.setFillColor(sf::Color::Green);
-        rect.setSize(sf::Vector2f(100, 100));
-        
-        
         sf::Event event;
         while (window.pollEvent(event)) 
         {
@@ -123,10 +166,8 @@ int main()
         window.clear();
 
         //Render Here
-        window.draw(rect);
-      
-        
-
+        //Prepare for drawing
+        drawKinectData();
         //End Frame
         window.display();
         
