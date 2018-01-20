@@ -2,6 +2,7 @@
 //
 #include "stdafx.h"
 #include "Kinect.h"
+#include "sfLine.h"
 //Window Variables
 const int width = 640;
 const int height = 480;
@@ -248,15 +249,20 @@ void DrawBone(const NUI_SKELETON_DATA & skel, NUI_SKELETON_POSITION_INDEX joint0
 }
 void DrawLine(sf::Vector2f start, sf::Vector2f end, sf::Color colour, float lineThickness, sf::RenderWindow &window) {
     window.pushGLStates();
-    window.resetGLStates();
-    sf::VertexArray VertexLines(sf::Lines);
     
+    //sf::VertexArray VertexLines(sf::Lines);
+
+    sfLine line(start, end);
+    line.setColor(colour);
+    window.draw(line);
+    /*
     VertexLines.append(start);
     VertexLines[0].color = colour;
     VertexLines.append(end);
     VertexLines[1].color = colour;
 
     window.draw(VertexLines);
+    */
     window.popGLStates();
 }
 
@@ -306,7 +312,7 @@ int main()
       
 
         //Render Start Frame
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         window.clear();
 
         //Render Here
@@ -315,9 +321,6 @@ int main()
         
         
         processSkeleton(window);
-        window.pushGLStates();
-        
-        window.popGLStates();
         
         //End Frame
         window.display();

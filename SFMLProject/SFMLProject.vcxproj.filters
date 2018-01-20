@@ -27,6 +27,9 @@
     <ClInclude Include="Kinect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="sfLine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
