@@ -114,6 +114,11 @@ void processSkeleton(sf::RenderWindow &window) {
         }
         else if (NUI_SKELETON_POSITION_ONLY == trackingState) {
             //ONLY CENTER POINT TO DRAW
+            sf::CircleShape circle;
+            circle.setRadius(g_JointThickness);
+            circle.setPosition(SkeletonToScreen(skeletonFrame.SkeletonData[i].Position, width, height));
+            circle.setFillColor(sf::Color::Yellow);
+            window.draw(circle);
         }
     }
 }
@@ -256,6 +261,9 @@ void DrawLine(sf::Vector2f start, sf::Vector2f end, sf::Color colour, float line
     sfLine line(start, end);
     line.setColor(colour);
     window.draw(line);
+    std::cout << "Skeleton Drawn!";
+    std::cout << start.x << " " << start.y;
+    std::cout << end.x << " " << end.y << std::endl;
 }
 
 
@@ -277,7 +285,7 @@ int main()
     glBindTexture(GL_TEXTURE_2D, 0);
 
     // OpenGL setup
-    glClearColor(0, 0, 0, 0);
+    glClearColor(1, 0, 0, 0);
     glClearDepth(1.0f);
     glEnable(GL_TEXTURE_2D);
 
@@ -309,7 +317,7 @@ int main()
 
         //Render Here
         
-        drawKinectImageData();
+        //drawKinectImageData();
         
         window.pushGLStates();
         processSkeleton(window);
