@@ -248,7 +248,8 @@ void DrawBone(const NUI_SKELETON_DATA & skel, NUI_SKELETON_POSITION_INDEX joint0
 }
 void DrawLine(sf::Vector2f start, sf::Vector2f end, sf::Color colour, float lineThickness, sf::RenderWindow &window) {
     window.pushGLStates();
-    sf::VertexArray VertexLines{};
+    window.resetGLStates();
+    sf::VertexArray VertexLines(sf::Lines);
     
     VertexLines.append(start);
     VertexLines[0].color = colour;
@@ -305,13 +306,18 @@ int main()
       
 
         //Render Start Frame
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         window.clear();
 
         //Render Here
         
         drawKinectImageData();
-        //processSkeleton(window);
         
+        
+        processSkeleton(window);
+        window.pushGLStates();
+        
+        window.popGLStates();
         
         //End Frame
         window.display();
