@@ -70,7 +70,7 @@ INuiFrameTexture* lockKinectPixelData(NUI_IMAGE_FRAME &imageFrame, NUI_LOCKED_RE
 void copyKinectPixelData(NUI_LOCKED_RECT &LockedRect, GLubyte* dest);
 void unlockKinectPixelData(INuiFrameTexture* texture);
 void releaseKinectFrame(NUI_IMAGE_FRAME &imageFrame);
-void getSkeletalData();
+void getSkeletalData(NUI_SKELETON_FRAME &skeletonFrame);
 
 
 void getKinectData(GLubyte* dest) {
@@ -83,8 +83,8 @@ void getKinectData(GLubyte* dest) {
     unlockKinectPixelData(texture);
 
     releaseKinectFrame(imageFrame);
-    getSkeletalData();
 }
+
 bool acquireKinectFrame(NUI_IMAGE_FRAME &imageFrame)
 {
     return (sensor->NuiImageStreamGetNextFrame(rgbStream, 0, &imageFrame) < 0);
@@ -116,8 +116,29 @@ void releaseKinectFrame(NUI_IMAGE_FRAME &imageFrame)
     sensor->NuiImageStreamReleaseFrame(rgbStream, &imageFrame);
 }
 
-void getSkeletalData() {
+sf::Vector2f SkeletonToScreen(Vector4 skeletonPoint, int _width, int _height);
+void addBoneLine(sf::Vector2f start, sf::Vector2f end, sf::Color colour, float lineThickness);
+void DrawBone(const NUI_SKELETON_DATA & skel, NUI_SKELETON_POSITION_INDEX joint0,
+    NUI_SKELETON_POSITION_INDEX joint1);
+void DrawSkeleton(const NUI_SKELETON_DATA & skel);
+
+void processSkeleton() {
     NUI_SKELETON_FRAME skeletonFrame = { 0 };
+    getSkeletalData(skeletonFrame);
+    for (int i = 0; i < NUI_SKELETON_COUNT; ++i) {
+        NUI_SKELETON_TRACKING_STATE trackingState = skeletonFrame.SkeletonData[i].eTrackingState;
+
+        if (NUI_SKELETON_TRACKED == trackingState)
+        {
+            // We're tracking the skeleton, draw it
+            DrawSkeleton(skeletonFrame.SkeletonData[i]);
+        }
+        else if (NUI_SKELETON_POSITION_ONLY == trackingState) {
+            //ONLY CENTER POINT TO DRAW
+        }
+    }
+}
+void getSkeletalData(NUI_SKELETON_FRAME &skeletonFrame) {
     if (sensor->NuiSkeletonGetNextFrame(0, &skeletonFrame) >= 0) {
         sensor->NuiTransformSmooth(&skeletonFrame, NULL);   //Smooths jittery tracking
         //Loop over all sensed skeletons
@@ -156,17 +177,6 @@ void drawKinectImageData() {
         glVertex3f(0, height, 0.0f);
     
     glEnd();
-}
-void drawKinectSkeletalData() {
-    //drawKinectImageData();
-    /*
-    glBindTexture(GL_TEXTURE_2D, textureId);
-    getKinectData(data);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, (GLvoid*)data);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    */
-
-
 }
 
 sf::Vector2f SkeletonToScreen(Vector4 skeletonPoint, int _width, int _height) {
@@ -215,7 +225,7 @@ void DrawBone(const NUI_SKELETON_DATA & skel, NUI_SKELETON_POSITION_INDEX joint0
         addBoneLine(m_points[joint0], m_points[joint1], sf::Color::Cyan, g_InferredBoneThickness);
     }
 }
-void DrawSkeleton() {
+void DrawSkeleton(const NUI_SKELETON_DATA & skel) {
     for (int i = 0; i < NUI_SKELETON_POSITION_COUNT; ++i) {
         m_points[i] = SkeletonToScreen(skeletonPosition[i], width, height);
     }
@@ -314,7 +324,8 @@ int main()
         //Render Here
         //Prepare for drawing
         drawKinectImageData();
-        
+        processSkeleton();
+
         window.pushGLStates();
         window.resetGLStates();
         /*
