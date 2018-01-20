@@ -18,7 +18,8 @@ INuiSensor* sensor;             // The Kinect Sensor
 Vector4 skeletonPosition[NUI_SKELETON_POSITION_COUNT];  //Body Tracking
 sf::Vector2f m_points[NUI_SKELETON_POSITION_COUNT]; // Converted to screen space
 float g_TrackedBoneThickness = 3.0f;
-float g_InferredBoneThickness = 2.0f;
+float g_InferredBoneThickness = 1.5f;
+float g_JointThickness = 4.0f;
 
 
 bool initKinect() {
@@ -190,22 +191,26 @@ void DrawSkeleton(const NUI_SKELETON_DATA & skel, sf::RenderWindow &window) {
     DrawBone(skel, NUI_SKELETON_POSITION_KNEE_RIGHT, NUI_SKELETON_POSITION_ANKLE_RIGHT, window);
     DrawBone(skel, NUI_SKELETON_POSITION_ANKLE_RIGHT, NUI_SKELETON_POSITION_FOOT_RIGHT, window);
 
-    /*
+    
     // Draw the joints in a different color
-    for (i = 0; i < NUI_SKELETON_POSITION_COUNT; ++i)
+    for (int i = 0; i < NUI_SKELETON_POSITION_COUNT; ++i)
     {
-    D2D1_ELLIPSE ellipse = D2D1::Ellipse(m_Points[i], g_JointThickness, g_JointThickness);
+        sf::CircleShape circle;
+        circle.setRadius(g_JointThickness);
+        circle.setPosition(m_points[i]);
 
-    if (skel.eSkeletonPositionTrackingState[i] == NUI_SKELETON_POSITION_INFERRED)
-    {
-    m_pRenderTarget->DrawEllipse(ellipse, m_pBrushJointInferred);
+        if (skel.eSkeletonPositionTrackingState[i] == NUI_SKELETON_POSITION_INFERRED)
+        {
+            circle.setFillColor(sf::Color::Red);
+            window.draw(circle);
+        }
+        else if (skel.eSkeletonPositionTrackingState[i] == NUI_SKELETON_POSITION_TRACKED)
+        {
+            circle.setFillColor(sf::Color::Yellow);
+            window.draw(circle);
+        }
     }
-    else if (skel.eSkeletonPositionTrackingState[i] == NUI_SKELETON_POSITION_TRACKED)
-    {
-    m_pRenderTarget->DrawEllipse(ellipse, m_pBrushJointTracked);
-    }
-    }
-    */
+    
 }
 sf::Vector2f SkeletonToScreen(Vector4 skeletonPoint, int _width, int _height) {
     LONG x, y;
@@ -247,14 +252,10 @@ void DrawBone(const NUI_SKELETON_DATA & skel, NUI_SKELETON_POSITION_INDEX joint0
         DrawLine(m_points[joint0], m_points[joint1], sf::Color::Cyan, g_InferredBoneThickness, window);
     }
 }
-void DrawLine(sf::Vector2f start, sf::Vector2f end, sf::Color colour, float lineThickness, sf::RenderWindow &window) {
-    window.pushGLStates();
-    
+void DrawLine(sf::Vector2f start, sf::Vector2f end, sf::Color colour, float lineThickness, sf::RenderWindow &window) {    
     sfLine line(start, end);
     line.setColor(colour);
     window.draw(line);
-    
-    window.popGLStates();
 }
 
 
@@ -310,9 +311,9 @@ int main()
         
         drawKinectImageData();
         
-        
+        window.pushGLStates();
         processSkeleton(window);
-        
+        window.popGLStates();
         //End Frame
         window.display();
         
