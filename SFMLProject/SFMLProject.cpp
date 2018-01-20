@@ -52,7 +52,25 @@ bool initKinect() {
 }
 
 
+void drawKinectImageData() {
+    getKinectData(data);
 
+    glBindTexture(GL_TEXTURE_2D, textureId);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, (GLvoid*)data);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glBegin(GL_QUADS);
+    glTexCoord2f(0.0f, 0.0f);
+    glVertex3f(0, 0, 0);
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex3f(width, 0, 0);
+    glTexCoord2f(1.0f, 1.0f);
+    glVertex3f(width, height, 0.0f);
+    glTexCoord2f(0.0f, 1.0f);
+    glVertex3f(0, height, 0.0f);
+
+    glEnd();
+}
 
 void getKinectData(GLubyte* dest) {
     NUI_IMAGE_FRAME imageFrame{};
@@ -113,6 +131,7 @@ void processSkeleton(sf::RenderWindow &window) {
             DrawSkeleton(skeletonFrame.SkeletonData[i], window);
         }
         else if (NUI_SKELETON_POSITION_ONLY == trackingState) {
+            std::cout << "ONLY POSITION TRACKED" << '\n';
             //ONLY CENTER POINT TO DRAW
             sf::CircleShape circle;
             circle.setRadius(g_JointThickness);
@@ -142,27 +161,6 @@ void getSkeletalData(NUI_SKELETON_FRAME &skeletonFrame) {
         }
     }
 }
-
-void drawKinectImageData() {
-    getKinectData(data);
-
-    glBindTexture(GL_TEXTURE_2D, textureId);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, (GLvoid*)data);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
-    glBegin(GL_QUADS);
-        glTexCoord2f(0.0f, 0.0f);
-        glVertex3f(0, 0, 0);
-        glTexCoord2f(1.0f, 0.0f);
-        glVertex3f(width, 0, 0);
-        glTexCoord2f(1.0f, 1.0f);
-        glVertex3f(width, height, 0.0f);
-        glTexCoord2f(0.0f, 1.0f);
-        glVertex3f(0, height, 0.0f);
-    
-    glEnd();
-}
-
 void DrawSkeleton(const NUI_SKELETON_DATA & skel, sf::RenderWindow &window) {
     for (int i = 0; i < NUI_SKELETON_POSITION_COUNT; ++i) {
         m_points[i] = SkeletonToScreen(skeletonPosition[i], width, height);
@@ -261,20 +259,15 @@ void DrawLine(sf::Vector2f start, sf::Vector2f end, sf::Color colour, float line
     sfLine line(start, end);
     line.setColor(colour);
     window.draw(line);
+    /*  //Debug code
     std::cout << "Skeleton Drawn!";
     std::cout << start.x << " " << start.y;
     std::cout << end.x << " " << end.y << std::endl;
+    */
 }
 
 
-
-
-
-int main()
-{
-    sf::RenderWindow window(sf::VideoMode(width, height), "SFML WORKS");
-    if (!initKinect()) return 1;
-
+void initOpenGL() {
     // Initialize textures
     glGenTextures(1, &textureId);
     glBindTexture(GL_TEXTURE_2D, textureId);
@@ -296,6 +289,15 @@ int main()
     glOrtho(0, width, height, 0, 1, -1);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+}
+
+
+int main()
+{
+    sf::RenderWindow window(sf::VideoMode(width, height), "SFML WORKS");
+    if (!initKinect()) return 1;
+
+    initOpenGL();
 
 
 
