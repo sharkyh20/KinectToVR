@@ -14,6 +14,7 @@
 #include <ole2.h>
 
 #include <NuiApi.h>
+
 #include <NuiImageCamera.h>
 #include <NuiSensor.h>
 
@@ -45,22 +46,38 @@ bool initKinect() {
     return sensor;
 }
 
-void acquireKinectFrame();
-void lockKinectPixelData();
-void copyKinectPixelData();
-void unlockKinectPixelData();
-void releaseKinectFrame();
+void acquireKinectFrame(NUI_IMAGE_FRAME &imageFrame);
+INuiFrameTexture* lockKinectPixelData(NUI_IMAGE_FRAME &imageFrame, NUI_LOCKED_RECT &LockedRect);
+void copyKinectPixelData(NUI_LOCKED_RECT &LockedRect, GLubyte* dest);
+void unlockKinectPixelData(INuiFrameTexture* texture);
+void releaseKinectFrame(NUI_IMAGE_FRAME &imageFrame);
 
 
 
 void getKinectData(GLubyte* dest) {
     NUI_IMAGE_FRAME imageFrame;
     NUI_LOCKED_RECT LockedRect;
+    acquireKinectFrame(imageFrame);
+
+    INuiFrameTexture* texture = lockKinectPixelData(imageFrame, LockedRect);
+    copyKinectPixelData(LockedRect, dest);
+    unlockKinectPixelData(texture);
+
+    releaseKinectFrame(imageFrame);
+}
+void acquireKinectFrame(NUI_IMAGE_FRAME &imageFrame)
+{
     if (sensor->NuiImageStreamGetNextFrame(rgbStream, 0, &imageFrame) < 0)
         return;
+}
+INuiFrameTexture* lockKinectPixelData(NUI_IMAGE_FRAME &imageFrame, NUI_LOCKED_RECT &LockedRect)
+{
     INuiFrameTexture* texture = imageFrame.pFrameTexture;
     texture->LockRect(0, &LockedRect, NULL, 0);
-    
+    return texture;
+}
+void copyKinectPixelData(NUI_LOCKED_RECT &LockedRect, GLubyte* dest)
+{
     int bytesInFrameRow = LockedRect.Pitch;
     if (bytesInFrameRow != 0) {
         const BYTE* curr = (const BYTE*)LockedRect.pBits;
@@ -70,10 +87,16 @@ void getKinectData(GLubyte* dest) {
             *dest++ = *curr++;
         }
     }
-
+}
+void unlockKinectPixelData(INuiFrameTexture* texture)
+{
     texture->UnlockRect(0);
+}
+void releaseKinectFrame(NUI_IMAGE_FRAME &imageFrame)
+{
     sensor->NuiImageStreamReleaseFrame(rgbStream, &imageFrame);
 }
+
 
 
 int main()
@@ -86,6 +109,7 @@ int main()
         sf::RectangleShape rect(sf::Vector2f(0.0, 0.0));
         rect.setFillColor(sf::Color::Green);
         rect.setSize(sf::Vector2f(100, 100));
+        
         
         sf::Event event;
         while (window.pollEvent(event)) 
