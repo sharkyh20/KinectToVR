@@ -14,6 +14,10 @@
 #include <NuiApi.h>
 #include <NuiImageCamera.h>
 #include <NuiSensor.h>
+
+#include <openvr.h>
+#include <vrinputemulator.h>
+
 bool acquireKinectFrame(NUI_IMAGE_FRAME &imageFrame);
 INuiFrameTexture* lockKinectPixelData(NUI_IMAGE_FRAME &imageFrame, NUI_LOCKED_RECT &LockedRect);
 void copyKinectPixelData(NUI_LOCKED_RECT &LockedRect, GLubyte* dest);
@@ -23,7 +27,7 @@ void getSkeletalData(NUI_SKELETON_FRAME &skeletonFrame);
 void drawKinectImageData();
 void getKinectData(GLubyte* dest);
 
-void processSkeleton(sf::RenderWindow &window);
+void processSkeleton(vrinputemulator::VRInputEmulator &emulator, sf::RenderWindow &window);
 void DrawSkeleton(const NUI_SKELETON_DATA & skel, sf::RenderWindow &window);
 void DrawBone(const NUI_SKELETON_DATA & skel, NUI_SKELETON_POSITION_INDEX joint0,
     NUI_SKELETON_POSITION_INDEX joint1, sf::RenderWindow &window);

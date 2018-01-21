@@ -105,12 +105,12 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(KINECTSDK10_DIR)\inc;$(IncludePath);G:\Software\Programming Libraries\C++\SFML-2.4.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(KINECTSDK10_DIR)\inc;$(IncludePath);G:\Software\Programming Libraries\C++\SFML-2.4.2\include;$(ProjectDir)\InputEmulator\;$(ProjectDir)\openvr\headers;G:\git_workspace\OpenVR-InputEmulator-1.3\third-party\boost_1_63_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalLibraryDirectories>$(KINECTSDK10_DIR)\lib\amd64;G:\Software\Programming Libraries\C++\SFML-2.4.2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Debug\sfml-audio-d.lib;Debug\sfml-graphics-d.lib;Debug\sfml-window-d.lib;Debug\sfml-system-d.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;Kinect10.lib;OpenGL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)\openvr;$(KINECTSDK10_DIR)\lib\amd64;G:\Software\Programming Libraries\C++\SFML-2.4.2\lib;$(ProjectDir)\InputEmulator;G:\git_workspace\OpenVR-InputEmulator-1.3\third-party\boost_1_63_0\lib64-msvc-14.0;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Debug\sfml-audio-d.lib;Debug\sfml-graphics-d.lib;Debug\sfml-window-d.lib;Debug\sfml-system-d.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;Kinect10.lib;OpenGL32.lib;libvrinputemulator.lib;openvr_api64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy /Y "$(SolutionDir)resources\dlls\debug\*.dll" "$(TargetDir)"</Command>

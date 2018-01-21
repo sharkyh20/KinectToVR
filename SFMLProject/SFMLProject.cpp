@@ -5,6 +5,7 @@
 #include "sfLine.h"
 #include <string>
 
+
 //Window Variables
 const int width = 640;
 const int height = 480;
@@ -22,6 +23,8 @@ float g_TrackedBoneThickness = 6.0f;
 float g_InferredBoneThickness = 1.5f;
 float g_JointThickness = 4.0f;
 
+uint32_t leftFootTracker;
+float _x = 0, _y = 0, _z = 0;
 
 bool initKinect() {
     //Get a working Kinect Sensor
@@ -118,7 +121,32 @@ void releaseKinectFrame(NUI_IMAGE_FRAME &imageFrame)
 
 
 
-void processSkeleton(sf::RenderWindow &window) {
+
+void updateKinectTracker(int i, vrinputemulator::VRInputEmulator &emulator, const uint32_t deviceID, const NUI_SKELETON_FRAME & skel, NUI_SKELETON_POSITION_INDEX joint) {
+    auto pose = emulator.getVirtualDevicePose(leftFootTracker); 
+
+    // Calculate the skeleton's position on the screen
+    // NuiTransformSkeletonToDepthImage returns coordinates in NUI_IMAGE_RESOLUTION_320x240 space
+    /*
+    NuiTransformSkeletonToDepthImage(skel.SkeletonData[i].SkeletonPositions[joint], &x, &y, &depth);
+    pose.vecPosition[0] = x;
+    pose.vecPosition[1] = y;
+    pose.vecPosition[2] = depth;
+    */
+    
+    std::cout << skel.SkeletonData[i].SkeletonPositions[joint].x << ' ' << skel.SkeletonData[i].SkeletonPositions[joint].y << ' ' << skel.SkeletonData[i].SkeletonPositions[joint].z << std::endl;
+        
+    _x = skel.SkeletonData[i].SkeletonPositions[joint].x;
+    _y = skel.SkeletonData[i].SkeletonPositions[joint].y;
+    _z = skel.SkeletonData[i].SkeletonPositions[joint].z;
+    
+    std::cout << "Copied coords:" << _x << ' ' << _y << ' ' << _z << std::endl;
+    pose.poseIsValid = true;
+    pose.result = vr::TrackingResult_Running_OK;
+    emulator.setVirtualDevicePose(leftFootTracker, pose);
+}
+
+void processSkeleton(vrinputemulator::VRInputEmulator &emulator, sf::RenderWindow &window) {
     NUI_SKELETON_FRAME skeletonFrame = { 0 };
     
     getSkeletalData(skeletonFrame);
@@ -128,6 +156,8 @@ void processSkeleton(sf::RenderWindow &window) {
     }
 
     
+
+
     for (int i = 0; i < NUI_SKELETON_COUNT; ++i) {
         NUI_SKELETON_TRACKING_STATE trackingState = skeletonFrame.SkeletonData[i].eTrackingState;
 
@@ -136,7 +166,9 @@ void processSkeleton(sf::RenderWindow &window) {
             // We're tracking the skeleton, draw it
             window.pushGLStates();
             window.resetGLStates();
+            updateKinectTracker(i, emulator, leftFootTracker, skeletonFrame, NUI_SKELETON_POSITION_FOOT_LEFT);
             DrawSkeleton(skeletonFrame.SkeletonData[i], window);
+            
             window.popGLStates();
         }
         else if (NUI_SKELETON_POSITION_ONLY == trackingState) {
@@ -297,6 +329,34 @@ int main()
     sf::RenderWindow window(sf::VideoMode(width, height), "SFML WORKS");
     if (!initKinect()) return 1;
     initOpenGL();
+    //Left Foot
+
+    vrinputemulator::VRInputEmulator inputEmulator;
+    inputEmulator.connect();
+
+    bool connected = true;
+    leftFootTracker = 0;
+    /*
+    //RESET THIS FROM A GLOBAL VARIABLE!!!!
+    leftFootTracker = inputEmulator.getVirtualDeviceCount();
+
+    inputEmulator.addVirtualDevice(vrinputemulator::VirtualDeviceType::TrackedController, std::to_string(leftFootTracker), false);
+
+    //Let openvr know there is a new device
+     inputEmulator.publishVirtualDevice(leftFootTracker);
+     //Connect device
+     auto pose = inputEmulator.getVirtualDevicePose(leftFootTracker);
+     if (pose.deviceIsConnected != connected) {
+         pose.deviceIsConnected = connected;
+         pose.poseIsValid = connected;
+         inputEmulator.setVirtualDevicePose(leftFootTracker, pose);
+     }
+     //Set device position
+     float x = 0;
+     float y = 0;
+     float z = 0;
+     
+     */
 
     while (window.isOpen()) 
     {
@@ -314,8 +374,33 @@ int main()
         //Draw
         
         drawKinectImageData();
-        processSkeleton(window);
+        processSkeleton(inputEmulator, window);
         
+        auto pose = inputEmulator.getVirtualDevicePose(leftFootTracker);
+        pose.vecPosition[0] = _x;
+        pose.vecPosition[1] = _y;
+        pose.vecPosition[2] = _z;
+        pose.poseIsValid = true;
+        pose.result = vr::TrackingResult_Running_OK;
+        inputEmulator.setVirtualDevicePose(leftFootTracker, pose);
+
+        
+        //VR STUFF ----------Placeholder
+        /* Can confirm that it is updating the tracker
+        auto pose = inputEmulator.getVirtualDevicePose(leftFootTracker);
+        /*
+        pose.vecPosition[0] = skel.SkeletonData[0].SkeletonPositions[NUI_SKELETON_POSITION_FOOT_LEFT].x;
+        pose.vecPosition[1] = skel.SkeletonData[0].SkeletonPositions[NUI_SKELETON_POSITION_FOOT_LEFT].y;
+        pose.vecPosition[2] = skel.SkeletonData[0].SkeletonPositions[NUI_SKELETON_POSITION_FOOT_LEFT].z;
+        
+        
+        pose.vecPosition[0] = -1;
+        pose.vecPosition[1] = -1;
+        pose.vecPosition[2] = -1;
+        pose.poseIsValid = true;
+        pose.result = vr::TrackingResult_Running_OK;
+        inputEmulator.setVirtualDevicePose(leftFootTracker, pose);
+        */
         //End Frame
         window.display();
         
