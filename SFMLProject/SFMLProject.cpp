@@ -3,6 +3,8 @@
 #include "stdafx.h"
 #include "Kinect.h"
 #include "sfLine.h"
+#include <string>
+
 //Window Variables
 const int width = 640;
 const int height = 480;
@@ -17,7 +19,7 @@ INuiSensor* sensor;             // The Kinect Sensor
 //Skeleton Tracking
 Vector4 skeletonPosition[NUI_SKELETON_POSITION_COUNT];  //Body Tracking
 sf::Vector2f m_points[NUI_SKELETON_POSITION_COUNT]; // Converted to screen space
-float g_TrackedBoneThickness = 3.0f;
+float g_TrackedBoneThickness = 6.0f;
 float g_InferredBoneThickness = 1.5f;
 float g_JointThickness = 4.0f;
 
@@ -31,8 +33,7 @@ bool initKinect() {
         return false;
     
     //Initialise Sensor
-    sensor->NuiInitialize(
-        NUI_INITIALIZE_FLAG_USES_DEPTH_AND_PLAYER_INDEX 
+    sensor->NuiInitialize(NUI_INITIALIZE_FLAG_USES_DEPTH_AND_PLAYER_INDEX 
         | NUI_INITIALIZE_FLAG_USES_COLOR 
         | NUI_INITIALIZE_FLAG_USES_SKELETON);
     
@@ -121,7 +122,11 @@ void releaseKinectFrame(NUI_IMAGE_FRAME &imageFrame)
 
 void processSkeleton(sf::RenderWindow &window) {
     NUI_SKELETON_FRAME skeletonFrame = { 0 };
+    
     getSkeletalData(skeletonFrame);
+    
+
+    window.pushGLStates();
     for (int i = 0; i < NUI_SKELETON_COUNT; ++i) {
         NUI_SKELETON_TRACKING_STATE trackingState = skeletonFrame.SkeletonData[i].eTrackingState;
 
@@ -129,6 +134,7 @@ void processSkeleton(sf::RenderWindow &window) {
         {
             // We're tracking the skeleton, draw it
             DrawSkeleton(skeletonFrame.SkeletonData[i], window);
+            std::cout << "Skeleton tracked and drawn\n";
         }
         else if (NUI_SKELETON_POSITION_ONLY == trackingState) {
             std::cout << "ONLY POSITION TRACKED" << '\n';
@@ -140,10 +146,13 @@ void processSkeleton(sf::RenderWindow &window) {
             window.draw(circle);
         }
     }
+    window.popGLStates();
 }
 void getSkeletalData(NUI_SKELETON_FRAME &skeletonFrame) {
     if (sensor->NuiSkeletonGetNextFrame(0, &skeletonFrame) >= 0) {
         sensor->NuiTransformSmooth(&skeletonFrame, NULL);   //Smooths jittery tracking
+        std::cout << "Got skelframe\n";
+        //POTENTIALLY UNNEEDED
         //Loop over all sensed skeletons
         for (int z = 0; z < NUI_SKELETON_COUNT; ++z) {
             const NUI_SKELETON_DATA& skeleton = skeletonFrame.SkeletonData[z];
@@ -159,11 +168,15 @@ void getSkeletalData(NUI_SKELETON_FRAME &skeletonFrame) {
                 return; //Only take the data for one skeleton
             }
         }
+        
     }
+    return;
+    std::cout << "Skeleton Frame Failed" << '\n';
 }
 void DrawSkeleton(const NUI_SKELETON_DATA & skel, sf::RenderWindow &window) {
     for (int i = 0; i < NUI_SKELETON_POSITION_COUNT; ++i) {
-        m_points[i] = SkeletonToScreen(skeletonPosition[i], width, height);
+        m_points[i] = SkeletonToScreen(skel.SkeletonPositions[i], width, height);
+        std::cout << "m_points[" << i << "] = " << m_points[i].x << ", " << m_points[i].y << '\n';
     }
     // Render Torso
     DrawBone(skel, NUI_SKELETON_POSITION_HEAD, NUI_SKELETON_POSITION_SHOULDER_CENTER, window);
@@ -222,10 +235,11 @@ sf::Vector2f SkeletonToScreen(Vector4 skeletonPoint, int _width, int _height) {
     // Calculate the skeleton's position on the screen
     // NuiTransformSkeletonToDepthImage returns coordinates in NUI_IMAGE_RESOLUTION_320x240 space
     NuiTransformSkeletonToDepthImage(skeletonPoint, &x, &y, &depth);
-
+    
     float screenPointX = static_cast<float>(x * _width) / 320;
     float screenPointY = static_cast<float>(y * _height) / 240;
-
+    std::cout << "x = " << x << " ScreenX = " << screenPointX << " y = " << y << " ScreenY = " << screenPointY << std::endl;
+    // WHAT THE FUCK IT DOESN'T WORK UNLESS THE COUT IS THERE. !!!!!!!!!!!!!!
     return sf::Vector2f(screenPointX, screenPointY);
 }
 void DrawBone(const NUI_SKELETON_DATA & skel, NUI_SKELETON_POSITION_INDEX joint0,
@@ -252,13 +266,18 @@ void DrawBone(const NUI_SKELETON_DATA & skel, NUI_SKELETON_POSITION_INDEX joint0
     }
     else
     {
-        DrawLine(m_points[joint0], m_points[joint1], sf::Color::Cyan, g_InferredBoneThickness, window);
+        DrawLine(m_points[joint0], m_points[joint1], sf::Color::Red, g_InferredBoneThickness, window);
+        
+        std::cout << "Inferred Bone!" << '\n';
     }
 }
 void DrawLine(sf::Vector2f start, sf::Vector2f end, sf::Color colour, float lineThickness, sf::RenderWindow &window) {    
     sfLine line(start, end);
-    line.setColor(colour);
+    line.setColor(sf::Color::White);
     window.draw(line);
+
+    sfLine line2(sf::Vector2f(500, 500), sf::Vector2f(600, 300));
+    window.draw(line2);
     /*  //Debug code
     std::cout << "Skeleton Drawn!";
     std::cout << start.x << " " << start.y;
@@ -296,34 +315,26 @@ int main()
 {
     sf::RenderWindow window(sf::VideoMode(width, height), "SFML WORKS");
     if (!initKinect()) return 1;
-
     initOpenGL();
-
-
 
     while (window.isOpen()) 
     {
-
         sf::Event event;
         while (window.pollEvent(event)) 
         {
             if (event.type == sf::Event::Closed)
                 window.close();
         }
-        //Button Checks
-      
 
-        //Render Start Frame
-        //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        //Clear
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         window.clear();
 
-        //Render Here
+        //Draw
         
-        //drawKinectImageData();
-        
-        window.pushGLStates();
+        drawKinectImageData();
         processSkeleton(window);
-        window.popGLStates();
+        
         //End Frame
         window.display();
         

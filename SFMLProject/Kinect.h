@@ -24,7 +24,6 @@ void drawKinectImageData();
 void getKinectData(GLubyte* dest);
 
 void processSkeleton(sf::RenderWindow &window);
-void getSkeletalData(NUI_SKELETON_FRAME &skeletonFrame);
 void DrawSkeleton(const NUI_SKELETON_DATA & skel, sf::RenderWindow &window);
 void DrawBone(const NUI_SKELETON_DATA & skel, NUI_SKELETON_POSITION_INDEX joint0,
     NUI_SKELETON_POSITION_INDEX joint1, sf::RenderWindow &window);
