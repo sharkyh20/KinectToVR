@@ -30,7 +30,9 @@ public:
         for (int i = 0; i<4; ++i)
             vertices[i].color = c;
     }
-
+    void setThickness(float thick) {
+        thickness = thick;
+    }
 private:
     sf::Vertex vertices[4];
     float thickness;
