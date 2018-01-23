@@ -351,3 +351,4 @@ __pycache__/
 
 # End of https://www.gitignore.io/api/c++,windows,visualstudio
 CppcheckPlugin.vsix
+*.ttf
