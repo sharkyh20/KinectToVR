@@ -216,9 +216,8 @@ void zeroAllTracking(NUI_SKELETON_FRAME& skeletonFrame) {
 
         if (NUI_SKELETON_TRACKED == trackingState)
         {
-            // We're tracking the skeleton, draw it
             if (!zeroed) {
-                hmdZero = zeroHMDPosition();
+                hmdZero = getHMDPosition();
                 kinectZero = zeroKinectPosition(skeletonFrame, i);
                 setKinectToVRMultiplier(skeletonFrame, i);
                 zeroed = true;
@@ -226,7 +225,7 @@ void zeroAllTracking(NUI_SKELETON_FRAME& skeletonFrame) {
         }
     }
 }
-vr::HmdVector3_t zeroHMDPosition() {
+vr::HmdVector3_t getHMDPosition() {
     //Zeros the kinect positions to the HMD location for relative position setting
     // Use the head joint for the zero location!
 
@@ -251,9 +250,6 @@ vr::HmdVector3_t zeroHMDPosition() {
 
     vr::VR_Shutdown();
     return m_HMDposition;
-    // vr::VR_Shutdown();   //Might need this
-
-
 }
 Vector4 zeroKinectPosition(NUI_SKELETON_FRAME &skeletonFrame, int i) {
     return skeletonFrame.SkeletonData[i].SkeletonPositions[NUI_SKELETON_POSITION_HEAD];
@@ -280,13 +276,6 @@ void drawTrackedSkeletons(NUI_SKELETON_FRAME& skeletonFrame, sf::RenderWindow &w
 
         if (NUI_SKELETON_TRACKED == trackingState)
         {
-            // We're tracking the skeleton, draw it
-            if (!zeroed) {
-                hmdZero = zeroHMDPosition();
-                kinectZero = zeroKinectPosition(skeletonFrame, i);
-                setKinectToVRMultiplier(skeletonFrame, i);
-                zeroed = true;
-            }
             if (KinectSettings::isSkeletonDrawn) {
                 window.pushGLStates();
                 window.resetGLStates();
@@ -590,7 +579,7 @@ void processKeyEvents(sf::Event event) {
     case sf::Keyboard::S:
         toggle(KinectSettings::isSkeletonDrawn);
         break;
-    case sf::Keyboard::Return:
+    case sf::Keyboard::Q:
         toggle(KinectSettings::userChangingZero);
         break;
     default:
