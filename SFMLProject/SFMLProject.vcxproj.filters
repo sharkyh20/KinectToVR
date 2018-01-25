@@ -24,10 +24,10 @@
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Kinect.h">
+    <ClInclude Include="sfLine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sfLine.h">
+    <ClInclude Include="KinectToVR.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -36,6 +36,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SFMLProject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="KinectToVR.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
