@@ -25,7 +25,7 @@ void copyKinectPixelData(NUI_LOCKED_RECT &LockedRect, GLubyte* dest);
 void unlockKinectPixelData(INuiFrameTexture* texture);
 void releaseKinectFrame(NUI_IMAGE_FRAME &imageFrame);
 void getSkeletalData(NUI_SKELETON_FRAME &skeletonFrame);
-void drawKinectImageData();
+void drawKinectImageData(GLuint &textureId);
 void getKinectData(GLubyte* dest);
 
 Vector4 zeroKinectPosition(NUI_SKELETON_FRAME &skeletonFrame, int i);
@@ -37,7 +37,7 @@ void DrawBone(const NUI_SKELETON_DATA & skel, NUI_SKELETON_POSITION_INDEX joint0
 void DrawLine(sf::Vector2f start, sf::Vector2f end, sf::Color colour, float lineThickness, sf::RenderWindow &window);
 sf::Vector2f SkeletonToScreen(Vector4 skeletonPoint, int _width, int _height);
 
-void initOpenGL();
+void initOpenGL(GLuint &textureId);
 
 uint32_t initTracker(vrinputemulator::VRInputEmulator &inputEmulator, bool connected);
 void setTrackerDefaultProperties(uint32_t &deviceId);

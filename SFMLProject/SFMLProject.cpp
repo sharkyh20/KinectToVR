@@ -5,14 +5,21 @@
 #include "sfLine.h"
 #include <string>
 
+//Data in config file
+bool isKinectDrawn = true;
+bool isSkeletonDrawn = true;
+double kinectPositionModifier[3]{ -.06,0,0 };
 
-//Window Variables
-const int width = 640;
-const int height = 480;
+float g_TrackedBoneThickness = 6.0f;
+float g_InferredBoneThickness = 1.5f;
+float g_JointThickness = 4.0f;
+const int m_window_width = 640;
+const int m_window_height = 480;
+
 # define M_PI           3.14159265358979323846
 //OpenGL Variables
 GLuint textureId;              // ID of the texture to contain Kinect RGB Data
-GLubyte data[width*height * 4];  // BGRA array containing the texture data
+GLubyte data[m_window_width*m_window_height * 4];  // BGRA array containing the texture data
 
 //Kinect Variables
 HANDLE rgbStream = NULL;               // The identifier of the Kinect's RGB Camera
@@ -24,19 +31,14 @@ bool zeroed = false;
 
 vr::HmdVector3_t hmdZero; //TEMP GLOBAL
 Vector4 kinectZero; //TEMP GLOBAL
+vr::HmdVector3_t m_HMDposition;
+vr::HmdQuaternion_t m_HMDquaternion;
 
 //DEBUG VALUES
 sf::Font font;
 sf::Text text;
 
-//Data in config file
-bool isKinectDrawn = true;
-bool isSkeletonDrawn = true;
-double kinectPositionModifier[3]{-.06,0,0};
 
-float g_TrackedBoneThickness = 6.0f;
-float g_InferredBoneThickness = 1.5f;
-float g_JointThickness = 4.0f;
 
 double kinectToVRScale =  1;
 class KinectTrackedDevice {
@@ -44,10 +46,12 @@ public:
     KinectTrackedDevice(
         vrinputemulator::VRInputEmulator& inputEmulator,
         NUI_SKELETON_POSITION_INDEX j0,
-        NUI_SKELETON_POSITION_INDEX j1)
+        NUI_SKELETON_POSITION_INDEX j1,
+        bool isKinect)
         : joint0(j0),
         joint1(j1),
-        hmdRelativePosition(sf::Vector3f(0,0,0))
+        hmdRelativePosition(sf::Vector3f(0,0,0)),
+        isKinectDevice(isKinect)
     {
         deviceId = initTracker(inputEmulator, true);
     }
@@ -56,6 +60,7 @@ public:
     NUI_SKELETON_POSITION_INDEX joint0;
     NUI_SKELETON_POSITION_INDEX joint1;
     sf::Vector3f hmdRelativePosition;
+    bool isKinectDevice;
 };
 
 
@@ -92,18 +97,18 @@ void drawKinectImageData() {
     getKinectData(data);
 
     glBindTexture(GL_TEXTURE_2D, textureId);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, (GLvoid*)data);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_window_width, m_window_height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, (GLvoid*)data);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glBegin(GL_QUADS);
     glTexCoord2f(0.0f, 0.0f);
     glVertex3f(0, 0, 0);
     glTexCoord2f(1.0f, 0.0f);
-    glVertex3f(width, 0, 0);
+    glVertex3f(m_window_width, 0, 0);
     glTexCoord2f(1.0f, 1.0f);
-    glVertex3f(width, height, 0.0f);
+    glVertex3f(m_window_width, m_window_height, 0.0f);
     glTexCoord2f(0.0f, 1.0f);
-    glVertex3f(0, height, 0.0f);
+    glVertex3f(0, m_window_height, 0.0f);
 
     glEnd();
 }
@@ -136,7 +141,7 @@ void copyKinectPixelData(NUI_LOCKED_RECT &LockedRect, GLubyte* dest)
     int bytesInFrameRow = LockedRect.Pitch;
     if (bytesInFrameRow != 0) {
         const BYTE* curr = (const BYTE*)LockedRect.pBits;
-        const BYTE* dataEnd = curr + (width*height) * 4;
+        const BYTE* dataEnd = curr + (m_window_width*m_window_height) * 4;
 
         while (curr < dataEnd) {
             *dest++ = *curr++;
@@ -151,27 +156,105 @@ void releaseKinectFrame(NUI_IMAGE_FRAME &imageFrame)
 {
     sensor->NuiImageStreamReleaseFrame(rgbStream, &imageFrame);
 }
+void toEulerAngle(vr::HmdQuaternion_t q, double& roll, double& pitch, double& yaw)
+{
+    // roll (x-axis rotation)
+    double sinr = +2.0 * (q.w * q.x + q.y * q.z);
+    double cosr = +1.0 - 2.0 * (q.x * q.x + q.y * q.y);
+    roll = atan2(sinr, cosr);
 
-void updateKinectTracker(int i, vrinputemulator::VRInputEmulator &emulator, 
-    KinectTrackedDevice device, const NUI_SKELETON_FRAME & skel, 
-    vr::HmdVector3_t zeroPos) {
-    auto pose = emulator.getVirtualDevicePose(device.deviceId); 
-    //POSITION
-    double kRelativeX = skel.SkeletonData[i].SkeletonPositions[device.joint0].x - kinectZero.x;
-    double kRelativeY = skel.SkeletonData[i].SkeletonPositions[device.joint0].y - kinectZero.y;
-    double kRelativeZ = skel.SkeletonData[i].SkeletonPositions[device.joint0].z - kinectZero.z;
+    // pitch (y-axis rotation)
+    double sinp = +2.0 * (q.w * q.y - q.z * q.x);
+    if (fabs(sinp) >= 1)
+        pitch = copysign(M_PI / 2, sinp); // use 90 degrees if out of range
+    else
+        pitch = asin(sinp);
 
-    double rawPositionX = kinectPositionModifier[0] + hmdZero.v[0] + kRelativeX;
-    double rawPositionY = kinectPositionModifier[1] + kRelativeY;   // Does not need hmdZero to be subtracted
-    double rawPositionZ = kinectPositionModifier[2] + hmdZero.v[2] + kRelativeZ;
+    // yaw (z-axis rotation)
+    double siny = +2.0 * (q.w * q.z + q.x * q.y);
+    double cosy = +1.0 - 2.0 * (q.y * q.y + q.z * q.z);
+    yaw = atan2(siny, cosy);
+}
+void updateKinectTracker(vrinputemulator::VRInputEmulator &emulator,
+    KinectTrackedDevice device) 
+{
+    auto pose = emulator.getVirtualDevicePose(device.deviceId);
+    // The Kinect Tracker position must be rotated, as otherwise the tracker is oriented to the wrong direction
+    /*
+    double kRelativeX =  - kinectZero.x;
+    double kRelativeY =  - kinectZero.y;
+    double kRelativeZ = - kinectZero.z;
+    double rawPositionX = hmdZero.v[0] + kRelativeX;
+    double rawPositionZ =  hmdZero.v[2] + kRelativeZ;
 
     pose.vecPosition[0] = kinectToVRScale * rawPositionX;
-    pose.vecPosition[1] = kinectToVRScale * rawPositionY;
+    pose.vecPosition[1] = kinectToVRScale * kRelativeY;
     pose.vecPosition[2] = kinectToVRScale * rawPositionZ;
+    */
+    double EulerX = 0;
+    double EulerY = 0;
+    double EulerZ = 0;
+    toEulerAngle(m_HMDquaternion, EulerX, EulerY, EulerZ);
+    std::string s = "";
+    s += "hmd0 = " + std::to_string(hmdZero.v[0]) + ", " + std::to_string(hmdZero.v[1]) + ", " + std::to_string(hmdZero.v[2]) + "\n";
+    //s += "rotatedHMD = " + std::to_string(rotatedPos.v[0]) + ", " + std::to_string(rotatedPos.v[1]) + ", " + std::to_string(rotatedPos.v[2]) + "\n";
+    s += "kinect0 = " + std::to_string(kinectZero.x) + ", " + std::to_string(kinectZero.y) + ", " + std::to_string(kinectZero.z) + "\n";
+    
+    text.setString(s);
+    
+    double kRelativeX = -kinectZero.x;
+    double kRelativeY = -kinectZero.y;
+    double kRelativeZ = -kinectZero.z;
+    double rawPositionX = hmdZero.v[0] + kRelativeX;
+    double rawPositionZ = hmdZero.v[2] + kRelativeZ;
+
+    pose.vecPosition[0] = rawPositionX;
+    pose.vecPosition[1] = kinectToVRScale * kRelativeY;
+    pose.vecPosition[2] = rawPositionZ;
     
     pose.poseIsValid = true;
     pose.result = vr::TrackingResult_Running_OK;
     emulator.setVirtualDevicePose(device.deviceId, pose);
+}
+void updateKinectTrackedDevice(int i, vrinputemulator::VRInputEmulator &emulator, 
+    KinectTrackedDevice device, const NUI_SKELETON_FRAME & skel, 
+    vr::HmdVector3_t zeroPos) 
+{
+    NUI_SKELETON_POSITION_TRACKING_STATE joint0State = skel.SkeletonData[i].eSkeletonPositionTrackingState[device.joint0];
+    NUI_SKELETON_POSITION_TRACKING_STATE joint1State = skel.SkeletonData[i].eSkeletonPositionTrackingState[device.joint1];
+
+    // If we can't find either of these joints, exit
+    if (joint0State == NUI_SKELETON_POSITION_NOT_TRACKED || joint1State == NUI_SKELETON_POSITION_NOT_TRACKED)
+    {
+        return;
+    }
+
+    // Don't track if both points are inferred
+    if (joint0State == NUI_SKELETON_POSITION_INFERRED && joint1State == NUI_SKELETON_POSITION_INFERRED)
+    {
+        return;
+    }
+    else
+    {
+        auto pose = emulator.getVirtualDevicePose(device.deviceId);
+        //POSITION
+        double kRelativeX = skel.SkeletonData[i].SkeletonPositions[device.joint0].x - kinectZero.x;
+        double kRelativeY = skel.SkeletonData[i].SkeletonPositions[device.joint0].y - kinectZero.y;
+        double kRelativeZ = skel.SkeletonData[i].SkeletonPositions[device.joint0].z - kinectZero.z;
+
+        double rawPositionX = kinectPositionModifier[0] + hmdZero.v[0] + kRelativeX;
+        double rawPositionY = kinectPositionModifier[1] + kRelativeY;   // The Y axis is always up, but the other two depend on kinect orientation
+        double rawPositionZ = kinectPositionModifier[2] + hmdZero.v[2] + kRelativeZ;
+
+        pose.vecPosition[0] = kinectToVRScale * rawPositionX;
+        pose.vecPosition[1] = kinectToVRScale * rawPositionY;
+        pose.vecPosition[2] = kinectToVRScale * rawPositionZ;
+
+        pose.poseIsValid = true;
+        pose.result = vr::TrackingResult_Running_OK;
+        emulator.setVirtualDevicePose(device.deviceId, pose);
+    }
+    
 }
 void setKinectToVRMultiplier(NUI_SKELETON_FRAME & skel, int i) {
     kinectToVRScale = hmdZero.v[1]
@@ -201,7 +284,10 @@ void processSkeleton(vrinputemulator::VRInputEmulator &emulator, std::vector<Kin
             }
            
             for (KinectTrackedDevice device : trackers) {
-                updateKinectTracker(i, emulator, device, skeletonFrame, hmdZero);
+                if (!device.isKinectDevice)
+                    updateKinectTrackedDevice(i, emulator, device, skeletonFrame, hmdZero);
+                else
+                    updateKinectTracker(emulator, device);
             }
             if (drawSkeleton) {
                 window.pushGLStates();
@@ -216,7 +302,7 @@ void processSkeleton(vrinputemulator::VRInputEmulator &emulator, std::vector<Kin
             if (drawSkeleton) {
                 sf::CircleShape circle(g_JointThickness, 30);
                 circle.setRadius(g_JointThickness);
-                circle.setPosition(SkeletonToScreen(skeletonFrame.SkeletonData[i].Position, width, height));
+                circle.setPosition(SkeletonToScreen(skeletonFrame.SkeletonData[i].Position, m_window_width, m_window_height));
                 circle.setFillColor(sf::Color::Yellow);
 
                 window.pushGLStates();
@@ -270,25 +356,21 @@ vr::HmdVector3_t zeroHMDPosition() {
     vr::EVRInitError vrInitError;
     vr::VR_Init(&vrInitError, vr::EVRApplicationType::VRApplication_Scene);
 
-    vr::HmdVector3_t position;
-    vr::HmdQuaternion_t quaternion;
-
-
     vr::VRCompositor()->WaitGetPoses(devicePose, vr::k_unMaxTrackedDeviceCount, NULL, 0);
     for (uint32_t i = 0; i < vr::k_unMaxTrackedDeviceCount; i++) {
         if (devicePose[i].bPoseIsValid) {
             if (vr::VRSystem()->GetTrackedDeviceClass(i) == vr::TrackedDeviceClass_HMD) {
                 hmdPose = devicePose[i];
                 
-                position = GetPosition(hmdPose.mDeviceToAbsoluteTracking);
-                quaternion = GetRotation(hmdPose.mDeviceToAbsoluteTracking);
+                m_HMDposition = GetPosition(hmdPose.mDeviceToAbsoluteTracking);
+                m_HMDquaternion = GetRotation(hmdPose.mDeviceToAbsoluteTracking);
                 break;
             }
         }
     }
-
+    
     vr::VR_Shutdown();
-    return position;
+    return m_HMDposition;
     // vr::VR_Shutdown();   //Might need this
 
 
@@ -304,20 +386,10 @@ void getSkeletalData(NUI_SKELETON_FRAME &skeletonFrame) {
 }
 void DrawSkeleton(const NUI_SKELETON_DATA & skel, sf::RenderWindow &window) {
     for (int i = 0; i < NUI_SKELETON_POSITION_COUNT; ++i) {
-        m_points[i] = SkeletonToScreen(skel.SkeletonPositions[i], width, height);
+        m_points[i] = SkeletonToScreen(skel.SkeletonPositions[i], m_window_width, m_window_height);
         std::cerr << "m_points[" << i << "] = " << m_points[i].x << ", " << m_points[i].y << std::endl;
         // Same with the other cerr, without this, the skeleton flickers
     }
-    /*
-    //DEBUG
-    std::string s = "";
-    s += std::to_string(skel.SkeletonPositions[NUI_SKELETON_POSITION_HEAD].x) + ", ";
-    s += std::to_string(skel.SkeletonPositions[NUI_SKELETON_POSITION_HEAD].y) + ", ";
-    s += std::to_string(skel.SkeletonPositions[NUI_SKELETON_POSITION_HEAD].z) + ", ";
-    s += std::to_string(skel.SkeletonPositions[NUI_SKELETON_POSITION_HEAD].w);
-
-    text.setString(s);
-    */
     // Render Torso
     DrawBone(skel, NUI_SKELETON_POSITION_HEAD, NUI_SKELETON_POSITION_SHOULDER_CENTER, window);
     DrawBone(skel, NUI_SKELETON_POSITION_SHOULDER_CENTER, NUI_SKELETON_POSITION_SHOULDER_LEFT, window);
@@ -423,7 +495,7 @@ void initOpenGL() {
     glBindTexture(GL_TEXTURE_2D, textureId);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height,
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_window_width, m_window_height,
         0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, (GLvoid*)data);
     glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -433,10 +505,10 @@ void initOpenGL() {
     glEnable(GL_TEXTURE_2D);
 
     // Camera setup
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, m_window_width, m_window_height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0, width, height, 0, 1, -1);
+    glOrtho(0, m_window_width, m_window_height, 0, 1, -1);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 }
@@ -512,6 +584,10 @@ uint32_t initTracker( vrinputemulator::VRInputEmulator &inputEmulator, bool conn
         inputEmulator.setVirtualDevicePose(deviceId, pose);
     }
     return deviceId;
+}
+void setKinectTrackerProperties(uint32_t deviceId) {
+    setDeviceProperty(deviceId, 1003, "string", "arrow");
+    setDeviceProperty(deviceId, 1029, "int32", "4");
 }
 void setTrackerDefaultProperties(uint32_t &deviceId) {
     setDeviceProperty(deviceId, 1000, "string", "lighthouse");
@@ -590,10 +666,10 @@ void processKeyEvents(sf::Event event) {
 
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode(width, height), "SFML WORKS");
-    
+    sf::RenderWindow window(sf::VideoMode(m_window_width, m_window_height), "SFML WORKS");
+    sf::Clock clock;
     // Global Debug Font
-    /*
+    
     font.loadFromFile("arial.ttf");
     text.setFont(font);
     text.setString("");
@@ -601,7 +677,7 @@ int main()
     text.setFillColor(sf::Color::Red);
     
     window.draw(text);
-    */
+    
     if (!initKinect()) return 1;
     initOpenGL();
     //Left Foot
@@ -609,13 +685,18 @@ int main()
     vrinputemulator::VRInputEmulator inputEmulator;
     inputEmulator.connect();
 
-    KinectTrackedDevice leftFootTracker(inputEmulator, NUI_SKELETON_POSITION_ANKLE_LEFT, NUI_SKELETON_POSITION_FOOT_LEFT);
-    KinectTrackedDevice rightFootTracker(inputEmulator, NUI_SKELETON_POSITION_ANKLE_RIGHT, NUI_SKELETON_POSITION_FOOT_RIGHT);
-    KinectTrackedDevice hipTracker(inputEmulator, NUI_SKELETON_POSITION_HIP_CENTER, NUI_SKELETON_POSITION_SPINE);
+    KinectTrackedDevice leftFootTracker(inputEmulator, NUI_SKELETON_POSITION_ANKLE_LEFT, NUI_SKELETON_POSITION_FOOT_LEFT, false);
+    KinectTrackedDevice rightFootTracker(inputEmulator, NUI_SKELETON_POSITION_ANKLE_RIGHT, NUI_SKELETON_POSITION_FOOT_RIGHT, false);
+    KinectTrackedDevice hipTracker(inputEmulator, NUI_SKELETON_POSITION_HIP_CENTER, NUI_SKELETON_POSITION_SPINE, false);
+    
+    //KinectTrackedDevice kinectTrackerRef(inputEmulator, NUI_SKELETON_POSITION_HEAD, NUI_SKELETON_POSITION_HEAD, true);
+    //setKinectTrackerProperties(kinectTrackerRef.deviceId);
+
     std::vector<KinectTrackedDevice> v_trackers{};
     v_trackers.push_back(leftFootTracker);
     v_trackers.push_back(rightFootTracker);
     v_trackers.push_back(hipTracker);
+    //v_trackers.push_back(kinectTrackerRef);
 
     while (window.isOpen()) 
     {
@@ -630,24 +711,22 @@ int main()
         }
 
         //Clear
-        //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         window.clear();
-
+        
         //Draw
+        
         if (isKinectDrawn)
             drawKinectImageData();
         processSkeleton(inputEmulator, v_trackers, window, isSkeletonDrawn);
-        
-        /*
+       
         //Draw debug font
         window.pushGLStates();
         window.resetGLStates();
         window.draw(text);
         window.popGLStates();
-        */
+        
         //End Frame
         window.display();
-        
     }
     destroyTrackers(inputEmulator, v_trackers);
     return 0;
