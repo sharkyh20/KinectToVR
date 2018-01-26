@@ -94,9 +94,13 @@ int main()
             
         }
         else if (KinectSettings::userChangingZero) {
+            if (leftController.GetTouch(vr::EVRButtonId::k_EButton_SteamVR_Touchpad)) { //works
+                    sf::Vector2f axis = leftController.GetControllerAxisValue(vr::EVRButtonId::k_EButton_SteamVR_Touchpad); //works
                     KinectSettings::trackedPositionOffset[0] += deltaScaled(1.0, deltaT) * axis.x;
                     KinectSettings::trackedPositionOffset[2] += deltaScaled(1.0, deltaT) * axis.y;
                 }
+            if (rightController.GetTouch(vr::EVRButtonId::k_EButton_SteamVR_Touchpad)) {
+                sf::Vector2f axis = rightController.GetControllerAxisValue(vr::EVRButtonId::k_EButton_SteamVR_Touchpad); //works
                 KinectSettings::trackedPositionOffset[1] += deltaScaled(1.0, deltaT) * axis.y;
             }
             if (rightController.GetTrigger()){  //works
