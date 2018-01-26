@@ -2,8 +2,8 @@
 #include "KinectToVR.h"
 
 namespace KinectSettings {
-    bool isKinectDrawn = true;
-    bool isSkeletonDrawn = true;
+    bool isKinectDrawn = false;
+    bool isSkeletonDrawn = false;
 
     double trackedPositionOffset[3]{ 0,0,0 };
     bool userChangingZero = false;
@@ -210,45 +210,54 @@ void toEulerAngle(vr::HmdQuaternion_t q, double& roll, double& pitch, double& ya
     yaw = atan2(siny, cosy);
 }
 
-void zeroAllTracking(NUI_SKELETON_FRAME& skeletonFrame) {
+void zeroAllTracking(NUI_SKELETON_FRAME& skeletonFrame, vr::IVRSystem* &m_sys) {
     for (int i = 0; i < NUI_SKELETON_COUNT; ++i) {
         NUI_SKELETON_TRACKING_STATE trackingState = skeletonFrame.SkeletonData[i].eTrackingState;
 
         if (NUI_SKELETON_TRACKED == trackingState)
         {
             if (!zeroed) {
-                hmdZero = getHMDPosition();
+                hmdZero = getHMDPosition(m_sys);
                 kinectZero = zeroKinectPosition(skeletonFrame, i);
                 setKinectToVRMultiplier(skeletonFrame, i);
                 zeroed = true;
+                break;
             }
         }
     }
 }
-vr::HmdVector3_t getHMDPosition() {
+vr::HmdVector3_t getHMDPosition(vr::IVRSystem* &m_system) {
     //Zeros the kinect positions to the HMD location for relative position setting
     // Use the head joint for the zero location!
 
     vr::TrackedDevicePose_t hmdPose;
     vr::TrackedDevicePose_t devicePose[vr::k_unMaxTrackedDeviceCount];
-
+    /*
     vr::EVRInitError vrInitError;
     vr::VR_Init(&vrInitError, vr::EVRApplicationType::VRApplication_Scene);
-
+    
     vr::VRCompositor()->WaitGetPoses(devicePose, vr::k_unMaxTrackedDeviceCount, NULL, 0);
     for (uint32_t i = 0; i < vr::k_unMaxTrackedDeviceCount; i++) {
         if (devicePose[i].bPoseIsValid) {
             if (vr::VRSystem()->GetTrackedDeviceClass(i) == vr::TrackedDeviceClass_HMD) {
                 hmdPose = devicePose[i];
-
                 m_HMDposition = GetPosition(hmdPose.mDeviceToAbsoluteTracking);
                 m_HMDquaternion = GetRotation(hmdPose.mDeviceToAbsoluteTracking);
                 break;
             }
         }
     }
-
+    
     vr::VR_Shutdown();
+    */
+    m_system->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, 0, devicePose, 1);
+    if (devicePose[0].bPoseIsValid) {
+        if (vr::VRSystem()->GetTrackedDeviceClass(0) == vr::TrackedDeviceClass_HMD) {
+            hmdPose = devicePose[0];
+            m_HMDposition = GetPosition(hmdPose.mDeviceToAbsoluteTracking);
+            m_HMDquaternion = GetRotation(hmdPose.mDeviceToAbsoluteTracking);
+        }
+    }
     return m_HMDposition;
 }
 Vector4 zeroKinectPosition(NUI_SKELETON_FRAME &skeletonFrame, int i) {
@@ -310,6 +319,7 @@ void DrawSkeleton(const NUI_SKELETON_DATA & skel, sf::RenderWindow &window) {
     for (int i = 0; i < NUI_SKELETON_POSITION_COUNT; ++i) {
         m_points[i] = SkeletonToScreen(skel.SkeletonPositions[i], SFMLsettings::m_window_width, SFMLsettings::m_window_height);
         std::cerr << "m_points[" << i << "] = " << m_points[i].x << ", " << m_points[i].y << std::endl;
+        
         // Same with the other cerr, without this, the skeleton flickers
     }
     // Render Torso
@@ -373,6 +383,7 @@ sf::Vector2f SkeletonToScreen(Vector4 skeletonPoint, int _width, int _height) {
     float screenPointX = static_cast<float>(x * _width) / 320;
     float screenPointY = static_cast<float>(y * _height) / 240;
     std::cerr << "x = " << x << " ScreenX = " << screenPointX << " y = " << y << " ScreenY = " << screenPointY << std::endl;
+    
     // The skeleton constantly flickers and drops out without the cerr command...
     return sf::Vector2f(screenPointX, screenPointY);
 }

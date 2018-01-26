@@ -136,8 +136,8 @@ void updateKinectTrackedDevice(int i, vrinputemulator::VRInputEmulator &emulator
 void updateKinectTracker(vrinputemulator::VRInputEmulator &emulator, KinectTrackedDevice device);
 void toEulerAngle(vr::HmdQuaternion_t q, double& roll, double& pitch, double& yaw);
 
-void zeroAllTracking(NUI_SKELETON_FRAME& skeletonFrame);
-vr::HmdVector3_t getHMDPosition();
+void zeroAllTracking(NUI_SKELETON_FRAME& skeletonFrame, vr::IVRSystem* &m_sys);
+vr::HmdVector3_t getHMDPosition(vr::IVRSystem* &m_sys);
 Vector4 zeroKinectPosition(NUI_SKELETON_FRAME &skeletonFrame, int i);
 void setKinectToVRMultiplier(NUI_SKELETON_FRAME & skel, int i);
 

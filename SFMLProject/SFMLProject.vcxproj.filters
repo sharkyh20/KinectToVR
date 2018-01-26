@@ -30,6 +30,9 @@
     <ClInclude Include="KinectToVR.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="VRController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
