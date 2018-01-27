@@ -111,11 +111,17 @@ And then pasted into the project folder:
 ```
 (FILEPATH)\SFMLProject\SFMLProject\openvr\ -- paste the lib files and 'headers' folder here
 ```
+
+The final contents of these two folders should look like this:
+
+![Image](readmeimg/iefolder.png?raw=true)
+![Image](readmeimg/ovrfolder.png?raw=true)
+
 ## Building
 
 The project is meant to be built for 64bit computers only, so if you're using Visual Studio to compile, then near the top left of the screen change the mode to 'Release' or 'Debug', and set the 'solution platforms' to 'x64'.
 
-![Build Mode](readmeimg\buildmode.png)
+![Image](readmeimg/buildmode.png?raw=true)
 
 ### NOTE
 
