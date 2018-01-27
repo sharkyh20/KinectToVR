@@ -1,5 +1,8 @@
 # Created by https://www.gitignore.io/api/c++,windows,visualstudio
 
+# Dependencies
+SFMLProject/InputEmulator/*
+SFMLProject/openvr/*
 ### C++ ###
 # Prerequisites
 *.d
