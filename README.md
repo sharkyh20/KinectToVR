@@ -114,8 +114,8 @@ And then pasted into the project folder:
 
 The final contents of these two folders should look like this:
 
-![Image](readmeimg/iefolder.png?raw=true)
-![Image](readmeimg/ovrfolder.png?raw=true)
+![Image](readmeimg/iefolder.PNG?raw=true)
+![Image](readmeimg/ovrfolder.PNG?raw=true)
 
 ## Building
 
