@@ -10,7 +10,30 @@ There is no installation required by this project itself, however, it requires t
 
 [The Kinect Runtime v1.8](https://www.microsoft.com/en-au/download/details.aspx?id=40277)
 
-[The OpenVR InputEmulator - (Latest tested version 1.3)](https://github.com/matzman666/OpenVR-InputEmulator)
+[The OpenVR InputEmulator .exe - (Latest tested version 1.3)](https://github.com/matzman666/OpenVR-InputEmulator/releases)
+
+### Running the program
+- You can use the Xbox 360 Kinect with an adapter [such as this one](https://www.amazon.com/Adapter-Kinect-360-HandHelditems-Sketch-Universal/dp/B005EIXVAE), or a regular Kinect for Windows.
+
+1. Ensure that the runtime is installed, and the Kinect is plugged into your PC
+  * If Windows won't detect it, you can try looking through Microsoft's troubleshooting [here](https://support.xbox.com/en-AU/xbox-on-windows/accessories/kinect-for-windows-v2-known-issues)
+2. Point your Kinect facing away from the 'front' of your VR space (Usually facing you like your monitor.) *As of writing this, KinectToVR does not support a different Kinect orientation.*
+1. Open SteamVR with your headset plugged in, and install InputEmulator
+1. Run KinectToVR.exe, and 3 tracker devices should appear in the SteamVR device list
+1. Put on your headset and stand in front of the Kinect. The optimal distance microsoft reccommends is about 1.5-2.5m away.
+1. You may see a bunch of trackers floating behind you! Don't worry, you can initialise them to your current position by pressing down the right grip button.
+1. Although the Kinect tries it's best to find your exact position, it's not always correct, so you can use the left stick to offset the trackers laterally on the ground, and the right stick to move them up and down to your body.
+1. When you have set it to your desired position click down on the right trigger.
+-NOTE: If you hit the trigger on accident before it reached your desired position, then you can press 'Q' on your keyboard to enable tracker adjusting again
+
+Unfortunately, due to the limitations of the Kinect, it can only detect a skeleton head-on and it may jitter or get occluded fairly easily as it is only one sensor. This means that with tracking enabled, you're going to have to stand facing the Kinect, like the old-fashioned 2-sensor Oculus configuration. I can't really do anything about this limitation.
+
+### Some useful keys while I get a UI to work
+'A' - If the Kinect is working, it toggles the display of its camera
+
+'S' - If the skeleton tracking is working, it will draw the tracked bones
+
+
 
 ## Getting Started - Developers
 
@@ -30,7 +53,9 @@ If you wish to compile the project yourself, then you'll need:
 
 ### InputEmulator
 
-[The OpenVR InputEmulator - (Tested v1.3)](https://github.com/matzman666/OpenVR-InputEmulator)
+[The OpenVR InputEmulator .exe - (Latest tested version 1.3)](https://github.com/matzman666/OpenVR-InputEmulator/releases)
+
+[The OpenVR InputEmulator source - (Tested v1.3)](https://github.com/matzman666/OpenVR-InputEmulator)
 
 ### Kinect SDK:
 
@@ -76,16 +101,34 @@ And then pasted into the project folder:
 ```
 (FILEPATH)\SFMLProject\SFMLProject\openvr\ -- paste the lib files and 'headers' folder here
 ```
+## Building
 
-## Built With
+The project is meant to be built for 64bit computers only, so if you're using Visual Studio to compile, then near the top left of the screen change the mode to 'Release' or 'Debug', and set the 'solution platforms' to 'x64'.
 
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
+![Build Mode](readmeimg\buildmode.png)
 
-## Contributing
+### NOTE
 
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
+The compiled .exe will need to have the dll's for the dependencies included in it's output folder for it to work.
+
+These include:
+
+```
+openal32.dll -- found at \SFML-2.4.2\extlibs\bin\x64
+
+openvr_api64.dll -- found at \openvr-master\bin\win64\
+
+-- All below found in \SFML-2.4.2\lib\Release\
+
+sfml-audio-2.dll
+
+sfml-graphics-2.dll
+
+sfml-system-2.dll
+
+sfml-window-2.dll
+
+```
 
 ## Versioning
 
@@ -93,11 +136,11 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 ## Authors
 
-* **sharkyh20** - *Initial work* - [PurpleBooth](https://github.com/sharkyh20/)
+* **sharkyh20** - *Initial work* - [sharkyh20](https://github.com/sharkyh20/)
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the GPL v3 License - see the [LICENSE.md](LICENSE.md) file for details
 
 ## Acknowledgments
 
