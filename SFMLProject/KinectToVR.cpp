@@ -591,7 +591,7 @@ void processKeyEvents(sf::Event event) {
         toggle(KinectSettings::isSkeletonDrawn);
         break;
     case sf::Keyboard::Q:
-        toggle(KinectSettings::userChangingZero);
+        KinectSettings::userChangingZero = true;
         break;
     default:
         break;
