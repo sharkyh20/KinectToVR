@@ -33,7 +33,17 @@ Unfortunately, due to the limitations of the Kinect, it can only detect a skelet
 
 'S' - If the skeleton tracking is working, it will draw the tracked bones
 
+# Known Issues/Fixes
 
+### Greyed out trackers in SteamVR panel
+Restart SteamVR, as far as I know I can't remove them from the panel, only disable them while its open.
+
+### SteamVR error 308 "A component of SteamVR isn't working properly
+1. Quit SteamVR
+
+1. Use task manager to search for and kill *VR Server* background process
+
+1. Restart SteamVR
 
 ## Getting Started - Developers
 
