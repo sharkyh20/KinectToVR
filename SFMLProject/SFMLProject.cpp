@@ -47,7 +47,7 @@ int main()
     auto SteamVRStatusLabel = sfg::Label::Create();
     auto InputEmulatorStatusLabel = sfg::Label::Create();
 
-    auto TrackerInitButton = sfg::Button::Create("Initialise SteamVR Controllers");
+    auto TrackerInitButton = sfg::Button::Create("Initialise SteamVR Kinect Trackers");
 
     auto ShowSkeletonButton = sfg::CheckButton::Create("Show/Hide Skeleton Tracking");
     ShowSkeletonButton->GetSignal(sfg::Widget::OnLeftClick).Connect([] {    toggle(KinectSettings::isSkeletonDrawn); });
