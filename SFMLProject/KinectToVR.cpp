@@ -14,8 +14,8 @@ namespace KinectSettings {
 }
 
 namespace SFMLsettings {
-    int m_window_width = 640;
-    int m_window_height = 480;
+    int m_window_width = 1280;
+    int m_window_height = 960;
 }
 # define M_PI           3.14159265358979323846
 sf::Vector2f m_points[NUI_SKELETON_POSITION_COUNT];

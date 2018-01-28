@@ -31,8 +31,9 @@ int main()
     text.setFillColor(sf::Color::Red);
     renderWindow.draw(text);
 
-    //SFGUI Handling
-    /*/
+    //SFGUI Handling --------------------------------------
+    renderWindow.pushGLStates();
+    renderWindow.resetGLStates();
     sfg::SFGUI sfguiRef;
     
     auto guiWindow = sfg::Window::Create();
@@ -40,13 +41,29 @@ int main()
 
     auto box = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
     auto button = sfg::Button::Create("Click me");
+
+    auto opengl_window = sfg::Window::Create();
+    opengl_window->SetTitle("OpenGL canvas");
+    opengl_window->SetPosition(sf::Vector2f(50.f, 50.f));
+    auto opengl_canvas = sfg::Canvas::Create(true);
+    opengl_window->Add(opengl_canvas);
+    opengl_canvas->SetRequisition(sf::Vector2f(640.f, 480.f));
+
     box->Pack(button);
     button->GetSignal(sfg::Widget::OnLeftClick).Connect([&button] {
         button->SetLabel("Hello World!");
     });
 
     guiWindow->Add(box);
-    */
+    sfg::Desktop desktop;
+    desktop.Add(opengl_window);
+    desktop.Add(guiWindow);
+
+    desktop.Update(0.f);
+
+    renderWindow.popGLStates();
+    // ----------------------------------------------------
+
     //Initialise Kinect
     KinectHandler kinect;
     initOpenGL(kinect.kinectTextureId, kinect.kinectImageData.get());
@@ -85,7 +102,7 @@ int main()
         sf::Event event;
         while (renderWindow.pollEvent(event))
         {
-            //guiWindow->HandleEvent(event);
+            desktop.HandleEvent(event);
 
             if (event.type == sf::Event::Closed)
                 renderWindow.close();
@@ -98,7 +115,7 @@ int main()
         //https://github.com/zecbmo/ViveSkyrim/blob/master/Source/ViveSupport.cpp - Has quite a few useful bits of stuff that the docs don't tell
 
         //Update GUI
-        //guiWindow->Update(deltaT);
+        desktop.Update(deltaT);
 
         //Clear
         renderWindow.clear();
@@ -140,18 +157,22 @@ int main()
            
         
         //Draw
-        
+        opengl_canvas->Bind();
+        opengl_canvas->Clear(sf::Color(0, 0, 0, 0), true);
         if (KinectSettings::isKinectDrawn)
             drawKinectImageData(kinect);
         if (KinectSettings::isSkeletonDrawn)
             drawTrackedSkeletons( skeletonFrame, renderWindow);
-        
+        opengl_canvas->Display();
+        opengl_canvas->Unbind();
+
         renderWindow.pushGLStates();
         renderWindow.resetGLStates();
         //Draw debug font
         renderWindow.draw(text);
         // Draw GUI
-        //sfguiRef.Display(renderWindow);
+        renderWindow.setActive(true);
+        sfguiRef.Display(renderWindow);
         renderWindow.popGLStates();
         //End Frame
         renderWindow.display();
