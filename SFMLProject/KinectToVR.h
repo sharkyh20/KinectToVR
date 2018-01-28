@@ -26,6 +26,7 @@
 namespace KinectSettings {
     extern bool isKinectDrawn;
     extern bool isSkeletonDrawn;
+    extern bool ignoreInferredPositions;
 
     extern double trackedPositionOffset[3];
     extern bool userChangingZero;

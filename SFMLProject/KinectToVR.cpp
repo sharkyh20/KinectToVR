@@ -4,6 +4,7 @@
 namespace KinectSettings {
     bool isKinectDrawn = false;
     bool isSkeletonDrawn = false;
+    bool ignoreInferredPositions = true;
 
     double trackedPositionOffset[3]{ 0,0,0 };
     bool userChangingZero = false;
@@ -131,13 +132,13 @@ void updateKinectTrackedDevice(int i, vrinputemulator::VRInputEmulator &emulator
     NUI_SKELETON_POSITION_TRACKING_STATE joint1State = skel.SkeletonData[i].eSkeletonPositionTrackingState[device.joint1];
 
     // If we can't find either of these joints, exit
-    if (joint0State == NUI_SKELETON_POSITION_NOT_TRACKED || joint1State == NUI_SKELETON_POSITION_NOT_TRACKED)
+    if ((joint0State == NUI_SKELETON_POSITION_NOT_TRACKED || joint1State == NUI_SKELETON_POSITION_NOT_TRACKED) && KinectSettings::ignoreInferredPositions)
     {
         return;
     }
 
     // Don't track if both points are inferred
-    if (joint0State == NUI_SKELETON_POSITION_INFERRED && joint1State == NUI_SKELETON_POSITION_INFERRED)
+    if (joint0State == NUI_SKELETON_POSITION_INFERRED && joint1State == NUI_SKELETON_POSITION_INFERRED  && KinectSettings::ignoreInferredPositions)
     {
         return;
     }

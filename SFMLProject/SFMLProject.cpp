@@ -40,23 +40,61 @@ int main()
     guiWindow->SetTitle("Our Window");
 
     auto box = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
-    auto button = sfg::Button::Create("Click me");
 
-    auto opengl_window = sfg::Window::Create();
-    opengl_window->SetTitle("OpenGL canvas");
-    opengl_window->SetPosition(sf::Vector2f(50.f, 50.f));
-    auto opengl_canvas = sfg::Canvas::Create(true);
-    opengl_window->Add(opengl_canvas);
-    opengl_canvas->SetRequisition(sf::Vector2f(640.f, 480.f));
+    auto SteamInitButton = sfg::Button::Create("Initialise SteamVR Controllers");
 
-    box->Pack(button);
-    button->GetSignal(sfg::Widget::OnLeftClick).Connect([&button] {
-        button->SetLabel("Hello World!");
+    auto ShowSkeletonButton = sfg::ToggleButton::Create("Show/Hide Skeleton Tracking");
+    ShowSkeletonButton->GetSignal(sfg::Widget::OnLeftClick).Connect([] {    toggle(KinectSettings::isSkeletonDrawn); });
+    
+    //Zeroing
+    auto zeroLabel = sfg::Label::Create("Enables resetting Zero - After clicking, stand in front of your Kinect, and press the grip button.");
+    auto ZeroButton = sfg::Button::Create("Reset Standing Zero Position");
+    ZeroButton->GetSignal(sfg::Widget::OnLeftClick).Connect([] {    zeroed = true; });
+
+    //Position Adjust
+    auto posLabel = sfg::Label::Create("This re-enables Tracker adjustment with the thumbsticks. Press the trigger when you're happy with the position!");
+    auto PositionAdjustButton = sfg::Button::Create("Enable Tracker Offset Adjustment");
+    PositionAdjustButton->GetSignal(sfg::Widget::OnLeftClick).Connect([] {    KinectSettings::userChangingZero = true; });
+
+    // Allows for unrestricted tracking, but may be unstable
+    auto inferredLabel = sfg::Label::Create("Checking this makes the trackers directly copy the Kinect movement. This may have the benefit of improving tracking when partially occluded, but may also have the consequence of spazzing wildly if tracking is lost.");
+    inferredLabel->SetLineWrap(true);
+    inferredLabel->SetRequisition(sf::Vector2f(600.f, 20.f));
+    auto ignoreInferredCheckButton = sfg::CheckButton::Create("Enable Raw Tracking");
+    ignoreInferredCheckButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([&ignoreInferredCheckButton] {
+        if (ignoreInferredCheckButton->IsActive()) {
+            KinectSettings::ignoreInferredPositions = false;    // No longer stops updating trackers when Kinect isn't sure about a position
+        }
+        else {
+            KinectSettings::ignoreInferredPositions = true;
+        }
     });
+
+    std::stringstream ssMessage;
+    ssMessage << "Put on your headset and stand in front of the Kinect. The optimal distance microsoft reccommends is about 1.5-2.5m away.\n\n"
+        << "You may see a bunch of trackers floating behind you!\n" << "Don't worry, you can initialise them to your current position by pressing down the right grip button.\n"
+        << "Although the Kinect tries it's best to find your exact position, it's not always correct, so you can use the left stick to offset the trackers laterally on the ground, and the right stick to move them up and down to your body.\n\n"
+        << "When you have set it to your desired position click down on the right trigger.\n NOTE: If you hit the trigger on accident before it reached your desired position, then you can press the button or 'Q' on your keyboard to enable tracker adjusting again";
+    auto instructionsLabel = sfg::Label::Create(ssMessage.str());
+    instructionsLabel->SetLineWrap(true);
+    instructionsLabel->SetRequisition(sf::Vector2f(600.f, 50.f));
+
+    box->Pack(SteamInitButton);
+    box->Pack(instructionsLabel);
+
+    box->Pack(ShowSkeletonButton);
+
+    box->Pack(zeroLabel);
+    box->Pack(ZeroButton);
+
+    box->Pack(posLabel);
+    box->Pack(PositionAdjustButton);
+
+    box->Pack(inferredLabel);
+    box->Pack(ignoreInferredCheckButton);
 
     guiWindow->Add(box);
     sfg::Desktop desktop;
-    desktop.Add(opengl_window);
     desktop.Add(guiWindow);
 
     desktop.Update(0.f);
@@ -71,17 +109,26 @@ int main()
     updateSkeletalData(skeletonFrame, kinect.kinectSensor);
 
     //Initialise InputEmu and Trackers
+    std::vector<KinectTrackedDevice> v_trackers{};
     vrinputemulator::VRInputEmulator inputEmulator;
     inputEmulator.connect();
-    KinectTrackedDevice leftFootTracker(inputEmulator, NUI_SKELETON_POSITION_FOOT_LEFT, NUI_SKELETON_POSITION_ANKLE_LEFT, false);
-    KinectTrackedDevice rightFootTracker(inputEmulator, NUI_SKELETON_POSITION_FOOT_RIGHT, NUI_SKELETON_POSITION_ANKLE_RIGHT, false);
-    KinectTrackedDevice hipTracker(inputEmulator, NUI_SKELETON_POSITION_HIP_CENTER, NUI_SKELETON_POSITION_SPINE, false);
-    //KinectTrackedDevice kinectTrackerRef(inputEmulator, NUI_SKELETON_POSITION_HEAD, NUI_SKELETON_POSITION_HEAD, true);
-    //setKinectTrackerProperties(kinectTrackerRef.deviceId);
-    std::vector<KinectTrackedDevice> v_trackers{};
-    v_trackers.push_back(leftFootTracker);
-    v_trackers.push_back(rightFootTracker);
-    v_trackers.push_back(hipTracker);
+    // Tracker Initialisation Lambda
+    SteamInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([&SteamInitButton, &v_trackers, &inputEmulator] {  
+            SteamInitButton->SetLabel("Trackers Initialised");
+            KinectTrackedDevice leftFootTracker(inputEmulator, NUI_SKELETON_POSITION_FOOT_LEFT, NUI_SKELETON_POSITION_ANKLE_LEFT, false);
+            KinectTrackedDevice rightFootTracker(inputEmulator, NUI_SKELETON_POSITION_FOOT_RIGHT, NUI_SKELETON_POSITION_ANKLE_RIGHT, false);
+            KinectTrackedDevice hipTracker(inputEmulator, NUI_SKELETON_POSITION_HIP_CENTER, NUI_SKELETON_POSITION_SPINE, false);
+
+            //KinectTrackedDevice kinectTrackerRef(inputEmulator, NUI_SKELETON_POSITION_HEAD, NUI_SKELETON_POSITION_HEAD, true);
+            //setKinectTrackerProperties(kinectTrackerRef.deviceId);
+
+            v_trackers.push_back(leftFootTracker);
+            v_trackers.push_back(rightFootTracker);
+            v_trackers.push_back(hipTracker);
+            SteamInitButton->SetState(sfg::Widget::State::INSENSITIVE);
+    });
+    
+    
     //v_trackers.push_back(kinectTrackerRef);
 
     //Initialise VR System
@@ -110,22 +157,16 @@ int main()
                 processKeyEvents(event);
             }
         }
-        
-        //VR input -- Holy shit fuck the openvr 'docs'
-        //https://github.com/zecbmo/ViveSkyrim/blob/master/Source/ViveSupport.cpp - Has quite a few useful bits of stuff that the docs don't tell
-
         //Update GUI
         desktop.Update(deltaT);
 
-        //Clear
+        //Clear ---------------------------------------
         renderWindow.clear();
         
-        //TODO - Initialise the position at the start of the program on user input, as otherwise you need to sprint to the position to get it right
-        //Process
+
+        //Process -------------------------------------
         rightController.update();
         leftController.update();
-
-
 
         updateSkeletalData(skeletonFrame, kinect.kinectSensor);
         if(!zeroed) {          //Initial attempt to allow user to get into position before setting the trackers -  ** zeroAll sets zeroed to true  **
@@ -152,17 +193,18 @@ int main()
         }
         ss << "Offset = " << KinectSettings::trackedPositionOffset[0] << ", " << KinectSettings::trackedPositionOffset[1] << ", " << KinectSettings::trackedPositionOffset[2] << '\n';
         updateTrackersWithSkeletonPosition(inputEmulator, v_trackers, skeletonFrame);
-        
+        //-------------------------------------------
         text.setString(ss.str());
            
         
         //Draw
         
-        if (KinectSettings::isKinectDrawn)
-            drawKinectImageData(kinect);
-        if (KinectSettings::isSkeletonDrawn)
-            drawTrackedSkeletons( skeletonFrame, renderWindow);
-        
+        if (KinectSettings::isKinectDrawn) {
+            //drawKinectImageData(kinect);  // CURRENTLY NOT WORKING AND NEEDS TO BE REFACTORED TO WORK WITH DIFFERENT RESOLUTIONS
+        }
+        if (KinectSettings::isSkeletonDrawn) {
+            drawTrackedSkeletons(skeletonFrame, renderWindow);
+        }
        
         renderWindow.pushGLStates();
         renderWindow.resetGLStates();
