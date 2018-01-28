@@ -19,7 +19,10 @@ public:
     }
     ~VRcontroller() {}
 
-
+    void Reconnect() {
+        controllerID = m_HMDSystem->GetTrackedDeviceIndexForControllerRole(controllerType);
+        update();
+    }
     void update() {
         prevState_ = state_;
         if (m_HMDSystem != nullptr)

@@ -4,6 +4,7 @@
 namespace KinectSettings {
     bool isKinectDrawn = false;
     bool isSkeletonDrawn = false;
+    bool ignoreInferredPositions = true;
 
     double trackedPositionOffset[3]{ 0,0,0 };
     bool userChangingZero = false;
@@ -11,11 +12,14 @@ namespace KinectSettings {
     float g_TrackedBoneThickness = 6.0f;
     float g_InferredBoneThickness = 1.5f;
     float g_JointThickness = 4.0f;
+
+    const int kinectHeight = 640;
+    const int kinectWidth = 480;
 }
 
 namespace SFMLsettings {
-    int m_window_width = 640;
-    int m_window_height = 480;
+    int m_window_width = 1280;
+    int m_window_height = 960;
 }
 # define M_PI           3.14159265358979323846
 sf::Vector2f m_points[NUI_SKELETON_POSITION_COUNT];
@@ -89,7 +93,7 @@ void copyKinectPixelData(NUI_LOCKED_RECT &LockedRect, GLubyte* dest)
     int bytesInFrameRow = LockedRect.Pitch;
     if (bytesInFrameRow != 0) {
         const BYTE* curr = (const BYTE*)LockedRect.pBits;
-        const BYTE* dataEnd = curr + (SFMLsettings::m_window_width*SFMLsettings::m_window_height) * 4;
+        const BYTE* dataEnd = curr + (KinectSettings::kinectWidth*KinectSettings::kinectHeight) * 4;
 
         while (curr < dataEnd) {
             *dest++ = *curr++;
@@ -128,13 +132,13 @@ void updateKinectTrackedDevice(int i, vrinputemulator::VRInputEmulator &emulator
     NUI_SKELETON_POSITION_TRACKING_STATE joint1State = skel.SkeletonData[i].eSkeletonPositionTrackingState[device.joint1];
 
     // If we can't find either of these joints, exit
-    if (joint0State == NUI_SKELETON_POSITION_NOT_TRACKED || joint1State == NUI_SKELETON_POSITION_NOT_TRACKED)
+    if ((joint0State == NUI_SKELETON_POSITION_NOT_TRACKED || joint1State == NUI_SKELETON_POSITION_NOT_TRACKED) && KinectSettings::ignoreInferredPositions)
     {
         return;
     }
 
     // Don't track if both points are inferred
-    if (joint0State == NUI_SKELETON_POSITION_INFERRED && joint1State == NUI_SKELETON_POSITION_INFERRED)
+    if (joint0State == NUI_SKELETON_POSITION_INFERRED && joint1State == NUI_SKELETON_POSITION_INFERRED  && KinectSettings::ignoreInferredPositions)
     {
         return;
     }
@@ -607,7 +611,7 @@ void initOpenGL(GLuint &textureId, GLubyte* data) {
     glBindTexture(GL_TEXTURE_2D, textureId);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, SFMLsettings::m_window_width, SFMLsettings::m_window_height,
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, KinectSettings::kinectWidth, KinectSettings::kinectHeight,
         0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, (GLvoid*)data);
     glBindTexture(GL_TEXTURE_2D, 0);
 

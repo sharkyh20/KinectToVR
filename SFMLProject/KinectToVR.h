@@ -26,6 +26,7 @@
 namespace KinectSettings {
     extern bool isKinectDrawn;
     extern bool isSkeletonDrawn;
+    extern bool ignoreInferredPositions;
 
     extern double trackedPositionOffset[3];
     extern bool userChangingZero;
@@ -33,6 +34,9 @@ namespace KinectSettings {
     extern float g_TrackedBoneThickness;
     extern float g_InferredBoneThickness;
     extern float g_JointThickness;
+
+    extern const int kinectHeight;
+    extern const int kinectWidth;
 }
 
 namespace SFMLsettings {
@@ -73,7 +77,7 @@ public:
     GLuint kinectTextureId;    // ID of the texture to contain Kinect RGB Data
                                // BGRA array containing the texture data
     std::unique_ptr<GLubyte[]> kinectImageData
-        = std::make_unique<GLubyte[]>(SFMLsettings::m_window_width * SFMLsettings::m_window_height * 4);
+        = std::make_unique<GLubyte[]>(KinectSettings::kinectWidth * KinectSettings::kinectHeight * 4);
 
     KinectHandler() {
         try {

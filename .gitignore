@@ -3,6 +3,7 @@
 # Dependencies
 SFMLProject/InputEmulator/*
 SFMLProject/openvr/*
+SFMLProject/sfGui/*
 ### C++ ###
 # Prerequisites
 *.d
