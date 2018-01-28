@@ -124,16 +124,20 @@ int main()
     //Initialise Kinect
     KinectHandler kinect;
     NUI_SKELETON_FRAME skeletonFrame = { 0 };
-    HRESULT kinectStatus = kinect.kinectSensor->NuiStatus();
-    if (kinectStatus == S_OK) {
-        initOpenGL(kinect.kinectTextureId, kinect.kinectImageData.get());
-        updateSkeletalData(skeletonFrame, kinect.kinectSensor);
-        KinectStatusLabel->SetText("Kinect Status: Success!");
+    if (kinect.initStatus()) {
+        HRESULT kinectStatus = kinect.kinectSensor->NuiStatus();
+        if (kinectStatus == S_OK) {
+            initOpenGL(kinect.kinectTextureId, kinect.kinectImageData.get());
+            updateSkeletalData(skeletonFrame, kinect.kinectSensor);
+            KinectStatusLabel->SetText("Kinect Status: Success!");
+        }
+        else {
+            KinectStatusLabel->SetText("Kinect Status: ERROR " + std::to_string(kinectStatus));
+        }
     }
     else {
-        KinectStatusLabel->SetText("Kinect Status: ERROR " + std::to_string(kinectStatus));
+        KinectStatusLabel->SetText("Kinect Status: ERROR KINECT NOT DETECTED");
     }
-
     //Initialise InputEmu and Trackers
     std::vector<KinectTrackedDevice> v_trackers{};
     vrinputemulator::VRInputEmulator inputEmulator;
@@ -215,44 +219,45 @@ int main()
         rightController.update();
         leftController.update();
 
-        updateSkeletalData(skeletonFrame, kinect.kinectSensor);
-        if(!zeroed) {          //Initial attempt to allow user to get into position before setting the trackers -  ** zeroAll sets zeroed to true  **
-            if (rightController.GetPress(vr::EVRButtonId::k_EButton_Grip)) {
-                ss << "Grip get!\n";
-                zeroAllTracking(skeletonFrame, m_VRSystem);
+        if (kinect.initStatus()) {
+            updateSkeletalData(skeletonFrame, kinect.kinectSensor);
+            if (!zeroed) {          //Initial attempt to allow user to get into position before setting the trackers -  ** zeroAll sets zeroed to true  **
+                if (rightController.GetPress(vr::EVRButtonId::k_EButton_Grip)) {
+                    ss << "Grip get!\n";
+                    zeroAllTracking(skeletonFrame, m_VRSystem);
+                }
+
             }
-            
-        }
-        else if (KinectSettings::userChangingZero) {
-            if (leftController.GetTouch(vr::EVRButtonId::k_EButton_SteamVR_Touchpad)) { //works
+            else if (KinectSettings::userChangingZero) {
+                if (leftController.GetTouch(vr::EVRButtonId::k_EButton_SteamVR_Touchpad)) { //works
                     sf::Vector2f axis = leftController.GetControllerAxisValue(vr::EVRButtonId::k_EButton_SteamVR_Touchpad); //works
                     KinectSettings::trackedPositionOffset[0] += deltaScaled(1.0, deltaT) * axis.x;
                     KinectSettings::trackedPositionOffset[2] += deltaScaled(1.0, deltaT) * axis.y;
                 }
-            if (rightController.GetTouch(vr::EVRButtonId::k_EButton_SteamVR_Touchpad)) {
-                sf::Vector2f axis = rightController.GetControllerAxisValue(vr::EVRButtonId::k_EButton_SteamVR_Touchpad); //works
-                KinectSettings::trackedPositionOffset[1] += deltaScaled(1.0, deltaT) * axis.y;
+                if (rightController.GetTouch(vr::EVRButtonId::k_EButton_SteamVR_Touchpad)) {
+                    sf::Vector2f axis = rightController.GetControllerAxisValue(vr::EVRButtonId::k_EButton_SteamVR_Touchpad); //works
+                    KinectSettings::trackedPositionOffset[1] += deltaScaled(1.0, deltaT) * axis.y;
+                }
+                if (rightController.GetTrigger()) {  //works
+                    ss << "Right trigger is down\n";
+                    KinectSettings::userChangingZero = false;
+                }
             }
-            if (rightController.GetTrigger()){  //works
-                ss << "Right trigger is down\n";
-                KinectSettings::userChangingZero = false;
+            ss << "Offset = " << KinectSettings::trackedPositionOffset[0] << ", " << KinectSettings::trackedPositionOffset[1] << ", " << KinectSettings::trackedPositionOffset[2] << '\n';
+            updateTrackersWithSkeletonPosition(inputEmulator, v_trackers, skeletonFrame);
+            //-------------------------------------------
+            text.setString(ss.str());
+
+
+            //Draw
+
+            if (KinectSettings::isKinectDrawn) {
+                //drawKinectImageData(kinect);  // CURRENTLY NOT WORKING AND NEEDS TO BE REFACTORED TO WORK WITH DIFFERENT RESOLUTIONS
+            }
+            if (KinectSettings::isSkeletonDrawn) {
+                drawTrackedSkeletons(skeletonFrame, renderWindow);
             }
         }
-        ss << "Offset = " << KinectSettings::trackedPositionOffset[0] << ", " << KinectSettings::trackedPositionOffset[1] << ", " << KinectSettings::trackedPositionOffset[2] << '\n';
-        updateTrackersWithSkeletonPosition(inputEmulator, v_trackers, skeletonFrame);
-        //-------------------------------------------
-        text.setString(ss.str());
-           
-        
-        //Draw
-        
-        if (KinectSettings::isKinectDrawn) {
-            //drawKinectImageData(kinect);  // CURRENTLY NOT WORKING AND NEEDS TO BE REFACTORED TO WORK WITH DIFFERENT RESOLUTIONS
-        }
-        if (KinectSettings::isSkeletonDrawn) {
-            drawTrackedSkeletons(skeletonFrame, renderWindow);
-        }
-       
         renderWindow.pushGLStates();
         renderWindow.resetGLStates();
         //Draw debug font

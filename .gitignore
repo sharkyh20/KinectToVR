@@ -4,6 +4,8 @@
 SFMLProject/InputEmulator/*
 SFMLProject/openvr/*
 SFMLProject/sfGui/*
+SFMLProject/boost_1_63_0/*
+SFMLProject/SFML-2.4.2/*
 ### C++ ###
 # Prerequisites
 *.d
@@ -357,3 +359,4 @@ __pycache__/
 CppcheckPlugin.vsix
 *.ttf
 SFMLProject/sounds/jalastramConfirmPos.wav
+*.dll

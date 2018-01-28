@@ -106,11 +106,11 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)\sfGui\include;$(KINECTSDK10_DIR)\inc;$(IncludePath);G:\Software\Programming Libraries\C++\SFML-2.4.2\include;$(ProjectDir)\InputEmulator\;$(ProjectDir)\openvr\headers;G:\git_workspace\OpenVR-InputEmulator-1.3\third-party\boost_1_63_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\sfGui\include;$(KINECTSDK10_DIR)\inc;$(IncludePath);$(ProjectDir)\SFML-2.4.2\include;$(ProjectDir)\InputEmulator\;$(ProjectDir)\openvr\headers;$(ProjectDir)boost_1_63_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalLibraryDirectories>$(ProjectDir)\sfGui\;$(ProjectDir)\openvr;$(KINECTSDK10_DIR)\lib\amd64;G:\Software\Programming Libraries\C++\SFML-2.4.2\lib;$(ProjectDir)\InputEmulator;G:\git_workspace\OpenVR-InputEmulator-1.3\third-party\boost_1_63_0\lib64-msvc-14.0;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)\sfGui\;$(ProjectDir)\openvr;$(KINECTSDK10_DIR)\lib\amd64;$(ProjectDir)\SFML-2.4.2\lib;$(ProjectDir)\InputEmulator;$(ProjectDir)\boost_1_63_0\lib64-msvc-14.0;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>Debug\sfml-audio-d.lib;Debug\sfml-graphics-d.lib;Debug\sfml-window-d.lib;Debug\sfml-system-d.lib;libvrinputemulator_d.lib;openvr_api64.lib;Kinect10.lib;OpenGL32.lib;sfgui-d.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
@@ -147,13 +147,13 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(IncludePath);G:\git_workspace\OpenVR-InputEmulator-1.3\third-party\boost_1_63_0;G:\Software\Programming Libraries\C++\SFML-2.4.2\include;$(KINECTSDK10_DIR)\inc;$(ProjectDir)\openvr\headers;$(ProjectDir)\sfGui\include\;$(ProjectDir)\InputEmulator\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(IncludePath);$(ProjectDir)\boost_1_63_0;$(ProjectDir)\SFML-2.4.2\include;$(KINECTSDK10_DIR)\inc;$(ProjectDir)\openvr\headers;$(ProjectDir)\sfGui\include\;$(ProjectDir)\InputEmulator\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(ProjectDir)\sfGui\;$(ProjectDir)\InputEmulator;$(ProjectDir)\openvr;$(KINECTSDK10_DIR)\lib\amd64;G:\git_workspace\OpenVR-InputEmulator-1.3\third-party\boost_1_63_0\lib64-msvc-14.0;G:\Software\Programming Libraries\C++\SFML-2.4.2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)\sfGui\;$(ProjectDir)\InputEmulator;$(ProjectDir)\openvr;$(KINECTSDK10_DIR)\lib\amd64;$(ProjectDir)\boost_1_63_0\lib64-msvc-14.0;$(ProjectDir)\SFML-2.4.2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>sfgui.lib;Kinect10.lib;OpenGL32.lib;libvrinputemulator.lib;openvr_api64.lib;Release\sfml-audio.lib;Release\sfml-graphics.lib;Release\sfml-window.lib;Release\sfml-system.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
