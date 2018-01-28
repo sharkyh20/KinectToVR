@@ -157,15 +157,13 @@ int main()
            
         
         //Draw
-        opengl_canvas->Bind();
-        opengl_canvas->Clear(sf::Color(0, 0, 0, 0), true);
+        
         if (KinectSettings::isKinectDrawn)
             drawKinectImageData(kinect);
         if (KinectSettings::isSkeletonDrawn)
             drawTrackedSkeletons( skeletonFrame, renderWindow);
-        opengl_canvas->Display();
-        opengl_canvas->Unbind();
-
+        
+       
         renderWindow.pushGLStates();
         renderWindow.resetGLStates();
         //Draw debug font

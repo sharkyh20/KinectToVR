@@ -11,6 +11,9 @@ namespace KinectSettings {
     float g_TrackedBoneThickness = 6.0f;
     float g_InferredBoneThickness = 1.5f;
     float g_JointThickness = 4.0f;
+
+    const int kinectHeight = 640;
+    const int kinectWidth = 480;
 }
 
 namespace SFMLsettings {
@@ -89,7 +92,7 @@ void copyKinectPixelData(NUI_LOCKED_RECT &LockedRect, GLubyte* dest)
     int bytesInFrameRow = LockedRect.Pitch;
     if (bytesInFrameRow != 0) {
         const BYTE* curr = (const BYTE*)LockedRect.pBits;
-        const BYTE* dataEnd = curr + (SFMLsettings::m_window_width*SFMLsettings::m_window_height) * 4;
+        const BYTE* dataEnd = curr + (KinectSettings::kinectWidth*KinectSettings::kinectHeight) * 4;
 
         while (curr < dataEnd) {
             *dest++ = *curr++;
@@ -607,7 +610,7 @@ void initOpenGL(GLuint &textureId, GLubyte* data) {
     glBindTexture(GL_TEXTURE_2D, textureId);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, SFMLsettings::m_window_width, SFMLsettings::m_window_height,
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, KinectSettings::kinectWidth, KinectSettings::kinectHeight,
         0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, (GLvoid*)data);
     glBindTexture(GL_TEXTURE_2D, 0);
 
