@@ -5,17 +5,20 @@
 #include "VRController.h"
 #include <SFML\Audio.hpp>
 
+//GUI
+#include <SFGUI\SFGUI.hpp>
+#include <SFGUI/Widgets.hpp>
+
 double deltaScaled(double valuePerSecond, double delta) {
     return valuePerSecond * delta;
 }
 
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode(SFMLsettings::m_window_width, SFMLsettings::m_window_height), "SFML WORKS");
-    window.setFramerateLimit(90);   //Prevents ridiculous overupdating and high CPU usage
+    sf::RenderWindow renderWindow(sf::VideoMode(SFMLsettings::m_window_width, SFMLsettings::m_window_height), "KinectToVR", sf::Style::Titlebar | sf::Style::Close);
+    renderWindow.setFramerateLimit(90);   //Prevents ridiculous overupdating and high CPU usage
 
     sf::Clock clock;
-    
 
     sf::Font font;
     sf::Text text;
@@ -26,9 +29,24 @@ int main()
     text.setString("");
     text.setCharacterSize(40);
     text.setFillColor(sf::Color::Red);
-    window.draw(text);
+    renderWindow.draw(text);
 
+    //SFGUI Handling
+    /*/
+    sfg::SFGUI sfguiRef;
+    
+    auto guiWindow = sfg::Window::Create();
+    guiWindow->SetTitle("Our Window");
 
+    auto box = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
+    auto button = sfg::Button::Create("Click me");
+    box->Pack(button);
+    button->GetSignal(sfg::Widget::OnLeftClick).Connect([&button] {
+        button->SetLabel("Hello World!");
+    });
+
+    guiWindow->Add(box);
+    */
     //Initialise Kinect
     KinectHandler kinect;
     initOpenGL(kinect.kinectTextureId, kinect.kinectImageData.get());
@@ -57,7 +75,7 @@ int main()
     VRcontroller leftController(m_VRSystem, vr::TrackedControllerRole_LeftHand);
 
     KinectSettings::userChangingZero = true;
-    while (window.isOpen()) 
+    while (renderWindow.isOpen())
     {
         std::stringstream ss;
         double currentTime = clock.restart().asSeconds();
@@ -65,10 +83,12 @@ int main()
         ss << "FPS = " << 1.0 / deltaT << '\n';
         
         sf::Event event;
-        while (window.pollEvent(event)) 
+        while (renderWindow.pollEvent(event))
         {
+            //guiWindow->HandleEvent(event);
+
             if (event.type == sf::Event::Closed)
-                window.close();
+                renderWindow.close();
             if (event.type == sf::Event::KeyPressed) {
                 processKeyEvents(event);
             }
@@ -77,13 +97,18 @@ int main()
         //VR input -- Holy shit fuck the openvr 'docs'
         //https://github.com/zecbmo/ViveSkyrim/blob/master/Source/ViveSupport.cpp - Has quite a few useful bits of stuff that the docs don't tell
 
+        //Update GUI
+        //guiWindow->Update(deltaT);
+
         //Clear
-        window.clear();
+        renderWindow.clear();
         
         //TODO - Initialise the position at the start of the program on user input, as otherwise you need to sprint to the position to get it right
         //Process
         rightController.update();
         leftController.update();
+
+
 
         updateSkeletalData(skeletonFrame, kinect.kinectSensor);
         if(!zeroed) {          //Initial attempt to allow user to get into position before setting the trackers -  ** zeroAll sets zeroed to true  **
@@ -118,14 +143,18 @@ int main()
         
         if (KinectSettings::isKinectDrawn)
             drawKinectImageData(kinect);
-        drawTrackedSkeletons( skeletonFrame, window);
+        if (KinectSettings::isSkeletonDrawn)
+            drawTrackedSkeletons( skeletonFrame, renderWindow);
+        
+        renderWindow.pushGLStates();
+        renderWindow.resetGLStates();
         //Draw debug font
-        window.pushGLStates();
-        window.resetGLStates();
-        window.draw(text);
-        window.popGLStates();
+        renderWindow.draw(text);
+        // Draw GUI
+        //sfguiRef.Display(renderWindow);
+        renderWindow.popGLStates();
         //End Frame
-        window.display();
+        renderWindow.display();
         
     }
     vr::VR_Shutdown();
