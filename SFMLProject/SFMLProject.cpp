@@ -31,7 +31,8 @@ int main()
     text.setFillColor(sf::Color::Red);
     renderWindow.draw(text);
 
-    //SFGUI Handling --------------------------------------
+    //SFGUI Handling -------------------------------------- 
+    // THIS NEEDS TO BE SEPERATED FROM EVERYTHING JESUS CHRIST
     renderWindow.pushGLStates();
     renderWindow.resetGLStates();
     sfg::SFGUI sfguiRef;
@@ -41,28 +42,38 @@ int main()
 
     auto box = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
 
-    auto SteamInitButton = sfg::Button::Create("Initialise SteamVR Controllers");
+    //Statuses
+    auto KinectStatusLabel = sfg::Label::Create();
+    auto SteamVRStatusLabel = sfg::Label::Create();
+    auto InputEmulatorStatusLabel = sfg::Label::Create();
 
-    auto ShowSkeletonButton = sfg::ToggleButton::Create("Show/Hide Skeleton Tracking");
+    auto TrackerInitButton = sfg::Button::Create("Initialise SteamVR Controllers");
+
+    auto ShowSkeletonButton = sfg::CheckButton::Create("Show/Hide Skeleton Tracking");
     ShowSkeletonButton->GetSignal(sfg::Widget::OnLeftClick).Connect([] {    toggle(KinectSettings::isSkeletonDrawn); });
     
     //Zeroing
-    auto zeroLabel = sfg::Label::Create("Enables resetting Zero - After clicking, stand in front of your Kinect, and press the grip button.");
+    auto ZeroLabel = sfg::Label::Create("Enables resetting Zero - After clicking, stand in front of your Kinect, and press the grip button.");
     auto ZeroButton = sfg::Button::Create("Reset Standing Zero Position");
     ZeroButton->GetSignal(sfg::Widget::OnLeftClick).Connect([] {    zeroed = true; });
 
     //Position Adjust
-    auto posLabel = sfg::Label::Create("This re-enables Tracker adjustment with the thumbsticks. Press the trigger when you're happy with the position!");
+    auto PosLabel = sfg::Label::Create("This re-enables Tracker adjustment with the thumbsticks. Press the trigger when you're happy with the position!");
     auto PositionAdjustButton = sfg::Button::Create("Enable Tracker Offset Adjustment");
     PositionAdjustButton->GetSignal(sfg::Widget::OnLeftClick).Connect([] {    KinectSettings::userChangingZero = true; });
 
+    //Redetect Controllers
+    auto ReconControllersLabel = sfg::Label::Create("If controller input isn't working, press this to reconnect them.\n Make sure both are on, and not in standby.");
+    auto ReconControllersButton = sfg::Button::Create("Reconnect VR Controllers");
+    
+
     // Allows for unrestricted tracking, but may be unstable
-    auto inferredLabel = sfg::Label::Create("Checking this makes the trackers directly copy the Kinect movement. This may have the benefit of improving tracking when partially occluded, but may also have the consequence of spazzing wildly if tracking is lost.");
-    inferredLabel->SetLineWrap(true);
-    inferredLabel->SetRequisition(sf::Vector2f(600.f, 20.f));
-    auto ignoreInferredCheckButton = sfg::CheckButton::Create("Enable Raw Tracking");
-    ignoreInferredCheckButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([&ignoreInferredCheckButton] {
-        if (ignoreInferredCheckButton->IsActive()) {
+    auto InferredLabel = sfg::Label::Create("Checking this makes the trackers directly copy the Kinect movement. This may have the benefit of improving tracking when partially occluded, but may also have the consequence of spazzing wildly if tracking is lost.");
+    InferredLabel->SetLineWrap(true);
+    InferredLabel->SetRequisition(sf::Vector2f(600.f, 20.f));
+    auto IgnoreInferredCheckButton = sfg::CheckButton::Create("Enable Raw Tracking");
+    IgnoreInferredCheckButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([&IgnoreInferredCheckButton] {
+        if (IgnoreInferredCheckButton->IsActive()) {
             KinectSettings::ignoreInferredPositions = false;    // No longer stops updating trackers when Kinect isn't sure about a position
         }
         else {
@@ -75,23 +86,31 @@ int main()
         << "You may see a bunch of trackers floating behind you!\n" << "Don't worry, you can initialise them to your current position by pressing down the right grip button.\n"
         << "Although the Kinect tries it's best to find your exact position, it's not always correct, so you can use the left stick to offset the trackers laterally on the ground, and the right stick to move them up and down to your body.\n\n"
         << "When you have set it to your desired position click down on the right trigger.\n NOTE: If you hit the trigger on accident before it reached your desired position, then you can press the button or 'Q' on your keyboard to enable tracker adjusting again";
-    auto instructionsLabel = sfg::Label::Create(ssMessage.str());
-    instructionsLabel->SetLineWrap(true);
-    instructionsLabel->SetRequisition(sf::Vector2f(600.f, 50.f));
+    auto InstructionsLabel = sfg::Label::Create(ssMessage.str());
+    InstructionsLabel->SetLineWrap(true);
+    InstructionsLabel->SetRequisition(sf::Vector2f(600.f, 50.f));
 
-    box->Pack(SteamInitButton);
-    box->Pack(instructionsLabel);
+    //Statuses are at the top
+    box->Pack(KinectStatusLabel);
+    box->Pack(SteamVRStatusLabel);
+    box->Pack(InputEmulatorStatusLabel);
+
+    box->Pack(TrackerInitButton);
+    box->Pack(InstructionsLabel);
 
     box->Pack(ShowSkeletonButton);
 
-    box->Pack(zeroLabel);
+    box->Pack(ReconControllersLabel);
+    box->Pack(ReconControllersButton);
+
+    box->Pack(ZeroLabel);
     box->Pack(ZeroButton);
 
-    box->Pack(posLabel);
+    box->Pack(PosLabel);
     box->Pack(PositionAdjustButton);
 
-    box->Pack(inferredLabel);
-    box->Pack(ignoreInferredCheckButton);
+    box->Pack(InferredLabel);
+    box->Pack(IgnoreInferredCheckButton);
 
     guiWindow->Add(box);
     sfg::Desktop desktop;
@@ -104,17 +123,30 @@ int main()
 
     //Initialise Kinect
     KinectHandler kinect;
-    initOpenGL(kinect.kinectTextureId, kinect.kinectImageData.get());
     NUI_SKELETON_FRAME skeletonFrame = { 0 };
-    updateSkeletalData(skeletonFrame, kinect.kinectSensor);
+    HRESULT kinectStatus = kinect.kinectSensor->NuiStatus();
+    if (kinectStatus == S_OK) {
+        initOpenGL(kinect.kinectTextureId, kinect.kinectImageData.get());
+        updateSkeletalData(skeletonFrame, kinect.kinectSensor);
+        KinectStatusLabel->SetText("Kinect Status: Success!");
+    }
+    else {
+        KinectStatusLabel->SetText("Kinect Status: ERROR " + std::to_string(kinectStatus));
+    }
 
     //Initialise InputEmu and Trackers
     std::vector<KinectTrackedDevice> v_trackers{};
     vrinputemulator::VRInputEmulator inputEmulator;
-    inputEmulator.connect();
+    try {
+        inputEmulator.connect();
+    }
+    catch (vrinputemulator::vrinputemulator_connectionerror e) {
+        InputEmulatorStatusLabel->SetText("Input Emu Status: NOT Connected! Error " + std::to_string(e.errorcode) + " " + e.what() + "\n\n Is SteamVR open and InputEmulator installed?");
+    }
     // Tracker Initialisation Lambda
-    SteamInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([&SteamInitButton, &v_trackers, &inputEmulator] {  
-            SteamInitButton->SetLabel("Trackers Initialised");
+    if (inputEmulator.isConnected()) {
+        TrackerInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([&TrackerInitButton, &v_trackers, &inputEmulator] {
+            TrackerInitButton->SetLabel("Trackers Initialised");
             KinectTrackedDevice leftFootTracker(inputEmulator, NUI_SKELETON_POSITION_FOOT_LEFT, NUI_SKELETON_POSITION_ANKLE_LEFT, false);
             KinectTrackedDevice rightFootTracker(inputEmulator, NUI_SKELETON_POSITION_FOOT_RIGHT, NUI_SKELETON_POSITION_ANKLE_RIGHT, false);
             KinectTrackedDevice hipTracker(inputEmulator, NUI_SKELETON_POSITION_HIP_CENTER, NUI_SKELETON_POSITION_SPINE, false);
@@ -125,18 +157,33 @@ int main()
             v_trackers.push_back(leftFootTracker);
             v_trackers.push_back(rightFootTracker);
             v_trackers.push_back(hipTracker);
-            SteamInitButton->SetState(sfg::Widget::State::INSENSITIVE);
-    });
-    
+            TrackerInitButton->SetState(sfg::Widget::State::INSENSITIVE);
+        });
+        InputEmulatorStatusLabel->SetText("Input Emu Status: Success!");
+    }
+    else {
+        TrackerInitButton->SetLabel("Input Emulator not connected! Can't init trackers");
+    }
     
     //v_trackers.push_back(kinectTrackerRef);
 
     //Initialise VR System
     vr::EVRInitError eError = vr::VRInitError_None;
     vr::IVRSystem *m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Utility);
+    if (eError == vr::VRInitError_None) {
+        SteamVRStatusLabel->SetText("VR Status: Success!");
+    }
+    else {
+        SteamVRStatusLabel->SetText("VR Status: ERROR " + std::to_string(eError));
+    }
 
+    //Controllers
     VRcontroller rightController(m_VRSystem, vr::TrackedControllerRole_RightHand);
     VRcontroller leftController(m_VRSystem, vr::TrackedControllerRole_LeftHand);
+    ReconControllersButton->GetSignal(sfg::Button::OnLeftClick).Connect([&rightController, &leftController] {
+        rightController.Reconnect();
+        leftController.Reconnect();
+    });
 
     KinectSettings::userChangingZero = true;
     while (renderWindow.isOpen())
@@ -212,7 +259,9 @@ int main()
         renderWindow.draw(text);
         // Draw GUI
         renderWindow.setActive(true);
+
         sfguiRef.Display(renderWindow);
+
         renderWindow.popGLStates();
         //End Frame
         renderWindow.display();
