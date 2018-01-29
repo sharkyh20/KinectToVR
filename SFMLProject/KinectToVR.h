@@ -18,6 +18,7 @@
 #include <NuiApi.h>
 #include <NuiImageCamera.h>
 #include <NuiSensor.h>
+#include <NuiSkeleton.h>
 
 #include <openvr.h>
 #include <openvr_math.h>
@@ -71,6 +72,7 @@ public:
     bool isKinectDevice;
 };
 class KinectHandler {
+    // A representation of the Kinect elements, it is initialised in its constructor
 public:
     HANDLE kinectRGBStream = nullptr;
     INuiSensor* kinectSensor = nullptr;
@@ -78,10 +80,22 @@ public:
                                // BGRA array containing the texture data
     bool initStatus() { return initialised; }
 
+    std::string status_str(HRESULT stat) {
+        switch (stat) {
+            case S_NUI_INITIALIZING:	return "S_NUI_INITIALIZING The device is connected, but still initializing.";
+            case E_NUI_NOTCONNECTED:	return "E_NUI_NOTCONNECTED The device is not connected.";
+            case E_NUI_NOTGENUINE:	return "E_NUI_NOTGENUINE The device is not a valid Kinect.";
+            case E_NUI_NOTSUPPORTED:	return "E_NUI_NOTSUPPORTED The device is an unsupported model.";
+            case E_NUI_INSUFFICIENTBANDWIDTH:	return "E_NUI_INSUFFICIENTBANDWIDTH The device is connected to a hub without the necessary bandwidth requirements.";
+            case E_NUI_NOTPOWERED:	return "E_NUI_NOTPOWERED The device is connected, but unpowered.";
+            case E_NUI_NOTREADY:	return "E_NUI_NOTREADY There was some other unspecified error.";
+        }
+    }
+
     std::unique_ptr<GLubyte[]> kinectImageData
         = std::make_unique<GLubyte[]>(KinectSettings::kinectWidth * KinectSettings::kinectHeight * 4);
 
-    KinectHandler() {
+    void initialise() {
         try {
             initialised = initKinect(kinectRGBStream, kinectSensor);
             if (!initialised) throw FailedKinectInitialisation;
@@ -89,6 +103,10 @@ public:
         catch (std::exception&  e) {
             std::cerr << e.what() << std::endl;
         }
+    }
+
+    KinectHandler() {
+        initialise();
     }
     ~KinectHandler() {}
 

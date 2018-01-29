@@ -61,6 +61,7 @@ int main()
     auto SteamVRStatusLabel = sfg::Label::Create();
     auto InputEmulatorStatusLabel = sfg::Label::Create();
 
+    auto reconKinectButton = sfg::Button::Create("Reconnect Kinect");
     auto TrackerInitButton = sfg::Button::Create("Initialise SteamVR Kinect Trackers");
 
     auto ShowSkeletonButton = sfg::CheckButton::Create("Show/Hide Skeleton Tracking");
@@ -109,6 +110,7 @@ int main()
     box->Pack(SteamVRStatusLabel);
     box->Pack(InputEmulatorStatusLabel);
 
+    box->Pack(reconKinectButton);
     box->Pack(TrackerInitButton);
     box->Pack(InstructionsLabel);
 
@@ -137,7 +139,9 @@ int main()
 
     //Initialise Kinect
     KinectHandler kinect;
+
     NUI_SKELETON_FRAME skeletonFrame = { 0 };
+
     if (kinect.initStatus()) {
         HRESULT kinectStatus = kinect.kinectSensor->NuiStatus();
         if (kinectStatus == S_OK) {
@@ -146,12 +150,17 @@ int main()
             KinectStatusLabel->SetText("Kinect Status: Success!");
         }
         else {
-            KinectStatusLabel->SetText("Kinect Status: ERROR " + std::to_string(kinectStatus));
+            KinectStatusLabel->SetText("Kinect Status: ERROR " + kinect.status_str(kinectStatus));
         }
     }
     else {
         KinectStatusLabel->SetText("Kinect Status: ERROR KINECT NOT DETECTED");
     }
+    // Reconnect Kinect Event Signal
+    reconKinectButton->GetSignal(sfg::Widget::OnLeftClick).Connect([&kinect] {
+        kinect.initialise();
+    });
+
     //Initialise InputEmu and Trackers
     std::vector<KinectTrackedDevice> v_trackers{};
     vrinputemulator::VRInputEmulator inputEmulator;
@@ -243,10 +252,19 @@ int main()
         
 
         //Process -------------------------------------
+        // Update Kinect Status
+
         rightController.update();
         leftController.update();
 
         if (kinect.initStatus()) {
+            HRESULT kinectStatus = kinect.kinectSensor->NuiStatus();
+            if (kinectStatus == S_OK) {
+                KinectStatusLabel->SetText("Kinect Status: Success!");
+            }
+            else {
+                KinectStatusLabel->SetText("Kinect Status: ERROR " + kinect.status_str(kinectStatus));
+            }
             updateSkeletalData(skeletonFrame, kinect.kinectSensor);
             if (!zeroed) {          //Initial attempt to allow user to get into position before setting the trackers -  ** zeroAll sets zeroed to true  **
                 if (rightController.GetPress(vr::EVRButtonId::k_EButton_Grip)) {
@@ -284,6 +302,9 @@ int main()
             if (KinectSettings::isSkeletonDrawn) {
                 drawTrackedSkeletons(skeletonFrame, renderWindow);
             }
+        }
+        else {
+            KinectStatusLabel->SetText("Kinect Status: ERROR KINECT NOT DETECTED");
         }
         renderWindow.pushGLStates();
         renderWindow.resetGLStates();

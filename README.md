@@ -14,6 +14,12 @@ SteamVR - NOT the beta branch, just the regular branch
 
 [The OpenVR InputEmulator .exe - (Latest tested version 1.3)](https://github.com/matzman666/OpenVR-InputEmulator/releases)
 
+
+#### IMPORTANT: If your Kinect is a 360/Xbone version, instead of a Windows version, then you will also need the corresponding SDK for it to detect it. As Microsoft prevents these from working outside of a 'development environment'.
+
+[Kinect SDK v1.8](https://www.microsoft.com/en-us/download/details.aspx?id=40278) <- If you're installing this then the runtime is NOT required. It includes it.
+
+
 ### Running the program
  You can use the Xbox 360 Kinect with an adapter [such as this one](https://www.amazon.com/Adapter-Kinect-360-HandHelditems-Sketch-Universal/dp/B005EIXVAE), or a regular Kinect for Windows.
 
