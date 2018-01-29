@@ -64,7 +64,7 @@ int main()
     auto reconKinectButton = sfg::Button::Create("Reconnect Kinect");
     auto TrackerInitButton = sfg::Button::Create("Initialise SteamVR Kinect Trackers");
 
-    auto ShowSkeletonButton = sfg::CheckButton::Create("Show/Hide Skeleton Tracking");
+    auto ShowSkeletonButton = sfg::CheckButton::Create("Show/Hide Skeleton Tracking: MAY CAUSE LAG IN TRACKERS");
     ShowSkeletonButton->GetSignal(sfg::Widget::OnLeftClick).Connect([] {    toggle(KinectSettings::isSkeletonDrawn); });
     
     //Zeroing
