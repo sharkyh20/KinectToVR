@@ -190,6 +190,8 @@ openal32.dll -- found at \SFML-2.4.2\extlibs\bin\x64
 
 openvr_api64.dll -- found at \openvr-master\bin\win64\
 
+sfgui.dll
+
 -- All below found in \SFML-2.4.2\lib\Release\
 
 sfml-audio-2.dll
