@@ -148,6 +148,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(IncludePath);$(ProjectDir)\boost_1_63_0;$(ProjectDir)\SFML-2.4.2\include;$(KINECTSDK10_DIR)\inc;$(ProjectDir)\openvr\headers;$(ProjectDir)\sfGui\include\;$(ProjectDir)\InputEmulator\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

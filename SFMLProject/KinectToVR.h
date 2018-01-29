@@ -82,6 +82,7 @@ public:
 
     std::string status_str(HRESULT stat) {
         switch (stat) {
+        case S_OK: return "S_OK";
             case S_NUI_INITIALIZING:	return "S_NUI_INITIALIZING The device is connected, but still initializing.";
             case E_NUI_NOTCONNECTED:	return "E_NUI_NOTCONNECTED The device is not connected.";
             case E_NUI_NOTGENUINE:	return "E_NUI_NOTGENUINE The device is not a valid Kinect.";
@@ -89,6 +90,7 @@ public:
             case E_NUI_INSUFFICIENTBANDWIDTH:	return "E_NUI_INSUFFICIENTBANDWIDTH The device is connected to a hub without the necessary bandwidth requirements.";
             case E_NUI_NOTPOWERED:	return "E_NUI_NOTPOWERED The device is connected, but unpowered.";
             case E_NUI_NOTREADY:	return "E_NUI_NOTREADY There was some other unspecified error.";
+            default: return "Uh Oh undefined kinect error!";
         }
     }
 

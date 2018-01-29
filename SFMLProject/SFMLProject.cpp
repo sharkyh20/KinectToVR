@@ -144,17 +144,22 @@ int main()
 
     if (kinect.initStatus()) {
         HRESULT kinectStatus = kinect.kinectSensor->NuiStatus();
+        
+        
         if (kinectStatus == S_OK) {
             initOpenGL(kinect.kinectTextureId, kinect.kinectImageData.get());
             updateSkeletalData(skeletonFrame, kinect.kinectSensor);
             KinectStatusLabel->SetText("Kinect Status: Success!");
+            std::cerr << "Attempted connection to kinect.... " << kinect.status_str(kinectStatus) << std::endl;    // DEBUG
         }
         else {
             KinectStatusLabel->SetText("Kinect Status: ERROR " + kinect.status_str(kinectStatus));
+            std::cerr << "Attempted connection to kinect.... " << kinect.status_str(kinectStatus) << std::endl;    // DEBUG
         }
     }
     else {
         KinectStatusLabel->SetText("Kinect Status: ERROR KINECT NOT DETECTED");
+        std::cerr << "Attempted connection to kinect.... UNDETECTED" << std::endl;    // DEBUG
     }
     // Reconnect Kinect Event Signal
     reconKinectButton->GetSignal(sfg::Widget::OnLeftClick).Connect([&kinect] {
@@ -169,6 +174,7 @@ int main()
     }
     catch (vrinputemulator::vrinputemulator_connectionerror e) {
         InputEmulatorStatusLabel->SetText("Input Emu Status: NOT Connected! Error " + std::to_string(e.errorcode) + " " + e.what() + "\n\n Is SteamVR open and InputEmulator installed?");
+        std::cerr << "Attempted connection to Input Emulator" << std::to_string(e.errorcode) + " " + e.what() + "\n\n Is SteamVR open and InputEmulator installed?" << std::endl;
     }
     // Tracker Initialisation Lambda
     if (inputEmulator.isConnected()) {
@@ -193,7 +199,7 @@ int main()
     }
     
     //v_trackers.push_back(kinectTrackerRef);
-
+    std::cerr << "Attempting connection to vrsystem.... " << std::endl;    // DEBUG
     //Initialise VR System
     vr::EVRInitError eError = vr::VRInitError_None;
     vr::IVRSystem *m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Utility);
@@ -203,10 +209,13 @@ int main()
     else {
         SteamVRStatusLabel->SetText("VR Status: ERROR " + std::to_string(eError));
     }
-
+    std::cerr << "Attempted connection to vrsystem.... " << eError << std::endl;    // DEBUG
     //Controllers
+    std::cerr << "Attempting connection to controllers.... " << std::endl;    // DEBUG
     VRcontroller rightController(m_VRSystem, vr::TrackedControllerRole_RightHand);
     VRcontroller leftController(m_VRSystem, vr::TrackedControllerRole_LeftHand);
+    std::cerr << "Attempted connection to controllers.... " << std::endl;    // DEBUG
+
     ReconControllersButton->GetSignal(sfg::Button::OnLeftClick).Connect([&rightController, &leftController, &m_VRSystem, &ReconControllersLabel] {
         std::stringstream stream;
         stream << "If controller input isn't working, press this to reconnect them.\n Make sure both are on, and not in standby.\n";
