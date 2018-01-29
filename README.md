@@ -8,6 +8,8 @@ There is no installation required by this project itself, however, it requires t
 
 ### Prerequisites
 
+SteamVR - NOT the beta branch, just the regular branch
+
 [The Kinect Runtime v1.8](https://www.microsoft.com/en-au/download/details.aspx?id=40277)
 
 [The OpenVR InputEmulator .exe - (Latest tested version 1.3)](https://github.com/matzman666/OpenVR-InputEmulator/releases)
@@ -82,6 +84,10 @@ If you wish to compile the project yourself, then you'll need:
 
 [SFML v2.4.2](https://www.sfml-dev.org/download/sfml/2.4.2/)
 
+### SFGUI
+
+[SFGUI v0.3.2](https://github.com/TankOs/SFGUI/releases)
+
 ### OpenVR
 
 [OpenVR v1.0.12](https://github.com/ValveSoftware/openvr)
@@ -128,6 +134,8 @@ To here:
 ```
 #### NOTE: The debug library will need to be renamed in the new folder to 'libvrinputemulator_d.lib'
 
+
+
 The OpenVR libraries and headers also need to be copied from their folder:
 
 ```
@@ -146,6 +154,19 @@ The final contents of these two folders should look like this:
 ![Image](readmeimg/iefolder.PNG?raw=true)
 ![Image](readmeimg/ovrfolder.PNG?raw=true)
 
+Boost also needs to be added to the directory
+```
+Copy boost_1_63_0\ to (PROJECTDIR)\SFMLProject\
+```
+
+SFML and sfGUI need to be in this project folder too:
+```
+	SFML-2.4.2 -> (PROJECTDIR)\SFMLProject\SFML-2.4.2\
+	and
+	Copy libs from sfgui-0.3.2-vs2017-64\lib
+	AND the include folder from sfgui-0.3.2-vs2017-64
+	to (PROJECTDIR)\SFMLProject\sfGui
+```
 ## Building
 
 The project is meant to be built for 64bit computers only, so if you're using Visual Studio to compile, then near the top left of the screen change the mode to 'Release' or 'Debug', and set the 'solution platforms' to 'x64'.

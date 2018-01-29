@@ -18,8 +18,8 @@ namespace KinectSettings {
 }
 
 namespace SFMLsettings {
-    int m_window_width = 1280;
-    int m_window_height = 960;
+    int m_window_width = 800;
+    int m_window_height = 600;
 }
 # define M_PI           3.14159265358979323846
 sf::Vector2f m_points[NUI_SKELETON_POSITION_COUNT];
@@ -323,7 +323,6 @@ void DrawSkeleton(const NUI_SKELETON_DATA & skel, sf::RenderWindow &window) {
     for (int i = 0; i < NUI_SKELETON_POSITION_COUNT; ++i) {
         m_points[i] = SkeletonToScreen(skel.SkeletonPositions[i], SFMLsettings::m_window_width, SFMLsettings::m_window_height);
         std::cerr << "m_points[" << i << "] = " << m_points[i].x << ", " << m_points[i].y << std::endl;
-        
         // Same with the other cerr, without this, the skeleton flickers
     }
     // Render Torso

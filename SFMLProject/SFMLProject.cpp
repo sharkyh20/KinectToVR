@@ -12,7 +12,21 @@
 double deltaScaled(double valuePerSecond, double delta) {
     return valuePerSecond * delta;
 }
+class GUIHandler {
+public:
+    GUIHandler() {
 
+    }
+    ~GUIHandler() {}
+
+private:
+    //sfg::SFGUI sfguiRef;
+    sfg::Window::Ptr guiWindow = sfg::Window::Create();
+    
+};
+namespace GUIElements {
+    auto box = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
+}
 int main()
 {
     sf::RenderWindow renderWindow(sf::VideoMode(SFMLsettings::m_window_width, SFMLsettings::m_window_height), "KinectToVR", sf::Style::Titlebar | sf::Style::Close);
@@ -184,9 +198,22 @@ int main()
     //Controllers
     VRcontroller rightController(m_VRSystem, vr::TrackedControllerRole_RightHand);
     VRcontroller leftController(m_VRSystem, vr::TrackedControllerRole_LeftHand);
-    ReconControllersButton->GetSignal(sfg::Button::OnLeftClick).Connect([&rightController, &leftController] {
-        rightController.Reconnect();
-        leftController.Reconnect();
+    ReconControllersButton->GetSignal(sfg::Button::OnLeftClick).Connect([&rightController, &leftController, &m_VRSystem, &ReconControllersLabel] {
+        std::stringstream stream;
+        stream << "If controller input isn't working, press this to reconnect them.\n Make sure both are on, and not in standby.\n";
+        if (rightController.Connect(m_VRSystem)) {
+            stream << "RIGHT: OK!\t";
+        }
+        else {
+            stream << "RIGHT: DISCONNECTED!\t";
+        }
+        if (leftController.Connect(m_VRSystem)) {
+            stream << "LEFT: OK!\t";
+        }
+        else {
+            stream << "LEFT: DISCONNECTED!\t";
+        }
+        ReconControllersLabel->SetText(stream.str());
     });
 
     KinectSettings::userChangingZero = true;
@@ -228,7 +255,7 @@ int main()
                 }
 
             }
-            else if (KinectSettings::userChangingZero) {
+            if (KinectSettings::userChangingZero) {
                 if (leftController.GetTouch(vr::EVRButtonId::k_EButton_SteamVR_Touchpad)) { //works
                     sf::Vector2f axis = leftController.GetControllerAxisValue(vr::EVRButtonId::k_EButton_SteamVR_Touchpad); //works
                     KinectSettings::trackedPositionOffset[0] += deltaScaled(1.0, deltaT) * axis.x;

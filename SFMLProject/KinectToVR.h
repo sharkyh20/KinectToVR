@@ -76,12 +76,15 @@ public:
     INuiSensor* kinectSensor = nullptr;
     GLuint kinectTextureId;    // ID of the texture to contain Kinect RGB Data
                                // BGRA array containing the texture data
+    bool initStatus() { return initialised; }
+
     std::unique_ptr<GLubyte[]> kinectImageData
         = std::make_unique<GLubyte[]>(KinectSettings::kinectWidth * KinectSettings::kinectHeight * 4);
 
     KinectHandler() {
         try {
-            if (!initKinect(kinectRGBStream, kinectSensor)) throw FailedKinectInitialisation;
+            initialised = initKinect(kinectRGBStream, kinectSensor);
+            if (!initialised) throw FailedKinectInitialisation;
         }
         catch (std::exception&  e) {
             std::cerr << e.what() << std::endl;
@@ -90,6 +93,7 @@ public:
     ~KinectHandler() {}
 
 private:
+    bool initialised;
     bool initKinect(HANDLE& rgbStream, INuiSensor* &sensor) {
         //Get a working Kinect Sensor
         int numSensors = 0;
