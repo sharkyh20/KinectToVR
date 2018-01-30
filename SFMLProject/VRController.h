@@ -7,14 +7,13 @@
 
 class VRcontroller {
 public:
-    VRcontroller(vr::IVRSystem* &m_sys, vr::ETrackedControllerRole role)
+    VRcontroller( vr::ETrackedControllerRole role)
         : 
         triggerDeadzone(0.1f),
         triggerOn(false),
         triggerLimit(0.0f),
         controllerType(role)
     {
-        Connect(m_sys);
     }
     ~VRcontroller() {}
     bool Connect(vr::IVRSystem* &m_sys) {

@@ -201,20 +201,24 @@ int main()
     //v_trackers.push_back(kinectTrackerRef);
     std::cerr << "Attempting connection to vrsystem.... " << std::endl;    // DEBUG
     //Initialise VR System
+    VRcontroller rightController(vr::TrackedControllerRole_RightHand);
+    VRcontroller leftController( vr::TrackedControllerRole_LeftHand);
+
     vr::EVRInitError eError = vr::VRInitError_None;
     vr::IVRSystem *m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Utility);
     if (eError == vr::VRInitError_None) {
+        std::cerr << "Attempting connection to controllers.... " << std::endl;    // DEBUG
         SteamVRStatusLabel->SetText("VR Status: Success!");
+        leftController.Connect(m_VRSystem);
+        rightController.Connect(m_VRSystem);
+        std::cerr << "Attempted connection to controllers.... " << std::endl;    // DEBUG
     }
     else {
         SteamVRStatusLabel->SetText("VR Status: ERROR " + std::to_string(eError));
     }
     std::cerr << "Attempted connection to vrsystem.... " << eError << std::endl;    // DEBUG
     //Controllers
-    std::cerr << "Attempting connection to controllers.... " << std::endl;    // DEBUG
-    VRcontroller rightController(m_VRSystem, vr::TrackedControllerRole_RightHand);
-    VRcontroller leftController(m_VRSystem, vr::TrackedControllerRole_LeftHand);
-    std::cerr << "Attempted connection to controllers.... " << std::endl;    // DEBUG
+    
 
     ReconControllersButton->GetSignal(sfg::Button::OnLeftClick).Connect([&rightController, &leftController, &m_VRSystem, &ReconControllersLabel] {
         std::stringstream stream;
@@ -241,7 +245,7 @@ int main()
         double currentTime = clock.restart().asSeconds();
         double deltaT = currentTime;
         ss << "FPS = " << 1.0 / deltaT << '\n';
-        
+
         sf::Event event;
         while (renderWindow.pollEvent(event))
         {
@@ -258,14 +262,17 @@ int main()
 
         //Clear ---------------------------------------
         renderWindow.clear();
-        
+
 
         //Process -------------------------------------
         // Update Kinect Status
-
-        rightController.update();
-        leftController.update();
-
+        if (eError == vr::VRInitError_None) {
+            rightController.update();
+            leftController.update();
+        }
+        else {
+            std::cerr << "Error updating controllers: Could not connect to the SteamVR system! OpenVR init error-code " << std::to_string(eError) << std::endl;
+        }
         if (kinect.initStatus()) {
             HRESULT kinectStatus = kinect.kinectSensor->NuiStatus();
             if (kinectStatus == S_OK) {
