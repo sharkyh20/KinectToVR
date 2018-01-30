@@ -7,21 +7,31 @@
 
 class VRcontroller {
 public:
-    VRcontroller(vr::IVRSystem* &m_sys, vr::ETrackedControllerRole role)
-        : m_HMDSystem(m_sys),
+    VRcontroller( vr::ETrackedControllerRole role)
+        : 
         triggerDeadzone(0.1f),
         triggerOn(false),
         triggerLimit(0.0f),
         controllerType(role)
     {
-        controllerID = m_HMDSystem->GetTrackedDeviceIndexForControllerRole(controllerType);
-        update();
     }
     ~VRcontroller() {}
-
-    void Reconnect() {
-        controllerID = m_HMDSystem->GetTrackedDeviceIndexForControllerRole(controllerType);
-        update();
+    bool Connect(vr::IVRSystem* &m_sys) {
+        if (m_sys->IsInputAvailable()) {
+            m_HMDSystem = m_sys;
+            controllerID = m_HMDSystem->GetTrackedDeviceIndexForControllerRole(controllerType);
+            update();
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+    bool isConnected() {
+        if (m_HMDSystem->IsTrackedDeviceConnected(controllerID)) {
+            return true;
+        }
+        return false;
     }
     void update() {
         prevState_ = state_;

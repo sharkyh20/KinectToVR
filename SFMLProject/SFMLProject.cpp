@@ -12,7 +12,21 @@
 double deltaScaled(double valuePerSecond, double delta) {
     return valuePerSecond * delta;
 }
+class GUIHandler {
+public:
+    GUIHandler() {
 
+    }
+    ~GUIHandler() {}
+
+private:
+    //sfg::SFGUI sfguiRef;
+    sfg::Window::Ptr guiWindow = sfg::Window::Create();
+    
+};
+namespace GUIElements {
+    auto box = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
+}
 int main()
 {
     sf::RenderWindow renderWindow(sf::VideoMode(SFMLsettings::m_window_width, SFMLsettings::m_window_height), "KinectToVR", sf::Style::Titlebar | sf::Style::Close);
@@ -47,9 +61,10 @@ int main()
     auto SteamVRStatusLabel = sfg::Label::Create();
     auto InputEmulatorStatusLabel = sfg::Label::Create();
 
-    auto TrackerInitButton = sfg::Button::Create("Initialise SteamVR Controllers");
+    auto reconKinectButton = sfg::Button::Create("Reconnect Kinect");
+    auto TrackerInitButton = sfg::Button::Create("Initialise SteamVR Kinect Trackers");
 
-    auto ShowSkeletonButton = sfg::CheckButton::Create("Show/Hide Skeleton Tracking");
+    auto ShowSkeletonButton = sfg::CheckButton::Create("Show/Hide Skeleton Tracking: MAY CAUSE LAG IN TRACKERS");
     ShowSkeletonButton->GetSignal(sfg::Widget::OnLeftClick).Connect([] {    toggle(KinectSettings::isSkeletonDrawn); });
     
     //Zeroing
@@ -95,6 +110,7 @@ int main()
     box->Pack(SteamVRStatusLabel);
     box->Pack(InputEmulatorStatusLabel);
 
+    box->Pack(reconKinectButton);
     box->Pack(TrackerInitButton);
     box->Pack(InstructionsLabel);
 
@@ -123,16 +139,32 @@ int main()
 
     //Initialise Kinect
     KinectHandler kinect;
+
     NUI_SKELETON_FRAME skeletonFrame = { 0 };
-    HRESULT kinectStatus = kinect.kinectSensor->NuiStatus();
-    if (kinectStatus == S_OK) {
-        initOpenGL(kinect.kinectTextureId, kinect.kinectImageData.get());
-        updateSkeletalData(skeletonFrame, kinect.kinectSensor);
-        KinectStatusLabel->SetText("Kinect Status: Success!");
+
+    if (kinect.initStatus()) {
+        HRESULT kinectStatus = kinect.kinectSensor->NuiStatus();
+        
+        
+        if (kinectStatus == S_OK) {
+            initOpenGL(kinect.kinectTextureId, kinect.kinectImageData.get());
+            updateSkeletalData(skeletonFrame, kinect.kinectSensor);
+            KinectStatusLabel->SetText("Kinect Status: Success!");
+            std::cerr << "Attempted connection to kinect.... " << kinect.status_str(kinectStatus) << std::endl;    // DEBUG
+        }
+        else {
+            KinectStatusLabel->SetText("Kinect Status: ERROR " + kinect.status_str(kinectStatus));
+            std::cerr << "Attempted connection to kinect.... " << kinect.status_str(kinectStatus) << std::endl;    // DEBUG
+        }
     }
     else {
-        KinectStatusLabel->SetText("Kinect Status: ERROR " + std::to_string(kinectStatus));
+        KinectStatusLabel->SetText("Kinect Status: ERROR KINECT NOT DETECTED");
+        std::cerr << "Attempted connection to kinect.... UNDETECTED" << std::endl;    // DEBUG
     }
+    // Reconnect Kinect Event Signal
+    reconKinectButton->GetSignal(sfg::Widget::OnLeftClick).Connect([&kinect] {
+        kinect.initialise();
+    });
 
     //Initialise InputEmu and Trackers
     std::vector<KinectTrackedDevice> v_trackers{};
@@ -142,6 +174,7 @@ int main()
     }
     catch (vrinputemulator::vrinputemulator_connectionerror e) {
         InputEmulatorStatusLabel->SetText("Input Emu Status: NOT Connected! Error " + std::to_string(e.errorcode) + " " + e.what() + "\n\n Is SteamVR open and InputEmulator installed?");
+        std::cerr << "Attempted connection to Input Emulator" << std::to_string(e.errorcode) + " " + e.what() + "\n\n Is SteamVR open and InputEmulator installed?" << std::endl;
     }
     // Tracker Initialisation Lambda
     if (inputEmulator.isConnected()) {
@@ -166,23 +199,43 @@ int main()
     }
     
     //v_trackers.push_back(kinectTrackerRef);
-
+    std::cerr << "Attempting connection to vrsystem.... " << std::endl;    // DEBUG
     //Initialise VR System
+    VRcontroller rightController(vr::TrackedControllerRole_RightHand);
+    VRcontroller leftController( vr::TrackedControllerRole_LeftHand);
+
     vr::EVRInitError eError = vr::VRInitError_None;
     vr::IVRSystem *m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Utility);
     if (eError == vr::VRInitError_None) {
+        std::cerr << "Attempting connection to controllers.... " << std::endl;    // DEBUG
         SteamVRStatusLabel->SetText("VR Status: Success!");
+        leftController.Connect(m_VRSystem);
+        rightController.Connect(m_VRSystem);
+        std::cerr << "Attempted connection to controllers.... " << std::endl;    // DEBUG
     }
     else {
         SteamVRStatusLabel->SetText("VR Status: ERROR " + std::to_string(eError));
     }
-
+    std::cerr << "Attempted connection to vrsystem.... " << eError << std::endl;    // DEBUG
     //Controllers
-    VRcontroller rightController(m_VRSystem, vr::TrackedControllerRole_RightHand);
-    VRcontroller leftController(m_VRSystem, vr::TrackedControllerRole_LeftHand);
-    ReconControllersButton->GetSignal(sfg::Button::OnLeftClick).Connect([&rightController, &leftController] {
-        rightController.Reconnect();
-        leftController.Reconnect();
+    
+
+    ReconControllersButton->GetSignal(sfg::Button::OnLeftClick).Connect([&rightController, &leftController, &m_VRSystem, &ReconControllersLabel] {
+        std::stringstream stream;
+        stream << "If controller input isn't working, press this to reconnect them.\n Make sure both are on, and not in standby.\n";
+        if (rightController.Connect(m_VRSystem)) {
+            stream << "RIGHT: OK!\t";
+        }
+        else {
+            stream << "RIGHT: DISCONNECTED!\t";
+        }
+        if (leftController.Connect(m_VRSystem)) {
+            stream << "LEFT: OK!\t";
+        }
+        else {
+            stream << "LEFT: DISCONNECTED!\t";
+        }
+        ReconControllersLabel->SetText(stream.str());
     });
 
     KinectSettings::userChangingZero = true;
@@ -192,7 +245,7 @@ int main()
         double currentTime = clock.restart().asSeconds();
         double deltaT = currentTime;
         ss << "FPS = " << 1.0 / deltaT << '\n';
-        
+
         sf::Event event;
         while (renderWindow.pollEvent(event))
         {
@@ -209,50 +262,66 @@ int main()
 
         //Clear ---------------------------------------
         renderWindow.clear();
-        
+
 
         //Process -------------------------------------
-        rightController.update();
-        leftController.update();
-
-        updateSkeletalData(skeletonFrame, kinect.kinectSensor);
-        if(!zeroed) {          //Initial attempt to allow user to get into position before setting the trackers -  ** zeroAll sets zeroed to true  **
-            if (rightController.GetPress(vr::EVRButtonId::k_EButton_Grip)) {
-                ss << "Grip get!\n";
-                zeroAllTracking(skeletonFrame, m_VRSystem);
-            }
-            
+        // Update Kinect Status
+        if (eError == vr::VRInitError_None) {
+            rightController.update();
+            leftController.update();
         }
-        else if (KinectSettings::userChangingZero) {
-            if (leftController.GetTouch(vr::EVRButtonId::k_EButton_SteamVR_Touchpad)) { //works
+        else {
+            std::cerr << "Error updating controllers: Could not connect to the SteamVR system! OpenVR init error-code " << std::to_string(eError) << std::endl;
+        }
+        if (kinect.initStatus()) {
+            HRESULT kinectStatus = kinect.kinectSensor->NuiStatus();
+            if (kinectStatus == S_OK) {
+                KinectStatusLabel->SetText("Kinect Status: Success!");
+            }
+            else {
+                KinectStatusLabel->SetText("Kinect Status: ERROR " + kinect.status_str(kinectStatus));
+            }
+            updateSkeletalData(skeletonFrame, kinect.kinectSensor);
+            if (!zeroed) {          //Initial attempt to allow user to get into position before setting the trackers -  ** zeroAll sets zeroed to true  **
+                if (rightController.GetPress(vr::EVRButtonId::k_EButton_Grip)) {
+                    ss << "Grip get!\n";
+                    zeroAllTracking(skeletonFrame, m_VRSystem);
+                }
+
+            }
+            if (KinectSettings::userChangingZero) {
+                if (leftController.GetTouch(vr::EVRButtonId::k_EButton_SteamVR_Touchpad)) { //works
                     sf::Vector2f axis = leftController.GetControllerAxisValue(vr::EVRButtonId::k_EButton_SteamVR_Touchpad); //works
                     KinectSettings::trackedPositionOffset[0] += deltaScaled(1.0, deltaT) * axis.x;
                     KinectSettings::trackedPositionOffset[2] += deltaScaled(1.0, deltaT) * axis.y;
                 }
-            if (rightController.GetTouch(vr::EVRButtonId::k_EButton_SteamVR_Touchpad)) {
-                sf::Vector2f axis = rightController.GetControllerAxisValue(vr::EVRButtonId::k_EButton_SteamVR_Touchpad); //works
-                KinectSettings::trackedPositionOffset[1] += deltaScaled(1.0, deltaT) * axis.y;
+                if (rightController.GetTouch(vr::EVRButtonId::k_EButton_SteamVR_Touchpad)) {
+                    sf::Vector2f axis = rightController.GetControllerAxisValue(vr::EVRButtonId::k_EButton_SteamVR_Touchpad); //works
+                    KinectSettings::trackedPositionOffset[1] += deltaScaled(1.0, deltaT) * axis.y;
+                }
+                if (rightController.GetTrigger()) {  //works
+                    ss << "Right trigger is down\n";
+                    KinectSettings::userChangingZero = false;
+                }
             }
-            if (rightController.GetTrigger()){  //works
-                ss << "Right trigger is down\n";
-                KinectSettings::userChangingZero = false;
+            ss << "Offset = " << KinectSettings::trackedPositionOffset[0] << ", " << KinectSettings::trackedPositionOffset[1] << ", " << KinectSettings::trackedPositionOffset[2] << '\n';
+            updateTrackersWithSkeletonPosition(inputEmulator, v_trackers, skeletonFrame);
+            //-------------------------------------------
+            text.setString(ss.str());
+
+
+            //Draw
+
+            if (KinectSettings::isKinectDrawn) {
+                //drawKinectImageData(kinect);  // CURRENTLY NOT WORKING AND NEEDS TO BE REFACTORED TO WORK WITH DIFFERENT RESOLUTIONS
+            }
+            if (KinectSettings::isSkeletonDrawn) {
+                drawTrackedSkeletons(skeletonFrame, renderWindow);
             }
         }
-        ss << "Offset = " << KinectSettings::trackedPositionOffset[0] << ", " << KinectSettings::trackedPositionOffset[1] << ", " << KinectSettings::trackedPositionOffset[2] << '\n';
-        updateTrackersWithSkeletonPosition(inputEmulator, v_trackers, skeletonFrame);
-        //-------------------------------------------
-        text.setString(ss.str());
-           
-        
-        //Draw
-        
-        if (KinectSettings::isKinectDrawn) {
-            //drawKinectImageData(kinect);  // CURRENTLY NOT WORKING AND NEEDS TO BE REFACTORED TO WORK WITH DIFFERENT RESOLUTIONS
+        else {
+            KinectStatusLabel->SetText("Kinect Status: ERROR KINECT NOT DETECTED");
         }
-        if (KinectSettings::isSkeletonDrawn) {
-            drawTrackedSkeletons(skeletonFrame, renderWindow);
-        }
-       
         renderWindow.pushGLStates();
         renderWindow.resetGLStates();
         //Draw debug font

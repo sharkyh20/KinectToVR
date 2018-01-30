@@ -8,18 +8,26 @@ There is no installation required by this project itself, however, it requires t
 
 ### Prerequisites
 
+SteamVR - NOT the beta branch, just the regular branch
+
 [The Kinect Runtime v1.8](https://www.microsoft.com/en-au/download/details.aspx?id=40277)
 
 [The OpenVR InputEmulator .exe - (Latest tested version 1.3)](https://github.com/matzman666/OpenVR-InputEmulator/releases)
 
-### Running the program
-- You can use the Xbox 360 Kinect with an adapter [such as this one](https://www.amazon.com/Adapter-Kinect-360-HandHelditems-Sketch-Universal/dp/B005EIXVAE), or a regular Kinect for Windows.
 
-1. Ensure that the runtime is installed, and the Kinect is plugged into your PC
+#### IMPORTANT: If your Kinect is a 360/Xbone version, instead of a Windows version, then you will also need the corresponding SDK for it to detect it. As Microsoft prevents these from working outside of a 'development environment'.
+
+[Kinect SDK v1.8](https://www.microsoft.com/en-us/download/details.aspx?id=40278) <- If you're installing this then the runtime is NOT required. It includes it.
+
+
+### Running the program
+ You can use the Xbox 360 Kinect with an adapter [such as this one](https://www.amazon.com/Adapter-Kinect-360-HandHelditems-Sketch-Universal/dp/B005EIXVAE), or a regular Kinect for Windows.
+
+1. Ensure that the runtime is installed, and the Kinect is plugged into your PC.
   * If Windows won't detect it, you can try looking through Microsoft's troubleshooting [here](https://support.xbox.com/en-AU/xbox-on-windows/accessories/kinect-for-windows-v2-known-issues)
 2. Point your Kinect facing away from the 'front' of your VR space (Usually facing you like your monitor.) *As of writing this, KinectToVR does not support a different Kinect orientation.*
-1. Open SteamVR with your headset plugged in, and install InputEmulator
-1. Run KinectToVR.exe, and 3 tracker devices should appear in the SteamVR device list
+1. Open SteamVR with your headset plugged in, and install InputEmulator.
+1. Run KinectToVR.exe, and 3 tracker devices should appear in the SteamVR device list.
 1. Put on your headset and stand in front of the Kinect. The optimal distance microsoft reccommends is about 1.5-2.5m away.
 1. You may see a bunch of trackers floating behind you! Don't worry, you can initialise them to your current position by pressing down the right grip button.
 1. Although the Kinect tries it's best to find your exact position, it's not always correct, so you can use the left stick to offset the trackers laterally on the ground, and the right stick to move them up and down to your body.
@@ -28,30 +36,63 @@ There is no installation required by this project itself, however, it requires t
 
 Unfortunately, due to the limitations of the Kinect, it can only detect a skeleton head-on and it may jitter or get occluded fairly easily as it is only one sensor. This means that with tracking enabled, you're going to have to stand facing the Kinect, like the old-fashioned 2-sensor Oculus configuration. I can't really do anything about this limitation.
 
-### Some useful keys while I get a UI to work
-'A' - If the Kinect is working, it toggles the display of its camera
+### VRChat
 
-'S' - If the skeleton tracking is working, it will draw the tracked bones
+I'd assume the majority of people that want full body tracking are going to be using it in VRChat, so here is a list of steps to get it to work.
+
+1. Make sure you've turned this program on, and the trackers are set up in SteamVR.
+1. Make sure both controllers are connected before launching VRChat, as sometimes it may not detect them if they are turned on after the game has opened.
+1. Once you are in the world, open the menu and go to 'Avatars'.
+1. From here you can select an avatar for your character, then click change in the bottom left.
+1. Your character should be stuck in a T-Pose.
+1. Move your feet to match with the position of the characters feet, hips with the hips, and your controllers to each of their hands.
+1. When you are ready, hold down the trigger's and grips on both controllers and the tracking should be activated.
+
+Full-body tracking is still fairly uncommon, and as such there's not much help or support if something goes wrong. Many character models may not work, or glitch out when full-body is activated. 
+
+#### NOTE: Sometimes this process may not work, whether it be because VRChat didn't recognise the trackers, or just didn't activate the T-Pose, if this happens, close VRChat and SteamVR and begin the process again.
+
+
+
+#### If your character's knees are bent but the tracking still works, then you can adjust the player height in the 'System' menu to compensate, usually this means make it smaller.
+
+
+### Some useful keys while I get a UI to work
+'A' - If the Kinect is working, it toggles the display of its camera.
+
+'S' - If the skeleton tracking is working, it will draw the tracked bones.
+
+'Q' - Enables the adjustment of the tracker positions in VR.
 
 # Known Issues/Fixes
+
+### Vive tracking bugs out
+
+I don't believe the Kinect v2 (The Xbox One Version) is compatible with the Vive, as it uses the same range of waves, causing the tracking to flip out.
+
+But, if you are experiencing this with a 360 Kinect, or just want to try it with your Xbone one, then it's recommended to not have the Kinect facing into a lighthouse, or at the height of the Vive headset. 
 
 ### Greyed out trackers in SteamVR panel
 Restart SteamVR, as far as I know I can't remove them from the panel, only disable them while its open.
 
-### SteamVR error 308 "A component of SteamVR isn't working properly
+### SteamVR error 308 "A component of SteamVR isn't working properly"
 1. Quit SteamVR
 
 1. Use task manager to search for and kill *VR Server* background process
 
 1. Restart SteamVR
 
-## Getting Started - Developers
+# Getting Started - Developers
 
 If you wish to compile the project yourself, then you'll need:
 
 ### SFML
 
 [SFML v2.4.2](https://www.sfml-dev.org/download/sfml/2.4.2/)
+
+### SFGUI
+
+[SFGUI v0.3.2](https://github.com/TankOs/SFGUI/releases)
 
 ### OpenVR
 
@@ -89,7 +130,7 @@ To get the required headers for the InputEmulator, build the 'lib_vrinputemulato
 (FILEPATH)OpenVR-InputEmulator-1.3\Release\lib\x64 -- Copy the contents
 (FILEPATH)OpenVR-InputEmulator-1.3\Debug\lib\x64 -- Copy the contents
 
-(FILEPATH)OpenVR-InputEmulator-1.3\lib_vrinputemulator\include\ - Copy the contents
+(FILEPATH)OpenVR-InputEmulator-1.3\lib_vrinputemulator\include\ -- Copy the contents
 ```
 
 To here:
@@ -98,6 +139,8 @@ To here:
 (FILEPATH)\SFMLProject\SFMLProject\InputEmulator
 ```
 #### NOTE: The debug library will need to be renamed in the new folder to 'libvrinputemulator_d.lib'
+
+
 
 The OpenVR libraries and headers also need to be copied from their folder:
 
@@ -117,6 +160,19 @@ The final contents of these two folders should look like this:
 ![Image](readmeimg/iefolder.PNG?raw=true)
 ![Image](readmeimg/ovrfolder.PNG?raw=true)
 
+Boost also needs to be added to the directory
+```
+Copy boost_1_63_0\ to (PROJECTDIR)\SFMLProject\
+```
+
+SFML and sfGUI need to be in this project folder too:
+```
+	SFML-2.4.2 -> (PROJECTDIR)\SFMLProject\SFML-2.4.2\
+	and
+	Copy libs from sfgui-0.3.2-vs2017-64\lib
+	AND the include folder from sfgui-0.3.2-vs2017-64
+	to (PROJECTDIR)\SFMLProject\sfGui
+```
 ## Building
 
 The project is meant to be built for 64bit computers only, so if you're using Visual Studio to compile, then near the top left of the screen change the mode to 'Release' or 'Debug', and set the 'solution platforms' to 'x64'.
@@ -133,6 +189,8 @@ These include:
 openal32.dll -- found at \SFML-2.4.2\extlibs\bin\x64
 
 openvr_api64.dll -- found at \openvr-master\bin\win64\
+
+sfgui.dll
 
 -- All below found in \SFML-2.4.2\lib\Release\
 
