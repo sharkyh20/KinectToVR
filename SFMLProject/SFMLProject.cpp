@@ -15,18 +15,119 @@ double deltaScaled(double valuePerSecond, double delta) {
 class GUIHandler {
 public:
     GUIHandler() {
+        guiWindow->SetTitle("Main Window");
 
+        setSignals();
+        setLineWrapping();
+        packElementsIntoMainBox();
+
+        guiWindow->Add(mainGUIBox);
+        sfg::Desktop desktop;
+        desktop.Add(guiWindow);
+        desktop.Update(0.f);
     }
     ~GUIHandler() {}
 
+    void setSignals() {
+        ShowSkeletonButton->GetSignal(sfg::Widget::OnLeftClick).Connect([] {    
+            toggle(KinectSettings::isSkeletonDrawn); 
+        });
+        ZeroButton->GetSignal(sfg::Widget::OnLeftClick).Connect([] {    
+            zeroed = true; 
+        });
+        PositionAdjustButton->GetSignal(sfg::Widget::OnLeftClick).Connect([]{    KinectSettings::userChangingZero = true; 
+        });
+        IgnoreInferredCheckButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
+            if (IgnoreInferredCheckButton->IsActive()) {
+                KinectSettings::ignoreInferredPositions = false;    // No longer stops updating trackers when Kinect isn't sure about a position
+            }
+            else {
+                KinectSettings::ignoreInferredPositions = true;
+            }
+        });
+    }
+    void setLineWrapping() {
+        InferredLabel->SetLineWrap(true);
+        InferredLabel->SetRequisition(sf::Vector2f(600.f, 20.f));
+
+        InstructionsLabel->SetLineWrap(true);
+        InstructionsLabel->SetRequisition(sf::Vector2f(600.f, 50.f));
+    }
+    void packElementsIntoMainBox() {
+        //Statuses are at the top
+        mainGUIBox->Pack(KinectStatusLabel);
+        mainGUIBox->Pack(SteamVRStatusLabel);
+        mainGUIBox->Pack(InputEmulatorStatusLabel);
+
+        mainGUIBox->Pack(reconKinectButton);
+        mainGUIBox->Pack(TrackerInitButton);
+        mainGUIBox->Pack(InstructionsLabel);
+
+        mainGUIBox->Pack(ShowSkeletonButton);
+
+        mainGUIBox->Pack(ReconControllersLabel);
+        mainGUIBox->Pack(ReconControllersButton);
+
+        mainGUIBox->Pack(ZeroLabel);
+        mainGUIBox->Pack(ZeroButton);
+
+        mainGUIBox->Pack(PosLabel);
+        mainGUIBox->Pack(PositionAdjustButton);
+
+        mainGUIBox->Pack(InferredLabel);
+        mainGUIBox->Pack(IgnoreInferredCheckButton);
+    }
+
+    void updateKinectStatusLabel(HRESULT status, KinectHandler& kinect) {
+        // TODO UPDATE KINECT INIT WITH THIS
+        switch (status) {
+        case S_OK:
+            KinectStatusLabel->SetText("Kinect Status: Success!");
+            break;
+        default: 
+            KinectStatusLabel->SetText("Kinect Status: ERROR " + kinect.status_str(status));
+            break;
+        }
+    }
+
 private:
-    //sfg::SFGUI sfguiRef;
+    sfg::SFGUI sfguiRef;
     sfg::Window::Ptr guiWindow = sfg::Window::Create();
+    sfg::Desktop guiDesktop;
     
+    sfg::Box::Ptr mainGUIBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
+    //Statuses
+    sfg::Label::Ptr KinectStatusLabel = sfg::Label::Create();
+    sfg::Label::Ptr SteamVRStatusLabel = sfg::Label::Create();
+    sfg::Label::Ptr InputEmulatorStatusLabel = sfg::Label::Create();
+
+    sfg::Button::Ptr reconKinectButton = sfg::Button::Create("Reconnect Kinect");
+    sfg::Button::Ptr TrackerInitButton = sfg::Button::Create("Initialise SteamVR Kinect Trackers");
+
+    sfg::Button::Ptr ShowSkeletonButton = sfg::CheckButton::Create("Show/Hide Skeleton Tracking: MAY CAUSE LAG IN TRACKERS");
+   
+    //Zeroing
+    sfg::Label::Ptr ZeroLabel = sfg::Label::Create("Enables resetting Zero - After clicking, stand in front of your Kinect, and press the grip button.");
+    sfg::Button::Ptr ZeroButton = sfg::Button::Create("Reset Standing Zero Position");
+    
+
+    //Position Adjust
+    sfg::Label::Ptr PosLabel = sfg::Label::Create("This re-enables Tracker adjustment with the thumbsticks. Press the trigger when you're happy with the position!");
+    sfg::Button::Ptr PositionAdjustButton = sfg::Button::Create("Enable Tracker Offset Adjustment");
+    
+
+    //Redetect Controllers
+    sfg::Label::Ptr ReconControllersLabel = sfg::Label::Create("If controller input isn't working, press this to reconnect them.\n Make sure both are on, and not in standby.");
+    sfg::Button::Ptr ReconControllersButton = sfg::Button::Create("Reconnect VR Controllers");
+
+
+    // Allows for unrestricted tracking, but may be unstable
+    sfg::Label::Ptr InferredLabel = sfg::Label::Create("Checking this makes the trackers directly copy the Kinect movement. This may have the benefit of improving tracking when partially occluded, but may also have the consequence of spazzing wildly if tracking is lost.");
+    sfg::CheckButton::Ptr IgnoreInferredCheckButton = sfg::CheckButton::Create("Enable Raw Tracking");
+
+    sfg::Label::Ptr InstructionsLabel = sfg::Label::Create("Put on your headset and stand in front of the Kinect. The optimal distance microsoft reccommends is about 1.5-2.5m away.\n\nYou may see a bunch of trackers floating behind you!\nDon't worry, you can initialise them to your current position by pressing down the right grip button.\nAlthough the Kinect tries it's best to find your exact position, it's not always correct, so you can use the left stick to offset the trackers laterally on the ground, and the right stick to move them up and down to your body.\n\nWhen you have set it to your desired position click down on the right trigger.\n NOTE: If you hit the trigger on accident before it reached your desired position, then you can press the button or 'Q' on your keyboard to enable tracker adjusting again");    //Blegh - There has to be a better way than this, maybe serialization?
 };
-namespace GUIElements {
-    auto box = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
-}
+
 int main()
 {
     sf::RenderWindow renderWindow(sf::VideoMode(SFMLsettings::m_window_width, SFMLsettings::m_window_height), "KinectToVR", sf::Style::Titlebar | sf::Style::Close);
@@ -47,6 +148,7 @@ int main()
 
     //SFGUI Handling -------------------------------------- 
     // THIS NEEDS TO BE SEPERATED FROM EVERYTHING JESUS CHRIST
+    /*
     renderWindow.pushGLStates();
     renderWindow.resetGLStates();
     sfg::SFGUI sfguiRef;
@@ -133,6 +235,11 @@ int main()
     desktop.Add(guiWindow);
 
     desktop.Update(0.f);
+
+    */
+    //New GUI implementation
+    GUIHandler guiRef;
+
 
     renderWindow.popGLStates();
     // ----------------------------------------------------
