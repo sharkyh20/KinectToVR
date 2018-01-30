@@ -8,6 +8,10 @@ There is no installation required by this project itself, however, it requires t
 
 ### Prerequisites
 
+[Visual Studio Redist 2010 x64](https://www.microsoft.com/en-us/download/details.aspx?id=14632)
+
+[Visual Studio Redist 2017 x64](https://go.microsoft.com/fwlink/?LinkId=746572)
+
 SteamVR - NOT the beta branch, just the regular branch
 
 [The Kinect Runtime v1.8](https://www.microsoft.com/en-au/download/details.aspx?id=40277)
