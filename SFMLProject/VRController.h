@@ -17,15 +17,18 @@ public:
     }
     ~VRcontroller() {}
     bool Connect(vr::IVRSystem* &m_sys) {
-        if (m_sys->IsInputAvailable()) {
-            m_HMDSystem = m_sys;
-            controllerID = m_HMDSystem->GetTrackedDeviceIndexForControllerRole(controllerType);
-            update();
-            return true;
+        if (m_sys != nullptr) {
+            if (m_sys->IsInputAvailable()) {
+                m_HMDSystem = m_sys;
+                controllerID = m_HMDSystem->GetTrackedDeviceIndexForControllerRole(controllerType);
+                update();
+                return true;
+            }
+            else {
+                return false;
+            }
         }
-        else {
-            return false;
-        }
+        return false;
     }
     bool isConnected() {
         if (m_HMDSystem->IsTrackedDeviceConnected(controllerID)) {
