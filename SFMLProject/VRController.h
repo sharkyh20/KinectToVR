@@ -9,7 +9,7 @@ class VRcontroller {
 public:
     VRcontroller( vr::ETrackedControllerRole role)
         : 
-        triggerDeadzone(0.1f),
+        triggerDeadzone(0.4f),
         triggerOn(false),
         triggerLimit(0.0f),
         controllerType(role)
@@ -18,21 +18,19 @@ public:
     ~VRcontroller() {}
     bool Connect(vr::IVRSystem* &m_sys) {
         if (m_sys != nullptr) {
-            if (m_sys->IsInputAvailable()) {
                 m_HMDSystem = m_sys;
                 controllerID = m_HMDSystem->GetTrackedDeviceIndexForControllerRole(controllerType);
                 update();
                 return true;
-            }
-            else {
-                return false;
-            }
         }
         return false;
     }
     bool isConnected() {
-        if (m_HMDSystem->IsTrackedDeviceConnected(controllerID)) {
-            return true;
+        if (m_HMDSystem != nullptr) {
+            if (m_HMDSystem->IsTrackedDeviceConnected(controllerID)) {
+                return true;
+            }
+            return false;
         }
         return false;
     }
@@ -67,7 +65,7 @@ public:
     }
 
     //Trigger Input
-    void UpdateTrigger()
+    void UpdateTrigger()    //TODO test returned values, as they may be acidentally triggering on touch
     {
         triggerPrevOn = triggerOn;
         float value = state_.rAxis[1].x; 
