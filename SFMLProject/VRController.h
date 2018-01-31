@@ -71,17 +71,20 @@ public:
         float value = state_.rAxis[1].x; 
         if (triggerOn)
         {
-            if (value < triggerLimit - triggerDeadzone || value <= 0.0f) {
+            if (value < triggerDeadzone || value <= 0.0f) {
                 triggerOn = false;
+                std::cout << "trigeron = " << triggerOn << ", triggerPrev on = " << triggerPrevOn << '\n' << "triggerLimit = " << triggerLimit << ", trigger value = " << value << '\n';
             }
         }
         else
         {
-            if (value > triggerLimit + triggerDeadzone || value >= 1.0f) {
+            if (value > triggerDeadzone || value >= 1.0f) {
                 triggerOn = true;
+                std::cout << "trigeron = " << triggerOn << ", triggerPrev on = " << triggerPrevOn << '\n' << "triggerLimit = " << triggerLimit << ", trigger value = " << value << '\n';
             }
         }
-        triggerLimit = triggerOn ? std::max(triggerLimit, value) : std::min(triggerLimit, value);
+        //triggerLimit = triggerOn ? std::max(triggerLimit, value) : std::min(triggerLimit, value);
+        std::cout << "trigeron = " << triggerOn << ", triggerPrev on = " << triggerPrevOn << '\n' << "triggerLimit = " << triggerLimit << ", trigger value = " << value << '\n';
     }
     bool GetTrigger() { return triggerOn; }
     bool GetTriggerDown() { return triggerOn && !triggerPrevOn; }

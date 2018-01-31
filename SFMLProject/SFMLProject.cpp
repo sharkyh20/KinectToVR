@@ -21,17 +21,17 @@ int main()
 
     sf::Clock clock;
 
-    //sf::Font font;
+    sf::Font font;
     sf::Text text;
     // Global Debug Font
-    /*
+    
     font.loadFromFile("arial.ttf");
     text.setFont(font);
     text.setString("");
     text.setCharacterSize(40);
     text.setFillColor(sf::Color::Red);
     renderWindow.draw(text);
-    */
+    
     //SFGUI Handling -------------------------------------- 
     GUIHandler guiRef;
     // ----------------------------------------------------
@@ -180,7 +180,7 @@ int main()
         renderWindow.resetGLStates();
 
         //Draw debug font
-        //renderWindow.draw(text);
+        renderWindow.draw(text);
 
         // Draw GUI
         renderWindow.setActive(true);
@@ -192,8 +192,9 @@ int main()
         renderWindow.display();
         
     }
-    destroyTrackers(inputEmulator, v_trackers);
+    
     vr::VR_Shutdown();
+    destroyTrackers(inputEmulator, v_trackers);
     
     return 0;
 }
