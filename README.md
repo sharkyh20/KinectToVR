@@ -60,14 +60,6 @@ Full-body tracking is still fairly uncommon, and as such there's not much help o
 
 #### If your character's knees are bent but the tracking still works, then you can adjust the player height in the 'System' menu to compensate, usually this means make it smaller.
 
-
-### Some useful keys while I get a UI to work
-'A' - If the Kinect is working, it toggles the display of its camera.
-
-'S' - If the skeleton tracking is working, it will draw the tracked bones.
-
-'Q' - Enables the adjustment of the tracker positions in VR.
-
 # Known Issues/Fixes
 
 ### Vive tracking bugs out
