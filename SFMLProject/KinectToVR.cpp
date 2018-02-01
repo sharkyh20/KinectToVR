@@ -220,13 +220,12 @@ void zeroAllTracking(NUI_SKELETON_FRAME& skeletonFrame, vr::IVRSystem* &m_sys) {
 
         if (NUI_SKELETON_TRACKED == trackingState)
         {
-            if (!zeroed) {
-                hmdZero = getHMDPosition(m_sys);
-                kinectZero = zeroKinectPosition(skeletonFrame, i);
-                setKinectToVRMultiplier(skeletonFrame, i);
-                zeroed = true;
-                break;
-            }
+            hmdZero = getHMDPosition(m_sys);
+            kinectZero = zeroKinectPosition(skeletonFrame, i);
+            setKinectToVRMultiplier(skeletonFrame, i);
+            zeroed = true;
+            break;
+
         }
     }
 }

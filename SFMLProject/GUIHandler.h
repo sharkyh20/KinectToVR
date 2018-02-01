@@ -42,7 +42,7 @@ public:
             toggle(KinectSettings::isSkeletonDrawn);
         });
         ZeroButton->GetSignal(sfg::Widget::OnLeftClick).Connect([] {
-            zeroed = true;
+            zeroed = false;
         });
         PositionAdjustButton->GetSignal(sfg::Widget::OnLeftClick).Connect([] {    KinectSettings::userChangingZero = true;
         });
