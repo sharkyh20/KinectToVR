@@ -136,19 +136,6 @@ public:
         else return false;
     }
 
-    /*
-    void TriggerHapticPulse(uint64_t duration_micro_sec, vr::EVRButtonId buttonId)
-    {
-        if (m_HMDSystem != nullptr && lastStateValid)
-        {
-            uint32_t axisId = (uint32_t)buttonId - (uint32_t)vr::k_EButton_Axis0;
-            m_HMDSystem->TriggerHapticPulse(controllerID, 0, duration_micro_sec);   // replace 0 with axisID, removed for testing
-            std::cout << "Sent Haptic!\n";  //debug
-        }
-        
-    }
-    */
-
     void UpdateHapticPulse() {
         if (m_HMDSystem != nullptr && lastStateValid)
         {
