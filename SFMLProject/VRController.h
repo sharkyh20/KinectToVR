@@ -1,6 +1,7 @@
 #pragma once
 #include "stdafx.h"
 #include <algorithm>
+#include <thread>
 
 #include <openvr.h>
 #include <SFML\System\Vector2.hpp>
@@ -20,7 +21,7 @@ public:
         if (m_sys != nullptr) {
                 m_HMDSystem = m_sys;
                 controllerID = m_HMDSystem->GetTrackedDeviceIndexForControllerRole(controllerType);
-                update();
+                update(0.0f);
                 return true;
         }
         return false;
@@ -34,71 +35,143 @@ public:
         }
         return false;
     }
-    void update() {
-        prevState_ = state_;
+    void update(float delta) {
+        deltaTime = delta;
         if (m_HMDSystem != nullptr)
         {
             lastStateValid = m_HMDSystem->GetControllerStateWithPose(
                 vr::ETrackingUniverseOrigin::TrackingUniverseStanding, controllerID, &state_, sizeof(state_), &controllerPose
             );
-            if (prevState_.ulButtonPressed != state_.ulButtonPressed)
-            {
-                int breakpoint = 0;
+            if (lastStateValid) {
+                prevState_ = state_;
             }
             UpdateTrigger();
+            UpdateHapticPulse();
         }
     }
 
     sf::Vector2f GetControllerAxisValue(vr::EVRButtonId buttonId)
     {
-        sf::Vector2f axis_value;
-        uint64_t axisId = (uint64_t)buttonId - (uint64_t)vr::k_EButton_Axis0;
-        switch (axisId)
-        {
-        case 0: axis_value = sf::Vector2f(state_.rAxis[0].x, state_.rAxis[0].y); break;
-        case 1: axis_value = sf::Vector2f(state_.rAxis[1].x, state_.rAxis[1].y); break;
-        case 2: axis_value = sf::Vector2f(state_.rAxis[2].x, state_.rAxis[2].y); break;
-        case 3: axis_value = sf::Vector2f(state_.rAxis[3].x, state_.rAxis[3].y); break;
-        case 4: axis_value = sf::Vector2f(state_.rAxis[4].x, state_.rAxis[4].y); break;
+        if (lastStateValid) {
+            sf::Vector2f axis_value;
+            uint64_t axisId = (uint64_t)buttonId - (uint64_t)vr::k_EButton_Axis0;
+            switch (axisId)
+            {
+            case 0: axis_value = sf::Vector2f(state_.rAxis[0].x, state_.rAxis[0].y); break;
+            case 1: axis_value = sf::Vector2f(state_.rAxis[1].x, state_.rAxis[1].y); break;
+            case 2: axis_value = sf::Vector2f(state_.rAxis[2].x, state_.rAxis[2].y); break;
+            case 3: axis_value = sf::Vector2f(state_.rAxis[3].x, state_.rAxis[3].y); break;
+            case 4: axis_value = sf::Vector2f(state_.rAxis[4].x, state_.rAxis[4].y); break;
+            }
+            return axis_value;
         }
-        return axis_value;
+        return sf::Vector2f(0.0f, 0.0f);
     }
 
     //Trigger Input
     void UpdateTrigger()    //TODO test returned values, as they may be acidentally triggering on touch
     {
-        triggerPrevOn = triggerOn;
-        float value = state_.rAxis[1].x; 
-        if (triggerOn)
-        {
-            if (value < triggerDeadzone || value <= 0.0f) {
-                triggerOn = false;
-                std::cout << "trigeron = " << triggerOn << ", triggerPrev on = " << triggerPrevOn << '\n' << "triggerLimit = " << triggerLimit << ", trigger value = " << value << '\n';
+        if (lastStateValid) {
+            triggerPrevOn = triggerOn;
+            float value = state_.rAxis[1].x;
+            if (triggerOn)
+            {
+                if (value < triggerDeadzone || value <= 0.0f) {
+                    triggerOn = false;
+                }
             }
-        }
-        else
-        {
-            if (value > triggerDeadzone || value >= 1.0f) {
-                triggerOn = true;
-                std::cout << "trigeron = " << triggerOn << ", triggerPrev on = " << triggerPrevOn << '\n' << "triggerLimit = " << triggerLimit << ", trigger value = " << value << '\n';
+            else
+            {
+                if (value > triggerDeadzone || value >= 1.0f) {
+                    triggerOn = true;
+                }
             }
         }
         //triggerLimit = triggerOn ? std::max(triggerLimit, value) : std::min(triggerLimit, value);
-        std::cout << "trigeron = " << triggerOn << ", triggerPrev on = " << triggerPrevOn << '\n' << "triggerLimit = " << triggerLimit << ", trigger value = " << value << '\n';
+        
     }
-    bool GetTrigger() { return triggerOn; }
-    bool GetTriggerDown() { return triggerOn && !triggerPrevOn; }
-    bool GetTriggerUp() {  return !triggerOn && triggerPrevOn; }
+    bool GetTrigger() {
+        if (lastStateValid) return triggerOn; else return false;
+    }
+    bool GetTriggerDown() {
+        if (lastStateValid) return triggerOn && !triggerPrevOn; else return false;
+    }
+    bool GetTriggerUp() {
+        if (lastStateValid) return !triggerOn && triggerPrevOn; else return false;
+    }
 
     //controller input
-    bool GetPress(vr::EVRButtonId buttonId) {  return (state_.ulButtonPressed& vr::ButtonMaskFromId(buttonId)) != 0; }
-    bool GetPressDown(vr::EVRButtonId buttonId) { return (state_.ulButtonPressed& vr::ButtonMaskFromId(buttonId)) != 0 && (prevState_.ulButtonPressed & vr::ButtonMaskFromId(buttonId)) == 0; }
-    bool GetPressUp(vr::EVRButtonId buttonId) {  return (state_.ulButtonPressed& vr::ButtonMaskFromId(buttonId)) == 0 && (prevState_.ulButtonPressed & vr::ButtonMaskFromId(buttonId)) != 0; }
+    bool GetPress(vr::EVRButtonId buttonId) { 
+        if (lastStateValid) 
+            return (state_.ulButtonPressed& vr::ButtonMaskFromId(buttonId)) != 0; 
+        else return false; }
+    bool GetPressDown(vr::EVRButtonId buttonId) { 
+        if (lastStateValid) 
+            return (state_.ulButtonPressed& vr::ButtonMaskFromId(buttonId)) != 0 
+            && (prevState_.ulButtonPressed & vr::ButtonMaskFromId(buttonId)) == 0; 
+        else return false;
+    }
+    bool GetPressUp(vr::EVRButtonId buttonId) { 
+        if (lastStateValid) 
+            return (state_.ulButtonPressed& vr::ButtonMaskFromId(buttonId)) == 0 
+            && (prevState_.ulButtonPressed & vr::ButtonMaskFromId(buttonId)) != 0; 
+        else return false;
+    }
 
-    bool GetTouch(vr::EVRButtonId buttonId) {  return (state_.ulButtonTouched& vr::ButtonMaskFromId(buttonId)) != 0; }
-    bool GetTouchDown(vr::EVRButtonId buttonId) {  return (state_.ulButtonTouched& vr::ButtonMaskFromId(buttonId)) != 0 && (prevState_.ulButtonTouched & vr::ButtonMaskFromId(buttonId)) == 0; }
-    bool GetTouchUp(vr::EVRButtonId buttonId) { return (state_.ulButtonTouched& vr::ButtonMaskFromId(buttonId)) == 0 && (prevState_.ulButtonTouched & vr::ButtonMaskFromId(buttonId)) != 0; }
+    bool GetTouch(vr::EVRButtonId buttonId) { 
+        if (lastStateValid) 
+            return (state_.ulButtonTouched& vr::ButtonMaskFromId(buttonId)) != 0; 
+        else return false;
+    }
+    bool GetTouchDown(vr::EVRButtonId buttonId) { 
+        if (lastStateValid) 
+            return (state_.ulButtonTouched& vr::ButtonMaskFromId(buttonId)) != 0 
+            && (prevState_.ulButtonTouched & vr::ButtonMaskFromId(buttonId)) == 0; 
+        else return false;
+    }
+    bool GetTouchUp(vr::EVRButtonId buttonId) { 
+        if (lastStateValid) 
+            return (state_.ulButtonTouched& vr::ButtonMaskFromId(buttonId)) == 0 
+            && (prevState_.ulButtonTouched & vr::ButtonMaskFromId(buttonId)) != 0; 
+        else return false;
+    }
 
+    /*
+    void TriggerHapticPulse(uint64_t duration_micro_sec, vr::EVRButtonId buttonId)
+    {
+        if (m_HMDSystem != nullptr && lastStateValid)
+        {
+            uint32_t axisId = (uint32_t)buttonId - (uint32_t)vr::k_EButton_Axis0;
+            m_HMDSystem->TriggerHapticPulse(controllerID, 0, duration_micro_sec);   // replace 0 with axisID, removed for testing
+            std::cout << "Sent Haptic!\n";  //debug
+        }
+        
+    }
+    */
+
+    void UpdateHapticPulse() {
+        if (m_HMDSystem != nullptr && lastStateValid)
+        {
+            if (controllerPulse.active) {
+                if (controllerPulse.elapsed < controllerPulse.length)  {
+                    controllerPulse.elapsed += deltaTime;
+                    m_HMDSystem->TriggerHapticPulse(controllerID, 0, lerp(0, 3999, controllerPulse.strength));    // replace 0 with axisID, removed for testing
+                } 
+                else
+                    controllerPulse.active = false;
+            }
+        }
+    }
+    void setHapticPulse(float len, float str, uint32_t id) {
+        controllerPulse.length = len;
+        controllerPulse.strength = str;
+        controllerPulse.axisId = id;
+        controllerPulse.active = true;
+        controllerPulse.elapsed = 0;
+    }
+    float lerp(float start, float finish, float alpha) {
+        return (1 - alpha) * start + alpha * finish; 
+    }
 
 private:
     vr::TrackedDeviceIndex_t controllerID;
@@ -106,12 +179,25 @@ private:
     vr::VRControllerState_t state_;
     vr::VRControllerState_t prevState_;
 
+    struct HapticPulse {
+        //length is how long the vibration should go for
+        //strength is vibration strength from 0-1
+        float elapsed = 0;
+
+        float length = 0;
+        float strength = 0;
+        uint32_t axisId = 0;
+        bool active = false;
+    };
+    HapticPulse controllerPulse;
+
     bool triggerOn;
     bool triggerPrevOn;
     float triggerDeadzone;
     float triggerLimit;
 
     bool lastStateValid;
+    float deltaTime;
     vr::IVRSystem* m_HMDSystem;
     vr::ETrackedControllerRole controllerType;
 };
