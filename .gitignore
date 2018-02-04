@@ -6,6 +6,12 @@ SFMLProject/openvr/*
 SFMLProject/sfGui/*
 SFMLProject/boost_1_63_0/*
 SFMLProject/SFML-2.4.2/*
+
+#Qt build stuff
+QtGUI/build-KinectToVRQtGUI-Desktop_Qt_5_10_0_MSVC2017_64bit-Debug/*
+#Temporary while I set up Qt
+QtGUI/*
+QtGUI/KinectToVRQtGui/*
 ### C++ ###
 # Prerequisites
 *.d
@@ -357,6 +363,9 @@ __pycache__/
 
 # End of https://www.gitignore.io/api/c++,windows,visualstudio
 CppcheckPlugin.vsix
-*.ttf
 SFMLProject/sounds/jalastramConfirmPos.wav
 *.dll
+SFMLProject/ariblk.ttf
+SFMLProject/ARIALN.TTF
+SFMLProject/arial.ttf
+SFMLProject/*.ttf

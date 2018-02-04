@@ -166,6 +166,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GUIHandler.h" />
     <ClInclude Include="KinectToVR.h" />
     <ClInclude Include="sfLine.h" />
     <ClInclude Include="stdafx.h" />
