@@ -20,6 +20,8 @@
 #include <NuiSensor.h>
 #include <NuiSkeleton.h>
 
+#include "Kinect2\inc\Kinect.h"
+
 #include <openvr.h>
 #include <openvr_math.h>
 #include <vrinputemulator.h>
@@ -70,6 +72,15 @@ public:
     NUI_SKELETON_POSITION_INDEX joint1;
     sf::Vector3f hmdRelativePosition;
     bool isKinectDevice;
+};
+class Kinect2TrackedDevice : KinectTrackedDevice{
+	Kinect2TrackedDevice(
+		vrinputemulator::VRInputEmulator& inputEmulator,
+		JointType j0,
+		JointType j1,
+		bool isKinect);
+	JointType joint0;
+	JointType joint1;
 };
 class KinectHandler {
     // A representation of the Kinect elements, it is initialised in its constructor
