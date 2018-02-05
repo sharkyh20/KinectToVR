@@ -60,12 +60,12 @@ public:
             kinect.initialise();
         });
     }
-    void setTrackerInitButtonSignal(vrinputemulator::VRInputEmulator &inputE, std::vector<KinectTrackedDevice> &v_trackers) {
+    void setTrackerInitButtonSignal(vrinputemulator::VRInputEmulator &inputE, std::vector<KinectTrackedDevice> &v_trackers ) {
         TrackerInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers, &inputE] {
             TrackerInitButton->SetLabel("Trackers Initialised");
-            KinectTrackedDevice leftFootTracker(inputE, NUI_SKELETON_POSITION_FOOT_LEFT, NUI_SKELETON_POSITION_ANKLE_LEFT, false);
-            KinectTrackedDevice rightFootTracker(inputE, NUI_SKELETON_POSITION_FOOT_RIGHT, NUI_SKELETON_POSITION_ANKLE_RIGHT, false);
-            KinectTrackedDevice hipTracker(inputE, NUI_SKELETON_POSITION_HIP_CENTER, NUI_SKELETON_POSITION_SPINE, false);
+            KinectTrackedDevice leftFootTracker(inputE, KinectJointType::FootLeft, KinectJointType::AnkleLeft, false, KinectVersion::Version1);
+            KinectTrackedDevice rightFootTracker(inputE, KinectJointType::FootRight, KinectJointType::AnkleRight, false, KinectVersion::Version1);
+            KinectTrackedDevice hipTracker(inputE, KinectJointType::SpineBase, KinectJointType::SpineMid, false, KinectVersion::Version1);
 
             //KinectTrackedDevice kinectTrackerRef(inputEmulator, NUI_SKELETON_POSITION_HEAD, NUI_SKELETON_POSITION_HEAD, true);
             //setKinectTrackerProperties(kinectTrackerRef.deviceId);

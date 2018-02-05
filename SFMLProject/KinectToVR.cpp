@@ -15,6 +15,9 @@ namespace KinectSettings {
 
     const int kinectHeight = 640;
     const int kinectWidth = 480;
+
+    const int kinectV2Height = 1920;
+    const int kinectV2Width = 1080;
 }
 
 namespace SFMLsettings {
@@ -31,21 +34,22 @@ vr::HmdVector3_t m_HMDposition;
 vr::HmdQuaternion_t m_HMDquaternion;
 double kinectToVRScale = 1;
 
-
-
 KinectTrackedDevice::KinectTrackedDevice(
     vrinputemulator::VRInputEmulator& inputEmulator,
-    NUI_SKELETON_POSITION_INDEX j0,
-    NUI_SKELETON_POSITION_INDEX j1,
-    bool isKinect)
+    KinectJointType j0,
+    KinectJointType j1,
+    bool isKinect, 
+    KinectVersion version)
 :
 joint0(j0),
 joint1(j1),
 hmdRelativePosition(sf::Vector3f(0, 0, 0)),
-isKinectDevice(isKinect)
+isKinectRepresentation(isKinect),
+deviceKinectVersion(version)
 {
     deviceId = initTracker(inputEmulator, true);
 }
+
 
 void drawKinectImageData(KinectHandler& kinect) {
     getKinectData(kinect.kinectImageData.get(), kinect.kinectRGBStream, kinect.kinectSensor);
@@ -116,7 +120,7 @@ void updateTrackersWithSkeletonPosition(vrinputemulator::VRInputEmulator &emulat
         if (NUI_SKELETON_TRACKED == trackingState)
         {
             for (KinectTrackedDevice device : trackers) {
-                if (!device.isKinectDevice)
+                if (!device.isKinectRepresentation)
                     updateKinectTrackedDevice(i, emulator, device, skeletonFrame, hmdZero);
                 else
                     updateKinectTracker(emulator, device);
@@ -128,8 +132,8 @@ void updateKinectTrackedDevice(int i, vrinputemulator::VRInputEmulator &emulator
     KinectTrackedDevice device, const NUI_SKELETON_FRAME & skel,
     vr::HmdVector3_t zeroPos)
 {
-    NUI_SKELETON_POSITION_TRACKING_STATE joint0State = skel.SkeletonData[i].eSkeletonPositionTrackingState[device.joint0];
-    NUI_SKELETON_POSITION_TRACKING_STATE joint1State = skel.SkeletonData[i].eSkeletonPositionTrackingState[device.joint1];
+    NUI_SKELETON_POSITION_TRACKING_STATE joint0State = skel.SkeletonData[i].eSkeletonPositionTrackingState[device.joint0.getV1Representation()];
+    NUI_SKELETON_POSITION_TRACKING_STATE joint1State = skel.SkeletonData[i].eSkeletonPositionTrackingState[device.joint1.getV1Representation()];
 
     // If we can't find either of these joints, exit
     if ((joint0State == NUI_SKELETON_POSITION_NOT_TRACKED || joint1State == NUI_SKELETON_POSITION_NOT_TRACKED) && KinectSettings::ignoreInferredPositions)
@@ -146,9 +150,9 @@ void updateKinectTrackedDevice(int i, vrinputemulator::VRInputEmulator &emulator
     {
         auto pose = emulator.getVirtualDevicePose(device.deviceId);
         //POSITION
-        double kRelativeX = skel.SkeletonData[i].SkeletonPositions[device.joint0].x - kinectZero.x;
-        double kRelativeY = skel.SkeletonData[i].SkeletonPositions[device.joint0].y - kinectZero.y;
-        double kRelativeZ = skel.SkeletonData[i].SkeletonPositions[device.joint0].z - kinectZero.z;
+        double kRelativeX = skel.SkeletonData[i].SkeletonPositions[device.joint0.getV1Representation()].x - kinectZero.x;
+        double kRelativeY = skel.SkeletonData[i].SkeletonPositions[device.joint0.getV1Representation()].y - kinectZero.y;
+        double kRelativeZ = skel.SkeletonData[i].SkeletonPositions[device.joint0.getV1Representation()].z - kinectZero.z;
 
         double rawPositionX = KinectSettings::trackedPositionOffset[0] + hmdZero.v[0] + kRelativeX;
         double rawPositionY = KinectSettings::trackedPositionOffset[1] + kRelativeY;   // The Y axis is always up, but the other two depend on kinect orientation

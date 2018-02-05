@@ -154,8 +154,8 @@
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(ProjectDir)\sfGui\;$(ProjectDir)\InputEmulator;$(ProjectDir)\openvr;$(KINECTSDK10_DIR)\lib\amd64;$(ProjectDir)\boost_1_63_0\lib64-msvc-14.0;$(ProjectDir)\SFML-2.4.2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sfgui.lib;Kinect10.lib;OpenGL32.lib;libvrinputemulator.lib;openvr_api64.lib;Release\sfml-audio.lib;Release\sfml-graphics.lib;Release\sfml-window.lib;Release\sfml-system.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)\sfGui\;$(ProjectDir)\InputEmulator;$(ProjectDir)\Kinect2\Lib;$(ProjectDir)\openvr;$(KINECTSDK10_DIR)\lib\amd64;$(ProjectDir)\boost_1_63_0\lib64-msvc-14.0;$(ProjectDir)\SFML-2.4.2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Kinect20.lib;sfgui.lib;Kinect10.lib;OpenGL32.lib;libvrinputemulator.lib;openvr_api64.lib;Release\sfml-audio.lib;Release\sfml-graphics.lib;Release\sfml-window.lib;Release\sfml-system.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>
