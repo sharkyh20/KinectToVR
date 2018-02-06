@@ -45,7 +45,7 @@ int main()
         HRESULT kinectStatus = kinect.kinectSensor->NuiStatus();
         
         if (kinectStatus == S_OK) {
-            initOpenGL(kinect.kinectTextureId, kinect.kinectImageData.get());
+            initOpenGL(kinect);
             updateSkeletalData(skeletonFrame, kinect.kinectSensor);
             std::cerr << "Attempted connection to kinect.... " << kinect.status_str(kinectStatus) << std::endl;    // DEBUG
         }

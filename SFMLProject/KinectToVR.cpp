@@ -52,7 +52,7 @@ deviceKinectVersion(version)
 
 
 void drawKinectImageData(KinectHandler& kinect) {
-    getKinectData(kinect.kinectImageData.get(), kinect.kinectRGBStream, kinect.kinectSensor);
+    getKinectData(kinect.kinectImageData.get(), kinect);
 
     glBindTexture(GL_TEXTURE_2D, kinect.kinectTextureId);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, SFMLsettings::m_window_width, SFMLsettings::m_window_height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, (GLvoid*)kinect.kinectImageData.get());
@@ -70,17 +70,27 @@ void drawKinectImageData(KinectHandler& kinect) {
 
     glEnd();
 }
-void getKinectData(GLubyte* dest, HANDLE& rgbStream, INuiSensor* &sensor) {
-    NUI_IMAGE_FRAME imageFrame{};
-    NUI_LOCKED_RECT LockedRect{};
-    if (acquireKinectFrame(imageFrame, rgbStream, sensor)) {
-        return;
-    }
-    INuiFrameTexture* texture = lockKinectPixelData(imageFrame, LockedRect);
-    copyKinectPixelData(LockedRect, dest);
-    unlockKinectPixelData(texture);
+void getKinectData(GLubyte* dest, KinectHandler& kinect) {
+    if (kinect.kVersion == KinectVersion::Version1) {
+        NUI_IMAGE_FRAME imageFrame{};
+        NUI_LOCKED_RECT LockedRect{};
+        if (acquireKinectFrame(imageFrame, kinect.kinectRGBStream, kinect.kinectSensor)) {
+            return;
+        }
+        INuiFrameTexture* texture = lockKinectPixelData(imageFrame, LockedRect);
+        copyKinectPixelData(LockedRect, dest);
+        unlockKinectPixelData(texture);
 
-    releaseKinectFrame(imageFrame, rgbStream, sensor);
+        releaseKinectFrame(imageFrame, kinect.kinectRGBStream, kinect.kinectSensor);
+    }
+    else if (kinect.kVersion == KinectVersion::Version2) {
+        IColorFrame* frame = nullptr;
+        if (SUCCEEDED(kinectcolorFrameReader->AcquireLatestFrame(&frame))) {
+            frame->CopyConvertedFrameDataToArray(KinectSettings::kinectV2Width*KinectSettings::kinectV2Height * 4, dest, ColorImageFormat_Bgra);
+        }
+        if (frame) frame->Release();
+
+    }
 }
 bool acquireKinectFrame(NUI_IMAGE_FRAME &imageFrame, HANDLE & rgbStream, INuiSensor* &sensor)
 {
@@ -607,14 +617,23 @@ void toggle(bool &b) {
     b = !b;
 }
 
-void initOpenGL(GLuint &textureId, GLubyte* data) {
+void initOpenGL(KinectHandler& kinect) {
+    int width = 0, height = 0;
+    if (kinect.kVersion == KinectVersion::Version1) {
+        width = KinectSettings::kinectWidth;
+        height = KinectSettings::kinectHeight;
+    }
+    else if (kinect.kVersion == KinectVersion::Version2){
+        width = KinectSettings::kinectV2Width;
+        height = KinectSettings::kinectV2Height;
+    }
     // Initialize textures
-    glGenTextures(1, &textureId);
-    glBindTexture(GL_TEXTURE_2D, textureId);
+    glGenTextures(1, &kinect.kinectTextureId);
+    glBindTexture(GL_TEXTURE_2D, kinect.kinectTextureId);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, KinectSettings::kinectWidth, KinectSettings::kinectHeight,
-        0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, (GLvoid*)data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height,
+        0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, (GLvoid*)kinect.kinectImageData.get());
     glBindTexture(GL_TEXTURE_2D, 0);
 
     // OpenGL setup

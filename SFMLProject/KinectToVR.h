@@ -207,13 +207,20 @@ public:
     KinectVersion deviceKinectVersion;
 };
 
+
+
 class KinectHandler {
-    // A representation of the Kinect elements, it is initialised in its constructor
+    // A representation of the Kinect elements, and supports both Kinectv1 and v2
 public:
+    KinectHandler() {
+        initialise();
+    }
+    virtual ~KinectHandler() {}
+    KinectVersion kVersion = KinectVersion::Version1;
     HANDLE kinectRGBStream = nullptr;
     INuiSensor* kinectSensor = nullptr;
     GLuint kinectTextureId;    // ID of the texture to contain Kinect RGB Data
-                               // BGRA array containing the texture data
+
     bool initStatus() { return initialised; }
 
     std::string status_str(HRESULT stat) {
@@ -230,7 +237,7 @@ public:
         }
     }
 
-    std::unique_ptr<GLubyte[]> kinectImageData;
+    std::unique_ptr<GLubyte[]> kinectImageData;  // BGRA array containing the texture data
 
     void initialise() {
         try {
@@ -244,10 +251,6 @@ public:
         }
     }
 
-    KinectHandler() {
-        initialise();
-    }
-    ~KinectHandler() {}
 
 private:
     bool initialised;
@@ -285,15 +288,54 @@ private:
         }
     } FailedKinectInitialisation;
 };
+class KinectHandlerV2 :  KinectHandler {
+public:
+    KinectHandlerV2() {}
+    virtual ~KinectHandlerV2() {}
+    IKinectSensor* kinectSensor = nullptr;
+    IColorFrameReader* colorFrameReader = nullptr;
+    std::unique_ptr<GLubyte[]> kinectImageData =
+        std::make_unique<GLubyte[]>(KinectSettings::kinectV2Width * KinectSettings::kinectV2Height * 4);;
 
+private:
+    bool initKinect() {
+        kVersion = KinectVersion::Version2;
+        if (FAILED(GetDefaultKinectSensor(&kinectSensor))) {
+            return false;
+        }
+        if (kinectSensor) {
+            kinectSensor->Open();
+
+            IColorFrameSource* frameSource = nullptr;
+            kinectSensor->get_ColorFrameSource(&frameSource);
+            frameSource->OpenReader(&colorFrameReader);
+            if (frameSource) {
+                frameSource->Release();
+                frameSource = nullptr;
+            }
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+    void getKinectImageData(GLubyte* dest) {
+        IColorFrame* frame = nullptr;
+        if (SUCCEEDED(colorFrameReader->AcquireLatestFrame(&frame))) {
+            frame->CopyConvertedFrameDataToArray(KinectSettings::kinectV2Width*KinectSettings::kinectV2Height * 4, kinectImageData.get(), ColorImageFormat_Bgra);
+        }
+        if (frame) frame->Release();
+    }
+};
 
 void drawKinectImageData(KinectHandler& kinect);
-void getKinectData(GLubyte* dest, HANDLE& rgbStream, INuiSensor* &sensor);
+void getKinectData(GLubyte* dest, KinectHandler& kinect);
 bool acquireKinectFrame(NUI_IMAGE_FRAME &imageFrame, HANDLE & rgbStream, INuiSensor* &sensor);
 INuiFrameTexture* lockKinectPixelData(NUI_IMAGE_FRAME &imageFrame, NUI_LOCKED_RECT &LockedRect);
 void copyKinectPixelData(NUI_LOCKED_RECT &LockedRect, GLubyte* dest);
 void unlockKinectPixelData(INuiFrameTexture* texture);
 void releaseKinectFrame(NUI_IMAGE_FRAME &imageFrame, HANDLE& rgbStream, INuiSensor* &sensor);
+
 void updateTrackersWithSkeletonPosition(vrinputemulator::VRInputEmulator &emulator, std::vector<KinectTrackedDevice> trackers, NUI_SKELETON_FRAME &skeletonFrame);
 void updateKinectTrackedDevice(int i, vrinputemulator::VRInputEmulator &emulator,
     KinectTrackedDevice device, const NUI_SKELETON_FRAME & skel,
@@ -332,4 +374,4 @@ void setKinectTrackerProperties(uint32_t deviceId);
 void processKeyEvents(sf::Event event);
 void toggle(bool &b);
 
-void initOpenGL(GLuint &textureId, GLubyte* data);
+void initOpenGL(KinectHandler& kinect);
