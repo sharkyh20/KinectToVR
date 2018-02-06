@@ -207,23 +207,50 @@ public:
     KinectVersion deviceKinectVersion;
 };
 
+class IKinectHandler {
+    // Interface base for Kinectv1 and v2
+public:
+    virtual ~IKinectHandler() {}
 
+    virtual void initialise() = 0;
+    virtual bool initStatus() = 0;
+    virtual std::string statusString() = 0;
 
-class KinectHandler {
+    virtual void drawKinectData() = 0;  // Houses the below draw functions with a check
+    virtual void drawKinectImageData() = 0;
+    virtual void drawTrackedSkeletons() = 0;
+
+    virtual void updateSkeletalData() = 0;
+
+    KinectVersion kVersion;
+    std::unique_ptr<GLubyte[]> kinectImageData; // BGRA array containing the texture data
+protected:
+    bool initialised;
+    class FailedKinectInitialisation : public std::exception
+    {
+        virtual const char* what() const throw()
+        {
+            return "Failure to initialise the kinect sensor. Is it plugged in and supplied with power?";
+        }
+    } FailedKinectInitialisation;
+private:
+};
+
+class KinectV1Handler : IKinectHandler{
     // A representation of the Kinect elements, and supports both Kinectv1 and v2
 public:
-    KinectHandler() {
+    KinectV1Handler()
+    {
         initialise();
     }
-    virtual ~KinectHandler() {}
-    KinectVersion kVersion = KinectVersion::Version1;
+    virtual ~KinectV1Handler() {}
     HANDLE kinectRGBStream = nullptr;
     INuiSensor* kinectSensor = nullptr;
     GLuint kinectTextureId;    // ID of the texture to contain Kinect RGB Data
 
-    bool initStatus() { return initialised; }
+    virtual bool initStatus() { return initialised; }
 
-    std::string status_str(HRESULT stat) {
+    virtual std::string statusString(HRESULT stat) {
         switch (stat) {
         case S_OK: return "S_OK";
             case S_NUI_INITIALIZING:	return "S_NUI_INITIALIZING The device is connected, but still initializing.";
@@ -237,13 +264,12 @@ public:
         }
     }
 
-    std::unique_ptr<GLubyte[]> kinectImageData;  // BGRA array containing the texture data
-
-    void initialise() {
+    virtual void initialise() {
         try {
+            kVersion = KinectVersion::Version1;
             kinectImageData
                 = std::make_unique<GLubyte[]>(KinectSettings::kinectWidth * KinectSettings::kinectHeight * 4);
-            initialised = initKinect(kinectRGBStream, kinectSensor);
+            initialised = initKinect();
             if (!initialised) throw FailedKinectInitialisation;
         }
         catch (std::exception&  e) {
@@ -254,72 +280,92 @@ public:
 
 private:
     bool initialised;
-    bool initKinect(HANDLE& rgbStream, INuiSensor* &sensor) {
+    bool initKinect() {
         //Get a working Kinect Sensor
         int numSensors = 0;
         if (NuiGetSensorCount(&numSensors) < 0 || numSensors < 1)
             return false;
-        if (NuiCreateSensorByIndex(0, &sensor) < 0)
+        if (NuiCreateSensorByIndex(0, &kinectSensor) < 0)
             return false;
         //Initialise Sensor
-        sensor->NuiInitialize(NUI_INITIALIZE_FLAG_USES_DEPTH_AND_PLAYER_INDEX
+        kinectSensor->NuiInitialize(NUI_INITIALIZE_FLAG_USES_DEPTH_AND_PLAYER_INDEX
             | NUI_INITIALIZE_FLAG_USES_COLOR
             | NUI_INITIALIZE_FLAG_USES_SKELETON);
 
-        sensor->NuiImageStreamOpen(
+        kinectSensor->NuiImageStreamOpen(
             NUI_IMAGE_TYPE_COLOR,               //Depth Camera or RGB Camera?
             NUI_IMAGE_RESOLUTION_640x480,       //Image Resolution
             0,                                  //Image stream flags, e.g. near mode
             2,                                  //Number of frames to buffer
             NULL,                               //Event handle
-            &rgbStream);
+            &kinectRGBStream);
 
-        sensor->NuiSkeletonTrackingEnable(
+        kinectSensor->NuiSkeletonTrackingEnable(
             NULL,
             0       // Enable seat support (Upper body only)
         );
-        return sensor;
+        return kinectSensor;
     }
-    class FailedKinectInitialisation : public std::exception
-    {
-        virtual const char* what() const throw()
-        {
-            return "Failure to initialise the kinect sensor. Is it plugged in and supplied with power?";
-        }
-    } FailedKinectInitialisation;
+    
 };
-class KinectHandlerV2 :  KinectHandler {
+class KinectV2Handler :  IKinectHandler {
 public:
-    KinectHandlerV2() {}
-    virtual ~KinectHandlerV2() {}
-    IKinectSensor* kinectSensor = nullptr;
-    IColorFrameReader* colorFrameReader = nullptr;
-    std::unique_ptr<GLubyte[]> kinectImageData =
-        std::make_unique<GLubyte[]>(KinectSettings::kinectV2Width * KinectSettings::kinectV2Height * 4);;
+    KinectV2Handler() {}
+    virtual ~KinectV2Handler() {}
 
+    IKinectSensor* kinectSensor = nullptr;
+    IMultiSourceFrameReader* frameReader = nullptr;
+    ICoordinateMapper* coordMapper = nullptr;
+    
+    
+    virtual void initialise() {
+        try {
+            kVersion = KinectVersion::Version2;
+            kinectImageData = std::make_unique<GLubyte[]>(KinectSettings::kinectV2Width * KinectSettings::kinectV2Height * 4);
+            initialised = initKinect();
+            if (!initialised) throw FailedKinectInitialisation;
+        }
+        catch (std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+    }
+    virtual bool initStatus() { return initialised; }
+
+
+    virtual void updateSkeletalData() {
+        IBodyFrame* bodyFrame = nullptr;
+        IBodyFrameReference* frameRef = nullptr;
+        frameReader->get_Body
+    }
 private:
     bool initKinect() {
-        kVersion = KinectVersion::Version2;
         if (FAILED(GetDefaultKinectSensor(&kinectSensor))) {
             return false;
         }
         if (kinectSensor) {
-            kinectSensor->Open();
+            kinectSensor->get_CoordinateMapper(&coordMapper);
 
-            IColorFrameSource* frameSource = nullptr;
-            kinectSensor->get_ColorFrameSource(&frameSource);
-            frameSource->OpenReader(&colorFrameReader);
-            if (frameSource) {
-                frameSource->Release();
-                frameSource = nullptr;
-            }
-            return true;
+            kinectSensor->Open();
+            kinectSensor->OpenMultiSourceFrameReader(
+                FrameSourceTypes::FrameSourceTypes_Depth
+                | FrameSourceTypes::FrameSourceTypes_Color
+                | FrameSourceTypes::FrameSourceTypes_Body,
+                &frameReader);
+            return frameReader;
         }
         else {
             return false;
         }
     }
-    void getKinectImageData(GLubyte* dest) {
+    void getKinectData() {
+        IMultiSourceFrame* multiFrame = nullptr;
+        if (SUCCEEDED(frameReader->AcquireLatestFrame(&multiFrame))) {
+            GLubyte* ptr;
+            //TODO Follow on from getKinectData https://github.com/kyzyx/Tutorials/blob/master/Kinect2SDK/4_SkeletalTracking/main.cpp
+            //NEED TO GET A BETTER OPEN GL THAT SUPPORTS VBOs!!!!
+        }
+    }
+    void getKinectImageData() {
         IColorFrame* frame = nullptr;
         if (SUCCEEDED(colorFrameReader->AcquireLatestFrame(&frame))) {
             frame->CopyConvertedFrameDataToArray(KinectSettings::kinectV2Width*KinectSettings::kinectV2Height * 4, kinectImageData.get(), ColorImageFormat_Bgra);
