@@ -37,7 +37,7 @@ int main()
     // ----------------------------------------------------
 
     //Initialise Kinect
-    KinectV1Handler kinect;
+    KinectV1Handler kinect(renderWindow);
 
     NUI_SKELETON_FRAME skeletonFrame = { 0 };
 
@@ -45,8 +45,8 @@ int main()
         HRESULT kinectStatus = kinect.kinectSensor->NuiStatus();
         
         if (kinectStatus == S_OK) {
-            initOpenGL(kinect);
-            updateSkeletalData(skeletonFrame, kinect.kinectSensor);
+            
+            kinect.update();
             std::cerr << "Attempted connection to kinect.... " << kinect.statusString(kinectStatus) << std::endl;    // DEBUG
         }
         else {
@@ -137,14 +137,13 @@ int main()
         guiRef.updateKinectStatusLabel(kinect);
         if (kinect.initStatus()) {
 
-            updateSkeletalData(skeletonFrame, kinect.kinectSensor);
+            kinect.update();
             if (!zeroed) {          //Initial attempt to allow user to get into position before setting the trackers -  ** zeroAll sets zeroed to true  **
                 if (rightController.GetPress(vr::EVRButtonId::k_EButton_Grip)) {
                     ss << "Grip get!\n";    //DEBUG TEXT
-                    zeroAllTracking(skeletonFrame, m_VRSystem);
+                    zeroAllTracking(skeletonFrame, m_VRSystem); // NEED TO UPDATE AND MERGE THESE SKELE REFS INTO THE KINECTHANDLER
                     rightController.setHapticPulse(.15, 1000, 0);
                 }
-
             }
             if (KinectSettings::userChangingZero) {
                 if (leftController.GetTouch(vr::EVRButtonId::k_EButton_SteamVR_Touchpad)) { //works
@@ -171,12 +170,7 @@ int main()
 
             //Draw
 
-            if (KinectSettings::isKinectDrawn) {
-                //drawKinectImageData(kinect);  // CURRENTLY NOT WORKING AND NEEDS TO BE REFACTORED TO WORK WITH DIFFERENT RESOLUTIONS
-            }
-            if (KinectSettings::isSkeletonDrawn) {
-                drawTrackedSkeletons(skeletonFrame, renderWindow);
-            }
+            kinect.drawKinectData();
         }
        
         renderWindow.pushGLStates();

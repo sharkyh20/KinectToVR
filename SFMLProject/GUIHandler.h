@@ -55,7 +55,7 @@ public:
             }
         });
     }
-    void setKinectButtonSignal(KinectHandler& kinect) {
+    void setKinectButtonSignal(KinectV1Handler& kinect) {
         reconKinectButton->GetSignal(sfg::Widget::OnLeftClick).Connect([&kinect] {
             kinect.initialise();
         });
@@ -133,7 +133,7 @@ public:
         mainGUIBox->Pack(IgnoreInferredCheckButton);
     }
 
-    void updateKinectStatusLabel(KinectHandler& kinect) {
+    void updateKinectStatusLabel(KinectV1Handler& kinect) {
         // TODO UPDATE KINECT INIT WITH THIS
         if (kinect.initStatus()) {
             HRESULT status = kinect.kinectSensor->NuiStatus();
@@ -142,7 +142,7 @@ public:
                 KinectStatusLabel->SetText("Kinect Status: Success!");
                 break;
             default:
-                KinectStatusLabel->SetText("Kinect Status: ERROR " + kinect.status_str(status));
+                KinectStatusLabel->SetText("Kinect Status: ERROR " + kinect.statusString(status));
                 break;
             }
         }

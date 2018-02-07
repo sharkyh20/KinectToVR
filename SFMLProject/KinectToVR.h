@@ -215,6 +215,7 @@ class IKinectHandler {
 public:
     virtual ~IKinectHandler() {}
 
+    virtual void initOpenGL() = 0;
     virtual void initialise() = 0;
     virtual bool initStatus() = 0;
     virtual std::string statusString(HRESULT stat) = 0;
@@ -223,8 +224,10 @@ public:
 
     virtual void drawKinectData() = 0;  // Houses the below draw functions with a check
     virtual void drawKinectImageData() = 0;
-    virtual void drawTrackedSkeletons(sf::RenderWindow &window) = 0;
+    virtual void drawTrackedSkeletons() = 0;
 
+    GLuint kinectTextureId; //TEMPORARY!!
+    sf::RenderWindow* drawingWindow;    //TEMPORARY!!!
     BOOLEAN isTracking;
     KinectVersion kVersion;
     std::unique_ptr<GLubyte[]> kinectImageData; // array containing the texture data
@@ -243,17 +246,49 @@ private:
 class KinectV1Handler : IKinectHandler{
     // A representation of the Kinect elements, and supports both Kinectv1 and v2
 public:
-    KinectV1Handler(sf::RenderWindow* &win)
+    KinectV1Handler(sf::RenderWindow &win)
     {
-        drawingWindow = win;
+        drawingWindow = &win;
         initialise();
+        initOpenGL();
     }
     virtual ~KinectV1Handler() {}
     HANDLE kinectRGBStream = nullptr;
     INuiSensor* kinectSensor = nullptr;
     GLuint kinectTextureId;    // ID of the texture to contain Kinect RGB Data
     
-    sf::RenderWindow* drawingWindow;
+    virtual void initOpenGL() {
+        int width = 0, height = 0;
+        if (kVersion == KinectVersion::Version1) {
+            width = KinectSettings::kinectWidth;
+            height = KinectSettings::kinectHeight;
+        }
+        else if (kVersion == KinectVersion::Version2) {
+            width = KinectSettings::kinectV2Width;
+            height = KinectSettings::kinectV2Height;
+        }
+        // Initialize textures
+        glGenTextures(1, &kinectTextureId);
+        glBindTexture(GL_TEXTURE_2D, kinectTextureId);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height,
+            0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, (GLvoid*)kinectImageData.get());
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        // OpenGL setup
+        glClearColor(1, 0, 0, 0);
+        glClearDepth(1.0f);
+        glEnable(GL_TEXTURE_2D);
+
+        // Camera setup
+        glViewport(0, 0, SFMLsettings::m_window_width, SFMLsettings::m_window_height);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glOrtho(0, SFMLsettings::m_window_width, SFMLsettings::m_window_height, 0, 1, -1);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+    }
 
     NUI_SKELETON_FRAME skeletonFrame = { 0 };
 
@@ -434,6 +469,110 @@ private:
         }
         return;
     };
+    void DrawSkeleton(const NUI_SKELETON_DATA & skel, sf::RenderWindow &window) {
+        for (int i = 0; i < NUI_SKELETON_POSITION_COUNT; ++i) {
+            m_points[i] = SkeletonToScreen(skel.SkeletonPositions[i], SFMLsettings::m_window_width, SFMLsettings::m_window_height);
+            std::cerr << "m_points[" << i << "] = " << m_points[i].x << ", " << m_points[i].y << std::endl;
+            // Same with the other cerr, without this, the skeleton flickers
+        }
+        // Render Torso
+        DrawBone(skel, NUI_SKELETON_POSITION_HEAD, NUI_SKELETON_POSITION_SHOULDER_CENTER, window);
+        DrawBone(skel, NUI_SKELETON_POSITION_SHOULDER_CENTER, NUI_SKELETON_POSITION_SHOULDER_LEFT, window);
+        DrawBone(skel, NUI_SKELETON_POSITION_SHOULDER_CENTER, NUI_SKELETON_POSITION_SHOULDER_RIGHT, window);
+        DrawBone(skel, NUI_SKELETON_POSITION_SHOULDER_CENTER, NUI_SKELETON_POSITION_SPINE, window);
+        DrawBone(skel, NUI_SKELETON_POSITION_SPINE, NUI_SKELETON_POSITION_HIP_CENTER, window);
+        DrawBone(skel, NUI_SKELETON_POSITION_HIP_CENTER, NUI_SKELETON_POSITION_HIP_LEFT, window);
+        DrawBone(skel, NUI_SKELETON_POSITION_HIP_CENTER, NUI_SKELETON_POSITION_HIP_RIGHT, window);
+
+        // Left Arm
+        DrawBone(skel, NUI_SKELETON_POSITION_SHOULDER_LEFT, NUI_SKELETON_POSITION_ELBOW_LEFT, window);
+        DrawBone(skel, NUI_SKELETON_POSITION_ELBOW_LEFT, NUI_SKELETON_POSITION_WRIST_LEFT, window);
+        DrawBone(skel, NUI_SKELETON_POSITION_WRIST_LEFT, NUI_SKELETON_POSITION_HAND_LEFT, window);
+
+        // Right Arm
+        DrawBone(skel, NUI_SKELETON_POSITION_SHOULDER_RIGHT, NUI_SKELETON_POSITION_ELBOW_RIGHT, window);
+        DrawBone(skel, NUI_SKELETON_POSITION_ELBOW_RIGHT, NUI_SKELETON_POSITION_WRIST_RIGHT, window);
+        DrawBone(skel, NUI_SKELETON_POSITION_WRIST_RIGHT, NUI_SKELETON_POSITION_HAND_RIGHT, window);
+
+        // Left Leg
+        DrawBone(skel, NUI_SKELETON_POSITION_HIP_LEFT, NUI_SKELETON_POSITION_KNEE_LEFT, window);
+        DrawBone(skel, NUI_SKELETON_POSITION_KNEE_LEFT, NUI_SKELETON_POSITION_ANKLE_LEFT, window);
+        DrawBone(skel, NUI_SKELETON_POSITION_ANKLE_LEFT, NUI_SKELETON_POSITION_FOOT_LEFT, window);
+
+        // Right Leg
+        DrawBone(skel, NUI_SKELETON_POSITION_HIP_RIGHT, NUI_SKELETON_POSITION_KNEE_RIGHT, window);
+        DrawBone(skel, NUI_SKELETON_POSITION_KNEE_RIGHT, NUI_SKELETON_POSITION_ANKLE_RIGHT, window);
+        DrawBone(skel, NUI_SKELETON_POSITION_ANKLE_RIGHT, NUI_SKELETON_POSITION_FOOT_RIGHT, window);
+
+
+        // Draw the joints in a different color
+        for (int i = 0; i < NUI_SKELETON_POSITION_COUNT; ++i)
+        {
+            sf::CircleShape circle{};
+            circle.setRadius(KinectSettings::g_JointThickness);
+            circle.setPosition(m_points[i]);
+
+            if (skel.eSkeletonPositionTrackingState[i] == NUI_SKELETON_POSITION_INFERRED)
+            {
+                circle.setFillColor(sf::Color::Red);
+                window.draw(circle);
+            }
+            else if (skel.eSkeletonPositionTrackingState[i] == NUI_SKELETON_POSITION_TRACKED)
+            {
+                circle.setFillColor(sf::Color::Yellow);
+                window.draw(circle);
+            }
+        }
+
+    }
+    sf::Vector2f SkeletonToScreen(Vector4 skeletonPoint, int _width, int _height) {
+        LONG x = 0, y = 0;
+        USHORT depth = 0;
+
+        // Calculate the skeleton's position on the screen
+        // NuiTransformSkeletonToDepthImage returns coordinates in NUI_IMAGE_RESOLUTION_320x240 space
+        NuiTransformSkeletonToDepthImage(skeletonPoint, &x, &y, &depth);
+
+        float screenPointX = static_cast<float>(x * _width) / 320;
+        float screenPointY = static_cast<float>(y * _height) / 240;
+        std::cerr << "x = " << x << " ScreenX = " << screenPointX << " y = " << y << " ScreenY = " << screenPointY << std::endl;
+
+        // The skeleton constantly flickers and drops out without the cerr command...
+        return sf::Vector2f(screenPointX, screenPointY);
+    }
+    void DrawBone(const NUI_SKELETON_DATA & skel, NUI_SKELETON_POSITION_INDEX joint0,
+        NUI_SKELETON_POSITION_INDEX joint1, sf::RenderWindow &window)
+    {
+        NUI_SKELETON_POSITION_TRACKING_STATE joint0State = skel.eSkeletonPositionTrackingState[joint0];
+        NUI_SKELETON_POSITION_TRACKING_STATE joint1State = skel.eSkeletonPositionTrackingState[joint1];
+
+        // If we can't find either of these joints, exit
+        if (joint0State == NUI_SKELETON_POSITION_NOT_TRACKED || joint1State == NUI_SKELETON_POSITION_NOT_TRACKED)
+        {
+            return;
+        }
+
+        // Don't draw if both points are inferred
+        if (joint0State == NUI_SKELETON_POSITION_INFERRED && joint1State == NUI_SKELETON_POSITION_INFERRED)
+        {
+            return;
+        }
+        // Assume all bones are inferred unless BOTH joints are tracked
+        if (joint0State == NUI_SKELETON_POSITION_TRACKED && joint1State == NUI_SKELETON_POSITION_TRACKED)
+        {
+            DrawLine(m_points[joint0], m_points[joint1], sf::Color::Green, KinectSettings::g_TrackedBoneThickness, window);
+        }
+        else
+        {
+            DrawLine(m_points[joint0], m_points[joint1], sf::Color::Red, KinectSettings::g_InferredBoneThickness, window);
+        }
+    }
+    void DrawLine(sf::Vector2f start, sf::Vector2f end, sf::Color colour, float lineThickness, sf::RenderWindow &window) {
+        sfLine line(start, end);
+        line.setColor(colour);
+        line.setThickness(lineThickness);
+        window.draw(line);
+    }
 };
 class KinectV2Handler : IKinectHandler {
 public:
@@ -475,7 +614,7 @@ public:
     virtual void drawKinectImageData() {
 
     }
-    virtual void drawTrackedSkeletons(sf::RenderWindow &window) {
+    virtual void drawTrackedSkeletons() {
 
     }
 
@@ -550,7 +689,7 @@ private:
         if (colorFrame) colorFrame->Release();
     }
 };
-
+/*/
 void drawKinectImageData(KinectHandler& kinect);
 void getKinectData(GLubyte* dest, KinectHandler& kinect);
 bool acquireKinectFrame(NUI_IMAGE_FRAME &imageFrame, HANDLE & rgbStream, INuiSensor* &sensor);
@@ -558,7 +697,7 @@ INuiFrameTexture* lockKinectPixelData(NUI_IMAGE_FRAME &imageFrame, NUI_LOCKED_RE
 void copyKinectPixelData(NUI_LOCKED_RECT &LockedRect, GLubyte* dest);
 void unlockKinectPixelData(INuiFrameTexture* texture);
 void releaseKinectFrame(NUI_IMAGE_FRAME &imageFrame, HANDLE& rgbStream, INuiSensor* &sensor);
-
+*/
 void updateTrackersWithSkeletonPosition(vrinputemulator::VRInputEmulator &emulator, std::vector<KinectTrackedDevice> trackers, NUI_SKELETON_FRAME &skeletonFrame);
 void updateKinectTrackedDevice(int i, vrinputemulator::VRInputEmulator &emulator,
     KinectTrackedDevice device, const NUI_SKELETON_FRAME & skel,
@@ -572,8 +711,8 @@ vr::HmdVector3_t getHMDPosition(vr::IVRSystem* &m_sys);
 Vector4 zeroKinectPosition(NUI_SKELETON_FRAME &skeletonFrame, int i);
 void setKinectToVRMultiplier(NUI_SKELETON_FRAME & skel, int i);
 
-void updateSkeletalData(NUI_SKELETON_FRAME &skeletonFrame, INuiSensor* sensor);
-void drawTrackedSkeletons(NUI_SKELETON_FRAME& skeletonFrame, sf::RenderWindow &window);
+//void updateSkeletalData(NUI_SKELETON_FRAME &skeletonFrame, INuiSensor* sensor);
+//void drawTrackedSkeletons(NUI_SKELETON_FRAME& skeletonFrame, sf::RenderWindow &window);
 void DrawSkeleton(const NUI_SKELETON_DATA & skel, sf::RenderWindow &window);
 sf::Vector2f SkeletonToScreen(Vector4 skeletonPoint, int _width, int _height);
 void DrawBone(const NUI_SKELETON_DATA & skel, NUI_SKELETON_POSITION_INDEX joint0,

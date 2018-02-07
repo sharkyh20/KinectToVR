@@ -50,7 +50,7 @@ deviceKinectVersion(version)
     deviceId = initTracker(inputEmulator, true);
 }
 
-
+/*
 void drawKinectImageData(KinectHandler& kinect) {
     getKinectData(kinect.kinectImageData.get(), kinect);
 
@@ -122,7 +122,7 @@ void releaseKinectFrame(NUI_IMAGE_FRAME &imageFrame, HANDLE& rgbStream, INuiSens
 {
     sensor->NuiImageStreamReleaseFrame(rgbStream, &imageFrame);
 }
-
+*/
 void updateTrackersWithSkeletonPosition(vrinputemulator::VRInputEmulator &emulator, std::vector<KinectTrackedDevice> trackers, NUI_SKELETON_FRAME &skeletonFrame) {
     for (int i = 0; i < NUI_SKELETON_COUNT; ++i) {
         NUI_SKELETON_TRACKING_STATE trackingState = skeletonFrame.SkeletonData[i].eTrackingState;
@@ -617,7 +617,7 @@ void toggle(bool &b) {
     b = !b;
 }
 
-void initOpenGL(KinectHandler& kinect) {
+void initOpenGL(IKinectHandler& kinect) {
     int width = 0, height = 0;
     if (kinect.kVersion == KinectVersion::Version1) {
         width = KinectSettings::kinectWidth;
