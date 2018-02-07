@@ -127,6 +127,8 @@ int main()
 
         //Process -------------------------------------
         // Update Kinect Status
+        rightController.Connect(m_VRSystem);
+        leftController.Connect(m_VRSystem);
         if (eError == vr::VRInitError_None) {
             rightController.update(deltaT);
             leftController.update(deltaT);
