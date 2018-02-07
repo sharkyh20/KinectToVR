@@ -60,7 +60,6 @@ extern sf::Vector2f m_points[NUI_SKELETON_POSITION_COUNT]; // Converted to scree
 
 extern bool zeroed;
 extern vr::HmdVector3_t hmdZero; //TEMP GLOBAL
-extern Vector4 kinectZero; //TEMP GLOBAL
 extern vr::HmdVector3_t m_HMDposition;
 extern vr::HmdQuaternion_t m_HMDquaternion;
 extern double kinectToVRScale;
@@ -198,13 +197,39 @@ public:
         KinectJointType j1,
         bool isKinect, 
         KinectVersion version);
+
+    void update(vr::HmdVector3_t rawJointPos, Vector4 zeroPos) {
+        lastRawPos = rawJointPos;
+        auto pose = inputEmulatorRef.getVirtualDevicePose(deviceId);
+        //POSITION
+        double kRelativeX = rawJointPos.v[0] - zeroPos.x;
+        double kRelativeY = rawJointPos.v[1] - zeroPos.y;
+        double kRelativeZ = rawJointPos.v[2] - zeroPos.z;
+
+        //TODO REPLACE KS OFFSET WITH LOCAL DEVICE OFFSET, AND PROVIDE FN TO SET ALL DEVICES AT ONCE
+        double rawVRPositionX = KinectSettings::trackedPositionOffset[0] + hmdZero.v[0] + kRelativeX;
+        double rawVRPositionY = KinectSettings::trackedPositionOffset[1] + kRelativeY;   // The Y axis is always up, but the other two depend on kinect orientation
+        double rawVRPositionZ = KinectSettings::trackedPositionOffset[2] + hmdZero.v[2] + kRelativeZ;
+
+        pose.vecPosition[0] = kinectToVRScale * rawVRPositionX;
+        pose.vecPosition[1] = kinectToVRScale * rawVRPositionY;
+        pose.vecPosition[2] = kinectToVRScale * rawVRPositionZ;
+
+        pose.poseIsValid = true;
+        pose.result = vr::TrackingResult_Running_OK;
+        inputEmulatorRef.setVirtualDevicePose(deviceId, pose);
+    }
+
     ~KinectTrackedDevice() {}
+
+    vrinputemulator::VRInputEmulator &inputEmulatorRef;
     uint32_t deviceId;
 
     KinectJoint joint0;
     KinectJoint joint1;
 
     sf::Vector3f hmdRelativePosition;
+    vr::HmdVector3_t lastRawPos{0,0,0};
     bool isKinectRepresentation;
 
     KinectVersion deviceKinectVersion;
@@ -217,7 +242,7 @@ public:
 
     virtual void initOpenGL() = 0;
     virtual void initialise() = 0;
-    virtual bool initStatus() = 0;
+    virtual bool isInitialised() = 0;
     virtual std::string statusString(HRESULT stat) = 0;
 
     virtual void update() = 0;
@@ -226,11 +251,18 @@ public:
     virtual void drawKinectImageData() = 0;
     virtual void drawTrackedSkeletons() = 0;
 
+    virtual void zeroAllTracking(vr::IVRSystem* &m_sys) = 0;
+    virtual void updateTrackersWithSkeletonPosition(
+        vrinputemulator::VRInputEmulator &emulator,
+        std::vector<KinectTrackedDevice> trackers
+    ) = 0;
+
     GLuint kinectTextureId; //TEMPORARY!!
     sf::RenderWindow* drawingWindow;    //TEMPORARY!!!
     BOOLEAN isTracking;
     KinectVersion kVersion;
     std::unique_ptr<GLubyte[]> kinectImageData; // array containing the texture data
+    Vector4 kinectZero{ 0,0,0 };
 protected:
     bool initialised;
     class FailedKinectInitialisation : public std::exception
@@ -242,6 +274,8 @@ protected:
     } FailedKinectInitialisation;
 private:
 };
+
+vr::HmdVector3_t getHMDPosition(vr::IVRSystem* &m_system);  //Temporary forward declaration before Kinect Handler is moved into another header file
 
 class KinectV1Handler : IKinectHandler{
     // A representation of the Kinect elements, and supports both Kinectv1 and v2
@@ -256,6 +290,7 @@ public:
     HANDLE kinectRGBStream = nullptr;
     INuiSensor* kinectSensor = nullptr;
     GLuint kinectTextureId;    // ID of the texture to contain Kinect RGB Data
+    NUI_SKELETON_FRAME skeletonFrame = { 0 };
     
     virtual void initOpenGL() {
         int width = 0, height = 0;
@@ -290,9 +325,9 @@ public:
         glLoadIdentity();
     }
 
-    NUI_SKELETON_FRAME skeletonFrame = { 0 };
+    
 
-    virtual bool initStatus() { return initialised; }
+    virtual bool isInitialised() { return initialised; }
 
     virtual std::string statusString(HRESULT stat) {
         switch (stat) {
@@ -322,16 +357,23 @@ public:
     }
 
     virtual void update() {
-        getKinectRGBData();
-        updateSkeletalData();
+        if (isInitialised()) {
+            HRESULT kinectStatus = kinectSensor->NuiStatus();
+            if (kinectStatus == S_OK) {
+                getKinectRGBData();
+                updateSkeletalData();
+            }
+        }
     }
 
     virtual void drawKinectData() {
-        if (KinectSettings::isKinectDrawn) {
-            drawKinectImageData();
-        }
-        if (KinectSettings::isSkeletonDrawn) {
-            drawTrackedSkeletons();
+        if (isInitialised()) {
+            if (KinectSettings::isKinectDrawn) {
+                drawKinectImageData();
+            }
+            if (KinectSettings::isSkeletonDrawn) {
+                drawTrackedSkeletons();
+            }
         }
     };
     virtual void drawKinectImageData() {
@@ -390,8 +432,68 @@ public:
         }
     };
 
-    
+    //Consider moving this tracking stuff into a seperate class
+    virtual void zeroAllTracking(vr::IVRSystem* &m_sys) {
+        for (int i = 0; i < NUI_SKELETON_COUNT; ++i) {
+            NUI_SKELETON_TRACKING_STATE trackingState = skeletonFrame.SkeletonData[i].eTrackingState;
 
+            if (NUI_SKELETON_TRACKED == trackingState)
+            {
+                hmdZero = getHMDPosition(m_sys);
+                kinectZero = zeroKinectPosition(i);
+                setKinectToVRMultiplier(i);
+                zeroed = true;
+                break;
+
+            }
+        }
+    }
+    virtual void updateTrackersWithSkeletonPosition(
+        vrinputemulator::VRInputEmulator &emulator,
+        std::vector<KinectTrackedDevice> trackers)
+    {
+        for (KinectTrackedDevice device : trackers) {
+            if (!device.isKinectRepresentation) {
+                vr::HmdVector3_t jointPosition{ 0,0,0 };
+                if (getRawTrackedJointPos(device, jointPosition)) {
+                    device.update(jointPosition, kinectZero);
+                } 
+            }
+            else {
+                //updateKinectTracker(emulator, device);    //Not implemented right now
+            }
+        }
+    }
+ 
+    bool getRawTrackedJointPos(KinectTrackedDevice device, vr::HmdVector3_t& position) {
+        for (int i = 0; i < NUI_SKELETON_COUNT; ++i) {
+            NUI_SKELETON_TRACKING_STATE trackingState = skeletonFrame.SkeletonData[i].eTrackingState;
+
+            if (trackingState == NUI_SKELETON_TRACKED)
+            {
+                // If we can't find either of these joints, exit
+                if (jointsUntracked(device.joint0, device.joint1, skeletonFrame.SkeletonData[i]))
+                {
+                    return false;
+                }
+
+                // Don't track if both points are inferred
+                if (jointsInferred(device.joint0, device.joint1, skeletonFrame.SkeletonData[i]))
+                {
+                    return false;
+                }
+                else
+                {
+                    float jointX = skeletonFrame.SkeletonData[i].SkeletonPositions[device.joint0.getV1Representation()].x;
+                    float jointY = skeletonFrame.SkeletonData[i].SkeletonPositions[device.joint0.getV1Representation()].y;
+                    float jointZ = skeletonFrame.SkeletonData[i].SkeletonPositions[device.joint0.getV1Representation()].z;
+                    position = vr::HmdVector3_t{ jointX,jointY,jointZ };
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 private:
     bool initialised;
     bool initKinect() {
@@ -573,7 +675,38 @@ private:
         line.setThickness(lineThickness);
         window.draw(line);
     }
+    Vector4 zeroKinectPosition( int trackedSkeletonIndex) {
+        return skeletonFrame.SkeletonData[trackedSkeletonIndex].SkeletonPositions[NUI_SKELETON_POSITION_HEAD];
+    }
+    void setKinectToVRMultiplier( int skeletonIndex) {
+        kinectToVRScale = hmdZero.v[1]
+            / (skeletonFrame.SkeletonData[skeletonIndex].SkeletonPositions[NUI_SKELETON_POSITION_HEAD].y
+                +
+                -skeletonFrame.SkeletonData[skeletonIndex].SkeletonPositions[NUI_SKELETON_POSITION_FOOT_LEFT].y);
+    }
+
+    bool jointsUntracked(KinectJoint joint0, KinectJoint joint1, NUI_SKELETON_DATA data) {
+        NUI_SKELETON_POSITION_TRACKING_STATE joint0State = data.eSkeletonPositionTrackingState[joint0.getV1Representation()];
+        NUI_SKELETON_POSITION_TRACKING_STATE joint1State = data.eSkeletonPositionTrackingState[joint1.getV1Representation()];
+
+        // If we can't find either of these joints, exit
+        return ((joint0State == NUI_SKELETON_POSITION_NOT_TRACKED
+            || joint1State == NUI_SKELETON_POSITION_NOT_TRACKED)
+            && KinectSettings::ignoreInferredPositions);
+    }
+    bool jointsInferred(KinectJoint joint0, KinectJoint joint1, NUI_SKELETON_DATA data) {
+        NUI_SKELETON_POSITION_TRACKING_STATE joint0State = data.eSkeletonPositionTrackingState[joint0.getV1Representation()];
+        NUI_SKELETON_POSITION_TRACKING_STATE joint1State = data.eSkeletonPositionTrackingState[joint1.getV1Representation()];
+
+        // If we can't find either of these joints, exit
+        return (joint0State == NUI_SKELETON_POSITION_INFERRED 
+            && joint1State == NUI_SKELETON_POSITION_INFERRED 
+            && KinectSettings::ignoreInferredPositions);
+    }
 };
+
+
+
 class KinectV2Handler : IKinectHandler {
 public:
     KinectV2Handler() {}
@@ -601,7 +734,7 @@ public:
             std::cerr << e.what() << std::endl;
         }
     }
-    virtual bool initStatus() { return initialised; }
+    virtual bool isInitialised() { return initialised; }
 
     virtual void drawKinectData() {
         if (KinectSettings::isKinectDrawn) {
@@ -698,26 +831,23 @@ void copyKinectPixelData(NUI_LOCKED_RECT &LockedRect, GLubyte* dest);
 void unlockKinectPixelData(INuiFrameTexture* texture);
 void releaseKinectFrame(NUI_IMAGE_FRAME &imageFrame, HANDLE& rgbStream, INuiSensor* &sensor);
 */
-void updateTrackersWithSkeletonPosition(vrinputemulator::VRInputEmulator &emulator, std::vector<KinectTrackedDevice> trackers, NUI_SKELETON_FRAME &skeletonFrame);
-void updateKinectTrackedDevice(int i, vrinputemulator::VRInputEmulator &emulator,
-    KinectTrackedDevice device, const NUI_SKELETON_FRAME & skel,
-    vr::HmdVector3_t zeroPos);
+//void updateTrackersWithSkeletonPosition(vrinputemulator::VRInputEmulator &emulator, std::vector<KinectTrackedDevice> trackers, NUI_SKELETON_FRAME &skeletonFrame);
+//void updateKinectTrackedDevice(int i, vrinputemulator::VRInputEmulator &emulator, KinectTrackedDevice device, const NUI_SKELETON_FRAME & skel, vr::HmdVector3_t zeroPos);
 
-void updateKinectTracker(vrinputemulator::VRInputEmulator &emulator, KinectTrackedDevice device);
+//void updateKinectTracker(vrinputemulator::VRInputEmulator &emulator, KinectTrackedDevice device);
 void toEulerAngle(vr::HmdQuaternion_t q, double& roll, double& pitch, double& yaw);
 
-void zeroAllTracking(NUI_SKELETON_FRAME& skeletonFrame, vr::IVRSystem* &m_sys);
+//void zeroAllTracking(NUI_SKELETON_FRAME& skeletonFrame, vr::IVRSystem* &m_sys);
 vr::HmdVector3_t getHMDPosition(vr::IVRSystem* &m_sys);
-Vector4 zeroKinectPosition(NUI_SKELETON_FRAME &skeletonFrame, int i);
-void setKinectToVRMultiplier(NUI_SKELETON_FRAME & skel, int i);
+//Vector4 zeroKinectPosition(NUI_SKELETON_FRAME &skeletonFrame, int i);
+//void setKinectToVRMultiplier(NUI_SKELETON_FRAME & skel, int i);
 
 //void updateSkeletalData(NUI_SKELETON_FRAME &skeletonFrame, INuiSensor* sensor);
 //void drawTrackedSkeletons(NUI_SKELETON_FRAME& skeletonFrame, sf::RenderWindow &window);
-void DrawSkeleton(const NUI_SKELETON_DATA & skel, sf::RenderWindow &window);
-sf::Vector2f SkeletonToScreen(Vector4 skeletonPoint, int _width, int _height);
-void DrawBone(const NUI_SKELETON_DATA & skel, NUI_SKELETON_POSITION_INDEX joint0,
-    NUI_SKELETON_POSITION_INDEX joint1, sf::RenderWindow &window);
-void DrawLine(sf::Vector2f start, sf::Vector2f end, sf::Color colour, float lineThickness, sf::RenderWindow &window);
+//void DrawSkeleton(const NUI_SKELETON_DATA & skel, sf::RenderWindow &window);
+//sf::Vector2f SkeletonToScreen(Vector4 skeletonPoint, int _width, int _height);
+//void DrawBone(const NUI_SKELETON_DATA & skel, NUI_SKELETON_POSITION_INDEX joint0, NUI_SKELETON_POSITION_INDEX joint1, sf::RenderWindow &window);
+//void DrawLine(sf::Vector2f start, sf::Vector2f end, sf::Color colour, float lineThickness, sf::RenderWindow &window);
 
 // Get the quaternion representing the rotation
 vr::HmdQuaternion_t GetRotation(vr::HmdMatrix34_t matrix);

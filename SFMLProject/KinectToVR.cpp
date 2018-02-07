@@ -29,7 +29,6 @@ sf::Vector2f m_points[NUI_SKELETON_POSITION_COUNT];
 
 bool zeroed = false;
 vr::HmdVector3_t hmdZero; //TEMP GLOBAL
-Vector4 kinectZero; //TEMP GLOBAL
 vr::HmdVector3_t m_HMDposition;
 vr::HmdQuaternion_t m_HMDquaternion;
 double kinectToVRScale = 1;
@@ -41,6 +40,7 @@ KinectTrackedDevice::KinectTrackedDevice(
     bool isKinect, 
     KinectVersion version)
 :
+    inputEmulatorRef(inputEmulator),
 joint0(j0),
 joint1(j1),
 hmdRelativePosition(sf::Vector3f(0, 0, 0)),
@@ -122,7 +122,7 @@ void releaseKinectFrame(NUI_IMAGE_FRAME &imageFrame, HANDLE& rgbStream, INuiSens
 {
     sensor->NuiImageStreamReleaseFrame(rgbStream, &imageFrame);
 }
-*/
+
 void updateTrackersWithSkeletonPosition(vrinputemulator::VRInputEmulator &emulator, std::vector<KinectTrackedDevice> trackers, NUI_SKELETON_FRAME &skeletonFrame) {
     for (int i = 0; i < NUI_SKELETON_COUNT; ++i) {
         NUI_SKELETON_TRACKING_STATE trackingState = skeletonFrame.SkeletonData[i].eTrackingState;
@@ -177,12 +177,13 @@ void updateKinectTrackedDevice(int i, vrinputemulator::VRInputEmulator &emulator
         emulator.setVirtualDevicePose(device.deviceId, pose);
     }
 }
-
+*/
+/*
 void updateKinectTracker(vrinputemulator::VRInputEmulator &emulator, KinectTrackedDevice device)
 {
     auto pose = emulator.getVirtualDevicePose(device.deviceId);
     // The Kinect Tracker position must be rotated, as otherwise the tracker is oriented to the wrong direction
-    /*
+    
     double kRelativeX =  - kinectZero.x;
     double kRelativeY =  - kinectZero.y;
     double kRelativeZ = - kinectZero.z;
@@ -192,7 +193,7 @@ void updateKinectTracker(vrinputemulator::VRInputEmulator &emulator, KinectTrack
     pose.vecPosition[0] = kinectToVRScale * rawPositionX;
     pose.vecPosition[1] = kinectToVRScale * kRelativeY;
     pose.vecPosition[2] = kinectToVRScale * rawPositionZ;
-    */
+    
 
     double kRelativeX = -kinectZero.x;
     double kRelativeY = -kinectZero.y;
@@ -208,6 +209,7 @@ void updateKinectTracker(vrinputemulator::VRInputEmulator &emulator, KinectTrack
     pose.result = vr::TrackingResult_Running_OK;
     emulator.setVirtualDevicePose(device.deviceId, pose);
 }
+*/
 void toEulerAngle(vr::HmdQuaternion_t q, double& roll, double& pitch, double& yaw)
 {
     // roll (x-axis rotation)
@@ -228,6 +230,7 @@ void toEulerAngle(vr::HmdQuaternion_t q, double& roll, double& pitch, double& ya
     yaw = atan2(siny, cosy);
 }
 
+/*
 void zeroAllTracking(NUI_SKELETON_FRAME& skeletonFrame, vr::IVRSystem* &m_sys) {
     for (int i = 0; i < NUI_SKELETON_COUNT; ++i) {
         NUI_SKELETON_TRACKING_STATE trackingState = skeletonFrame.SkeletonData[i].eTrackingState;
@@ -243,6 +246,7 @@ void zeroAllTracking(NUI_SKELETON_FRAME& skeletonFrame, vr::IVRSystem* &m_sys) {
         }
     }
 }
+*/
 vr::HmdVector3_t getHMDPosition(vr::IVRSystem* &m_system) {
     //Zeros the kinect positions to the HMD location for relative position setting
     // Use the head joint for the zero location!
@@ -277,9 +281,12 @@ vr::HmdVector3_t getHMDPosition(vr::IVRSystem* &m_system) {
     }
     return m_HMDposition;
 }
+/*
 Vector4 zeroKinectPosition(NUI_SKELETON_FRAME &skeletonFrame, int i) {
     return skeletonFrame.SkeletonData[i].SkeletonPositions[NUI_SKELETON_POSITION_HEAD];
 }
+*/
+/*
 void setKinectToVRMultiplier(NUI_SKELETON_FRAME & skel, int i) {
     kinectToVRScale = hmdZero.v[1]
         / (skel.SkeletonData[i].SkeletonPositions[NUI_SKELETON_POSITION_HEAD].y
@@ -436,7 +443,7 @@ void DrawLine(sf::Vector2f start, sf::Vector2f end, sf::Color colour, float line
     line.setThickness(lineThickness);
     window.draw(line);
 }
-
+*/
 // Get the quaternion representing the rotation
 vr::HmdQuaternion_t GetRotation(vr::HmdMatrix34_t matrix) {
     // Credit to Omnifinity https://github.com/Omnifinity/OpenVR-Tracking-Example/

@@ -135,7 +135,7 @@ public:
 
     void updateKinectStatusLabel(KinectV1Handler& kinect) {
         // TODO UPDATE KINECT INIT WITH THIS
-        if (kinect.initStatus()) {
+        if (kinect.isInitialised()) {
             HRESULT status = kinect.kinectSensor->NuiStatus();
             switch (status) {
             case S_OK:
