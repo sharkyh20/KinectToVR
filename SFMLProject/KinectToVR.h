@@ -7,9 +7,12 @@
 #include <string>
 #include <exception>
 
-#include <SFML/Graphics.hpp>
+//#include <SFML/Graphics.hpp>
+#include <glew.h>
 #include <SFML/Window/Mouse.hpp>
 #include <SFML/OpenGL.hpp>
+
+
 
 // Kinect Includes
 #include <Windows.h> //MUST BE BEFORE NUI
@@ -214,16 +217,17 @@ public:
 
     virtual void initialise() = 0;
     virtual bool initStatus() = 0;
-    virtual std::string statusString() = 0;
+    virtual std::string statusString(HRESULT stat) = 0;
+
+    virtual void update() = 0;
 
     virtual void drawKinectData() = 0;  // Houses the below draw functions with a check
     virtual void drawKinectImageData() = 0;
-    virtual void drawTrackedSkeletons() = 0;
+    virtual void drawTrackedSkeletons(sf::RenderWindow &window) = 0;
 
-    virtual void updateSkeletalData() = 0;
-
+    BOOLEAN isTracking;
     KinectVersion kVersion;
-    std::unique_ptr<GLubyte[]> kinectImageData; // BGRA array containing the texture data
+    std::unique_ptr<GLubyte[]> kinectImageData; // array containing the texture data
 protected:
     bool initialised;
     class FailedKinectInitialisation : public std::exception
@@ -239,14 +243,19 @@ private:
 class KinectV1Handler : IKinectHandler{
     // A representation of the Kinect elements, and supports both Kinectv1 and v2
 public:
-    KinectV1Handler()
+    KinectV1Handler(sf::RenderWindow* &win)
     {
+        drawingWindow = win;
         initialise();
     }
     virtual ~KinectV1Handler() {}
     HANDLE kinectRGBStream = nullptr;
     INuiSensor* kinectSensor = nullptr;
     GLuint kinectTextureId;    // ID of the texture to contain Kinect RGB Data
+    
+    sf::RenderWindow* drawingWindow;
+
+    NUI_SKELETON_FRAME skeletonFrame = { 0 };
 
     virtual bool initStatus() { return initialised; }
 
@@ -268,7 +277,7 @@ public:
         try {
             kVersion = KinectVersion::Version1;
             kinectImageData
-                = std::make_unique<GLubyte[]>(KinectSettings::kinectWidth * KinectSettings::kinectHeight * 4);
+                = std::make_unique<GLubyte[]>(KinectSettings::kinectWidth * KinectSettings::kinectHeight * 4);  // BGRA
             initialised = initKinect();
             if (!initialised) throw FailedKinectInitialisation;
         }
@@ -277,6 +286,76 @@ public:
         }
     }
 
+    virtual void update() {
+        getKinectRGBData();
+        updateSkeletalData();
+    }
+
+    virtual void drawKinectData() {
+        if (KinectSettings::isKinectDrawn) {
+            drawKinectImageData();
+        }
+        if (KinectSettings::isSkeletonDrawn) {
+            drawTrackedSkeletons();
+        }
+    };
+    virtual void drawKinectImageData() {
+
+        glBindTexture(GL_TEXTURE_2D, kinectTextureId);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, SFMLsettings::m_window_width, SFMLsettings::m_window_height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, (GLvoid*)kinectImageData.get());
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glBegin(GL_QUADS);
+        glTexCoord2f(0.0f, 0.0f);
+        glVertex3f(0, 0, 0);
+        glTexCoord2f(1.0f, 0.0f);
+        glVertex3f(SFMLsettings::m_window_width, 0, 0);
+        glTexCoord2f(1.0f, 1.0f);
+        glVertex3f(SFMLsettings::m_window_width, SFMLsettings::m_window_height, 0.0f);
+        glTexCoord2f(0.0f, 1.0f);
+        glVertex3f(0, SFMLsettings::m_window_height, 0.0f);
+
+        glEnd();
+    };
+    virtual void drawTrackedSkeletons() {
+        for (int i = 0; i < NUI_SKELETON_POSITION_COUNT; ++i) {
+            m_points[i] = sf::Vector2f(0.0f, 0.0f);
+        }
+        for (int i = 0; i < NUI_SKELETON_COUNT; ++i) {
+            NUI_SKELETON_TRACKING_STATE trackingState = skeletonFrame.SkeletonData[i].eTrackingState;
+
+            if (NUI_SKELETON_TRACKED == trackingState)
+            {
+                if (KinectSettings::isSkeletonDrawn) {
+                    drawingWindow->pushGLStates();
+                    drawingWindow->resetGLStates();
+
+                    DrawSkeleton(skeletonFrame.SkeletonData[i], *drawingWindow);
+
+                    drawingWindow->popGLStates();
+                }
+
+            }
+            else if (NUI_SKELETON_POSITION_ONLY == trackingState) {
+                //ONLY CENTER POINT TO DRAW
+                if (KinectSettings::isSkeletonDrawn) {
+                    sf::CircleShape circle(KinectSettings::g_JointThickness, 30);
+                    circle.setRadius(KinectSettings::g_JointThickness);
+                    circle.setPosition(SkeletonToScreen(skeletonFrame.SkeletonData[i].Position, SFMLsettings::m_window_width, SFMLsettings::m_window_height));
+                    circle.setFillColor(sf::Color::Yellow);
+
+                    drawingWindow->pushGLStates();
+                    drawingWindow->resetGLStates();
+
+                    drawingWindow->draw(circle);
+
+                    drawingWindow->popGLStates();
+                }
+            }
+        }
+    };
+
+    
 
 private:
     bool initialised;
@@ -306,22 +385,76 @@ private:
         );
         return kinectSensor;
     }
-    
+    void getKinectRGBData() {
+        NUI_IMAGE_FRAME imageFrame{};
+        NUI_LOCKED_RECT LockedRect{};
+        if (acquireKinectFrame(imageFrame, kinectRGBStream, kinectSensor)) {
+            return;
+        }
+        INuiFrameTexture* texture = lockKinectPixelData(imageFrame, LockedRect);
+        copyKinectPixelData(LockedRect, kinectImageData.get());
+        unlockKinectPixelData(texture);
+
+        releaseKinectFrame(imageFrame, kinectRGBStream, kinectSensor);
+    }
+    bool acquireKinectFrame(NUI_IMAGE_FRAME &imageFrame, HANDLE & rgbStream, INuiSensor* &sensor)
+    {
+        return (sensor->NuiImageStreamGetNextFrame(rgbStream, 1, &imageFrame) < 0);
+    }
+    INuiFrameTexture* lockKinectPixelData(NUI_IMAGE_FRAME &imageFrame, NUI_LOCKED_RECT &LockedRect)
+    {
+        INuiFrameTexture* texture = imageFrame.pFrameTexture;
+        texture->LockRect(0, &LockedRect, NULL, 0);
+        return imageFrame.pFrameTexture;
+    }
+    void copyKinectPixelData(NUI_LOCKED_RECT &LockedRect, GLubyte* dest)
+    {
+        int bytesInFrameRow = LockedRect.Pitch;
+        if (bytesInFrameRow != 0) {
+            const BYTE* curr = (const BYTE*)LockedRect.pBits;
+            const BYTE* dataEnd = curr + (KinectSettings::kinectWidth*KinectSettings::kinectHeight) * 4;
+
+            while (curr < dataEnd) {
+                *dest++ = *curr++;
+            }
+        }
+    }
+    void unlockKinectPixelData(INuiFrameTexture* texture)
+    {
+        texture->UnlockRect(0);
+    }
+    void releaseKinectFrame(NUI_IMAGE_FRAME &imageFrame, HANDLE& rgbStream, INuiSensor* &sensor)
+    {
+        sensor->NuiImageStreamReleaseFrame(rgbStream, &imageFrame);
+    }
+
+    void updateSkeletalData() {
+        if (kinectSensor->NuiSkeletonGetNextFrame(0, &skeletonFrame) >= 0) {
+            kinectSensor->NuiTransformSmooth(&skeletonFrame, NULL);   //Smooths jittery tracking
+        }
+        return;
+    };
 };
-class KinectV2Handler :  IKinectHandler {
+class KinectV2Handler : IKinectHandler {
 public:
     KinectV2Handler() {}
     virtual ~KinectV2Handler() {}
 
     IKinectSensor* kinectSensor = nullptr;
     IMultiSourceFrameReader* frameReader = nullptr;
+    IMultiSourceFrame* multiFrame = nullptr;
     ICoordinateMapper* coordMapper = nullptr;
+
+    Joint joints[JointType_Count];
     
-    
+    // TODO: Convert the current opengl stuff into buffer objects
+    GLuint colourBufferObjectId;   // color buffer object for the K
+    //GLuint vertexBufferObjectId;    // unused, as depth data is not to be displayed
+
     virtual void initialise() {
         try {
             kVersion = KinectVersion::Version2;
-            kinectImageData = std::make_unique<GLubyte[]>(KinectSettings::kinectV2Width * KinectSettings::kinectV2Height * 4);
+            kinectImageData = std::make_unique<GLubyte[]>(KinectSettings::kinectV2Width * KinectSettings::kinectV2Height * 4);  //RGBA
             initialised = initKinect();
             if (!initialised) throw FailedKinectInitialisation;
         }
@@ -331,11 +464,40 @@ public:
     }
     virtual bool initStatus() { return initialised; }
 
+    virtual void drawKinectData() {
+        if (KinectSettings::isKinectDrawn) {
+            drawKinectImageData();
+        }
+        if (KinectSettings::isSkeletonDrawn) {
+            drawTrackedSkeletons();
+        }
+    }
+    virtual void drawKinectImageData() {
+
+    }
+    virtual void drawTrackedSkeletons(sf::RenderWindow &window) {
+
+    }
 
     virtual void updateSkeletalData() {
         IBodyFrame* bodyFrame = nullptr;
         IBodyFrameReference* frameRef = nullptr;
-        frameReader->get_Body
+        multiFrame->get_BodyFrameReference(&frameRef);
+        frameRef->AcquireFrame(&bodyFrame);
+        if (frameRef) frameRef->Release();
+
+        if (!bodyFrame) return;
+
+        IBody* bodies[BODY_COUNT];
+        bodyFrame->GetAndRefreshBodyData(BODY_COUNT, bodies);
+        for (int i = 0; i < BODY_COUNT; i++) {
+            bodies[i]->get_IsTracked(&isTracking);
+            if (isTracking) {
+                bodies[i]->GetJoints(JointType_Count, joints);
+                break;
+            }
+        }
+        if (bodyFrame) bodyFrame->Release();
     }
 private:
     bool initKinect() {
@@ -358,19 +520,34 @@ private:
         }
     }
     void getKinectData() {
-        IMultiSourceFrame* multiFrame = nullptr;
         if (SUCCEEDED(frameReader->AcquireLatestFrame(&multiFrame))) {
             GLubyte* ptr;
-            //TODO Follow on from getKinectData https://github.com/kyzyx/Tutorials/blob/master/Kinect2SDK/4_SkeletalTracking/main.cpp
-            //NEED TO GET A BETTER OPEN GL THAT SUPPORTS VBOs!!!!
+            glBindBuffer(GL_ARRAY_BUFFER, colourBufferObjectId);
+            ptr = (GLubyte*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+
+            if (ptr) {
+                getRGBImageData(multiFrame, ptr);
+            }
+            glUnmapBuffer(GL_ARRAY_BUFFER);
+
+            updateSkeletalData();
         }
+        if (multiFrame) multiFrame->Release();
     }
-    void getKinectImageData() {
-        IColorFrame* frame = nullptr;
-        if (SUCCEEDED(colorFrameReader->AcquireLatestFrame(&frame))) {
-            frame->CopyConvertedFrameDataToArray(KinectSettings::kinectV2Width*KinectSettings::kinectV2Height * 4, kinectImageData.get(), ColorImageFormat_Bgra);
-        }
-        if (frame) frame->Release();
+    void getRGBImageData(IMultiSourceFrame* multiFrame, GLubyte* dest) {
+        IColorFrame* colorFrame = nullptr;
+        IColorFrameReference* frameRef = nullptr;
+
+        multiFrame->get_ColorFrameReference(&frameRef);
+        frameRef->AcquireFrame(&colorFrame);
+        if (frameRef) frameRef->Release();
+
+        if (!colorFrame) return;
+
+        //Get data from current frame
+        colorFrame->CopyConvertedFrameDataToArray(KinectSettings::kinectV2Width*KinectSettings::kinectV2Height * 4, kinectImageData.get(), ColorImageFormat_Rgba);
+
+        if (colorFrame) colorFrame->Release();
     }
 };
 
@@ -420,4 +597,4 @@ void setKinectTrackerProperties(uint32_t deviceId);
 void processKeyEvents(sf::Event event);
 void toggle(bool &b);
 
-void initOpenGL(KinectHandler& kinect);
+void initOpenGL(IKinectHandler& kinect);

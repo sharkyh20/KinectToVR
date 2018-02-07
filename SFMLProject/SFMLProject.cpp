@@ -37,7 +37,7 @@ int main()
     // ----------------------------------------------------
 
     //Initialise Kinect
-    KinectHandler kinect;
+    KinectV1Handler kinect;
 
     NUI_SKELETON_FRAME skeletonFrame = { 0 };
 
@@ -47,10 +47,10 @@ int main()
         if (kinectStatus == S_OK) {
             initOpenGL(kinect);
             updateSkeletalData(skeletonFrame, kinect.kinectSensor);
-            std::cerr << "Attempted connection to kinect.... " << kinect.status_str(kinectStatus) << std::endl;    // DEBUG
+            std::cerr << "Attempted connection to kinect.... " << kinect.statusString(kinectStatus) << std::endl;    // DEBUG
         }
         else {
-            std::cerr << "Attempted connection to kinect.... " << kinect.status_str(kinectStatus) << std::endl;    // DEBUG
+            std::cerr << "Attempted connection to kinect.... " << kinect.statusString(kinectStatus) << std::endl;    // DEBUG
         }
     }
     else {
