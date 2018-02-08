@@ -6,7 +6,6 @@ namespace KinectSettings {
     bool isSkeletonDrawn = false;
     bool ignoreInferredPositions = true;
 
-    double trackedPositionOffset[3]{ 0,0,0 };
     bool userChangingZero = false;
 
     float g_TrackedBoneThickness = 6.0f;
@@ -27,7 +26,6 @@ namespace SFMLsettings {
 # define M_PI           3.14159265358979323846
 sf::Vector2f m_points[NUI_SKELETON_POSITION_COUNT];
 
-bool zeroed = false;
 vr::HmdVector3_t hmdZero; //TEMP GLOBAL
 vr::HmdVector3_t m_HMDposition;
 vr::HmdQuaternion_t m_HMDquaternion;

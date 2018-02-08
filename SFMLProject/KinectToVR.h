@@ -35,7 +35,6 @@ namespace KinectSettings {
     extern bool isSkeletonDrawn;
     extern bool ignoreInferredPositions;
 
-    extern double trackedPositionOffset[3];
     extern bool userChangingZero;
 
     extern float g_TrackedBoneThickness;
@@ -58,7 +57,7 @@ namespace SFMLsettings {
 //Skeleton Tracking Globals----------------
 extern sf::Vector2f m_points[NUI_SKELETON_POSITION_COUNT]; // Converted to screen space
 
-extern bool zeroed;
+
 extern vr::HmdVector3_t hmdZero; //TEMP GLOBAL
 extern vr::HmdVector3_t m_HMDposition;
 extern vr::HmdQuaternion_t m_HMDquaternion;
@@ -198,7 +197,7 @@ public:
         bool isKinect, 
         KinectVersion version);
 
-    void update(vr::HmdVector3_t rawJointPos, Vector4 zeroPos) {
+    void update(vr::HmdVector3_t trackedPositionVROffset, vr::HmdVector3_t rawJointPos, Vector4 zeroPos) {
         lastRawPos = rawJointPos;
         auto pose = inputEmulatorRef.getVirtualDevicePose(deviceId);
         //POSITION
@@ -207,9 +206,9 @@ public:
         double kRelativeZ = rawJointPos.v[2] - zeroPos.z;
 
         //TODO REPLACE KS OFFSET WITH LOCAL DEVICE OFFSET, AND PROVIDE FN TO SET ALL DEVICES AT ONCE
-        double rawVRPositionX = KinectSettings::trackedPositionOffset[0] + hmdZero.v[0] + kRelativeX;
-        double rawVRPositionY = KinectSettings::trackedPositionOffset[1] + kRelativeY;   // The Y axis is always up, but the other two depend on kinect orientation
-        double rawVRPositionZ = KinectSettings::trackedPositionOffset[2] + hmdZero.v[2] + kRelativeZ;
+        double rawVRPositionX = trackedPositionVROffset.v[0] + hmdZero.v[0] + kRelativeX;
+        double rawVRPositionY = trackedPositionVROffset.v[1] + kRelativeY;   // The Y axis is always up, but the other two depend on kinect orientation
+        double rawVRPositionZ = trackedPositionVROffset.v[2] + hmdZero.v[2] + kRelativeZ;
 
         pose.vecPosition[0] = kinectToVRScale * rawVRPositionX;
         pose.vecPosition[1] = kinectToVRScale * rawVRPositionY;
@@ -242,7 +241,7 @@ public:
 
     virtual void initOpenGL() = 0;
     virtual void initialise() = 0;
-    virtual bool isInitialised() = 0;
+    
     virtual std::string statusString(HRESULT stat) = 0;
 
     virtual void update() = 0;
@@ -257,14 +256,20 @@ public:
         std::vector<KinectTrackedDevice> trackers
     ) = 0;
 
+    bool isInitialised() { return initialised; }
+    bool isZeroed() { return zeroed; }
+
     GLuint kinectTextureId; //TEMPORARY!!
     sf::RenderWindow* drawingWindow;    //TEMPORARY!!!
-    BOOLEAN isTracking;
+    BOOLEAN isTracking; // Consider seperating into solely  v2
     KinectVersion kVersion;
     std::unique_ptr<GLubyte[]> kinectImageData; // array containing the texture data
     Vector4 kinectZero{ 0,0,0 };
+    bool zeroed = false;
+    vr::HmdVector3_t trackedPositionVROffset{ 0,0,0 };
 protected:
     bool initialised;
+    
     class FailedKinectInitialisation : public std::exception
     {
         virtual const char* what() const throw()
@@ -277,8 +282,8 @@ private:
 
 vr::HmdVector3_t getHMDPosition(vr::IVRSystem* &m_system);  //Temporary forward declaration before Kinect Handler is moved into another header file
 
-class KinectV1Handler : IKinectHandler{
-    // A representation of the Kinect elements, and supports both Kinectv1 and v2
+class KinectV1Handler : public IKinectHandler{
+    // A representation of the Kinect elements for the v1 api
 public:
     KinectV1Handler(sf::RenderWindow &win)
     {
@@ -301,7 +306,7 @@ public:
         else if (kVersion == KinectVersion::Version2) {
             width = KinectSettings::kinectV2Width;
             height = KinectSettings::kinectV2Height;
-        }
+        }   // REMOVE THIS INTO KINECT V2 IMPL
         // Initialize textures
         glGenTextures(1, &kinectTextureId);
         glBindTexture(GL_TEXTURE_2D, kinectTextureId);
@@ -325,9 +330,6 @@ public:
         glLoadIdentity();
     }
 
-    
-
-    virtual bool isInitialised() { return initialised; }
 
     virtual std::string statusString(HRESULT stat) {
         switch (stat) {
@@ -456,7 +458,7 @@ public:
             if (!device.isKinectRepresentation) {
                 vr::HmdVector3_t jointPosition{ 0,0,0 };
                 if (getRawTrackedJointPos(device, jointPosition)) {
-                    device.update(jointPosition, kinectZero);
+                    device.update(trackedPositionVROffset, jointPosition, kinectZero);
                 } 
             }
             else {
@@ -707,7 +709,7 @@ private:
 
 
 
-class KinectV2Handler : IKinectHandler {
+class KinectV2Handler : public IKinectHandler {
 public:
     KinectV2Handler() {}
     virtual ~KinectV2Handler() {}
@@ -734,8 +736,6 @@ public:
             std::cerr << e.what() << std::endl;
         }
     }
-    virtual bool isInitialised() { return initialised; }
-
     virtual void drawKinectData() {
         if (KinectSettings::isKinectDrawn) {
             drawKinectImageData();

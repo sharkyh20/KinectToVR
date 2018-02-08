@@ -122,9 +122,8 @@ int main()
         }
         guiRef.updateKinectStatusLabel(kinect);
         if (kinect.isInitialised()) {
-
             kinect.update();
-            if (!zeroed) {          //Initial attempt to allow user to get into position before setting the trackers -  ** zeroAll sets zeroed to true  **
+            if (!kinect.isZeroed()) {          //Initial attempt to allow user to get into position before setting the trackers -  ** zeroAll sets zeroed to true  **
                 if (rightController.GetPress(vr::EVRButtonId::k_EButton_Grip)) {
                     kinect.zeroAllTracking(m_VRSystem);
                     rightController.setHapticPulse(.15, 1000, 0);
@@ -133,12 +132,12 @@ int main()
             if (KinectSettings::userChangingZero) {
                 if (leftController.GetTouch(vr::EVRButtonId::k_EButton_SteamVR_Touchpad)) { //works
                     sf::Vector2f axis = leftController.GetControllerAxisValue(vr::EVRButtonId::k_EButton_SteamVR_Touchpad); //works
-                    KinectSettings::trackedPositionOffset[0] += deltaScaled(1.0, deltaT) * axis.x;
-                    KinectSettings::trackedPositionOffset[2] += deltaScaled(1.0, deltaT) * axis.y;
+                    kinect.trackedPositionVROffset.v[0] += deltaScaled(1.0, deltaT) * axis.x;
+                    kinect.trackedPositionVROffset.v[2] += deltaScaled(1.0, deltaT) * axis.y;
                 }
                 if (rightController.GetTouch(vr::EVRButtonId::k_EButton_SteamVR_Touchpad)) {
                     sf::Vector2f axis = rightController.GetControllerAxisValue(vr::EVRButtonId::k_EButton_SteamVR_Touchpad); //works
-                    KinectSettings::trackedPositionOffset[1] += deltaScaled(1.0, deltaT) * axis.y;
+                    kinect.trackedPositionVROffset.v[1] += deltaScaled(1.0, deltaT) * axis.y;
                 }
                 if (rightController.GetTrigger()) {  //works
                     KinectSettings::userChangingZero = false;
@@ -148,7 +147,6 @@ int main()
             kinect.updateTrackersWithSkeletonPosition(inputEmulator, v_trackers);
 
             //Draw
-
             kinect.drawKinectData();
         }
        

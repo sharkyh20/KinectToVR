@@ -41,9 +41,7 @@ public:
         ShowSkeletonButton->GetSignal(sfg::Widget::OnLeftClick).Connect([] {
             toggle(KinectSettings::isSkeletonDrawn);
         });
-        ZeroButton->GetSignal(sfg::Widget::OnLeftClick).Connect([] {
-            zeroed = false;
-        });
+        
         PositionAdjustButton->GetSignal(sfg::Widget::OnLeftClick).Connect([] {    KinectSettings::userChangingZero = true;
         });
         IgnoreInferredCheckButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
@@ -58,6 +56,9 @@ public:
     void setKinectButtonSignal(KinectV1Handler& kinect) {
         reconKinectButton->GetSignal(sfg::Widget::OnLeftClick).Connect([&kinect] {
             kinect.initialise();
+        });
+        ZeroButton->GetSignal(sfg::Widget::OnLeftClick).Connect([&kinect] {
+            kinect.zeroed = false;
         });
     }
     void setTrackerInitButtonSignal(vrinputemulator::VRInputEmulator &inputE, std::vector<KinectTrackedDevice> &v_trackers ) {
