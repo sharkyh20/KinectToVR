@@ -107,6 +107,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)\glew;$(ProjectDir)\sfGui\include;$(KINECTSDK10_DIR)\inc;$(IncludePath);$(ProjectDir)\SFML-2.4.2\include;$(ProjectDir)\InputEmulator\;$(ProjectDir)\openvr\headers;$(ProjectDir)boost_1_63_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ShowIncludes>true</ShowIncludes>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -167,13 +168,21 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GUIHandler.h" />
+    <ClInclude Include="IETracker.h" />
+    <ClInclude Include="IKinectHandler.h" />
+    <ClInclude Include="KinectJoint.h" />
+    <ClInclude Include="KinectSettings.h" />
     <ClInclude Include="KinectToVR.h" />
+    <ClInclude Include="KinectTrackedDevice.h" />
+    <ClInclude Include="KinectV1Includes.h" />
     <ClInclude Include="sfLine.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="VRController.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="IETracker.cpp" />
+    <ClCompile Include="KinectSettings.cpp" />
     <ClCompile Include="KinectToVR.cpp" />
     <ClCompile Include="SFMLProject.cpp" />
     <ClCompile Include="stdafx.cpp">

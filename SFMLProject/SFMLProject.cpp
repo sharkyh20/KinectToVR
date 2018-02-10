@@ -168,7 +168,6 @@ int main()
     }
     
     vr::VR_Shutdown();
-    destroyTrackers(inputEmulator, v_trackers);
     
     return 0;
 }
