@@ -3,6 +3,8 @@
 #include "stdafx.h"
 #include "KinectToVR.h"
 #include "VRController.h"
+#include "KinectV1Handler.h"
+#include "KinectV2Handler.h"
 #include "GUIHandler.h"
 #include <SFML\Audio.hpp>
 

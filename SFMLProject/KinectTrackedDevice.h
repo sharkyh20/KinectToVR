@@ -5,6 +5,7 @@
 #include "KinectJoint.h"
 #include "IETracker.h"
 #include <vrinputemulator.h>
+#include <SFML/System/Vector3.hpp>
 
 class KinectTrackedDevice {
 public:

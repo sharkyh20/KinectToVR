@@ -31,8 +31,9 @@ namespace KinectSettings {
     extern sf::Vector2f m_points[NUI_SKELETON_POSITION_COUNT];
 
     extern vr::HmdVector3_t hmdZero; //TEMP GLOBAL
-    extern vr::HmdVector3_t m_HMDposition;
-    extern vr::HmdQuaternion_t m_HMDquaternion;
-
-    
 }
+namespace SFMLsettings {
+    extern int m_window_width;
+    extern int m_window_height;
+}
+# define M_PI           3.14159265358979323846
