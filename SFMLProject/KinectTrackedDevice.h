@@ -7,6 +7,7 @@
 #include <vrinputemulator.h>
 #include <SFML/System/Vector3.hpp>
 
+
 class KinectTrackedDevice {
 public:
     KinectTrackedDevice::KinectTrackedDevice(
@@ -60,6 +61,9 @@ public:
     }
     */
     ~KinectTrackedDevice() {
+        
+    }
+    void destroy() {
         destroyTracker(inputEmulatorRef, deviceId);
     }
 
@@ -75,3 +79,4 @@ public:
 
     KinectVersion deviceKinectVersion;
 };
+

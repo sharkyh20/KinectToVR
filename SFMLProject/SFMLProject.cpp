@@ -168,7 +168,9 @@ int main()
         renderWindow.display();
         
     }
-    
+    for (KinectTrackedDevice d : v_trackers) {
+        d.destroy();
+    }
     vr::VR_Shutdown();
     
     return 0;

@@ -170,7 +170,7 @@
             vr::HmdVector3_t jointPosition{ 0,0,0 };
             if (getRawTrackedJointPos(device, jointPosition)) {
                 device.update(trackedPositionVROffset, jointPosition, kinectZero);
-            }
+            }   // IMPORTANT NEEDS TO BE FIXED - AFTER ZEROING DOESN'T WORK
         }
         else {
             //updateKinectTracker(emulator, device);    //Not implemented right now

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "IETracker.h"
+#include <iostream>
 
 uint32_t initTracker(vrinputemulator::VRInputEmulator &inputEmulator, bool connected) {
     uint32_t deviceId = inputEmulator.getVirtualDeviceCount();
@@ -121,6 +122,7 @@ void removeDeviceProperty(uint32_t deviceId, int dProp, std::string type, std::s
     }
 }
 void destroyTracker(vrinputemulator::VRInputEmulator& inputEmulator, uint32_t ID) {
+    std::cerr << "DESTROYING TRACKER " << ID << "!!!\n";
     auto pose = inputEmulator.getVirtualDevicePose(ID);
     if (pose.deviceIsConnected) {
         pose.deviceIsConnected = false;

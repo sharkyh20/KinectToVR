@@ -2,9 +2,9 @@
 #include "stdafx.h"
 #include "KinectV1Includes.h"
 #include "IKinectHandler.h"
+#include "KinectHandlerBase.h"
 
-
-class KinectV1Handler : public IKinectHandler {
+class KinectV1Handler : public KinectHandlerBase {
     // A representation of the Kinect elements for the v1 api
 public:
     KinectV1Handler(sf::RenderWindow &win)
@@ -17,6 +17,9 @@ public:
     INuiSensor* kinectSensor = nullptr;
     GLuint kinectTextureId;    // ID of the texture to contain Kinect RGB Data
     NUI_SKELETON_FRAME skeletonFrame = { 0 };
+    sf::RenderWindow* drawingWindow;    //TEMPORARY!!!
+
+    Vector4 kinectZero{ 0,0,0,0 };
 
     virtual void initialise();
     virtual void initOpenGL();

@@ -2,7 +2,8 @@
 #include "stdafx.h"
 #include "IKinectHandler.h"
 // Kinect V2 - directory local due to my win 7 machine being unsupported for actual install
-#include "Kinect2\inc\Kinect.h"
+
+#include <Kinect.h>
 class KinectV2Handler : public IKinectHandler {
 public:
     KinectV2Handler() {}
@@ -12,6 +13,7 @@ public:
     IMultiSourceFrameReader* frameReader = nullptr;
     IMultiSourceFrame* multiFrame = nullptr;
     ICoordinateMapper* coordMapper = nullptr;
+    BOOLEAN isTracking;
 
     Joint joints[JointType_Count];
 

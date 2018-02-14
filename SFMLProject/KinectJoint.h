@@ -12,7 +12,7 @@
 #include <NuiSkeleton.h>
 
 // Kinect V2
-#include "Kinect2\inc\Kinect.h"
+#include <Kinect.h>
 
 enum class KinectJointType {
     SpineBase = 0,

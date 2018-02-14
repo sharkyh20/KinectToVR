@@ -9,17 +9,6 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <glew.h>
 
-// Kinect V1
-#include <Windows.h> //MUST BE BEFORE NUI
-#include <ole2.h>
-
-#include <NuiApi.h>
-#include <NuiImageCamera.h>
-#include <NuiSensor.h>
-#include <NuiSkeleton.h>
-
-// Kinect V2 - directory local due to my win 7 machine being unsupported for actual install
-#include "Kinect2\inc\Kinect.h"
 
 class IKinectHandler {
     // Interface base for Kinectv1 and v2
@@ -46,14 +35,11 @@ public:
     bool isInitialised() { return initialised; }
     bool isZeroed() { return zeroed; }
 
-    GLuint kinectTextureId; //TEMPORARY!!
-    sf::RenderWindow* drawingWindow;    //TEMPORARY!!!
-    BOOLEAN isTracking; // Consider seperating into solely  v2
     KinectVersion kVersion;
     std::unique_ptr<GLubyte[]> kinectImageData; // array containing the texture data
-    Vector4 kinectZero{ 0,0,0 };
+    
     bool zeroed = false;
-    vr::HmdVector3_t trackedPositionVROffset{ 0,0,0 };
+    vr::HmdVector3_t trackedPositionVROffset = { 0,0,0 };
 protected:
     bool initialised;
 
