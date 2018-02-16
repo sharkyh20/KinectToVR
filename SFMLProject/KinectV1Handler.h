@@ -7,9 +7,8 @@
 class KinectV1Handler : public KinectHandlerBase {
     // A representation of the Kinect elements for the v1 api
 public:
-    KinectV1Handler(sf::RenderWindow &win)
+    KinectV1Handler()
     {
-        drawingWindow = &win;
         initialise();
         initOpenGL();
     }
@@ -17,7 +16,6 @@ public:
     INuiSensor* kinectSensor = nullptr;
     GLuint kinectTextureId;    // ID of the texture to contain Kinect RGB Data
     NUI_SKELETON_FRAME skeletonFrame = { 0 };
-    sf::RenderWindow* drawingWindow;    //TEMPORARY!!!
 
     Vector4 kinectZero{ 0,0,0,0 };
 
@@ -27,11 +25,12 @@ public:
 
     virtual ~KinectV1Handler() {}
 
-    virtual std::string statusString(HRESULT stat);
+    virtual HRESULT getStatusResult();
+    virtual std::string statusResultString(HRESULT stat);
 
-    virtual void drawKinectData();
-    virtual void drawKinectImageData();
-    virtual void drawTrackedSkeletons();
+    virtual void drawKinectData(sf::RenderWindow &win);
+    virtual void drawKinectImageData(sf::RenderWindow &win);
+    virtual void drawTrackedSkeletons(sf::RenderWindow &win);
 
     //Consider moving this tracking stuff into a seperate class
     virtual void zeroAllTracking(vr::IVRSystem* &m_sys);
@@ -41,7 +40,6 @@ public:
 
     bool getRawTrackedJointPos(KinectTrackedDevice device, vr::HmdVector3_t& position);
 private:
-    bool initialised;
     bool initKinect();
     void getKinectRGBData();
     bool acquireKinectFrame(NUI_IMAGE_FRAME &imageFrame, HANDLE & rgbStream, INuiSensor* &sensor);

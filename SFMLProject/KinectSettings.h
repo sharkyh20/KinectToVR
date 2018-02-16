@@ -7,7 +7,8 @@
 
 enum class KinectVersion {
     Version1 = 0,   //AKA Xbox 360/ Windows v1
-    Version2    //AKA Xbox One/ Windows v2
+    Version2,    //AKA Xbox One/ Windows v2
+    INVALID 
 };
 namespace KinectSettings {
     extern bool isKinectDrawn;

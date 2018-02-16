@@ -39,7 +39,7 @@ int main()
     // ----------------------------------------------------
 
     //Initialise Kinect
-    KinectV1Handler kinect(renderWindow);
+    KinectV1Handler kinect;
     kinect.update();
     
     guiRef.updateKinectStatusLabel(kinect);
@@ -149,7 +149,7 @@ int main()
             kinect.updateTrackersWithSkeletonPosition(inputEmulator, v_trackers);
 
             //Draw
-            kinect.drawKinectData();
+            kinect.drawKinectData(renderWindow);
         }
        
         renderWindow.pushGLStates();

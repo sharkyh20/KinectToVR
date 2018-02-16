@@ -21,10 +21,12 @@ public:
     GLuint colourBufferObjectId;   // color buffer object for the K
                                    //GLuint vertexBufferObjectId;    // unused, as depth data is not to be displayed
 
+    virtual HRESULT getStatusResult();
+
     virtual void initialise();
-    virtual void drawKinectData();
-    virtual void drawKinectImageData();
-    virtual void drawTrackedSkeletons();
+    virtual void drawKinectData(sf::RenderWindow &win);
+    virtual void drawKinectImageData(sf::RenderWindow &win);
+    virtual void drawTrackedSkeletons(sf::RenderWindow &win);
 
     virtual void updateSkeletalData();
 private:

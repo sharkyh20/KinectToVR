@@ -42,7 +42,12 @@
 }
 
 
- std::string KinectV1Handler::statusString(HRESULT stat) {
+ HRESULT KinectV1Handler::getStatusResult()
+ {
+     return kinectSensor->NuiStatus();
+ }
+
+ std::string KinectV1Handler::statusResultString(HRESULT stat) {
     switch (stat) {
     case S_OK: return "S_OK";
     case S_NUI_INITIALIZING:	return "S_NUI_INITIALIZING The device is connected, but still initializing.";
@@ -52,7 +57,7 @@
     case E_NUI_INSUFFICIENTBANDWIDTH:	return "E_NUI_INSUFFICIENTBANDWIDTH The device is connected to a hub without the necessary bandwidth requirements.";
     case E_NUI_NOTPOWERED:	return "E_NUI_NOTPOWERED The device is connected, but unpowered.";
     case E_NUI_NOTREADY:	return "E_NUI_NOTREADY There was some other unspecified error.";
-    default: return "Uh Oh undefined kinect error!";
+    default: return "Uh Oh undefined kinect error! " + std::to_string(stat);
     }
 }
 
@@ -79,17 +84,17 @@
     }
 }
 
- void KinectV1Handler::drawKinectData() {
+ void KinectV1Handler::drawKinectData(sf::RenderWindow &drawingWindow) {
     if (isInitialised()) {
         if (KinectSettings::isKinectDrawn) {
-            drawKinectImageData();
+            drawKinectImageData(drawingWindow);
         }
         if (KinectSettings::isSkeletonDrawn) {
-            drawTrackedSkeletons();
+            drawTrackedSkeletons(drawingWindow);
         }
     }
 };
- void KinectV1Handler::drawKinectImageData() {
+ void KinectV1Handler::drawKinectImageData(sf::RenderWindow &drawingWindow) {
 
     glBindTexture(GL_TEXTURE_2D, kinectTextureId);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, SFMLsettings::m_window_width, SFMLsettings::m_window_height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, (GLvoid*)kinectImageData.get());
@@ -107,7 +112,7 @@
 
     glEnd();
 };
- void KinectV1Handler::drawTrackedSkeletons() {
+ void KinectV1Handler::drawTrackedSkeletons(sf::RenderWindow &drawingWindow) {
     for (int i = 0; i < NUI_SKELETON_POSITION_COUNT; ++i) {
         KinectSettings::m_points[i] = sf::Vector2f(0.0f, 0.0f);
     }
@@ -117,12 +122,12 @@
         if (NUI_SKELETON_TRACKED == trackingState)
         {
             if (KinectSettings::isSkeletonDrawn) {
-                drawingWindow->pushGLStates();
-                drawingWindow->resetGLStates();
+                drawingWindow.pushGLStates();
+                drawingWindow.resetGLStates();
 
-                DrawSkeleton(skeletonFrame.SkeletonData[i], *drawingWindow);
+                DrawSkeleton(skeletonFrame.SkeletonData[i], drawingWindow);
 
-                drawingWindow->popGLStates();
+                drawingWindow.popGLStates();
             }
 
         }
@@ -134,12 +139,12 @@
                 circle.setPosition(SkeletonToScreen(skeletonFrame.SkeletonData[i].Position, SFMLsettings::m_window_width, SFMLsettings::m_window_height));
                 circle.setFillColor(sf::Color::Yellow);
 
-                drawingWindow->pushGLStates();
-                drawingWindow->resetGLStates();
+                drawingWindow.pushGLStates();
+                drawingWindow.resetGLStates();
 
-                drawingWindow->draw(circle);
+                drawingWindow.draw(circle);
 
-                drawingWindow->popGLStates();
+                drawingWindow.popGLStates();
             }
         }
     }

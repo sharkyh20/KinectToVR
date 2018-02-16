@@ -10,7 +10,7 @@
 
 class KinectTrackedDevice {
 public:
-    KinectTrackedDevice::KinectTrackedDevice(
+    KinectTrackedDevice(
         vrinputemulator::VRInputEmulator& inputEmulator,
         KinectJointType j0,
         KinectJointType j1,

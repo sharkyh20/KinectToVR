@@ -18,13 +18,14 @@ public:
     virtual void initOpenGL() = 0;
     virtual void initialise() = 0;
 
-    virtual std::string statusString(HRESULT stat) = 0;
+    virtual HRESULT getStatusResult() = 0;
+    virtual std::string statusResultString(HRESULT stat) = 0;
 
     virtual void update() = 0;
 
     virtual void drawKinectData() = 0;  // Houses the below draw functions with a check
     virtual void drawKinectImageData() = 0;
-    virtual void drawTrackedSkeletons() = 0;
+    virtual void drawTrackedSkeletons(sf::RenderWindow &win) = 0;
 
     virtual void zeroAllTracking(vr::IVRSystem* &m_sys) = 0;
     virtual void updateTrackersWithSkeletonPosition(
@@ -35,13 +36,13 @@ public:
     bool isInitialised() { return initialised; }
     bool isZeroed() { return zeroed; }
 
-    KinectVersion kVersion;
+    KinectVersion kVersion = KinectVersion::INVALID;
     std::unique_ptr<GLubyte[]> kinectImageData; // array containing the texture data
     
     bool zeroed = false;
     vr::HmdVector3_t trackedPositionVROffset = { 0,0,0 };
 protected:
-    bool initialised;
+    bool initialised= false;
 
     class FailedKinectInitialisation : public std::exception
     {

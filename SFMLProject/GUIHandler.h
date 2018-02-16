@@ -3,6 +3,9 @@
 
 #include "VRController.h"
 #include "KinectToVR.h"
+#include "KinectSettings.h"
+#include "KinectHandlerBase.h"
+#include "KinectTrackedDevice.h"
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Window/Mouse.hpp>
@@ -53,7 +56,7 @@ public:
             }
         });
     }
-    void setKinectButtonSignal(KinectV1Handler& kinect) {
+    void setKinectButtonSignal(KinectHandlerBase& kinect) {
         reconKinectButton->GetSignal(sfg::Widget::OnLeftClick).Connect([&kinect] {
             kinect.initialise();
         });
@@ -134,16 +137,15 @@ public:
         mainGUIBox->Pack(IgnoreInferredCheckButton);
     }
 
-    void updateKinectStatusLabel(KinectV1Handler& kinect) {
-        // TODO UPDATE KINECT INIT WITH THIS
+    void updateKinectStatusLabel(KinectHandlerBase& kinect) {
         if (kinect.isInitialised()) {
-            HRESULT status = kinect.kinectSensor->NuiStatus();
+            HRESULT status = kinect.getStatusResult();
             switch (status) {
             case S_OK:
                 KinectStatusLabel->SetText("Kinect Status: Success!");
                 break;
             default:
-                KinectStatusLabel->SetText("Kinect Status: ERROR " + kinect.statusString(status));
+                KinectStatusLabel->SetText("Kinect Status: ERROR " + kinect.statusResultString(status));
                 break;
             }
         }

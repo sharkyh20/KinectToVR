@@ -11,7 +11,8 @@ public:
     virtual void initOpenGL() {};
     virtual void initialise() {};
 
-    virtual std::string statusString(HRESULT stat) { return "statusString behaviour not defined"; };
+    virtual HRESULT getStatusResult() { return E_NOTIMPL; }
+    virtual std::string statusResultString(HRESULT stat) { return "statusResultString behaviour not defined"; };
 
     virtual void update() {};
 

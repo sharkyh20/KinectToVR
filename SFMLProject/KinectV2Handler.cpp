@@ -14,18 +14,18 @@ void KinectV2Handler::initialise() {
         std::cerr << e.what() << std::endl;
     }
 }
-void KinectV2Handler::drawKinectData() {
+void KinectV2Handler::drawKinectData(sf::RenderWindow &win) {
     if (KinectSettings::isKinectDrawn) {
-        drawKinectImageData();
+        drawKinectImageData(win);
     }
     if (KinectSettings::isSkeletonDrawn) {
-        drawTrackedSkeletons();
+        drawTrackedSkeletons(win);
     }
 }
-void KinectV2Handler::drawKinectImageData() {
+void KinectV2Handler::drawKinectImageData(sf::RenderWindow &win) {
 
 }
-void KinectV2Handler::drawTrackedSkeletons() {
+void KinectV2Handler::drawTrackedSkeletons(sf::RenderWindow &win) {
 
 }
 
