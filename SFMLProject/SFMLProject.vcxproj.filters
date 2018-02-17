@@ -24,46 +24,37 @@
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sfLine.h">
+    <ClInclude Include="inc\GUIHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="KinectToVR.h">
+    <ClInclude Include="inc\IETracker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VRController.h">
+    <ClInclude Include="inc\IKinectHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GUIHandler.h">
+    <ClInclude Include="inc\KinectHandlerBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="KinectJoint.h">
+    <ClInclude Include="inc\KinectJoint.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="IKinectHandler.h">
+    <ClInclude Include="inc\KinectSettings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="KinectTrackedDevice.h">
+    <ClInclude Include="inc\KinectToVR.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="KinectSettings.h">
+    <ClInclude Include="inc\KinectTrackedDevice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="IETracker.h">
+    <ClInclude Include="inc\VRController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="KinectV1Includes.h">
+    <ClInclude Include="inc\VRHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="KinectV1Handler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="KinectV2Handler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="VRHelper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="KinectHandlerBase.h">
+    <ClInclude Include="inc\sfLine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -84,12 +75,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="VRHelper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="KinectV1Handler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="KinectV2Handler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

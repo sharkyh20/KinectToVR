@@ -23,7 +23,7 @@
     <ProjectGuid>{9E612475-CF0A-4384-969A-3C01C9543935}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>SFMLProject</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
     <ProjectName>KinectToVR</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -41,13 +41,13 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -106,14 +106,13 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)Includes\glew;$(SolutionDir)Includes\sfGui\include;$(KINECTSDK10_DIR)\inc;$(IncludePath);$(SolutionDir)Includes\SFML-2.4.2\include;$(SolutionDir)Includes\InputEmulator\;$(SolutionDir)Includes\openvr\headers;$(SolutionDir)Includes\boost_1_63_0;$(SolutionDir)Includes\Kinect2\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ProjectDir)/inc;$(SolutionDir)Includes\glew;$(SolutionDir)Includes\sfGui\include;$(IncludePath);$(SolutionDir)Includes\SFML-2.4.2\include;$(SolutionDir)Includes\InputEmulator\;$(SolutionDir)Includes\openvr\headers;$(SolutionDir)Includes\boost_1_63_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ShowIncludes>true</ShowIncludes>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <AdditionalLibraryDirectories>$(SolutionDir)Includes\glew;$(SolutionDir)Includes\sfGui\;$(SolutionDir)Includes\openvr;$(SolutionDir)Includes\Kinect2\lib;$(KINECTSDK10_DIR)\lib\amd64;$(SolutionDir)Includes\SFML-2.4.2\lib;$(SolutionDir)Includes\InputEmulator;$(SolutionDir)Includes\boost_1_63_0\lib64-msvc-14.0;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Kinect20.lib;Debug\sfml-audio-d.lib;Debug\sfml-graphics-d.lib;Debug\sfml-window-d.lib;Debug\sfml-system-d.lib;libvrinputemulator_d.lib;openvr_api64.lib;Kinect10.lib;OpenGL32.lib;glew32.lib;sfgui-d.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Debug\sfml-audio-d.lib;Debug\sfml-graphics-d.lib;Debug\sfml-window-d.lib;Debug\sfml-system-d.lib;libvrinputemulator_d.lib;openvr_api64.lib;Kinect10.lib;OpenGL32.lib;glew32.lib;sfgui-d.lib;Kinect20.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>
@@ -149,7 +148,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)Includes\Glew;$(IncludePath);$(SolutionDir)Includes\boost_1_63_0;$(SolutionDir)Includes\SFML-2.4.2\include;$(KINECTSDK10_DIR)\inc;$(SolutionDir)Includes\openvr\headers;$(SolutionDir)Includes\sfGui\include\;$(SolutionDir)Includes\InputEmulator\;$(SolutionDir)Includes\Kinect2\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/inc;$(SolutionDir)Includes\Glew;$(IncludePath);$(SolutionDir)Includes\boost_1_63_0;$(SolutionDir)Includes\SFML-2.4.2\include;$(SolutionDir)Includes\openvr\headers;$(SolutionDir)Includes\sfGui\include\;$(SolutionDir)Includes\InputEmulator\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -169,29 +168,24 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GUIHandler.h" />
-    <ClInclude Include="IETracker.h" />
-    <ClInclude Include="IKinectHandler.h" />
-    <ClInclude Include="KinectHandlerBase.h" />
-    <ClInclude Include="KinectJoint.h" />
-    <ClInclude Include="KinectSettings.h" />
-    <ClInclude Include="KinectToVR.h" />
-    <ClInclude Include="KinectTrackedDevice.h" />
-    <ClInclude Include="KinectV1Handler.h" />
-    <ClInclude Include="KinectV1Includes.h" />
-    <ClInclude Include="KinectV2Handler.h" />
-    <ClInclude Include="sfLine.h" />
+    <ClInclude Include="inc\GUIHandler.h" />
+    <ClInclude Include="inc\IETracker.h" />
+    <ClInclude Include="inc\IKinectHandler.h" />
+    <ClInclude Include="inc\KinectHandlerBase.h" />
+    <ClInclude Include="inc\KinectJoint.h" />
+    <ClInclude Include="inc\KinectSettings.h" />
+    <ClInclude Include="inc\KinectToVR.h" />
+    <ClInclude Include="inc\KinectTrackedDevice.h" />
+    <ClInclude Include="inc\sfLine.h" />
+    <ClInclude Include="inc\VRController.h" />
+    <ClInclude Include="inc\VRHelper.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="VRController.h" />
-    <ClInclude Include="VRHelper.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IETracker.cpp" />
     <ClCompile Include="KinectSettings.cpp" />
     <ClCompile Include="KinectToVR.cpp" />
-    <ClCompile Include="KinectV1Handler.cpp" />
-    <ClCompile Include="KinectV2Handler.cpp" />
     <ClCompile Include="SFMLProject.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
