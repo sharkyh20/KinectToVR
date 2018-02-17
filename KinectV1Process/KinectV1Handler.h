@@ -16,6 +16,7 @@ public:
     INuiSensor* kinectSensor = nullptr;
     GLuint kinectTextureId;    // ID of the texture to contain Kinect RGB Data
     NUI_SKELETON_FRAME skeletonFrame = { 0 };
+    sf::Vector2f screenSkelePoints[NUI_SKELETON_POSITION_COUNT];
 
     Vector4 kinectZero{ 0,0,0,0 };
 
@@ -39,6 +40,7 @@ public:
         std::vector<KinectTrackedDevice> trackers);
 
     bool getRawTrackedJointPos(KinectTrackedDevice device, vr::HmdVector3_t& position);
+    NUI_SKELETON_POSITION_INDEX convertJoint(KinectJoint joint);
 private:
     bool initKinect();
     void getKinectRGBData();

@@ -16,9 +16,9 @@ public:
 
     virtual void update() {};
 
-    virtual void drawKinectData() {};  // Houses the below draw functions with a check
-    virtual void drawKinectImageData() {};
-    virtual void drawTrackedSkeletons() {};
+    virtual void drawKinectData(sf::RenderWindow &win) {};  // Houses the below draw functions with a check
+    virtual void drawKinectImageData(sf::RenderWindow &win) {};
+    virtual void drawTrackedSkeletons(sf::RenderWindow &win) {};
 
     virtual void zeroAllTracking(vr::IVRSystem* &m_sys) {};
     virtual void updateTrackersWithSkeletonPosition(

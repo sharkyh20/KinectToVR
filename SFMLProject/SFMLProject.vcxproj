@@ -107,6 +107,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)Includes\glew;$(SolutionDir)Includes\sfGui\include;$(KINECTSDK10_DIR)\inc;$(IncludePath);$(SolutionDir)Includes\SFML-2.4.2\include;$(SolutionDir)Includes\InputEmulator\;$(SolutionDir)Includes\openvr\headers;$(SolutionDir)Includes\boost_1_63_0;$(SolutionDir)Includes\Kinect2\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/inc;$(SolutionDir)Includes\glew;$(SolutionDir)Includes\sfGui\include;$(IncludePath);$(SolutionDir)Includes\SFML-2.4.2\include;$(SolutionDir)Includes\InputEmulator\;$(SolutionDir)Includes\openvr\headers;$(SolutionDir)Includes\boost_1_63_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ShowIncludes>true</ShowIncludes>
     </ClCompile>
     <Link>

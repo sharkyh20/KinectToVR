@@ -4,9 +4,11 @@
 #include "glew.h"
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
-#include "KinectSettings.h"
-#include "VRHelper.h"
-#include "sfLine.h"
+#include <KinectSettings.h>
+#include <VRHelper.h>
+#include <sfLine.h>
+#include <iostream>
+#include <KinectJoint.h>
 
  void KinectV1Handler::initOpenGL() {
     int width = 0, height = 0;
@@ -114,7 +116,7 @@
 };
  void KinectV1Handler::drawTrackedSkeletons(sf::RenderWindow &drawingWindow) {
     for (int i = 0; i < NUI_SKELETON_POSITION_COUNT; ++i) {
-        KinectSettings::m_points[i] = sf::Vector2f(0.0f, 0.0f);
+        screenSkelePoints[i] = sf::Vector2f(0.0f, 0.0f);
     }
     for (int i = 0; i < NUI_SKELETON_COUNT; ++i) {
         NUI_SKELETON_TRACKING_STATE trackingState = skeletonFrame.SkeletonData[i].eTrackingState;
@@ -174,7 +176,8 @@
         if (!device.isKinectRepresentation) {
             vr::HmdVector3_t jointPosition{ 0,0,0 };
             if (getRawTrackedJointPos(device, jointPosition)) {
-                device.update(trackedPositionVROffset, jointPosition, kinectZero);
+                sf::Vector3f zero = { kinectZero.x, kinectZero.y, kinectZero.z };
+                device.update(trackedPositionVROffset, jointPosition, zero);
             }   // IMPORTANT NEEDS TO BE FIXED - AFTER ZEROING DOESN'T WORK
         }
         else {
@@ -202,9 +205,9 @@ bool KinectV1Handler::getRawTrackedJointPos(KinectTrackedDevice device, vr::HmdV
             }
             else
             {
-                float jointX = skeletonFrame.SkeletonData[i].SkeletonPositions[device.joint0.getV1Representation()].x;
-                float jointY = skeletonFrame.SkeletonData[i].SkeletonPositions[device.joint0.getV1Representation()].y;
-                float jointZ = skeletonFrame.SkeletonData[i].SkeletonPositions[device.joint0.getV1Representation()].z;
+                float jointX = skeletonFrame.SkeletonData[i].SkeletonPositions[convertJoint(device.joint0)].x;
+                float jointY = skeletonFrame.SkeletonData[i].SkeletonPositions[convertJoint(device.joint0)].y;
+                float jointZ = skeletonFrame.SkeletonData[i].SkeletonPositions[convertJoint(device.joint0)].z;
                 position = vr::HmdVector3_t{ jointX,jointY,jointZ };
                 return true;
             }
@@ -287,10 +290,83 @@ void KinectV1Handler::getKinectRGBData() {
         }
         return;
     };
+
+    NUI_SKELETON_POSITION_INDEX convertJoint(KinectJoint joint) {
+        //Unfortunately I believe this is required because there are mismatches between v1 and v2 joint IDs
+        //Might consider investigating to see if there's a way to shorten this
+        switch (joint.joint) {
+        case KinectJointType::SpineBase:
+            return NUI_SKELETON_POSITION_HIP_CENTER;
+        case KinectJointType::SpineMid:
+            return NUI_SKELETON_POSITION_SPINE;
+
+        case KinectJointType::Head:
+            return NUI_SKELETON_POSITION_HEAD;
+        case KinectJointType::ShoulderLeft:
+            return NUI_SKELETON_POSITION_SHOULDER_LEFT;
+        case KinectJointType::ShoulderRight:
+            return NUI_SKELETON_POSITION_SHOULDER_RIGHT;
+        case KinectJointType::SpineShoulder:
+            return NUI_SKELETON_POSITION_SHOULDER_CENTER;
+
+        case KinectJointType::ElbowLeft:
+            return NUI_SKELETON_POSITION_ELBOW_LEFT;
+        case KinectJointType::WristLeft:
+            return NUI_SKELETON_POSITION_WRIST_LEFT;
+        case KinectJointType::HandLeft:
+            return NUI_SKELETON_POSITION_HAND_LEFT;
+
+        case KinectJointType::ElbowRight:
+            return NUI_SKELETON_POSITION_ELBOW_RIGHT;
+        case KinectJointType::WristRight:
+            return NUI_SKELETON_POSITION_WRIST_RIGHT;
+        case KinectJointType::HandRight:
+            return NUI_SKELETON_POSITION_HAND_RIGHT;
+
+        case KinectJointType::HipLeft:
+            return NUI_SKELETON_POSITION_HIP_LEFT;
+        case KinectJointType::HipRight:
+            return NUI_SKELETON_POSITION_HIP_RIGHT;
+
+        case KinectJointType::KneeLeft:
+            return NUI_SKELETON_POSITION_KNEE_LEFT;
+        case KinectJointType::KneeRight:
+            return NUI_SKELETON_POSITION_KNEE_RIGHT;
+
+        case KinectJointType::AnkleLeft:
+            return NUI_SKELETON_POSITION_ANKLE_LEFT;
+        case KinectJointType::AnkleRight:
+            return NUI_SKELETON_POSITION_ANKLE_RIGHT;
+
+        case KinectJointType::FootLeft:
+            return NUI_SKELETON_POSITION_FOOT_LEFT;
+        case KinectJointType::FootRight:
+            return NUI_SKELETON_POSITION_FOOT_RIGHT;
+
+            /*BELOW DO NOT HAVE A 1:1 V1 REPRESENTATION*/
+            //refer to the skeleton images from Microsoft for diffs between v1 and 2
+
+        case KinectJointType::Neck:
+            return NUI_SKELETON_POSITION_SHOULDER_CENTER;
+        case KinectJointType::HandTipLeft:
+            return NUI_SKELETON_POSITION_HAND_LEFT;
+        case KinectJointType::HandTipRight:
+            return NUI_SKELETON_POSITION_HAND_RIGHT;
+        case KinectJointType::ThumbLeft:
+            return NUI_SKELETON_POSITION_HAND_LEFT;
+        case KinectJointType::ThumbRight:
+            return NUI_SKELETON_POSITION_HAND_RIGHT;
+
+        default:
+            std::cerr << "INVALID KinectJointType!!!\n";
+            break;
+
+        }
+    }
     void KinectV1Handler::DrawSkeleton(const NUI_SKELETON_DATA & skel, sf::RenderWindow &window) {
         for (int i = 0; i < NUI_SKELETON_POSITION_COUNT; ++i) {
-            KinectSettings::m_points[i] = SkeletonToScreen(skel.SkeletonPositions[i], SFMLsettings::m_window_width, SFMLsettings::m_window_height);
-            std::cerr << "m_points[" << i << "] = " << KinectSettings::m_points[i].x << ", " << KinectSettings::m_points[i].y << std::endl;
+            screenSkelePoints[i] = SkeletonToScreen(skel.SkeletonPositions[i], SFMLsettings::m_window_width, SFMLsettings::m_window_height);
+            std::cerr << "m_points[" << i << "] = " << screenSkelePoints[i].x << ", " << screenSkelePoints[i].y << std::endl;
             // Same with the other cerr, without this, the skeleton flickers
         }
         // Render Torso
@@ -328,7 +404,7 @@ void KinectV1Handler::getKinectRGBData() {
         {
             sf::CircleShape circle{};
             circle.setRadius(KinectSettings::g_JointThickness);
-            circle.setPosition(KinectSettings::m_points[i]);
+            circle.setPosition(screenSkelePoints[i]);
 
             if (skel.eSkeletonPositionTrackingState[i] == NUI_SKELETON_POSITION_INFERRED)
             {
@@ -378,11 +454,11 @@ void KinectV1Handler::getKinectRGBData() {
         // Assume all bones are inferred unless BOTH joints are tracked
         if (joint0State == NUI_SKELETON_POSITION_TRACKED && joint1State == NUI_SKELETON_POSITION_TRACKED)
         {
-            DrawLine(KinectSettings::m_points[joint0], KinectSettings::m_points[joint1], sf::Color::Green, KinectSettings::g_TrackedBoneThickness, window);
+            DrawLine(screenSkelePoints[joint0], screenSkelePoints[joint1], sf::Color::Green, KinectSettings::g_TrackedBoneThickness, window);
         }
         else
         {
-            DrawLine(KinectSettings::m_points[joint0], KinectSettings::m_points[joint1], sf::Color::Red, KinectSettings::g_InferredBoneThickness, window);
+            DrawLine(screenSkelePoints[joint0], screenSkelePoints[joint1], sf::Color::Red, KinectSettings::g_InferredBoneThickness, window);
         }
     }
     void KinectV1Handler::DrawLine(sf::Vector2f start, sf::Vector2f end, sf::Color colour, float lineThickness, sf::RenderWindow &window) {
@@ -402,8 +478,8 @@ void KinectV1Handler::getKinectRGBData() {
     }
 
     bool KinectV1Handler::jointsUntracked(KinectJoint joint0, KinectJoint joint1, NUI_SKELETON_DATA data) {
-        NUI_SKELETON_POSITION_TRACKING_STATE joint0State = data.eSkeletonPositionTrackingState[joint0.getV1Representation()];
-        NUI_SKELETON_POSITION_TRACKING_STATE joint1State = data.eSkeletonPositionTrackingState[joint1.getV1Representation()];
+        NUI_SKELETON_POSITION_TRACKING_STATE joint0State = data.eSkeletonPositionTrackingState[convertJoint(joint0)];
+        NUI_SKELETON_POSITION_TRACKING_STATE joint1State = data.eSkeletonPositionTrackingState[convertJoint(joint1)];
 
         // If we can't find either of these joints, exit
         return ((joint0State == NUI_SKELETON_POSITION_NOT_TRACKED
@@ -411,8 +487,8 @@ void KinectV1Handler::getKinectRGBData() {
             && KinectSettings::ignoreInferredPositions);
     }
     bool KinectV1Handler::jointsInferred(KinectJoint joint0, KinectJoint joint1, NUI_SKELETON_DATA data) {
-        NUI_SKELETON_POSITION_TRACKING_STATE joint0State = data.eSkeletonPositionTrackingState[joint0.getV1Representation()];
-        NUI_SKELETON_POSITION_TRACKING_STATE joint1State = data.eSkeletonPositionTrackingState[joint1.getV1Representation()];
+        NUI_SKELETON_POSITION_TRACKING_STATE joint0State = data.eSkeletonPositionTrackingState[convertJoint(joint0)];
+        NUI_SKELETON_POSITION_TRACKING_STATE joint1State = data.eSkeletonPositionTrackingState[convertJoint(joint1)];
 
         // If we can't find either of these joints, exit
         return (joint0State == NUI_SKELETON_POSITION_INFERRED

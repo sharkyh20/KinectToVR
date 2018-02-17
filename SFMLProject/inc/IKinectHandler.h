@@ -3,6 +3,7 @@
 
 #include "KinectTrackedDevice.h"
 
+#include <windows.h>
 #include <string>
 #include <vector>
 #include <vrinputemulator.h>
@@ -23,8 +24,8 @@ public:
 
     virtual void update() = 0;
 
-    virtual void drawKinectData() = 0;  // Houses the below draw functions with a check
-    virtual void drawKinectImageData() = 0;
+    virtual void drawKinectData(sf::RenderWindow &win) = 0;  // Houses the below draw functions with a check
+    virtual void drawKinectImageData(sf::RenderWindow &win) = 0;
     virtual void drawTrackedSkeletons(sf::RenderWindow &win) = 0;
 
     virtual void zeroAllTracking(vr::IVRSystem* &m_sys) = 0;

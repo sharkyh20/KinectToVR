@@ -29,6 +29,7 @@ public:
     virtual void drawTrackedSkeletons(sf::RenderWindow &win);
 
     virtual void updateSkeletalData();
+    JointType convertJoint(KinectJoint joint);
 private:
     bool initKinect();
     void getKinectData();

@@ -20,8 +20,6 @@ namespace KinectSettings {
 
     double kinectToVRScale = 1;
 
-    sf::Vector2f m_points[NUI_SKELETON_POSITION_COUNT];
-
     vr::HmdVector3_t hmdZero; //TEMP GLOBAL
 }
 namespace SFMLsettings {
