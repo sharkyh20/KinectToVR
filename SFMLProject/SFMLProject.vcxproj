@@ -186,7 +186,6 @@
     <ClCompile Include="IETracker.cpp" />
     <ClCompile Include="KinectSettings.cpp" />
     <ClCompile Include="KinectToVR.cpp" />
-    <ClCompile Include="SFMLProject.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

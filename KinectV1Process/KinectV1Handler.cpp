@@ -215,6 +215,80 @@ bool KinectV1Handler::getRawTrackedJointPos(KinectTrackedDevice device, vr::HmdV
     }
     return false;
 }
+NUI_SKELETON_POSITION_INDEX KinectV1Handler::convertJoint(KinectJoint joint)
+{
+
+    //Unfortunately I believe this is required because there are mismatches between v1 and v2 joint IDs
+    //Might consider investigating to see if there's a way to shorten this
+    switch (joint.joint) {
+    case KinectJointType::SpineBase:
+        return NUI_SKELETON_POSITION_HIP_CENTER;
+    case KinectJointType::SpineMid:
+        return NUI_SKELETON_POSITION_SPINE;
+
+    case KinectJointType::Head:
+        return NUI_SKELETON_POSITION_HEAD;
+    case KinectJointType::ShoulderLeft:
+        return NUI_SKELETON_POSITION_SHOULDER_LEFT;
+    case KinectJointType::ShoulderRight:
+        return NUI_SKELETON_POSITION_SHOULDER_RIGHT;
+    case KinectJointType::SpineShoulder:
+        return NUI_SKELETON_POSITION_SHOULDER_CENTER;
+
+    case KinectJointType::ElbowLeft:
+        return NUI_SKELETON_POSITION_ELBOW_LEFT;
+    case KinectJointType::WristLeft:
+        return NUI_SKELETON_POSITION_WRIST_LEFT;
+    case KinectJointType::HandLeft:
+        return NUI_SKELETON_POSITION_HAND_LEFT;
+
+    case KinectJointType::ElbowRight:
+        return NUI_SKELETON_POSITION_ELBOW_RIGHT;
+    case KinectJointType::WristRight:
+        return NUI_SKELETON_POSITION_WRIST_RIGHT;
+    case KinectJointType::HandRight:
+        return NUI_SKELETON_POSITION_HAND_RIGHT;
+
+    case KinectJointType::HipLeft:
+        return NUI_SKELETON_POSITION_HIP_LEFT;
+    case KinectJointType::HipRight:
+        return NUI_SKELETON_POSITION_HIP_RIGHT;
+
+    case KinectJointType::KneeLeft:
+        return NUI_SKELETON_POSITION_KNEE_LEFT;
+    case KinectJointType::KneeRight:
+        return NUI_SKELETON_POSITION_KNEE_RIGHT;
+
+    case KinectJointType::AnkleLeft:
+        return NUI_SKELETON_POSITION_ANKLE_LEFT;
+    case KinectJointType::AnkleRight:
+        return NUI_SKELETON_POSITION_ANKLE_RIGHT;
+
+    case KinectJointType::FootLeft:
+        return NUI_SKELETON_POSITION_FOOT_LEFT;
+    case KinectJointType::FootRight:
+        return NUI_SKELETON_POSITION_FOOT_RIGHT;
+
+        /*BELOW DO NOT HAVE A 1:1 V1 REPRESENTATION*/
+        //refer to the skeleton images from Microsoft for diffs between v1 and 2
+
+    case KinectJointType::Neck:
+        return NUI_SKELETON_POSITION_SHOULDER_CENTER;
+    case KinectJointType::HandTipLeft:
+        return NUI_SKELETON_POSITION_HAND_LEFT;
+    case KinectJointType::HandTipRight:
+        return NUI_SKELETON_POSITION_HAND_RIGHT;
+    case KinectJointType::ThumbLeft:
+        return NUI_SKELETON_POSITION_HAND_LEFT;
+    case KinectJointType::ThumbRight:
+        return NUI_SKELETON_POSITION_HAND_RIGHT;
+
+    default:
+        std::cerr << "INVALID KinectJointType!!!\n";
+        break;
+
+    }
+}
 bool KinectV1Handler::initKinect() {
     //Get a working Kinect Sensor
     int numSensors = 0;
@@ -290,79 +364,6 @@ void KinectV1Handler::getKinectRGBData() {
         }
         return;
     };
-
-    NUI_SKELETON_POSITION_INDEX convertJoint(KinectJoint joint) {
-        //Unfortunately I believe this is required because there are mismatches between v1 and v2 joint IDs
-        //Might consider investigating to see if there's a way to shorten this
-        switch (joint.joint) {
-        case KinectJointType::SpineBase:
-            return NUI_SKELETON_POSITION_HIP_CENTER;
-        case KinectJointType::SpineMid:
-            return NUI_SKELETON_POSITION_SPINE;
-
-        case KinectJointType::Head:
-            return NUI_SKELETON_POSITION_HEAD;
-        case KinectJointType::ShoulderLeft:
-            return NUI_SKELETON_POSITION_SHOULDER_LEFT;
-        case KinectJointType::ShoulderRight:
-            return NUI_SKELETON_POSITION_SHOULDER_RIGHT;
-        case KinectJointType::SpineShoulder:
-            return NUI_SKELETON_POSITION_SHOULDER_CENTER;
-
-        case KinectJointType::ElbowLeft:
-            return NUI_SKELETON_POSITION_ELBOW_LEFT;
-        case KinectJointType::WristLeft:
-            return NUI_SKELETON_POSITION_WRIST_LEFT;
-        case KinectJointType::HandLeft:
-            return NUI_SKELETON_POSITION_HAND_LEFT;
-
-        case KinectJointType::ElbowRight:
-            return NUI_SKELETON_POSITION_ELBOW_RIGHT;
-        case KinectJointType::WristRight:
-            return NUI_SKELETON_POSITION_WRIST_RIGHT;
-        case KinectJointType::HandRight:
-            return NUI_SKELETON_POSITION_HAND_RIGHT;
-
-        case KinectJointType::HipLeft:
-            return NUI_SKELETON_POSITION_HIP_LEFT;
-        case KinectJointType::HipRight:
-            return NUI_SKELETON_POSITION_HIP_RIGHT;
-
-        case KinectJointType::KneeLeft:
-            return NUI_SKELETON_POSITION_KNEE_LEFT;
-        case KinectJointType::KneeRight:
-            return NUI_SKELETON_POSITION_KNEE_RIGHT;
-
-        case KinectJointType::AnkleLeft:
-            return NUI_SKELETON_POSITION_ANKLE_LEFT;
-        case KinectJointType::AnkleRight:
-            return NUI_SKELETON_POSITION_ANKLE_RIGHT;
-
-        case KinectJointType::FootLeft:
-            return NUI_SKELETON_POSITION_FOOT_LEFT;
-        case KinectJointType::FootRight:
-            return NUI_SKELETON_POSITION_FOOT_RIGHT;
-
-            /*BELOW DO NOT HAVE A 1:1 V1 REPRESENTATION*/
-            //refer to the skeleton images from Microsoft for diffs between v1 and 2
-
-        case KinectJointType::Neck:
-            return NUI_SKELETON_POSITION_SHOULDER_CENTER;
-        case KinectJointType::HandTipLeft:
-            return NUI_SKELETON_POSITION_HAND_LEFT;
-        case KinectJointType::HandTipRight:
-            return NUI_SKELETON_POSITION_HAND_RIGHT;
-        case KinectJointType::ThumbLeft:
-            return NUI_SKELETON_POSITION_HAND_LEFT;
-        case KinectJointType::ThumbRight:
-            return NUI_SKELETON_POSITION_HAND_RIGHT;
-
-        default:
-            std::cerr << "INVALID KinectJointType!!!\n";
-            break;
-
-        }
-    }
     void KinectV1Handler::DrawSkeleton(const NUI_SKELETON_DATA & skel, sf::RenderWindow &window) {
         for (int i = 0; i < NUI_SKELETON_POSITION_COUNT; ++i) {
             screenSkelePoints[i] = SkeletonToScreen(skel.SkeletonPositions[i], SFMLsettings::m_window_width, SFMLsettings::m_window_height);

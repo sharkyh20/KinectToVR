@@ -62,9 +62,6 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SFMLProject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="KinectToVR.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

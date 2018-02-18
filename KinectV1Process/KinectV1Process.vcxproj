@@ -94,8 +94,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>OpenGL32.lib;glew32.lib;openvr_api64.lib;Kinect10.lib;Debug\sfml-audio-d.lib;Debug\sfml-graphics-d.lib;Debug\sfml-window-d.lib;Debug\sfml-system-d.lib;libvrinputemulator_d.lib;sfgui_d.lib;debug/KinectToVR.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)\Includes\KVRlib;$(KINECTSDK10_DIR)lib/x64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>OpenGL32.lib;glew32.lib;openvr_api64.lib;Kinect10.lib;Debug\sfml-audio-d.lib;Debug\sfml-graphics-d.lib;Debug\sfml-window-d.lib;Debug\sfml-system-d.lib;libvrinputemulator_d.lib;sfgui-d.lib;debug/KinectToVR.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\Includes\KVRlib;$(KINECTSDK10_DIR)lib/amd64;$(SolutionDir)Includes\sfGui;$(SolutionDir)Includes\openvr;$(SolutionDir)Includes\InputEmulator;$(SolutionDir)Includes\Glew;$(SolutionDir)Includes\SFML-2.4.2\lib\;$(SolutionDir)Includes\boost_1_63_0\lib64-msvc-14.0</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -145,7 +145,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>OpenGL32.lib;glew32.lib;openvr_api64.lib;Kinect10.lib;Release\sfml-audio.lib;Release\sfml-graphics.lib;Release\sfml-window.lib;Release\sfml-system.lib;libvrinputemulator.lib;sfgui.lib;release/KinectToVR.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)\Includes\KVRlib;$(KINECTSDK10_DIR)lib/x64</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\Includes\KVRlib;$(KINECTSDK10_DIR)lib/amd64;$(SolutionDir)Includes\sfGui;$(SolutionDir)Includes\openvr;$(SolutionDir)Includes\InputEmulator;$(SolutionDir)Includes\Glew;$(SolutionDir)Includes\SFML-2.4.2\lib\;$(SolutionDir)Includes\boost_1_63_0\lib64-msvc-14.0</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
