@@ -476,7 +476,11 @@ void KinectV1Handler::getKinectRGBData() {
             / (skeletonFrame.SkeletonData[skeletonIndex].SkeletonPositions[NUI_SKELETON_POSITION_HEAD].y
                 +
                 -skeletonFrame.SkeletonData[skeletonIndex].SkeletonPositions[NUI_SKELETON_POSITION_FOOT_LEFT].y);
+        std::cerr << "HMD zero: " << KinectSettings::hmdZero.v[1] << '\n';
+        std::cerr << "head pos: " << skeletonFrame.SkeletonData[skeletonIndex].SkeletonPositions[NUI_SKELETON_POSITION_HEAD].y << '\n';
+        std::cerr << "foot pos: " << skeletonFrame.SkeletonData[skeletonIndex].SkeletonPositions[NUI_SKELETON_POSITION_FOOT_LEFT].y << '\n';
     }
+
 
     bool KinectV1Handler::jointsUntracked(KinectJoint joint0, KinectJoint joint1, NUI_SKELETON_DATA data) {
         NUI_SKELETON_POSITION_TRACKING_STATE joint0State = data.eSkeletonPositionTrackingState[convertJoint(joint0)];

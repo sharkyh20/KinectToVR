@@ -15,7 +15,7 @@ vr::HmdVector3_t getHMDPosition(vr::IVRSystem* &m_system) {
     if (devicePose[HMD_INDEX].bPoseIsValid) {
         if (vr::VRSystem()->GetTrackedDeviceClass(HMD_INDEX) == vr::TrackedDeviceClass_HMD) {
             hmdPose = devicePose[HMD_INDEX];
-            vr::HmdVector3_t position = GetVRPositionFromMatrix(hmdPose.mDeviceToAbsoluteTracking);
+            position = GetVRPositionFromMatrix(hmdPose.mDeviceToAbsoluteTracking);
             vr::HmdQuaternion_t quaternion = GetVRRotationFromMatrix(hmdPose.mDeviceToAbsoluteTracking);    //Currently unused
         }
     }
