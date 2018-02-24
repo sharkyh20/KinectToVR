@@ -27,6 +27,12 @@
     <ClInclude Include="KinectV2Handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\KinectV1Process\KinectJointFilter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VectorMath.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -36,6 +42,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="KinectV2Handler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="KinectJointFilter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -87,7 +87,7 @@ void toggle(bool &b) {
 
 void processLoop(KinectHandlerBase& kinect) {
     sf::RenderWindow renderWindow(sf::VideoMode(SFMLsettings::m_window_width, SFMLsettings::m_window_height), "KinectToVR", sf::Style::Titlebar | sf::Style::Close);
-    renderWindow.setFramerateLimit(90);   //Prevents ridiculous overupdating and high CPU usage - plus 90Hz is the recommended refresh rate for most VR panels 
+    renderWindow.setFramerateLimit(45);   //Prevents ridiculous overupdating and high CPU usage - plus 90Hz is the recommended refresh rate for most VR panels 
 
     sf::Clock clock;
 

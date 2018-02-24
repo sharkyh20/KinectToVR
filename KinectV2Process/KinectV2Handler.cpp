@@ -4,6 +4,7 @@
 #include <sfLine.h>
 #include <iostream>
 #include <VRHelper.h>
+#include "KinectJointFilter.h"
 
 HRESULT KinectV2Handler::getStatusResult()
 {
@@ -176,6 +177,8 @@ void KinectV2Handler::updateSkeletalData() {
         kinectBodies[i]->get_IsTracked(&isTracking);
         if (isTracking) {
             kinectBodies[i]->GetJoints(JointType_Count, joints);
+            //Smooth
+            filter.update(joints);
             break;
         }
     }
@@ -223,9 +226,10 @@ void KinectV2Handler::updateTrackersWithSkeletonPosition(vrinputemulator::VRInpu
     }
 }
 bool KinectV2Handler::getRawTrackedJointPos(KinectTrackedDevice device, vr::HmdVector3_t& position) {
-    float jointX = joints[convertJoint(device.joint0)].Position.X;
-    float jointY = joints[convertJoint(device.joint0)].Position.Y;
-    float jointZ = joints[convertJoint(device.joint0)].Position.Z;
+    sf::Vector3f filteredPos = filter.GetFilteredJoints()[convertJoint(device.joint0)];
+    float jointX = filteredPos.x;
+    float jointY = filteredPos.y;
+    float jointZ = filteredPos.z;
     position = vr::HmdVector3_t{ jointX,jointY,jointZ };
     return true;
 }
