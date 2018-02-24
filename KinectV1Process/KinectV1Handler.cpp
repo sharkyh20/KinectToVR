@@ -178,7 +178,7 @@
             if (getRawTrackedJointPos(device, jointPosition)) {
                 sf::Vector3f zero = { kinectZero.x, kinectZero.y, kinectZero.z };
                 device.update(trackedPositionVROffset, jointPosition, zero);
-            }   // IMPORTANT NEEDS TO BE FIXED - AFTER ZEROING DOESN'T WORK
+            } 
         }
         else {
             //updateKinectTracker(emulator, device);    //Not implemented right now
@@ -467,6 +467,7 @@ void KinectV1Handler::getKinectRGBData() {
         line.setColor(colour);
         line.setThickness(lineThickness);
         window.draw(line);
+        std::cerr << "Line drawn at: " << start.x << ", " << start.y << " to " << end.x << ", " << end.y << "\n";
     }
     Vector4 KinectV1Handler::zeroKinectPosition(int trackedSkeletonIndex) {
         return skeletonFrame.SkeletonData[trackedSkeletonIndex].SkeletonPositions[NUI_SKELETON_POSITION_HEAD];

@@ -25,6 +25,7 @@ public:
 
         guiWindow->Add(mainGUIBox);
         guiDesktop.Add(guiWindow);
+        bool b = guiDesktop.LoadThemeFromFile("main_theme.theme");
         guiDesktop.Update(0.f);
     }
     ~GUIHandler() {}

@@ -1,7 +1,6 @@
 #pragma once
 #include "stdafx.h"
 #include "KinectV1Includes.h"
-#include "IKinectHandler.h"
 #include "KinectHandlerBase.h"
 
 class KinectV1Handler : public KinectHandlerBase {

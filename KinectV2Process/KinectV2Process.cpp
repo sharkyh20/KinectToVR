@@ -2,10 +2,13 @@
 //
 
 #include "stdafx.h"
-
+#include "KinectV2Handler.h"
+#include <KinectToVR.h>
 
 int main()
 {
+    KinectV2Handler kinect;
+    processLoop(kinect);
     return 0;
 }
 
