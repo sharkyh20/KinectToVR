@@ -208,6 +208,7 @@
     for (KinectTrackedDevice device : trackers) {
         if (!device.isKinectRepresentation) {
             vr::HmdVector3_t jointPosition{ 0,0,0 };
+            vr::HmdQuaternion_t jointRotation{ 0,0,0,0 };
             if (getRawTrackedJointPos(device, jointPosition)) {
                 sf::Vector3f zero = { kinectZero.x, kinectZero.y, kinectZero.z };
                 
@@ -216,9 +217,15 @@
                 sf::Vector3f rot = rotate(converted, { 1,0,0 }, 10.0f * 3.14159265359f / 180.0f);
                 vr::HmdVector3_t pos = { {rot.x,rot.y,rot.z} };
 
-                //Rotation
+                //Rotation - Need to seperate into function
+                NUI_SKELETON_BONE_ROTATION kRotation = boneOrientations[convertJoint(device.joint0)].absoluteRotation;
+                jointRotation.w = kRotation.rotationQuaternion.w;
+                jointRotation.x = kRotation.rotationQuaternion.x;
+                jointRotation.y = kRotation.rotationQuaternion.y;
+                jointRotation.z = kRotation.rotationQuaternion.z;
 
-                device.update(trackedPositionVROffset, pos, zero);
+
+                device.update(trackedPositionVROffset, pos, zero, jointRotation);
                 
             } 
         }
@@ -410,7 +417,10 @@ void KinectV1Handler::getKinectRGBData() {
             params.fPrediction = .25f;
             params.fSmoothing = .25f;
             kinectSensor->NuiTransformSmooth(&skeletonFrame, &params);   //Smooths jittery tracking
+
+            NuiSkeletonCalculateBoneOrientations(skeletonFrame.SkeletonData, boneOrientations);
         }
+        
         return;
     };
     void KinectV1Handler::DrawSkeleton(const NUI_SKELETON_DATA & skel, sf::RenderWindow &window) {

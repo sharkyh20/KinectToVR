@@ -177,6 +177,7 @@ void KinectV2Handler::updateSkeletalData() {
         kinectBodies[i]->get_IsTracked(&isTracking);
         if (isTracking) {
             kinectBodies[i]->GetJoints(JointType_Count, joints);
+            kinectBodies[i]->GetJointOrientations(JointType_Count, jointOrientations);
             //Smooth
             filter.update(joints);
             break;
@@ -219,8 +220,18 @@ void KinectV2Handler::updateTrackersWithSkeletonPosition(vrinputemulator::VRInpu
     for (KinectTrackedDevice device : trackers) {
         if (!device.isKinectRepresentation) {
             vr::HmdVector3_t jointPosition{ 0,0,0 };
+            vr::HmdQuaternion_t jointRotation{ 0,0,0,0 };
             if (getRawTrackedJointPos(device, jointPosition)) {
-                device.update(trackedPositionVROffset, jointPosition, kinectZero);
+                
+                //Rotation - need to seperate into function
+                Vector4 kRotation = jointOrientations[convertJoint(device.joint0)].Orientation;
+                jointRotation.w = kRotation.w;
+                jointRotation.x = kRotation.x;
+                jointRotation.y = kRotation.y;
+                jointRotation.z = kRotation.z;
+
+                //UPDATE
+                device.update(trackedPositionVROffset, jointPosition, kinectZero, jointRotation);
             }
         }
     }

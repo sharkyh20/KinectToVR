@@ -89,7 +89,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)Includes\KVRlib;$(SolutionDir)Includes\boost_1_63_0;$(SolutionDir)\Includes\SFML-2.4.2\include;$(SolutionDir)\Includes\sfgui;$(SolutionDir)\Includes\openvr\headers;$(SolutionDir)\Includes\InputEmulator;$(KINECTSDK10_DIR)\inc;$(SolutionDir)\Includes\Glew;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)SFMLProject\inc\;$(SolutionDir)Includes\boost_1_63_0;$(SolutionDir)\Includes\SFML-2.4.2\include;$(SolutionDir)\Includes\sfgui;$(SolutionDir)\Includes\openvr\headers;$(SolutionDir)\Includes\InputEmulator;$(KINECTSDK10_DIR)\inc;$(SolutionDir)\Includes\Glew;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -137,7 +137,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)Includes\KVRlib;$(SolutionDir)Includes\boost_1_63_0;$(SolutionDir)\Includes\SFML-2.4.2\include;$(SolutionDir)\Includes\sfgui;$(SolutionDir)\Includes\openvr\headers;$(SolutionDir)\Includes\InputEmulator;$(KINECTSDK10_DIR)\inc;$(SolutionDir)\Includes\Glew;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)SFMLProject\inc\;$(SolutionDir)Includes\boost_1_63_0;$(SolutionDir)\Includes\SFML-2.4.2\include;$(SolutionDir)\Includes\sfgui;$(SolutionDir)\Includes\openvr\headers;$(SolutionDir)\Includes\InputEmulator;$(KINECTSDK10_DIR)\inc;$(SolutionDir)\Includes\Glew;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

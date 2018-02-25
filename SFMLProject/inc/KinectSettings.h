@@ -1,7 +1,7 @@
 #pragma once
 #include "stdafx.h"
 #include <openvr.h>
-#include <SFML/System/Vector2.hpp>
+#include <SFML/System/Vector3.hpp>
 
 enum class KinectVersion {
     Version1 = 0,   //AKA Xbox 360/ Windows v1

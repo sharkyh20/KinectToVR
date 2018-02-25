@@ -6,7 +6,7 @@
 #include "IETracker.h"
 #include <vrinputemulator.h>
 #include <SFML/System/Vector3.hpp>
-
+#include <openvr_math.h>
 
 class KinectTrackedDevice {
 public:
@@ -27,7 +27,7 @@ public:
         deviceId = initTracker(inputEmulator, true);
     }
 
-    void update(vr::HmdVector3_t trackedPositionVROffset, vr::HmdVector3_t rawJointPos, sf::Vector3f zeroPos) {
+    void update(vr::HmdVector3_t trackedPositionVROffset, vr::HmdVector3_t rawJointPos, sf::Vector3f zeroPos, vr::HmdQuaternion_t rawJointRotation) {
         lastRawPos = rawJointPos;
         auto pose = inputEmulatorRef.getVirtualDevicePose(deviceId);
         //POSITION
@@ -43,6 +43,14 @@ public:
         pose.vecPosition[0] = KinectSettings::kinectToVRScale * rawVRPositionX;
         pose.vecPosition[1] = KinectSettings::kinectToVRScale * rawVRPositionY;
         pose.vecPosition[2] = KinectSettings::kinectToVRScale * rawVRPositionZ;
+
+        //ROTATION
+        pose.qRotation.w = rawJointRotation.w;
+        pose.qRotation.x = rawJointRotation.x;
+        pose.qRotation.y = rawJointRotation.y;
+        pose.qRotation.z = rawJointRotation.z;
+
+        pose.qRotation = pose.qRotation;
 
         pose.poseIsValid = true;
         pose.result = vr::TrackingResult_Running_OK;
