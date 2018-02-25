@@ -241,10 +241,9 @@ bool KinectV2Handler::initKinect() {
         kinectSensor->get_CoordinateMapper(&coordMapper);
 
         kinectSensor->Open();
-        kinectSensor->OpenMultiSourceFrameReader(
-            FrameSourceTypes::FrameSourceTypes_Depth
-            | FrameSourceTypes::FrameSourceTypes_Color
-            | FrameSourceTypes::FrameSourceTypes_Body,
+        //             FrameSourceTypes::FrameSourceTypes_Depth
+        // | FrameSourceTypes::FrameSourceTypes_Color |
+        kinectSensor->OpenMultiSourceFrameReader( FrameSourceTypes::FrameSourceTypes_Body,
             &frameReader);
         return frameReader;
     }

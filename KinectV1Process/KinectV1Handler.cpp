@@ -210,12 +210,16 @@
             vr::HmdVector3_t jointPosition{ 0,0,0 };
             if (getRawTrackedJointPos(device, jointPosition)) {
                 sf::Vector3f zero = { kinectZero.x, kinectZero.y, kinectZero.z };
-
-                //Rotate points
+                
+                //Perspective Tilt Correction
                 sf::Vector3f converted = { jointPosition.v[0],jointPosition.v[1] ,jointPosition.v[2] };
                 sf::Vector3f rot = rotate(converted, { 1,0,0 }, 10.0f * 3.14159265359f / 180.0f);
                 vr::HmdVector3_t pos = { {rot.x,rot.y,rot.z} };
+
+                //Rotation
+
                 device.update(trackedPositionVROffset, pos, zero);
+                
             } 
         }
         else {
@@ -349,8 +353,8 @@ bool KinectV1Handler::initKinect() {
         &kinectRGBStream);
 
     kinectSensor->NuiSkeletonTrackingEnable(
-        NULL,
-        0       // Enable seat support (Upper body only)
+        NULL, 0 |
+        NUI_SKELETON_TRACKING_FLAG_ENABLE_IN_NEAR_RANGE
     );
     return kinectSensor;
 }
@@ -399,7 +403,13 @@ void KinectV1Handler::getKinectRGBData() {
 
     void KinectV1Handler::updateSkeletalData() {
         if (kinectSensor->NuiSkeletonGetNextFrame(0, &skeletonFrame) >= 0) {
-            kinectSensor->NuiTransformSmooth(&skeletonFrame, NULL);   //Smooths jittery tracking
+            NUI_TRANSFORM_SMOOTH_PARAMETERS params;
+            params.fCorrection = .25f;
+            params.fJitterRadius = .5f;
+            params.fMaxDeviationRadius = .25f;
+            params.fPrediction = .25f;
+            params.fSmoothing = .25f;
+            kinectSensor->NuiTransformSmooth(&skeletonFrame, &params);   //Smooths jittery tracking
         }
         return;
     };

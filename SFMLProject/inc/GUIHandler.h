@@ -68,8 +68,8 @@ public:
     void setTrackerInitButtonSignal(vrinputemulator::VRInputEmulator &inputE, std::vector<KinectTrackedDevice> &v_trackers ) {
         TrackerInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers, &inputE] {
             TrackerInitButton->SetLabel("Trackers Initialised");
-            static KinectTrackedDevice leftFootTracker(inputE, KinectJointType::FootLeft, KinectJointType::AnkleLeft, false, KinectVersion::Version1);
-            static KinectTrackedDevice rightFootTracker(inputE, KinectJointType::FootRight, KinectJointType::AnkleRight, false, KinectVersion::Version1);
+            static KinectTrackedDevice leftFootTracker(inputE, KinectJointType::AnkleLeft, KinectJointType::FootLeft, false, KinectVersion::Version1);
+            static KinectTrackedDevice rightFootTracker(inputE, KinectJointType::AnkleRight, KinectJointType::FootRight, false, KinectVersion::Version1);
             static KinectTrackedDevice hipTracker(inputE, KinectJointType::SpineBase, KinectJointType::SpineMid, false, KinectVersion::Version1);
 
             //KinectTrackedDevice kinectTrackerRef(inputEmulator, NUI_SKELETON_POSITION_HEAD, NUI_SKELETON_POSITION_HEAD, true);
