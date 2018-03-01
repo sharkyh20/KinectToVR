@@ -13,6 +13,7 @@
 //GUI
 #include <SFGUI\SFGUI.hpp>
 #include <SFGUI/Widgets.hpp>
+#include <string>
 
 class GUIHandler {
 public:
@@ -22,6 +23,7 @@ public:
         setDefaultSignals();
         setLineWrapping();
         packElementsIntoMainBox();
+        setRequisitions();
 
         guiWindow->Add(mainGUIBox);
         guiDesktop.Add(guiWindow);
@@ -40,17 +42,28 @@ public:
     void updateDesktop(float d) {
         guiDesktop.Update(d);
     }
-
+    void setRequisitions() {
+        CalibrationEntryPosX->SetRequisition(sf::Vector2f(40.f, 0.f));
+        CalibrationEntryPosY->SetRequisition(sf::Vector2f(40.f, 0.f));
+        CalibrationEntryPosZ->SetRequisition(sf::Vector2f(40.f, 0.f));
+        CalibrationEntryRotX->SetRequisition(sf::Vector2f(40.f, 0.f));
+        CalibrationEntryRotY->SetRequisition(sf::Vector2f(40.f, 0.f));
+        CalibrationEntryRotZ->SetRequisition(sf::Vector2f(40.f, 0.f));
+    }
     void setDefaultSignals() {
         //Post VR Tracker Initialisation
         hidePostTrackerInitUI();
 
         //Signals
+        
         ShowSkeletonButton->GetSignal(sfg::Widget::OnLeftClick).Connect([] {
             toggle(KinectSettings::isSkeletonDrawn);
         });
-        
-        PositionAdjustButton->GetSignal(sfg::Widget::OnLeftClick).Connect([] {    KinectSettings::userChangingZero = true;
+
+        KinectRotButton->GetSignal(sfg::Widget::OnLeftClick).Connect([] {
+            KinectSettings::adjustingKinectRepresentationRot = true;
+        });
+        KinectPosButton->GetSignal(sfg::Widget::OnLeftClick).Connect([] {    KinectSettings::adjustingKinectRepresentationPos = true;
         });
         IgnoreInferredCheckButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
             if (IgnoreInferredCheckButton->IsActive()) {
@@ -61,12 +74,35 @@ public:
             }
         });
     }
+    void setCalibrationSignal() {
+        CalibrationSetButton->GetSignal(sfg::Widget::OnLeftClick).Connect(
+            [this] {
+            //NEED TO VALIDATE THESE INPUTS
+            std::stringstream ss;
+            ss <<  CalibrationEntryPosX->GetText().toAnsiString();
+            KinectSettings::kinectRepPosition.v[0] = std::stof(ss.str());
+            ss.clear();
+            ss << CalibrationEntryPosY->GetText().toAnsiString();
+            KinectSettings::kinectRepPosition.v[1] = std::stof(ss.str());
+            ss.clear();
+            ss << CalibrationEntryPosZ->GetText().toAnsiString();
+            KinectSettings::kinectRepPosition.v[2] = std::stof(ss.str());
+            ss.clear();
+
+            ss << CalibrationEntryRotX->GetText().toAnsiString();
+            KinectSettings::kinectRadRotation.v[0] = std::stof(ss.str());
+            ss.clear();
+            ss << CalibrationEntryRotY->GetText().toAnsiString();
+            KinectSettings::kinectRadRotation.v[1] = std::stof(ss.str());
+            ss.clear();
+            ss << CalibrationEntryRotZ->GetText().toAnsiString();
+            KinectSettings::kinectRadRotation.v[2] = std::stof(ss.str());
+            ss.clear();
+        });
+    }
     void setKinectButtonSignal(KinectHandlerBase& kinect) {
         reconKinectButton->GetSignal(sfg::Widget::OnLeftClick).Connect([&kinect] {
             kinect.initialise();
-        });
-        ZeroButton->GetSignal(sfg::Widget::OnLeftClick).Connect([&kinect] {
-            kinect.zeroed = false;
         });
     }
     void setTrackerInitButtonSignal(vrinputemulator::VRInputEmulator &inputE, std::vector<KinectTrackedDevice> &v_trackers ) {
@@ -111,6 +147,9 @@ public:
 
         InstructionsLabel->SetLineWrap(true);
         InstructionsLabel->SetRequisition(sf::Vector2f(600.f, 50.f));
+
+        CalibrationSettingsLabel->SetLineWrap(true);
+        CalibrationSettingsLabel->SetRequisition(sf::Vector2f(600.f, 20.f));
     }
     void packElementsIntoMainBox() {
         //Statuses are at the top
@@ -127,14 +166,25 @@ public:
         mainGUIBox->Pack(ReconControllersLabel);
         mainGUIBox->Pack(ReconControllersButton);
 
-        mainGUIBox->Pack(ZeroLabel);
-        mainGUIBox->Pack(ZeroButton);
+        mainGUIBox->Pack(KinectRotLabel);
+        mainGUIBox->Pack(KinectRotButton);
 
-        mainGUIBox->Pack(PosLabel);
-        mainGUIBox->Pack(PositionAdjustButton);
+        mainGUIBox->Pack(KinectPosLabel);
+        mainGUIBox->Pack(KinectPosButton);
 
         mainGUIBox->Pack(InferredLabel);
         mainGUIBox->Pack(IgnoreInferredCheckButton);
+
+        mainGUIBox->Pack(CalibrationSettingsLabel);
+        calibrationBox->Pack(CalibrationSetButton);
+        calibrationBox->Pack(CalibrationEntryPosX);
+        calibrationBox->Pack(CalibrationEntryPosY);
+        calibrationBox->Pack(CalibrationEntryPosZ);
+        calibrationBox->Pack(CalibrationEntryRotX);
+        calibrationBox->Pack(CalibrationEntryRotY);
+        calibrationBox->Pack(CalibrationEntryRotZ);
+
+        mainGUIBox->Pack(calibrationBox);
     }
 
     void updateKinectStatusLabel(KinectHandlerBase& kinect) {
@@ -174,6 +224,7 @@ private:
     sfg::Desktop guiDesktop;
 
     sfg::Box::Ptr mainGUIBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
+    sfg::Box::Ptr calibrationBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
     //Statuses
     sfg::Label::Ptr KinectStatusLabel = sfg::Label::Create();
     sfg::Label::Ptr SteamVRStatusLabel = sfg::Label::Create();
@@ -185,13 +236,13 @@ private:
     sfg::Button::Ptr ShowSkeletonButton = sfg::CheckButton::Create("Show/Hide Skeleton Tracking: MAY CAUSE LAG IN TRACKERS");
 
     //Zeroing
-    sfg::Label::Ptr ZeroLabel = sfg::Label::Create("Enables resetting Zero - After clicking, stand in front of your Kinect, and press the grip button.");
-    sfg::Button::Ptr ZeroButton = sfg::Button::Create("Reset Standing Zero Position");
+    sfg::Label::Ptr KinectRotLabel = sfg::Label::Create("Calibrate the rotation of the Kinect sensor with the controller thumbsticks. Press the trigger to confirm.");
+    sfg::Button::Ptr KinectRotButton = sfg::Button::Create("Enable Kinect Rotation Calibration");
 
 
     //Position Adjust
-    sfg::Label::Ptr PosLabel = sfg::Label::Create("This re-enables Tracker adjustment with the thumbsticks. Press the trigger when you're happy with the position!");
-    sfg::Button::Ptr PositionAdjustButton = sfg::Button::Create("Enable Tracker Offset Adjustment");
+    sfg::Label::Ptr KinectPosLabel = sfg::Label::Create("Calibrate the position of the Kinect sensor with the controller thumbsticks. Press the trigger to confirm.");
+    sfg::Button::Ptr KinectPosButton = sfg::Button::Create("Enable Kinect Position Calibration");
 
 
     //Redetect Controllers
@@ -205,20 +256,32 @@ private:
 
     sfg::Label::Ptr InstructionsLabel = sfg::Label::Create("Stand in front of the Kinect sensor.\n If the trackers don't update, then try crouching slightly until they move.\n\n Calibration: The arrow represents the position and rotation of the Kinect - match it as closely to real life as possible for the trackers to line up.\n\n The arrow pos/rot is set with the thumbsticks on the controllers, and confirmed with the trigger.");    //Blegh - There has to be a better way than this, maybe serialization?
 
+    sfg::Label::Ptr CalibrationSettingsLabel = sfg::Label::Create("These settings are here for manual entry, and saving until a proper configuration system is implemented, you can use this to quickly calibrate if your Kinect is in the same place. (Rotation is in radians, and Pos should be in meters roughly)");
+    sfg::Entry::Ptr CalibrationEntryPosX = sfg::Entry::Create("");
+    sfg::Entry::Ptr CalibrationEntryPosY = sfg::Entry::Create("");
+    sfg::Entry::Ptr CalibrationEntryPosZ = sfg::Entry::Create("");
+
+    sfg::Entry::Ptr CalibrationEntryRotX = sfg::Entry::Create("");
+    sfg::Entry::Ptr CalibrationEntryRotY = sfg::Entry::Create("");
+    sfg::Entry::Ptr CalibrationEntryRotZ = sfg::Entry::Create("");
+
+    sfg::Button::Ptr CalibrationSetButton = sfg::Button::Create();
 
     void updateKinectStatusLabelDisconnected() {
         KinectStatusLabel->SetText("Kinect Status: ERROR KINECT NOT DETECTED");
     }
     void showPostTrackerInitUI(bool show = true) {
         InstructionsLabel->Show(show);
-        ZeroLabel->Show(show);
-        ZeroButton->Show(show);
-        PosLabel->Show(show);
-        PositionAdjustButton->Show(show);
+        KinectRotLabel->Show(show);
+        KinectRotButton->Show(show);
+        KinectPosLabel->Show(show);
+        KinectPosButton->Show(show);
         ReconControllersLabel->Show(show);
         ReconControllersButton->Show(show);
         InferredLabel->Show(show);
         IgnoreInferredCheckButton->Show(show);
+
+        calibrationBox->Show(show);
     }
     void hidePostTrackerInitUI() {
         showPostTrackerInitUI(false);

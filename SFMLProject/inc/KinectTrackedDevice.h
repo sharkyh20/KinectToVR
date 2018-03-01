@@ -45,21 +45,23 @@ public:
         pos.v[1] += KinectSettings::kinectRepPosition.v[1];
         pos.v[2] += KinectSettings::kinectRepPosition.v[2];
 
-
+        //std::cerr << "jPOS:" << pos.v[0] << ", " << pos.v[1] << ", " << pos.v[2] << "\n";
         //JOINT ROTATION
         pose.qRotation.w = rawJointRotation.w;
         pose.qRotation.x = rawJointRotation.x;
         pose.qRotation.y = rawJointRotation.y;
         pose.qRotation.z = rawJointRotation.z;
-
-        
+        pose.vecPosition[0] = pos.v[0];
+        pose.vecPosition[1] = pos.v[1];
+        pose.vecPosition[2] = pos.v[2];
         //Debug
+        /*
         if (isKinectRepresentation) {
             
             std::cerr << "KMOV: " << pose.vecPosition[0] << ", " << pose.vecPosition[1] << ", " << pose.vecPosition[2] << '\n';
             std::cerr << "KROT: " << KinectSettings::kinectRadRotation.v[0] << ", " << KinectSettings::kinectRadRotation.v[1] << ", " << KinectSettings::kinectRadRotation.v[2]  << '\n';
         }
-        
+        */
         pose.poseIsValid = true;
         pose.result = vr::TrackingResult_Running_OK;
         inputEmulatorRef.setVirtualDevicePose(deviceId, pose);

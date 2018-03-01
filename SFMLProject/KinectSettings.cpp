@@ -24,7 +24,7 @@ namespace KinectSettings {
     vr::HmdQuaternion_t kinectRepRotation{0,0,0,0};  //TEMP
     extern vr::HmdVector3_t kinectRadRotation{0,0,0};
     vr::HmdVector3_t kinectRepPosition{0,0,0};
-    bool adjustingKinectRepresentationRot = false;
+    bool adjustingKinectRepresentationRot = true;
     bool adjustingKinectRepresentationPos = true;
 }
 namespace SFMLsettings {
