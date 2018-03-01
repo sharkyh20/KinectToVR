@@ -1,12 +1,13 @@
 #pragma once
 #include "stdafx.h"
-
+#include <iostream>
 #include "KinectSettings.h"
 #include "KinectJoint.h"
 #include "IETracker.h"
 #include <vrinputemulator.h>
 #include <SFML/System/Vector3.hpp>
 #include <openvr_math.h>
+#include "VectorMath.h"
 
 class KinectTrackedDevice {
 public:
@@ -14,44 +15,51 @@ public:
         vrinputemulator::VRInputEmulator& inputEmulator,
         KinectJointType j0,
         KinectJointType j1,
-        bool isKinect,
-        KinectVersion version)
+        bool isKinect)
         :
         inputEmulatorRef(inputEmulator),
         joint0(j0),
         joint1(j1),
-        hmdRelativePosition(sf::Vector3f(0, 0, 0)),
-        isKinectRepresentation(isKinect),
-        deviceKinectVersion(version)
+        trackedPositionVROffset({ 0,0,0 }),
+        isKinectRepresentation(isKinect)
     {
         deviceId = initTracker(inputEmulator, true);
     }
 
-    void update(vr::HmdVector3_t trackedPositionVROffset, vr::HmdVector3_t rawJointPos, sf::Vector3f zeroPos, vr::HmdQuaternion_t rawJointRotation) {
+    void update(vr::HmdVector3_t additionalOffset, vr::HmdVector3_t rawJointPos, vr::HmdQuaternion_t rawJointRotation) {
         lastRawPos = rawJointPos;
         auto pose = inputEmulatorRef.getVirtualDevicePose(deviceId);
-        //POSITION
-        double kRelativeX = rawJointPos.v[0] - zeroPos.x;
-        double kRelativeY = rawJointPos.v[1] - zeroPos.y;
-        double kRelativeZ = rawJointPos.v[2] - zeroPos.z;
+        //JOINT POSITION
+        //Perspective Correction for changing coord systems
+        const float PI = 3.14159265359f;
+        //Convert to sf vector for rotation fn
+        sf::Vector3f jPosition = { rawJointPos.v[0],rawJointPos.v[1] ,rawJointPos.v[2] };
 
-        //TODO REPLACE KS OFFSET WITH LOCAL DEVICE OFFSET, AND PROVIDE FN TO SET ALL DEVICES AT ONCE
-        double rawVRPositionX = trackedPositionVROffset.v[0] + KinectSettings::hmdZero.v[0] + kRelativeX;
-        double rawVRPositionY = trackedPositionVROffset.v[1] + kRelativeY;   // The Y axis is always up, but the other two depend on kinect orientation
-        double rawVRPositionZ = trackedPositionVROffset.v[2] + KinectSettings::hmdZero.v[2] + kRelativeZ;
+        //Rotate the position around the kinect rep's rot
+        sf::Vector3f laterallyRotatedPos = rotate(jPosition, { 0,1,0 }, -KinectSettings::kinectRadRotation.v[0]);
+        sf::Vector3f tiltRotatedPos = rotate(laterallyRotatedPos, { 1,0,0 }, -KinectSettings::kinectRadRotation.v[1]);
+        vr::HmdVector3_t pos = { { tiltRotatedPos.x,tiltRotatedPos.y,tiltRotatedPos.z } };
 
-        pose.vecPosition[0] = KinectSettings::kinectToVRScale * rawVRPositionX;
-        pose.vecPosition[1] = KinectSettings::kinectToVRScale * rawVRPositionY;
-        pose.vecPosition[2] = KinectSettings::kinectToVRScale * rawVRPositionZ;
+        //Adjust this position by the Kinect's VR pos offset
+        pos.v[0] += KinectSettings::kinectRepPosition.v[0];
+        pos.v[1] += KinectSettings::kinectRepPosition.v[1];
+        pos.v[2] += KinectSettings::kinectRepPosition.v[2];
 
-        //ROTATION
+
+        //JOINT ROTATION
         pose.qRotation.w = rawJointRotation.w;
         pose.qRotation.x = rawJointRotation.x;
         pose.qRotation.y = rawJointRotation.y;
         pose.qRotation.z = rawJointRotation.z;
 
-        pose.qRotation = pose.qRotation;
-
+        
+        //Debug
+        if (isKinectRepresentation) {
+            
+            std::cerr << "KMOV: " << pose.vecPosition[0] << ", " << pose.vecPosition[1] << ", " << pose.vecPosition[2] << '\n';
+            std::cerr << "KROT: " << KinectSettings::kinectRadRotation.v[0] << ", " << KinectSettings::kinectRadRotation.v[1] << ", " << KinectSettings::kinectRadRotation.v[2]  << '\n';
+        }
+        
         pose.poseIsValid = true;
         pose.result = vr::TrackingResult_Running_OK;
         inputEmulatorRef.setVirtualDevicePose(deviceId, pose);
@@ -81,10 +89,8 @@ public:
     KinectJoint joint0;
     KinectJoint joint1;
 
-    sf::Vector3f hmdRelativePosition;
+    vr::HmdVector3_t trackedPositionVROffset;
     vr::HmdVector3_t lastRawPos{ 0,0,0 };
     bool isKinectRepresentation;
-
-    KinectVersion deviceKinectVersion;
 };
 

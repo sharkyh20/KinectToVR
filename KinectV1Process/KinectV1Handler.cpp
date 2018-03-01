@@ -161,7 +161,7 @@
         if (NUI_SKELETON_TRACKED == trackingState)
         {
             KinectSettings::hmdZero = getHMDPosition(m_sys);
-            kinectZero = zeroKinectPosition(i);
+
             setKinectToVRMultiplier(i);
             zeroed = true;
             break;
@@ -169,54 +169,19 @@
         }
     }
 }
- // TODO: MOVE THIS VECTOR STUFF TO LIB IN A NAMESPACE
- std::string to_string(sf::Vector3f v) {
-     return std::to_string(v.x) + ", " + std::to_string(v.y) + ", " + std::to_string(v.z);
- }
- sf::Vector3f cross(sf::Vector3f v1, sf::Vector3f v2) {
-     float x = (v1.y * v2.z) - (v1.z*v2.y);
-     float y = -((v1.x*v2.z) - (v1.z*v2.x));
-     float z = (v1.x*v2.y) - (v1.y*v2.x);
-     return { x,y,z };
- }
- float dot(sf::Vector3f v1, sf::Vector3f v2) {
-     return v1.x*v2.x + v1.y*v2.y + v1.z*v2.z;
- }
- //https://stackoverflow.com/questions/42421611/3d-vector-rotation-in-c
- // v: a vector in 3D space
- // k: a unit vector describing the axis of rotation
- // theta: the angle (in radians) that v rotates around k
- sf::Vector3f rotate(const sf::Vector3f& v, const sf::Vector3f& k, double theta) {
-     std::cout << "Rotating " << to_string(v) << " "
-         << theta << " radians around "
-         << to_string(k) << "..." << std::endl;
-
-     float cos_theta = cos(theta);
-     float sin_theta = sin(theta);
-
-     sf::Vector3f rotated = (v * cos_theta) + (cross(k, v) * sin_theta) + (k * dot(k, v)) * (1 - cos_theta);
-
-     std::cout << "Rotated: " << to_string(rotated) << std::endl;
-
-     return rotated;
- }
 
  void KinectV1Handler::updateTrackersWithSkeletonPosition(
     vrinputemulator::VRInputEmulator &emulator,
     std::vector<KinectTrackedDevice> trackers)
 {
     for (KinectTrackedDevice device : trackers) {
-        if (!device.isKinectRepresentation) {
+        if (device.isKinectRepresentation) {
+            device.update(KinectSettings::kinectRepPosition, { 0,0,0 }, KinectSettings::kinectRepRotation);
+        }
+        else {
             vr::HmdVector3_t jointPosition{ 0,0,0 };
             vr::HmdQuaternion_t jointRotation{ 0,0,0,0 };
             if (getRawTrackedJointPos(device, jointPosition)) {
-                sf::Vector3f zero = { kinectZero.x, kinectZero.y, kinectZero.z };
-                
-                //Perspective Tilt Correction
-                sf::Vector3f converted = { jointPosition.v[0],jointPosition.v[1] ,jointPosition.v[2] };
-                sf::Vector3f rot = rotate(converted, { 1,0,0 }, 10.0f * 3.14159265359f / 180.0f);
-                vr::HmdVector3_t pos = { {rot.x,rot.y,rot.z} };
-
                 //Rotation - Need to seperate into function
                 NUI_SKELETON_BONE_ROTATION kRotation = boneOrientations[convertJoint(device.joint0)].absoluteRotation;
                 jointRotation.w = kRotation.rotationQuaternion.w;
@@ -224,13 +189,8 @@
                 jointRotation.y = kRotation.rotationQuaternion.y;
                 jointRotation.z = kRotation.rotationQuaternion.z;
 
-
-                device.update(trackedPositionVROffset, pos, zero, jointRotation);
-                
+                device.update(trackedPositionVROffset, jointPosition, jointRotation);
             } 
-        }
-        else {
-            //updateKinectTracker(emulator, device);    //Not implemented right now
         }
     }
 }
@@ -335,6 +295,7 @@ NUI_SKELETON_POSITION_INDEX KinectV1Handler::convertJoint(KinectJoint joint)
 
     default:
         std::cerr << "INVALID KinectJointType!!!\n";
+        return NUI_SKELETON_POSITION_WRIST_LEFT;
         break;
 
     }
@@ -412,7 +373,7 @@ void KinectV1Handler::getKinectRGBData() {
         if (kinectSensor->NuiSkeletonGetNextFrame(0, &skeletonFrame) >= 0) {
             NUI_TRANSFORM_SMOOTH_PARAMETERS params;
             params.fCorrection = .25f;
-            params.fJitterRadius = .5f;
+            params.fJitterRadius = .4f;
             params.fMaxDeviationRadius = .25f;
             params.fPrediction = .25f;
             params.fSmoothing = .25f;

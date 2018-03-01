@@ -28,6 +28,11 @@ namespace KinectSettings {
     extern double kinectToVRScale;
 
     extern vr::HmdVector3_t hmdZero; //TEMP GLOBAL
+    extern vr::HmdQuaternion_t kinectRepRotation;
+    extern vr::HmdVector3_t kinectRadRotation;
+    extern vr::HmdVector3_t kinectRepPosition;
+    extern bool adjustingKinectRepresentationRot;
+    extern bool adjustingKinectRepresentationPos;
 }
 namespace SFMLsettings {
     extern int m_window_width;

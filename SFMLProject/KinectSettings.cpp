@@ -21,6 +21,11 @@ namespace KinectSettings {
     double kinectToVRScale = 1;
 
     vr::HmdVector3_t hmdZero; //TEMP GLOBAL
+    vr::HmdQuaternion_t kinectRepRotation{0,0,0,0};  //TEMP
+    extern vr::HmdVector3_t kinectRadRotation{0,0,0};
+    vr::HmdVector3_t kinectRepPosition{0,0,0};
+    bool adjustingKinectRepresentationRot = false;
+    bool adjustingKinectRepresentationPos = true;
 }
 namespace SFMLsettings {
     int m_window_width = 800;

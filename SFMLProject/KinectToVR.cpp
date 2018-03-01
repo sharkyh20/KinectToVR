@@ -193,27 +193,62 @@ void processLoop(KinectHandlerBase& kinect) {
         guiRef.updateKinectStatusLabel(kinect);
         if (kinect.isInitialised()) {
             kinect.update();
-            if (!kinect.isZeroed()) {          //Initial attempt to allow user to get into position before setting the trackers -  ** zeroAll sets zeroed to true  **
-                if (rightController.GetPress(vr::EVRButtonId::k_EButton_Grip)) {
-                    kinect.zeroAllTracking(m_VRSystem);
+            if (KinectSettings::adjustingKinectRepresentationPos) { //TEMP FOR TESTING IMPLMENTATION- Warning Gross af
+                if (leftController.GetTouch(vr::EVRButtonId::k_EButton_SteamVR_Touchpad)) {
+                    sf::Vector2f axis = leftController.GetControllerAxisValue(vr::EVRButtonId::k_EButton_SteamVR_Touchpad);
+                    KinectSettings::kinectRepPosition.v[0] += deltaScaled(1.0, deltaT) * axis.x;
+                    KinectSettings::kinectRepPosition.v[2] += deltaScaled(1.0, deltaT) * axis.y;
+                }
+                if (rightController.GetTouch(vr::EVRButtonId::k_EButton_SteamVR_Touchpad)) {
+                    sf::Vector2f axis = rightController.GetControllerAxisValue(vr::EVRButtonId::k_EButton_SteamVR_Touchpad);
+                    KinectSettings::kinectRepPosition.v[1] += deltaScaled(1.0, deltaT) * axis.y;
+                }
+                if (rightController.GetTrigger()) {
+                    KinectSettings::adjustingKinectRepresentationPos = false;
                     rightController.setHapticPulse(.15, 1000, 0);
                 }
             }
-            if (KinectSettings::userChangingZero) {
-                if (leftController.GetTouch(vr::EVRButtonId::k_EButton_SteamVR_Touchpad)) { 
-                    sf::Vector2f axis = leftController.GetControllerAxisValue(vr::EVRButtonId::k_EButton_SteamVR_Touchpad); 
-                    
-                    kinect.trackedPositionVROffset.v[0] += deltaScaled(1.0, deltaT) * axis.x;
-                    kinect.trackedPositionVROffset.v[2] += deltaScaled(1.0, deltaT) * axis.y;
+            else if (KinectSettings::adjustingKinectRepresentationRot) { //TEMP FOR TESTING IMPLMENTATION
+                KinectSettings::kinectRepRotation = vrmath::quaternionFromYawPitchRoll(KinectSettings::kinectRadRotation.v[0], KinectSettings::kinectRadRotation.v[1], KinectSettings::kinectRadRotation.v[2]);
+                //std::cerr << isRotating << '\n';
+                if (leftController.GetTouch(vr::EVRButtonId::k_EButton_SteamVR_Touchpad)) {
+                    sf::Vector2f axis = leftController.GetControllerAxisValue(vr::EVRButtonId::k_EButton_SteamVR_Touchpad);
+                    KinectSettings::kinectRadRotation.v[0] += deltaScaled(1.0, deltaT) * axis.x;
+                        //std::cerr << "ROT ADJUSTED L\n";
                 }
                 if (rightController.GetTouch(vr::EVRButtonId::k_EButton_SteamVR_Touchpad)) {
-                    sf::Vector2f axis = rightController.GetControllerAxisValue(vr::EVRButtonId::k_EButton_SteamVR_Touchpad); 
-                    
-                    kinect.trackedPositionVROffset.v[1] += deltaScaled(1.0, deltaT) * axis.y;
+                    sf::Vector2f axis = rightController.GetControllerAxisValue(vr::EVRButtonId::k_EButton_SteamVR_Touchpad);
+                    KinectSettings::kinectRadRotation.v[1] += deltaScaled(1.0, deltaT) * axis.y;
+                        //std::cerr << "ROT ADJUSTED R\n";
                 }
-                if (rightController.GetTrigger()) {  
-                    KinectSettings::userChangingZero = false;
+                if (rightController.GetTrigger()) {
+                    KinectSettings::adjustingKinectRepresentationRot = false;
                     rightController.setHapticPulse(.15, 1000, 0);
+                }
+            }
+            else {
+                if (!kinect.isZeroed()) {          //Initial attempt to allow user to get into position before setting the trackers -  ** zeroAll sets zeroed to true  **
+                    if (rightController.GetPress(vr::EVRButtonId::k_EButton_Grip)) {
+                        kinect.zeroAllTracking(m_VRSystem);
+                        rightController.setHapticPulse(.15, 1000, 0);
+                    }
+                }
+                if (KinectSettings::userChangingZero) {
+                    if (leftController.GetTouch(vr::EVRButtonId::k_EButton_SteamVR_Touchpad)) {
+                        sf::Vector2f axis = leftController.GetControllerAxisValue(vr::EVRButtonId::k_EButton_SteamVR_Touchpad);
+
+                        kinect.trackedPositionVROffset.v[0] += deltaScaled(1.0, deltaT) * axis.x;
+                        kinect.trackedPositionVROffset.v[2] += deltaScaled(1.0, deltaT) * axis.y;
+                    }
+                    if (rightController.GetTouch(vr::EVRButtonId::k_EButton_SteamVR_Touchpad)) {
+                        sf::Vector2f axis = rightController.GetControllerAxisValue(vr::EVRButtonId::k_EButton_SteamVR_Touchpad);
+
+                        kinect.trackedPositionVROffset.v[1] += deltaScaled(1.0, deltaT) * axis.y;
+                    }
+                    if (rightController.GetTrigger()) {
+                        KinectSettings::userChangingZero = false;
+                        rightController.setHapticPulse(.15, 1000, 0);
+                    }
                 }
             }
             kinect.updateTrackersWithSkeletonPosition(inputEmulator, v_trackers);
@@ -242,4 +277,24 @@ void processLoop(KinectHandlerBase& kinect) {
         d.destroy();
     }
     vr::VR_Shutdown();
+}
+
+void spawnAndConnectTracker(vrinputemulator::VRInputEmulator & inputE, std::vector<KinectTrackedDevice>& v_trackers, KinectJointType mainJoint, KinectJointType secondaryJoint)
+{
+    KinectTrackedDevice device(inputE, mainJoint, secondaryJoint, false);
+    v_trackers.push_back(device);
+}
+
+void spawnDefaultFullBodyTrackers(vrinputemulator::VRInputEmulator & inputE, std::vector<KinectTrackedDevice>& v_trackers)
+{
+    spawnAndConnectTracker(inputE, v_trackers, KinectJointType::FootLeft, KinectJointType::AnkleLeft);
+    spawnAndConnectTracker(inputE, v_trackers, KinectJointType::FootRight, KinectJointType::AnkleRight);
+    spawnAndConnectTracker(inputE, v_trackers, KinectJointType::SpineBase, KinectJointType::SpineMid);
+}
+
+void spawnAndConnectKinectTracker(vrinputemulator::VRInputEmulator &inputE, std::vector<KinectTrackedDevice> &v_trackers)
+{
+    KinectTrackedDevice kinectTrackerRef(inputE, KinectJointType::Head, KinectJointType::Head, true);
+    setKinectTrackerProperties(kinectTrackerRef.deviceId);
+    v_trackers.push_back(kinectTrackerRef);
 }

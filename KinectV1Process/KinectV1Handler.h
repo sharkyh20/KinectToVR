@@ -19,8 +19,6 @@ public:
 
     sf::Vector2f screenSkelePoints[NUI_SKELETON_POSITION_COUNT];
 
-    Vector4 kinectZero{ 0,0,0,0 };
-
     virtual void initialise();
     virtual void initOpenGL();
     virtual void update();

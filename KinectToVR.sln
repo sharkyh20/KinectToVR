@@ -6,8 +6,14 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KinectToVR", "SFMLProject\SFMLProject.vcxproj", "{9E612475-CF0A-4384-969A-3C01C9543935}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KinectV1Process", "KinectV1Process\KinectV1Process.vcxproj", "{252AC64C-828F-45D1-9B4F-CB4B1986B200}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9E612475-CF0A-4384-969A-3C01C9543935} = {9E612475-CF0A-4384-969A-3C01C9543935}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KinectV2Process", "KinectV2Process\KinectV2Process.vcxproj", "{0DE92959-9B87-4FB6-809E-1D95B49D57B1}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9E612475-CF0A-4384-969A-3C01C9543935} = {9E612475-CF0A-4384-969A-3C01C9543935}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

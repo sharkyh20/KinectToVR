@@ -23,7 +23,7 @@
     <ProjectGuid>{0DE92959-9B87-4FB6-809E-1D95B49D57B1}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>KinectV2Process</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.10586.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -156,7 +156,6 @@
     <ClInclude Include="KinectV2Handler.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="VectorMath.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="KinectJointFilter.cpp" />

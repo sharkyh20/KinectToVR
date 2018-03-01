@@ -21,7 +21,6 @@ public:
     ICoordinateMapper* coordMapper = nullptr;
     BOOLEAN isTracking = false;
 
-    sf::Vector3f kinectZero{ 0,0,0 };
     Joint joints[JointType_Count];
     JointOrientation jointOrientations[JointType_Count];
     IBody* kinectBodies[BODY_COUNT];

@@ -198,7 +198,6 @@ void KinectV2Handler::zeroAllTracking(vr::IVRSystem *& m_sys)
 
         if (trackingState == TrackingState_Tracked) {
             KinectSettings::hmdZero = getHMDPosition(m_sys);
-            kinectZero = zeroKinectPosition(i);
             setKinectToVRMultiplier(i);
             zeroed = true;
             break;
@@ -218,7 +217,9 @@ void KinectV2Handler::setKinectToVRMultiplier(int skeletonIndex) {
 void KinectV2Handler::updateTrackersWithSkeletonPosition(vrinputemulator::VRInputEmulator & emulator, std::vector<KinectTrackedDevice> trackers)
 {
     for (KinectTrackedDevice device : trackers) {
-        if (!device.isKinectRepresentation) {
+        if (device.isKinectRepresentation) {
+            device.update(KinectSettings::kinectRepPosition, {0,0,0}, KinectSettings::kinectRepRotation);
+        } else {
             vr::HmdVector3_t jointPosition{ 0,0,0 };
             vr::HmdQuaternion_t jointRotation{ 0,0,0,0 };
             if (getRawTrackedJointPos(device, jointPosition)) {
@@ -231,7 +232,7 @@ void KinectV2Handler::updateTrackersWithSkeletonPosition(vrinputemulator::VRInpu
                 jointRotation.z = kRotation.z;
 
                 //UPDATE
-                device.update(trackedPositionVROffset, jointPosition, kinectZero, jointRotation);
+                device.update(trackedPositionVROffset, jointPosition, jointRotation);
             }
         }
     }

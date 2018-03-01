@@ -42,6 +42,10 @@ public:
     }
 
     void setDefaultSignals() {
+        //Post VR Tracker Initialisation
+        hidePostTrackerInitUI();
+
+        //Signals
         ShowSkeletonButton->GetSignal(sfg::Widget::OnLeftClick).Connect([] {
             toggle(KinectSettings::isSkeletonDrawn);
         });
@@ -68,16 +72,11 @@ public:
     void setTrackerInitButtonSignal(vrinputemulator::VRInputEmulator &inputE, std::vector<KinectTrackedDevice> &v_trackers ) {
         TrackerInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers, &inputE] {
             TrackerInitButton->SetLabel("Trackers Initialised");
-            static KinectTrackedDevice leftFootTracker(inputE, KinectJointType::AnkleLeft, KinectJointType::FootLeft, false, KinectVersion::Version1);
-            static KinectTrackedDevice rightFootTracker(inputE, KinectJointType::AnkleRight, KinectJointType::FootRight, false, KinectVersion::Version1);
-            static KinectTrackedDevice hipTracker(inputE, KinectJointType::SpineBase, KinectJointType::SpineMid, false, KinectVersion::Version1);
+            spawnDefaultFullBodyTrackers(inputE, v_trackers);
+            spawnAndConnectKinectTracker(inputE, v_trackers);
 
-            //KinectTrackedDevice kinectTrackerRef(inputEmulator, NUI_SKELETON_POSITION_HEAD, NUI_SKELETON_POSITION_HEAD, true);
-            //setKinectTrackerProperties(kinectTrackerRef.deviceId);
+            showPostTrackerInitUI();
 
-            v_trackers.push_back(leftFootTracker);
-            v_trackers.push_back(rightFootTracker);
-            v_trackers.push_back(hipTracker);
             TrackerInitButton->SetState(sfg::Widget::State::INSENSITIVE);
         });
     }
@@ -181,7 +180,7 @@ private:
     sfg::Label::Ptr InputEmulatorStatusLabel = sfg::Label::Create();
 
     sfg::Button::Ptr reconKinectButton = sfg::Button::Create("Reconnect Kinect");
-    sfg::Button::Ptr TrackerInitButton = sfg::Button::Create("Initialise SteamVR Kinect Trackers");
+    sfg::Button::Ptr TrackerInitButton = sfg::Button::Create("Initialise SteamVR Kinect Trackers - HIT ME");
 
     sfg::Button::Ptr ShowSkeletonButton = sfg::CheckButton::Create("Show/Hide Skeleton Tracking: MAY CAUSE LAG IN TRACKERS");
 
@@ -201,13 +200,27 @@ private:
 
 
     // Allows for unrestricted tracking, but may be unstable
-    sfg::Label::Ptr InferredLabel = sfg::Label::Create("Checking this makes the trackers directly copy the Kinect movement. This may have the benefit of improving tracking when partially occluded, but may also have the consequence of spazzing wildly if tracking is lost.");
+    sfg::Label::Ptr InferredLabel = sfg::Label::Create("Checking this makes the trackers directly copy the Kinect movement. This may have the benefit of reducing lag, and improving tracking when partially occluded, but may also have the consequence of spazzing wildly if tracking is lost.");
     sfg::CheckButton::Ptr IgnoreInferredCheckButton = sfg::CheckButton::Create("Enable Raw Tracking");
 
-    sfg::Label::Ptr InstructionsLabel = sfg::Label::Create("Put on your headset and stand in front of the Kinect. The optimal distance microsoft reccommends is about 1.5-2.5m away.\n\nYou may see a bunch of trackers floating behind you!\nDon't worry, you can initialise them to your current position by pressing down the right grip button.\nAlthough the Kinect tries it's best to find your exact position, it's not always correct, so you can use the left stick to offset the trackers laterally on the ground, and the right stick to move them up and down to your body.\n\nWhen you have set it to your desired position click down on the right trigger.\n NOTE: If you hit the trigger on accident before it reached your desired position, then you can press the button or 'Q' on your keyboard to enable tracker adjusting again");    //Blegh - There has to be a better way than this, maybe serialization?
+    sfg::Label::Ptr InstructionsLabel = sfg::Label::Create("Stand in front of the Kinect sensor.\n If the trackers don't update, then try crouching slightly until they move.\n\n Calibration: The arrow represents the position and rotation of the Kinect - match it as closely to real life as possible for the trackers to line up.\n\n The arrow pos/rot is set with the thumbsticks on the controllers, and confirmed with the trigger.");    //Blegh - There has to be a better way than this, maybe serialization?
 
 
     void updateKinectStatusLabelDisconnected() {
         KinectStatusLabel->SetText("Kinect Status: ERROR KINECT NOT DETECTED");
+    }
+    void showPostTrackerInitUI(bool show = true) {
+        InstructionsLabel->Show(show);
+        ZeroLabel->Show(show);
+        ZeroButton->Show(show);
+        PosLabel->Show(show);
+        PositionAdjustButton->Show(show);
+        ReconControllersLabel->Show(show);
+        ReconControllersButton->Show(show);
+        InferredLabel->Show(show);
+        IgnoreInferredCheckButton->Show(show);
+    }
+    void hidePostTrackerInitUI() {
+        showPostTrackerInitUI(false);
     }
 };
