@@ -287,8 +287,8 @@ void spawnAndConnectTracker(vrinputemulator::VRInputEmulator & inputE, std::vect
 
 void spawnDefaultFullBodyTrackers(vrinputemulator::VRInputEmulator & inputE, std::vector<KinectTrackedDevice>& v_trackers)
 {
-    spawnAndConnectTracker(inputE, v_trackers, KinectJointType::FootLeft, KinectJointType::AnkleLeft);
-    spawnAndConnectTracker(inputE, v_trackers, KinectJointType::FootRight, KinectJointType::AnkleRight);
+    spawnAndConnectTracker(inputE, v_trackers, KinectJointType::AnkleLeft, KinectJointType::FootLeft);
+    spawnAndConnectTracker(inputE, v_trackers, KinectJointType::AnkleRight, KinectJointType::FootLeft);
     spawnAndConnectTracker(inputE, v_trackers, KinectJointType::SpineBase, KinectJointType::SpineMid);
 }
 

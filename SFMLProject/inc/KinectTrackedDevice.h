@@ -47,6 +47,8 @@ public:
 
         //std::cerr << "jPOS:" << pos.v[0] << ", " << pos.v[1] << ", " << pos.v[2] << "\n";
         //JOINT ROTATION
+        rawJointRotation = rawJointRotation * KinectSettings::kinectRepRotation;
+
         pose.qRotation.w = rawJointRotation.w;
         pose.qRotation.x = rawJointRotation.x;
         pose.qRotation.y = rawJointRotation.y;
