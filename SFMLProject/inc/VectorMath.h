@@ -2,6 +2,8 @@
 #include "stdafx.h"
 #include <SFML\System\Vector3.hpp>
 #include <string>
+
+#define PI 3.14159265359
 float length(sf::Vector3f vector);
 std::string to_string(sf::Vector3f v);
 

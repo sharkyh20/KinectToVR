@@ -41,8 +41,8 @@ public:
 
     void Reset(float fSmoothing = 0.25f, float fCorrection = 0.25f, float fPrediction = 0.25f, float fJitterRadius = 0.03f, float fMaxDeviationRadius = 0.05f)
     {
-        assert(m_pFilteredJoints);
-        assert(m_pHistory);
+        assert(filteredJointPoints);
+        assert(pointHistory);
 
         m_fMaxDeviationRadius = fMaxDeviationRadius; // Size of the max prediction radius Can snap back to noisy data when too high
         m_fSmoothing = fSmoothing;                   // How much smothing will occur.  Will lag when too high

@@ -15,6 +15,8 @@ public:
     INuiSensor* kinectSensor = nullptr;
     GLuint kinectTextureId;    // ID of the texture to contain Kinect RGB Data
     NUI_SKELETON_FRAME skeletonFrame = { 0 };
+
+    Vector4 jointPositions[NUI_SKELETON_POSITION_COUNT];
     NUI_SKELETON_BONE_ORIENTATION boneOrientations[NUI_SKELETON_POSITION_COUNT];
 
     sf::Vector2f screenSkelePoints[NUI_SKELETON_POSITION_COUNT];

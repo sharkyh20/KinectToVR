@@ -3,6 +3,7 @@
 #include "IKinectHandler.h"
 #include "KinectHandlerBase.h"
 #include "KinectJointFilter.h"
+#include "KinectOrientationFilter.h"
 // Kinect V2 - directory local due to my win 7 machine being unsupported for actual install
 
 #include <Kinect.h>
@@ -15,6 +16,7 @@ public:
     virtual ~KinectV2Handler() {}
 
     DoubleExponentialFilter filter;
+    RotationalSmoothingFilter rotFilter;
     IKinectSensor* kinectSensor = nullptr;
     IMultiSourceFrameReader* frameReader = nullptr;
     IMultiSourceFrame* multiFrame = nullptr;
@@ -57,7 +59,7 @@ private:
 
 
 
-    bool getRawTrackedJointPos(KinectTrackedDevice device, vr::HmdVector3_t& position);
+    bool getFilteredJoint(KinectTrackedDevice device, vr::HmdVector3_t& position, vr::HmdQuaternion_t &rotation);
     sf::Vector2f BodyToScreen(const CameraSpacePoint& bodyPoint, int width, int height) {
         // Calculate the body's position on the screen
         DepthSpacePoint depthPoint = { 0 };

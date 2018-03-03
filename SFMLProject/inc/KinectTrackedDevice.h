@@ -31,7 +31,6 @@ public:
         auto pose = inputEmulatorRef.getVirtualDevicePose(deviceId);
         //JOINT POSITION
         //Perspective Correction for changing coord systems
-        const float PI = 3.14159265359f;
         //Convert to sf vector for rotation fn
         sf::Vector3f jPosition = { rawJointPos.v[0],rawJointPos.v[1] ,rawJointPos.v[2] };
 
@@ -47,8 +46,16 @@ public:
 
         //std::cerr << "jPOS:" << pos.v[0] << ", " << pos.v[1] << ", " << pos.v[2] << "\n";
         //JOINT ROTATION
-        rawJointRotation = rawJointRotation * KinectSettings::kinectRepRotation;
+        if (!isKinectRepresentation) {
+            //std::cerr << "KROT:" << KinectSettings::kinectRepRotation.w << ", " << KinectSettings::kinectRepRotation.x << ", " << KinectSettings::kinectRepRotation.y << ", " << KinectSettings::kinectRepRotation.z << "\n";
+            //std::cerr << "RAW:" << rawJointRotation.w << ", " << rawJointRotation.x << ", " << rawJointRotation.y << ", " << rawJointRotation.z << "\n";
 
+
+            rawJointRotation = rawJointRotation * KinectSettings::kinectRepRotation;
+
+
+            //std::cerr << "ADJ:" << rawJointRotation.w << ", " << rawJointRotation.x << ", " << rawJointRotation.y << ", " << rawJointRotation.z << "\n";
+        }
         pose.qRotation.w = rawJointRotation.w;
         pose.qRotation.x = rawJointRotation.x;
         pose.qRotation.y = rawJointRotation.y;

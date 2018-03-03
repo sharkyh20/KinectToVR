@@ -4,7 +4,10 @@
 #include <assert.h>
 
 #include <SFML\System\Vector3.hpp>
+#include <KinectSettings.h>
 #include "Kinect.h"
+#include <openvr_math.h>
+#include "VectorMath.h"
 
 
 // Joint Filter 
@@ -17,6 +20,24 @@ struct SmoothingParameters {
     float maxDeviationRadius; // The maximum radius in meters that filtered positions are allowed to deviate from raw data
 };
 
+SmoothingParameters getDefaultSmoothingParams() {
+    SmoothingParameters params;
+    params.smoothing = .25f;
+    params.correction = .25f;
+    params.maxDeviationRadius = .05f;
+    params.jitterRadius = 0.03f;
+    params.prediction = .25f;
+        return params;
+}
+SmoothingParameters getAggressiveSmoothingParams() {
+    SmoothingParameters params;
+    params.smoothing = .25f;
+    params.correction = .25f;
+    params.maxDeviationRadius = .25f;
+    params.jitterRadius = 0.4f;
+    params.prediction = .25f;
+        return params;
+}
 // A holt double exponential smoothing filter
 class DoubleExponentialFilterData {
 public:
@@ -25,11 +46,13 @@ public:
     sf::Vector3f trend;
     uint32_t frameCount;
 };
-
 class DoubleExponentialFilter {
 public:
-    DoubleExponentialFilter() { init(); }
+    DoubleExponentialFilter() { init(getAggressiveSmoothingParams()); }
     ~DoubleExponentialFilter() { shutdown(); }
+    void init(SmoothingParameters p) {
+        Reset(p.smoothing, p.correction, p.prediction, p.jitterRadius, p.maxDeviationRadius);
+    }
     void init(float fSmoothing = 0.25f, float fCorrection = 0.25f, float fPrediction = 0.25f, float fJitterRadius = 0.03f, float fMaxDeviationRadius = 0.05f)
     {
         Reset(fSmoothing, fCorrection, fPrediction, fJitterRadius, fMaxDeviationRadius);
@@ -41,8 +64,8 @@ public:
 
     void Reset(float fSmoothing = 0.25f, float fCorrection = 0.25f, float fPrediction = 0.25f, float fJitterRadius = 0.03f, float fMaxDeviationRadius = 0.05f)
     {
-        assert(m_pFilteredJoints);
-        assert(m_pHistory);
+        assert(filteredJointPoints);
+        assert(pointHistory);
 
         m_fMaxDeviationRadius = fMaxDeviationRadius; // Size of the max prediction radius Can snap back to noisy data when too high
         m_fSmoothing = fSmoothing;                   // How much smothing will occur.  Will lag when too high
@@ -70,3 +93,4 @@ private:
 
     void update(Joint joints[], UINT JointID, SmoothingParameters smoothingParams);
 };
+

@@ -89,7 +89,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)Includes\Glew;$(SolutionDir)Includes\InputEmulator;$(SolutionDir)Includes\openvr\headers;$(SolutionDir)Includes\SFML-2.4.2\include;$(SolutionDir)Includes\sfgui;$(SolutionDir)Includes\boost_1_63_0;$(SolutionDir)SFMLProject\inc\;$(SolutionDir)Includes\Kinect2\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/inc;$(SolutionDir)Includes\Glew;$(SolutionDir)Includes\InputEmulator;$(SolutionDir)Includes\openvr\headers;$(SolutionDir)Includes\SFML-2.4.2\include;$(SolutionDir)Includes\sfgui;$(SolutionDir)Includes\boost_1_63_0;$(SolutionDir)SFMLProject\inc\;$(SolutionDir)Includes\Kinect2\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -137,7 +137,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)Includes\Glew;$(SolutionDir)Includes\InputEmulator;$(SolutionDir)Includes\openvr\headers;$(SolutionDir)Includes\SFML-2.4.2\include;$(SolutionDir)Includes\sfgui;$(SolutionDir)Includes\boost_1_63_0;$(SolutionDir)SFMLProject\inc\;$(SolutionDir)Includes\Kinect2\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/inc;$(SolutionDir)Includes\Glew;$(SolutionDir)Includes\InputEmulator;$(SolutionDir)Includes\openvr\headers;$(SolutionDir)Includes\SFML-2.4.2\include;$(SolutionDir)Includes\sfgui;$(SolutionDir)Includes\boost_1_63_0;$(SolutionDir)SFMLProject\inc\;$(SolutionDir)Includes\Kinect2\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -153,12 +153,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\KinectV1Process\KinectJointFilter.h" />
+    <ClInclude Include="KinectOrientationFilter.h" />
     <ClInclude Include="KinectV2Handler.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="KinectJointFilter.cpp" />
+    <ClCompile Include="KinectOrientationFilter.cpp" />
     <ClCompile Include="KinectV2Handler.cpp" />
     <ClCompile Include="KinectV2Process.cpp" />
     <ClCompile Include="stdafx.cpp">

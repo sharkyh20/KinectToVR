@@ -33,6 +33,10 @@ namespace KinectSettings {
     extern vr::HmdVector3_t kinectRepPosition;
     extern bool adjustingKinectRepresentationRot;
     extern bool adjustingKinectRepresentationPos;
+
+
+    void serializeKinectSettings();
+    void writeKinectSettings();
 }
 namespace SFMLsettings {
     extern int m_window_width;

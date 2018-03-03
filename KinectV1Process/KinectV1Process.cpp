@@ -10,7 +10,9 @@ int main()
 {
 
     KinectV1Handler kinect;
+    
     processLoop(kinect);
+    
     return 0;
 }
 

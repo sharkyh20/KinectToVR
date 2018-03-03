@@ -182,9 +182,10 @@
             vr::HmdVector3_t jointPosition{ 0,0,0 };
             vr::HmdQuaternion_t jointRotation{ 0,0,0,0 };
             if (getRawTrackedJointPos(device, jointPosition)) {
-                std::cerr << "jP: " << jointPosition.v[0] << ", " << jointPosition.v[1] << ", " << jointPosition.v[2] << "\n";
+                //std::cerr << "jP: " << jointPosition.v[0] << ", " << jointPosition.v[1] << ", " << jointPosition.v[2] << "\n";
                 //Rotation - Need to seperate into function
-                NUI_SKELETON_BONE_ROTATION kRotation = boneOrientations[convertJoint(device.joint0)].absoluteRotation;
+                NUI_SKELETON_BONE_ROTATION kRotation = boneOrientations[convertJoint(device.joint1)].;
+               
                 jointRotation.w = kRotation.rotationQuaternion.w;
                 jointRotation.x = kRotation.rotationQuaternion.x;
                 jointRotation.y = kRotation.rotationQuaternion.y;
@@ -216,9 +217,9 @@ bool KinectV1Handler::getRawTrackedJointPos(KinectTrackedDevice device, vr::HmdV
             }
             else
             {
-                float jointX = skeletonFrame.SkeletonData[i].SkeletonPositions[convertJoint(device.joint0)].x;
-                float jointY = skeletonFrame.SkeletonData[i].SkeletonPositions[convertJoint(device.joint0)].y;
-                float jointZ = skeletonFrame.SkeletonData[i].SkeletonPositions[convertJoint(device.joint0)].z;
+                float jointX = jointPositions[convertJoint(device.joint0)].x;
+                float jointY = jointPositions[convertJoint(device.joint0)].y;
+                float jointZ = jointPositions[convertJoint(device.joint0)].z;
                 position = vr::HmdVector3_t{ jointX,jointY,jointZ };
                 return true;
             }
@@ -380,14 +381,40 @@ void KinectV1Handler::getKinectRGBData() {
             params.fSmoothing = .25f;
             kinectSensor->NuiTransformSmooth(&skeletonFrame, &params);   //Smooths jittery tracking
 
-            NuiSkeletonCalculateBoneOrientations(skeletonFrame.SkeletonData, boneOrientations);
+            for (int i = 0; i < NUI_SKELETON_COUNT; ++i) {
+                NUI_SKELETON_TRACKING_STATE trackingState = skeletonFrame.SkeletonData[i].eTrackingState;
+
+                if (NUI_SKELETON_TRACKED == trackingState)
+                {
+                    for (int j = 0; j < NUI_SKELETON_POSITION_COUNT; ++j) {
+                        jointPositions[j] = skeletonFrame.SkeletonData[i].SkeletonPositions[j];
+                    }
+                    NuiSkeletonCalculateBoneOrientations(&skeletonFrame.SkeletonData[i], boneOrientations);
+                    break;
+                }
+            }
+            
+            //DEBUG
+            /*
+            for (int i = 0; i < 20; i++) {
+                Vector4 orientation = boneOrientations[i].absoluteRotation.rotationQuaternion;
+                std::cerr << "Joint " << i << ": " << orientation.w << ", " << orientation.x << ", " << orientation.y << ", " << orientation.z << '\n';
+            }*/
+            Vector4 orientation = boneOrientations[convertJoint(KinectJointType::AnkleLeft)].absoluteRotation.rotationQuaternion;
+            std::cerr << "AnkleLeftRot " << ": " << orientation.w << ", " << orientation.x << ", " << orientation.y << ", " << orientation.z << '\n';
+            orientation = boneOrientations[convertJoint(KinectJointType::FootLeft)].absoluteRotation.rotationQuaternion;
+            std::cerr << "FootLeftRot " << ": " << orientation.w << ", " << orientation.x << ", " << orientation.y << ", " << orientation.z << '\n';
+            orientation = boneOrientations[convertJoint(KinectJointType::AnkleRight)].absoluteRotation.rotationQuaternion;
+            std::cerr << "AnkleRightRot " << ": " << orientation.w << ", " << orientation.x << ", " << orientation.y << ", " << orientation.z << '\n';
+            orientation = boneOrientations[convertJoint(KinectJointType::FootRight)].absoluteRotation.rotationQuaternion;
+            std::cerr << "FootLeftRot " << ": " << orientation.w << ", " << orientation.x << ", " << orientation.y << ", " << orientation.z << '\n';
         }
         
         return;
     };
     void KinectV1Handler::DrawSkeleton(const NUI_SKELETON_DATA & skel, sf::RenderWindow &window) {
         for (int i = 0; i < NUI_SKELETON_POSITION_COUNT; ++i) {
-            screenSkelePoints[i] = SkeletonToScreen(skel.SkeletonPositions[i], SFMLsettings::m_window_width, SFMLsettings::m_window_height);
+            screenSkelePoints[i] = SkeletonToScreen(jointPositions[i], SFMLsettings::m_window_width, SFMLsettings::m_window_height);
             std::cerr << "m_points[" << i << "] = " << screenSkelePoints[i].x << ", " << screenSkelePoints[i].y << std::endl;
             // Same with the other cerr, without this, the skeleton flickers
         }
@@ -491,16 +518,16 @@ void KinectV1Handler::getKinectRGBData() {
         std::cerr << "Line drawn at: " << start.x << ", " << start.y << " to " << end.x << ", " << end.y << "\n";
     }
     Vector4 KinectV1Handler::zeroKinectPosition(int trackedSkeletonIndex) {
-        return skeletonFrame.SkeletonData[trackedSkeletonIndex].SkeletonPositions[NUI_SKELETON_POSITION_HEAD];
+        return jointPositions[NUI_SKELETON_POSITION_HEAD];
     }
     void KinectV1Handler::setKinectToVRMultiplier(int skeletonIndex) {
         KinectSettings::kinectToVRScale = KinectSettings::hmdZero.v[1]
-            / (skeletonFrame.SkeletonData[skeletonIndex].SkeletonPositions[NUI_SKELETON_POSITION_HEAD].y
+            / (jointPositions[NUI_SKELETON_POSITION_HEAD].y
                 +
-                -skeletonFrame.SkeletonData[skeletonIndex].SkeletonPositions[NUI_SKELETON_POSITION_FOOT_LEFT].y);
+                -jointPositions[NUI_SKELETON_POSITION_FOOT_LEFT].y);
         std::cerr << "HMD zero: " << KinectSettings::hmdZero.v[1] << '\n';
-        std::cerr << "head pos: " << skeletonFrame.SkeletonData[skeletonIndex].SkeletonPositions[NUI_SKELETON_POSITION_HEAD].y << '\n';
-        std::cerr << "foot pos: " << skeletonFrame.SkeletonData[skeletonIndex].SkeletonPositions[NUI_SKELETON_POSITION_FOOT_LEFT].y << '\n';
+        std::cerr << "head pos: " << jointPositions[NUI_SKELETON_POSITION_HEAD].y << '\n';
+        std::cerr << "foot pos: " << jointPositions[NUI_SKELETON_POSITION_FOOT_LEFT].y << '\n';
     }
 
 

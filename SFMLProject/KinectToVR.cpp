@@ -107,7 +107,8 @@ void processLoop(KinectHandlerBase& kinect) {
     // ----------------------------------------------------
 
     //Initialise Kinect
-
+    KinectSettings::serializeKinectSettings();
+    KinectSettings::kinectRepRotation = vrmath::quaternionFromYawPitchRoll(KinectSettings::kinectRadRotation.v[0], KinectSettings::kinectRadRotation.v[1], KinectSettings::kinectRadRotation.v[2]);
     kinect.update();
 
     guiRef.updateKinectStatusLabel(kinect);
@@ -193,6 +194,7 @@ void processLoop(KinectHandlerBase& kinect) {
         guiRef.updateKinectStatusLabel(kinect);
         if (kinect.isInitialised()) {
             kinect.update();
+            
             if (KinectSettings::adjustingKinectRepresentationPos) { //TEMP FOR TESTING IMPLMENTATION- Warning Gross af
                 if (leftController.GetTouch(vr::EVRButtonId::k_EButton_SteamVR_Touchpad)) {
                     sf::Vector2f axis = leftController.GetControllerAxisValue(vr::EVRButtonId::k_EButton_SteamVR_Touchpad);
@@ -276,6 +278,7 @@ void processLoop(KinectHandlerBase& kinect) {
     for (KinectTrackedDevice d : v_trackers) {
         d.destroy();
     }
+    KinectSettings::writeKinectSettings();
     vr::VR_Shutdown();
 }
 
