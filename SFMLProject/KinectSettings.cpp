@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "KinectSettings.h"
 #include <cereal/archives/json.hpp>
+
 #include <iostream>
 #include <fstream>
 
