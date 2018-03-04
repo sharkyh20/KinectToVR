@@ -39,10 +39,8 @@ public:
             //Rotate arrow by 180
             rawJointRotation = rawJointRotation * vrmath::quaternionFromRotationY(PI);
         }
-        float arrowScale = -1.f;
-        if (isKinectRepresentation) { arrowScale = -1.f; }
-        sf::Vector3f laterallyRotatedPos = rotate(jPosition, { 0,1,0 },  KinectSettings::kinectRadRotation.v[0]);
-        sf::Vector3f tiltRotatedPos = rotate(laterallyRotatedPos, { 1,0,0 }, KinectSettings::kinectRadRotation.v[1]);
+        sf::Vector3f laterallyRotatedPos = rotate(jPosition, { 0,1,0 },  KinectSettings::kinectRadRotation.v[1]);
+        sf::Vector3f tiltRotatedPos = rotate(laterallyRotatedPos, { 1,0,0 }, KinectSettings::kinectRadRotation.v[0]);
         vr::HmdVector3_t pos = { { tiltRotatedPos.x,tiltRotatedPos.y,tiltRotatedPos.z } };
 
         //Adjust this position by the Kinect's VR pos offset

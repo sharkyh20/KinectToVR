@@ -108,7 +108,7 @@ void processLoop(KinectHandlerBase& kinect) {
 
     //Initialise Kinect
     KinectSettings::serializeKinectSettings();
-    KinectSettings::kinectRepRotation = vrmath::quaternionFromYawPitchRoll(KinectSettings::kinectRadRotation.v[0], KinectSettings::kinectRadRotation.v[1], KinectSettings::kinectRadRotation.v[2]);
+    KinectSettings::kinectRepRotation = vrmath::quaternionFromYawPitchRoll(KinectSettings::kinectRadRotation.v[1], KinectSettings::kinectRadRotation.v[0], KinectSettings::kinectRadRotation.v[2]);
     kinect.update();
 
     guiRef.updateKinectStatusLabel(kinect);
@@ -212,16 +212,16 @@ void processLoop(KinectHandlerBase& kinect) {
                 }
             }
             else if (KinectSettings::adjustingKinectRepresentationRot) { //TEMP FOR TESTING IMPLMENTATION
-                KinectSettings::kinectRepRotation = vrmath::quaternionFromYawPitchRoll(KinectSettings::kinectRadRotation.v[0], KinectSettings::kinectRadRotation.v[1], KinectSettings::kinectRadRotation.v[2]);
+                KinectSettings::kinectRepRotation = vrmath::quaternionFromYawPitchRoll(KinectSettings::kinectRadRotation.v[1], KinectSettings::kinectRadRotation.v[0], KinectSettings::kinectRadRotation.v[2]);
                 //std::cerr << isRotating << '\n';
                 if (leftController.GetTouch(vr::EVRButtonId::k_EButton_SteamVR_Touchpad)) {
                     sf::Vector2f axis = leftController.GetControllerAxisValue(vr::EVRButtonId::k_EButton_SteamVR_Touchpad);
-                    KinectSettings::kinectRadRotation.v[0] += deltaScaled(3.0, deltaT) * axis.x;
+                    KinectSettings::kinectRadRotation.v[1] += deltaScaled(3.0, deltaT) * axis.x;
                         //std::cerr << "ROT ADJUSTED L\n";
                 }
                 if (rightController.GetTouch(vr::EVRButtonId::k_EButton_SteamVR_Touchpad)) {
                     sf::Vector2f axis = rightController.GetControllerAxisValue(vr::EVRButtonId::k_EButton_SteamVR_Touchpad);
-                    KinectSettings::kinectRadRotation.v[1] += deltaScaled(3.0, deltaT) * axis.y;
+                    KinectSettings::kinectRadRotation.v[0] += deltaScaled(3.0, deltaT) * axis.y;
                         //std::cerr << "ROT ADJUSTED R\n";
                 }
                 if (rightController.GetTrigger()) {
