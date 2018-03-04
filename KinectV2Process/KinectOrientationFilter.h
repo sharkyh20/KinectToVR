@@ -1,7 +1,9 @@
 #pragma once
 #include "stdafx.h"
 #include <queue>
+#include <math.h>
 #include <iostream>
+#include <algorithm>
 #include <assert.h>
 
 #include <SFML\System\Vector3.hpp>
@@ -13,18 +15,21 @@
 #define PI 3.14159265359
 
 //Credit to https://social.msdn.microsoft.com/Forums/en-US/eb647eeb-26ef-45d6-ba73-ac26b8b46925/joint-orientation-smoothing-unity-c?forum=kinectv2sdk
+
 class RotationalSmoothingFilter {
 public:
     RotationalSmoothingFilter() { init(); }
     ~RotationalSmoothingFilter() {}
     JointType jointType;
-    int queueSize = 15;
+    int queueSize = 5;
 
     void init() {
         rotations = std::deque<Vector4>();
+        /*
         for (int i = 0; i < queueSize; ++i) {
             rotations.push_back({ 0,0,0,0 }); //MAY NEED TO CHANGE THIS TO SOME OTHER ROT
         }
+        */
         for (int i = 0; i < JointType_Count; ++i) {
             filteredJointOrientations[i] = { 0,0,0,0 };
         }
@@ -54,13 +59,25 @@ private:
         temp.z = kQuaternion.z;
         return temp;
     }
+    bool equal(const Vector4& lhs, const Vector4& rhs ) {
+        return 
+            lhs.w == rhs.w
+            && lhs.x == rhs.x
+            && lhs.y == rhs.y
+            && lhs.z == rhs.z
+        ;
+    }
     void ApplyJointRotation(JointOrientation joints[])
     {
         for (int i = 0; i < JointType_Count; ++i) {
+            if (i == 14) {
+                std::cerr << "";
+            }
             Vector4 lastRotation = vrToKinectQuat(kinectToVRQuat(joints[i].Orientation) * KinectSettings::kinectRepRotation);
             //std::cerr << "Joint lastRot" << i << ": " << lastRotation.w << ", " << lastRotation.x << ", " << lastRotation.y << ", " << lastRotation.z << '\n';
             rotations.push_back(lastRotation);
             filteredJointOrientations[i] = SmoothFilter(rotations, filteredJointOrientations[i]);
+
             rotations.pop_front();
         }
     }
@@ -90,18 +107,37 @@ private:
         r = normalisedQ(r);
         return r;
     }
+    float clip(float n, float lower, float upper) {
+        return max(lower, min(n, upper));
+    }
+    Vector4 clamp(Vector4 v) {
+        Vector4 temp = v;
+        temp.x = clip(temp.x, -1.0f, 1.0f);
+        temp.y = clip(temp.y, -1.0f, 1.0f);
+        temp.z = clip(temp.z, -1.0f, 1.0f);
+        temp.w = clip(temp.w, -1.0f, 1.0f);
+        return temp;
+    }
+    
     Vector4 SmoothFilter(std::deque<Vector4> quaternions, Vector4 lastMedian)
     {
         Vector4 median = Vector4{ .0f, .0f, .0f, .0f };
         for (Vector4 quaternion : quaternions)
         {
-            float weight = 1 - (dot(lastMedian, quaternion) / (PI / 2)); // 0 degrees of difference => weight 1. 180 degrees of difference => weight 0.
-            Vector4 weightedQuaternion = lerp(lastMedian, quaternion, weight);
-            std::cerr << "weight: " <<  weight << "\n";
-            median.x += weightedQuaternion.x;
-            median.y += weightedQuaternion.y;
-            median.z += weightedQuaternion.z;
-            median.w += weightedQuaternion.w;
+            if (equal(quaternion, { .0f, .0f, .0f, .0f })) {
+                
+            }
+            else {
+                float weight = 1 - (dot(lastMedian, quaternion) / (PI / 2.0f)); // 0 degrees of difference => weight 1. 180 degrees of difference => weight 0.
+                Vector4 weightedQuaternion = lerp(lastMedian, quaternion, weight);
+                
+                //weightedQuaternion = clamp(weightedQuaternion);
+                //std::cerr << "weight: " <<  weight << "\n";
+                median.x += weightedQuaternion.x;
+                median.y += weightedQuaternion.y;
+                median.z += weightedQuaternion.z;
+                median.w += weightedQuaternion.w;
+            }
         }
 
         median.x /= quaternions.size();
@@ -114,16 +150,24 @@ private:
 
     Vector4 NormalizeQuaternion(Vector4 quaternion)
     {
-        float x = quaternion.x;
-        float y = quaternion.y;
-        float z = quaternion.z;
-        float w = quaternion.w;
-        float length = 1.0f / (w * w + x * x + y * y + z * z);
-        Vector4 v;
-        v.x = x * length;
-        v.y = y * length;
-        v.z = z * length;
-        v.w = w * length;
-        return v;
+        if (equal(quaternion, { 0.0f,0.0f,0.0f,0.0f })) 
+        {
+            return { 0.0f,0.0f,0.0f,0.0f };
+        }
+        else {
+            float x = quaternion.x;
+            float y = quaternion.y;
+            float z = quaternion.z;
+            float w = quaternion.w;
+            //This is an issue with the original code, it didn't sqrt the length, leading to spazzing rotations occasionally
+            //float length = 1.0f / (w * w + x * x + y * y + z * z); 
+            float len = 1.0f / length(quaternion);
+            Vector4 v;
+            v.x = x * len;
+            v.y = y * len;
+            v.z = z * len;
+            v.w = w * len;
+            return v;
+        }
     }
 };

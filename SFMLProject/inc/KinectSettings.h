@@ -12,6 +12,7 @@ namespace KinectSettings {
     extern bool isKinectDrawn;
     extern bool isSkeletonDrawn;
     extern bool ignoreInferredPositions;
+    extern bool ignoreRotationSmoothing;
 
     extern bool userChangingZero;
 

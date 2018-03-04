@@ -50,6 +50,12 @@ public:
         CalibrationEntryRotY->SetRequisition(sf::Vector2f(40.f, 0.f));
         CalibrationEntryRotZ->SetRequisition(sf::Vector2f(40.f, 0.f));
     }
+    void toggleRotButton() {
+        KinectRotButton->SetActive(KinectSettings::adjustingKinectRepresentationRot);
+    }
+    void togglePosButton() {
+        KinectPosButton->SetActive(KinectSettings::adjustingKinectRepresentationPos);
+    }
     void setDefaultSignals() {
         //Post VR Tracker Initialisation
         hidePostTrackerInitUI();
@@ -60,17 +66,33 @@ public:
             toggle(KinectSettings::isSkeletonDrawn);
         });
 
-        KinectRotButton->GetSignal(sfg::Widget::OnLeftClick).Connect([] {
-            KinectSettings::adjustingKinectRepresentationRot = true;
+        KinectRotButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
+            if (KinectRotButton->IsActive()) {
+                KinectSettings::adjustingKinectRepresentationRot = true;
+            } else
+                KinectSettings::adjustingKinectRepresentationRot = false;
         });
-        KinectPosButton->GetSignal(sfg::Widget::OnLeftClick).Connect([] {    KinectSettings::adjustingKinectRepresentationPos = true;
-        });
+        KinectPosButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] 
+        {    if (KinectPosButton->IsActive()) {
+                KinectSettings::adjustingKinectRepresentationPos = true;
+            }
+            else
+               KinectSettings::adjustingKinectRepresentationPos = false;
+            });
         IgnoreInferredCheckButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
             if (IgnoreInferredCheckButton->IsActive()) {
                 KinectSettings::ignoreInferredPositions = false;    // No longer stops updating trackers when Kinect isn't sure about a position
             }
             else {
                 KinectSettings::ignoreInferredPositions = true;
+            }
+        });
+        IgnoreRotSmoothingCheckButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
+            if (IgnoreRotSmoothingCheckButton->IsActive()) {
+                KinectSettings::ignoreRotationSmoothing = true;    // No longer tries to smooth the joints
+            }
+            else {
+                KinectSettings::ignoreRotationSmoothing = false;
             }
         });
     }
@@ -174,8 +196,9 @@ public:
 
         mainGUIBox->Pack(InferredLabel);
         mainGUIBox->Pack(IgnoreInferredCheckButton);
+        mainGUIBox->Pack(IgnoreRotSmoothingCheckButton);
 
-        mainGUIBox->Pack(CalibrationSettingsLabel);
+        //mainGUIBox->Pack(CalibrationSettingsLabel); //Calibration left out of main UI because it is not currently implemented
         calibrationBox->Pack(CalibrationSetButton);
         calibrationBox->Pack(CalibrationEntryPosX);
         calibrationBox->Pack(CalibrationEntryPosY);
@@ -184,7 +207,7 @@ public:
         calibrationBox->Pack(CalibrationEntryRotY);
         calibrationBox->Pack(CalibrationEntryRotZ);
 
-        mainGUIBox->Pack(calibrationBox);
+        //mainGUIBox->Pack(calibrationBox); //Calibration left out of main UI because it is not currently implemented
     }
 
     void updateKinectStatusLabel(KinectHandlerBase& kinect) {
@@ -237,12 +260,12 @@ private:
 
     //Zeroing
     sfg::Label::Ptr KinectRotLabel = sfg::Label::Create("Calibrate the rotation of the Kinect sensor with the controller thumbsticks. Press the trigger to confirm.");
-    sfg::Button::Ptr KinectRotButton = sfg::Button::Create("Enable Kinect Rotation Calibration");
+    sfg::CheckButton::Ptr KinectRotButton = sfg::CheckButton::Create("Enable Kinect Rotation Calibration");
 
 
     //Position Adjust
     sfg::Label::Ptr KinectPosLabel = sfg::Label::Create("Calibrate the position of the Kinect sensor with the controller thumbsticks. Press the trigger to confirm.");
-    sfg::Button::Ptr KinectPosButton = sfg::Button::Create("Enable Kinect Position Calibration");
+    sfg::CheckButton::Ptr KinectPosButton = sfg::CheckButton::Create("Enable Kinect Position Calibration");
 
 
     //Redetect Controllers
@@ -252,7 +275,8 @@ private:
 
     // Allows for unrestricted tracking, but may be unstable
     sfg::Label::Ptr InferredLabel = sfg::Label::Create("Checking this makes the trackers directly copy the Kinect movement. This may have the benefit of reducing lag, and improving tracking when partially occluded, but may also have the consequence of spazzing wildly if tracking is lost.");
-    sfg::CheckButton::Ptr IgnoreInferredCheckButton = sfg::CheckButton::Create("Enable Raw Tracking");
+    sfg::CheckButton::Ptr IgnoreInferredCheckButton = sfg::CheckButton::Create("Enable Raw Positional Tracking");
+    sfg::CheckButton::Ptr IgnoreRotSmoothingCheckButton = sfg::CheckButton::Create("Enable Raw Orientation Tracking (Rotation smoothing is in development!!!)");
 
     sfg::Label::Ptr InstructionsLabel = sfg::Label::Create("Stand in front of the Kinect sensor.\n If the trackers don't update, then try crouching slightly until they move.\n\n Calibration: The arrow represents the position and rotation of the Kinect - match it as closely to real life as possible for the trackers to line up.\n\n The arrow pos/rot is set with the thumbsticks on the controllers, and confirmed with the trigger.");    //Blegh - There has to be a better way than this, maybe serialization?
 
@@ -280,6 +304,7 @@ private:
         ReconControllersButton->Show(show);
         InferredLabel->Show(show);
         IgnoreInferredCheckButton->Show(show);
+        IgnoreRotSmoothingCheckButton->Show(show);
 
         calibrationBox->Show(show);
     }

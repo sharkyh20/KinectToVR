@@ -179,6 +179,7 @@ void KinectV2Handler::updateSkeletalData() {
             kinectBodies[i]->GetJoints(JointType_Count, joints);
             kinectBodies[i]->GetJointOrientations(JointType_Count, jointOrientations);
 
+
             for (int i = 0; i < JointType_Count; i++) {
                 Vector4 orientation = jointOrientations[i].Orientation;
                 //std::cerr << "Joint " << i << ": " << orientation.w << ", " << orientation.x << ", " << orientation.y << ", " << orientation.z << '\n';
@@ -186,7 +187,7 @@ void KinectV2Handler::updateSkeletalData() {
 
             //Smooth
             filter.update(joints);
-            rotFilter.update(jointOrientations);
+            rotFilter.update(jointOrientations);  //TODO FIX
             break;
         }
     }
@@ -231,6 +232,15 @@ void KinectV2Handler::updateTrackersWithSkeletonPosition(vrinputemulator::VRInpu
             vr::HmdQuaternion_t jointRotation{ 0,0,0,0 };
             if (getFilteredJoint(device, jointPosition, jointRotation)) {
                 //UPDATE
+                // Remove this once orient filtering works -----
+                /*
+                Vector4 kRotation = jointOrientations[convertJoint(device.joint0)].Orientation;
+                jointRotation.w = kRotation.w;
+                jointRotation.x = kRotation.x;
+                jointRotation.y = kRotation.y;
+                jointRotation.z = kRotation.z;
+                */
+                // ---------------------------------------------
                 device.update(trackedPositionVROffset, jointPosition, jointRotation);
             }
         }
@@ -244,15 +254,19 @@ bool KinectV2Handler::getFilteredJoint(KinectTrackedDevice device, vr::HmdVector
     position = vr::HmdVector3_t{ jointX,jointY,jointZ };
 
     //Rotation - need to seperate into function
-    vr::HmdQuaternion_t jointRotation;
+    Vector4 kRotation;
+    if (KinectSettings::ignoreRotationSmoothing) {
+        kRotation = jointOrientations[convertJoint(device.joint0)].Orientation;
+    }
+    else {
+        kRotation = rotFilter.GetFilteredJoints()[convertJoint(device.joint0)];
+    }
     
-    Vector4 kRotation = rotFilter.GetFilteredJoints()[convertJoint(device.joint0)];
-    std::cerr << "filtered" << kRotation.x << ", " << kRotation.y << ", " << kRotation.z << ", " << kRotation.w << "\n";
-    jointRotation.w = kRotation.w;
-    jointRotation.x = kRotation.x;
-    jointRotation.y = kRotation.y;
-    jointRotation.z = kRotation.z;
-
+    rotation.w = kRotation.w;
+    rotation.x = kRotation.x;
+    rotation.y = kRotation.y;
+    rotation.z = kRotation.z;
+    
     return true;
 }
 bool KinectV2Handler::initKinect() {

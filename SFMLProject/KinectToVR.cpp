@@ -207,6 +207,7 @@ void processLoop(KinectHandlerBase& kinect) {
                 }
                 if (rightController.GetTrigger()) {
                     KinectSettings::adjustingKinectRepresentationPos = false;
+                    guiRef.togglePosButton();
                     rightController.setHapticPulse(.15, 1000, 0);
                 }
             }
@@ -225,6 +226,7 @@ void processLoop(KinectHandlerBase& kinect) {
                 }
                 if (rightController.GetTrigger()) {
                     KinectSettings::adjustingKinectRepresentationRot = false;
+                    guiRef.toggleRotButton();
                     rightController.setHapticPulse(.15, 1000, 0);
                 }
             }
