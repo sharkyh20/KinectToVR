@@ -35,8 +35,14 @@ public:
         sf::Vector3f jPosition = { rawJointPos.v[0],rawJointPos.v[1] ,rawJointPos.v[2] };
 
         //Rotate the position around the kinect rep's rot
-        sf::Vector3f laterallyRotatedPos = rotate(jPosition, { 0,1,0 }, -KinectSettings::kinectRadRotation.v[0]);
-        sf::Vector3f tiltRotatedPos = rotate(laterallyRotatedPos, { 1,0,0 }, -KinectSettings::kinectRadRotation.v[1]);
+        if (isKinectRepresentation) {
+            //Rotate arrow by 180
+            rawJointRotation = rawJointRotation * vrmath::quaternionFromRotationY(PI);
+        }
+        float arrowScale = -1.f;
+        if (isKinectRepresentation) { arrowScale = -1.f; }
+        sf::Vector3f laterallyRotatedPos = rotate(jPosition, { 0,1,0 },  KinectSettings::kinectRadRotation.v[0]);
+        sf::Vector3f tiltRotatedPos = rotate(laterallyRotatedPos, { 1,0,0 }, KinectSettings::kinectRadRotation.v[1]);
         vr::HmdVector3_t pos = { { tiltRotatedPos.x,tiltRotatedPos.y,tiltRotatedPos.z } };
 
         //Adjust this position by the Kinect's VR pos offset
@@ -60,9 +66,9 @@ public:
         pose.qRotation.x = rawJointRotation.x;
         pose.qRotation.y = rawJointRotation.y;
         pose.qRotation.z = rawJointRotation.z;
-        pose.vecPosition[0] = pos.v[0];
-        pose.vecPosition[1] = pos.v[1];
-        pose.vecPosition[2] = pos.v[2];
+        pose.vecPosition[0] = pos.v[0] + trackedPositionVROffset.v[0];
+        pose.vecPosition[1] = pos.v[1] + trackedPositionVROffset.v[1];
+        pose.vecPosition[2] = pos.v[2] + trackedPositionVROffset.v[2];
         //Debug
         /*
         if (isKinectRepresentation) {

@@ -241,6 +241,10 @@ void KinectV2Handler::updateTrackersWithSkeletonPosition(vrinputemulator::VRInpu
                 jointRotation.z = kRotation.z;
                 */
                 // ---------------------------------------------
+                if (device.joint0.joint == KinectJointType::SpineBase) {
+                    //V2 only offset while I figure out a comfortable way to adjust individual trackers
+                    device.trackedPositionVROffset = { 0, .29f, 0 };
+                }
                 device.update(trackedPositionVROffset, jointPosition, jointRotation);
             }
         }
