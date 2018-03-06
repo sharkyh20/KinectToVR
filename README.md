@@ -2,9 +2,9 @@
 An open-source hook for VRInputEmulator to enable foot and hip tracking with the Kinect.
 It currently allows for the hips, left foot and right foot to be tracked with the skeletal positions from the Kinect. Their positions are updated to a virtual tracker from the OpenVR Input Emulator in order to translate it into VR games.
 
-![Image](readmeimg/SkeletonDrawing.PNG?raw=true)
-![Image](readmeimg/Weebadoo.JPG?raw=true)
-![Image](readmeimg/WeebadooSitting.PNG?raw=true)
+![Image](readmeimg/SkeletonDrawing.png?raw=true)
+![Image](readmeimg/Weebadoo.jpg?raw=true)
+![Image](readmeimg/WeebadooSitting.jpg?raw=true)
 
 ## Getting Started - Users
 There is no installation required by this project itself, however, it requires the Kinect Runtime from Microsoft, and the InputEmulator from matzman666.
