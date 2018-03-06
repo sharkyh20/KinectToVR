@@ -14,14 +14,15 @@ There is no installation required by this project itself, however, it requires t
 
 SteamVR - NOT the beta branch, just the regular branch
 
-[The Kinect Runtime v1.8](https://www.microsoft.com/en-au/download/details.aspx?id=40277)
-
-[The OpenVR InputEmulator .exe - (Latest tested version 1.3)](https://github.com/matzman666/OpenVR-InputEmulator/releases)
-
-
 #### IMPORTANT: If your Kinect is a 360/Xbone version, instead of a Windows version, then you will also need the corresponding SDK for it to detect it. As Microsoft prevents these from working outside of a 'development environment'.
 
-[Kinect SDK v1.8](https://www.microsoft.com/en-us/download/details.aspx?id=40278) <- If you're installing this then the runtime is NOT required. It includes it.
+For the Xbox 360 Kinect:
+[The Kinect SDK v1.8](https://www.microsoft.com/en-us/download/details.aspx?id=40278)
+	
+For the Xbox One Kinect:
+[The Kinect SDK v2.0](https://www.microsoft.com/en-au/download/details.aspx?id=44561)
+
+[The OpenVR InputEmulator .exe - (Latest tested version 1.3)](https://github.com/matzman666/OpenVR-InputEmulator/releases)
 
 
 ### Running the program
@@ -29,14 +30,25 @@ SteamVR - NOT the beta branch, just the regular branch
 
 1. Ensure that the runtime is installed, and the Kinect is plugged into your PC.
   * If Windows won't detect it, you can try looking through Microsoft's troubleshooting [here](https://support.xbox.com/en-AU/xbox-on-windows/accessories/kinect-for-windows-v2-known-issues)
-2. Point your Kinect facing away from the 'front' of your VR space (Usually facing you like your monitor.) *As of writing this, KinectToVR does not support a different Kinect orientation.*
+2. Point your Kinect into your VR area
 1. Open SteamVR with your headset plugged in, and install InputEmulator.
-1. Run KinectToVR.exe, and 3 tracker devices should appear in the SteamVR device list.
+1. Run the corresponding process in the KinectToVR folder
+
+	* Xbox 360 - KinectV1Process.exe
+	
+	* Xbox One - KinectV2Process.exe
+	
 1. Put on your headset and stand in front of the Kinect. The optimal distance microsoft reccommends is about 1.5-2.5m away.
-1. You may see a bunch of trackers floating behind you! Don't worry, you can initialise them to your current position by pressing down the right grip button.
-1. Although the Kinect tries it's best to find your exact position, it's not always correct, so you can use the left stick to offset the trackers laterally on the ground, and the right stick to move them up and down to your body.
-1. When you have set it to your desired position click down on the right trigger.
--NOTE: If you hit the trigger on accident before it reached your desired position, then you can press 'Q' on your keyboard to enable tracker adjusting again
+1. You may see a bunch of trackers floating behind you! Don't worry, this means that the Kinect has detected your skeleton, but it's not at your current position.
+
+	* If the trackers are stuck at the center position without moving, your Kinect is not detecting you. Stand further back, or do a little crouch. (You only need to do this to get it to recognise you, not while its running)
+
+1. Although the Kinect tries it's best to find your exact position, it's not always correct.
+	* You should see an arrow
+	* In the K2VR process you should see a checkbox saying 'Enable Kinect Position Calibration', click it.
+	* Use the thumbsticks/trackpad to move the arrow to where the Kinect is in real life.
+	* Press the trigger to confirm
+1. The trackers may not fit your position still, so you need to adjust the rotation, follow the same process with the rotation checkbox.
 
 Unfortunately, due to the limitations of the Kinect, it can only detect a skeleton head-on and it may jitter or get occluded fairly easily as it is only one sensor. This means that with tracking enabled, you're going to have to stand facing the Kinect, like the old-fashioned 2-sensor Oculus configuration. I can't really do anything about this limitation.
 
