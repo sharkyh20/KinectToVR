@@ -2,6 +2,9 @@
 An open-source hook for VRInputEmulator to enable foot and hip tracking with the Kinect.
 It currently allows for the hips, left foot and right foot to be tracked with the skeletal positions from the Kinect. Their positions are updated to a virtual tracker from the OpenVR Input Emulator in order to translate it into VR games.
 
+![Image](readmeimg/SkeletonDrawing.PNG?raw=true)
+![Image](readmeimg/Weebadoo.JPG?raw=true)
+![Image](readmeimg/WeebadooSitting.PNG?raw=true)
 
 ## Getting Started - Users
 There is no installation required by this project itself, however, it requires the Kinect Runtime from Microsoft, and the InputEmulator from matzman666.
@@ -29,36 +32,40 @@ For the Xbox One Kinect:
  You can use the Xbox 360 Kinect with an adapter [such as this one](https://www.amazon.com/Adapter-Kinect-360-HandHelditems-Sketch-Universal/dp/B005EIXVAE), or a regular Kinect for Windows.
 
 1. Ensure that the runtime is installed, and the Kinect is plugged into your PC.
-  * If Windows won't detect it, you can try looking through Microsoft's troubleshooting [here](https://support.xbox.com/en-AU/xbox-on-windows/accessories/kinect-for-windows-v2-known-issues)
+  	* If Windows won't detect it, you can try looking through Microsoft's troubleshooting [here](https://support.xbox.com/en-AU/xbox-on-windows/accessories/kinect-for-windows-v2-known-issues)
 2. Point your Kinect into your VR area
+	* I recommend turning on the Draw Skeleton checkbox while adjusting your sensor position, so that you can visualise where it's tracking. Remember to turn it off, as it may cause a little lag.
 1. Open SteamVR with your headset plugged in, and install InputEmulator.
+1. SteamVR Home blocks the trackers from appearing - you need to exit it so that you are in the Steam Grey void area to see them.
 1. Run the corresponding process in the KinectToVR folder
 
 	* Xbox 360 - KinectV1Process.exe
 	
 	* Xbox One - KinectV2Process.exe
 	
-1. Put on your headset and stand in front of the Kinect. The optimal distance microsoft reccommends is about 1.5-2.5m away.
+1. Put on your headset and stand in front of the Kinect. The optimal distance Microsoft recommends is about 1.5-2.5m away.
 1. You may see a bunch of trackers floating behind you! Don't worry, this means that the Kinect has detected your skeleton, but it's not at your current position.
 
 	* If the trackers are stuck at the center position without moving, your Kinect is not detecting you. Stand further back, or do a little crouch. (You only need to do this to get it to recognise you, not while its running)
 
 1. Although the Kinect tries it's best to find your exact position, it's not always correct.
-	* You should see an arrow
-	* In the K2VR process you should see a checkbox saying 'Enable Kinect Position Calibration', click it.
+	* You should see an arrow in the SteamVR space
+	* Back in the K2VR process you should see a checkbox saying 'Enable Kinect Position Calibration', click it.
 	* Use the thumbsticks/trackpad to move the arrow to where the Kinect is in real life.
 	* Press the trigger to confirm
 1. The trackers may not fit your position still, so you need to adjust the rotation, follow the same process with the rotation checkbox.
 
-Unfortunately, due to the limitations of the Kinect, it can only detect a skeleton head-on and it may jitter or get occluded fairly easily as it is only one sensor. This means that with tracking enabled, you're going to have to stand facing the Kinect, like the old-fashioned 2-sensor Oculus configuration. I can't really do anything about this limitation.
+Unfortunately, due to the limitations of the Kinect, it can only detect a skeleton head-on and it may jitter or get occluded fairly easily as it is only one sensor. This means that with tracking enabled, you're going to have to stand facing the Kinect, like the old-fashioned 2-sensor Oculus configuration. I can't really do anything about this limitation. But the Xbox One suffers a lot less from this than the Xbox 360.
 
 ### VRChat
 
 I'd assume the majority of people that want full body tracking are going to be using it in VRChat, so here is a list of steps to get it to work.
 
-1. Make sure you've turned this program on, and the trackers are set up in SteamVR.
+1. Make sure you've turned this program on, and the trackers are calibrated and set up in SteamVR.
 1. Make sure both controllers are connected before launching VRChat, as sometimes it may not detect them if they are turned on after the game has opened.
-1. Once you are in the world, open the menu and go to 'Avatars'.
+1. While the game is loading, make sure you are facing your Kinect head-on, and keep your head facing that direction until the body spawns, if you wish to calibrate your last used avatar
+	* VRChat spawns the avatar facing the direction you're looking at the time, but you cannot adjust it after you have spawned. If you don't remember to do this: face the right direction, select a different avatar and switch back.
+1. If you want to use another avatar, once you are in the world, open the menu and go to 'Avatars'. Face forwards as in the previous step
 1. From here you can select an avatar for your character, then click change in the bottom left.
 1. Your character should be stuck in a T-Pose.
 1. Move your feet to match with the position of the characters feet, hips with the hips, and your controllers to each of their hands.
@@ -66,19 +73,20 @@ I'd assume the majority of people that want full body tracking are going to be u
 
 Full-body tracking is still fairly uncommon, and as such there's not much help or support if something goes wrong. Many character models may not work, or glitch out when full-body is activated. 
 
+If the joints are weird, try crouching a little bit during calibration of the avatar, or lower your player height. There are way too many variables for me to list here, but that's usually the problem, unless the Kinect is improperly calibrated - in which case you repeat the 'Enable' checkboxes and align the arrow until your feet move 1:1 in VR.
+
 #### NOTE: Sometimes this process may not work, whether it be because VRChat didn't recognise the trackers, or just didn't activate the T-Pose, if this happens, close VRChat and SteamVR and begin the process again.
 
 
-
 #### If your character's knees are bent but the tracking still works, then you can adjust the player height in the 'System' menu to compensate, usually this means make it smaller.
+
+#### [Here's a useful guide/reference for tracking related issues](https://www.reddit.com/r/VRchat/comments/7y879f/tutorial_a_guide_to_full_body_tracking_for_vive/)
 
 # Known Issues/Fixes
 
 ### Vive tracking bugs out
 
-I don't believe the Kinect v2 (The Xbox One Version) is compatible with the Vive, as it uses the same range of waves, causing the tracking to flip out.
-
-But, if you are experiencing this with a 360 Kinect, or just want to try it with your Xbone one, then it's recommended to not have the Kinect facing into a lighthouse, or at the height of the Vive headset. 
+The Kinect for Xbox One causes interference with the Vive, so it's recommended to not have the Kinect facing into a lighthouse, or at the height of the Vive headset. This isn't as bad as it sounds - as the Xbone Kinect can track at a much shorter distance and more reliably than the X360. 
 
 ### Greyed out trackers in SteamVR panel
 Restart SteamVR, as far as I know I can't remove them from the panel, only disable them while its open.
@@ -93,6 +101,9 @@ Restart SteamVR, as far as I know I can't remove them from the panel, only disab
 # Getting Started - Developers
 
 If you wish to compile the project yourself, then you'll need:
+
+### Cereal
+[Cereal v1.2.2](https://uscilab.github.io/cereal/)
 
 ### SFML
 
