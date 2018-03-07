@@ -4,9 +4,7 @@ It currently allows for the hips, left foot and right foot to be tracked with th
 
 ## If you're unfamiliar with github: [Go here to download](https://github.com/sharkyh20/KinectToVR/releases)
 
-![Image](readmeimg/SkeletonDrawing.png?raw=true)
-![Image](readmeimg/Weebadoo.jpg?raw=true)
-![Image](readmeimg/WeebadooSitting.jpg?raw=true)
+<img src="readmeimg/SkeletonDrawing.png?raw=true" width = 100%><img src="readmeimg/Weebadoo.jpg?raw=true"  width=50%><img src="readmeimg/WeebadooSitting.jpg?raw=true" width = 50%>
 
 ## Getting Started - Users
 There is no installation required by this project itself, however, it requires the Kinect Runtime from Microsoft, and the InputEmulator from matzman666.
