@@ -1,10 +1,15 @@
 #pragma once
 #include "stdafx.h"
+
+#define KINECTV2
+
 #include "KinectV2Handler.h"
 #include <sfLine.h>
 #include <iostream>
 #include <VRHelper.h>
 #include "KinectJointFilter.h"
+
+
 
 HRESULT KinectV2Handler::getStatusResult()
 {

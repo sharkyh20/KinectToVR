@@ -30,6 +30,9 @@
     <ClInclude Include="KinectV1Includes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="QuaternionMath.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -39,6 +42,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="KinectV1Handler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="QuaternionMath.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
