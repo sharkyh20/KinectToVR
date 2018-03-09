@@ -40,16 +40,5 @@ namespace KMath {
 
         return rotated;
     }
-    sf::Vector3f normalise(const sf::Vector3f & v) {
-        float  length = v.x*v.x + v.y*v.y + v.z*v.z;
-        if (length == 0)
-            return v;
-        length = 1.0 / sqrt(length);
-
-        return {
-            v.x * length,
-            v.y * length,
-            v.z * length };
-    }
 
 };

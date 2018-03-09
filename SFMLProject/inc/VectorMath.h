@@ -10,5 +10,4 @@ namespace KMath {
     sf::Vector3f cross(sf::Vector3f v1, sf::Vector3f v2);
     float dot(sf::Vector3f v1, sf::Vector3f v2);
     sf::Vector3f rotate(const sf::Vector3f& v, const sf::Vector3f& k, double theta);
-    sf::Vector3f normalise(const sf::Vector3f & v);
 }
