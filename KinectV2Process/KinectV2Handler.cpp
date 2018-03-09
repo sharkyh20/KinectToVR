@@ -225,7 +225,7 @@ void KinectV2Handler::setKinectToVRMultiplier(int skeletonIndex) {
 void KinectV2Handler::updateTrackersWithSkeletonPosition(vrinputemulator::VRInputEmulator & emulator, std::vector<KinectTrackedDevice> trackers)
 {
     for (KinectTrackedDevice device : trackers) {
-        if (device.isKinectRepresentation) {
+        if (device.isSensor()) {
             device.update(KinectSettings::kinectRepPosition, {0,0,0}, KinectSettings::kinectRepRotation);
         } else {
             vr::HmdVector3_t jointPosition{ 0,0,0 };

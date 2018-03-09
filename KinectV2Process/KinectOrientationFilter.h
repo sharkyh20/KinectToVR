@@ -10,11 +10,16 @@
 #include <KinectSettings.h>
 #include "Kinect.h"
 #include <openvr_math.h>
+#include <VectorMath.h>
 
 
 #define PI 3.14159265359
 
 //Credit to https://social.msdn.microsoft.com/Forums/en-US/eb647eeb-26ef-45d6-ba73-ac26b8b46925/joint-orientation-smoothing-unity-c?forum=kinectv2sdk
+
+/* Kinect Vector 4 structure: x,y,z,w
+*  OpenVR structure: w,x,y,z
+*/
 
 class RotationalSmoothingFilter {
 public:
@@ -67,13 +72,63 @@ private:
             && lhs.z == rhs.z
         ;
     }
+    sf::Vector3f normalise(const sf::Vector3f & v) {
+        float  length = v.x*v.x + v.y*v.y + v.z*v.z;
+        if (length == 0)
+            return v;
+        length = 1.0 / sqrt(length);
+
+        return { 
+            v.x * length,
+            v.y * length,
+            v.z * length };
+    }
+    Vector4 fromToRotation(const sf::Vector3f &from, const sf::Vector3f &to) {
+        sf::Vector3f v0 = from;
+        sf::Vector3f v1 = to;
+        v0 = normalise(v0);
+        v1 = normalise(v1);
+
+        float d = KMath::dot(v0, v1);
+        if (d >= 1.0f) {
+            Vector4 r;
+            r.w = 1;
+            return r;
+        }
+        else if (d <= -1.0f) //Exactly opposite
+        {
+            sf::Vector3f axis(1.f, 0.f, 0.f);
+            axis = KMath::cross(axis, v0);
+            if (KMath::length(axis) == 0) {
+                axis = { 0.f, 1.f, 0.f };
+                axis = KMath::cross(axis, v0);
+            }
+            return normalisedQ({ axis.x, axis.y, axis.z, 0 });
+        }
+
+        const float s = sqrtf((1 + d) * 2);
+        const float invs = 1.f / s;
+        const sf::Vector3f c = KMath::cross(v0, v1)*invs;
+        return normalisedQ({ c.x, c.y, c.z, s * .5f });
+    }
+    Vector4 product(const Vector4 &lhs, const Vector4 &rhs) {
+        return {
+            (lhs.w * rhs.x) + (lhs.x * rhs.w) + (lhs.y * rhs.z) - (lhs.z * rhs.y),
+            (lhs.w * rhs.y) + (lhs.y * rhs.w) + (lhs.z * rhs.x) - (lhs.x * rhs.z),
+            (lhs.w * rhs.z) + (lhs.z * rhs.w) + (lhs.x * rhs.y) - (lhs.y * rhs.x),
+            (lhs.w * rhs.w) - (lhs.x * rhs.x) - (lhs.y * rhs.y) - (lhs.z * rhs.z)
+        };
+    }
     void ApplyJointRotation(JointOrientation joints[])
     {
+        const Vector4 fromTo = fromToRotation(upVRAxis(), forwardVRAxis());
         for (int i = 0; i < JointType_Count; ++i) {
             if (i == 14) {
                 std::cerr << "";
             }
-            Vector4 lastRotation = vrToKinectQuat(kinectToVRQuat(joints[i].Orientation) * KinectSettings::kinectRepRotation);
+            Vector4 lastRotation = product(
+                joints[i].Orientation,
+                fromTo);
             //std::cerr << "Joint lastRot" << i << ": " << lastRotation.w << ", " << lastRotation.x << ", " << lastRotation.y << ", " << lastRotation.z << '\n';
             rotations.push_back(lastRotation);
             filteredJointOrientations[i] = SmoothFilter(rotations, filteredJointOrientations[i]);
@@ -81,6 +136,9 @@ private:
             rotations.pop_front();
         }
     }
+    sf::Vector3f upVRAxis() { return { 0,1,0 }; }
+    sf::Vector3f forwardVRAxis() { return { 0,0,1 }; }
+
     float dot(Vector4 q1, Vector4 q2) {
         return q1.x * q2.x + q1.y * q2.y + q1.z *q2.z + q1.w * q2.w;
     }
@@ -124,20 +182,21 @@ private:
         Vector4 median = Vector4{ .0f, .0f, .0f, .0f };
         for (Vector4 quaternion : quaternions)
         {
+            /*
             if (equal(quaternion, { .0f, .0f, .0f, .0f })) {
                 
             }
-            else {
-                float weight = 1 - (dot(lastMedian, quaternion) / (PI / 2.0f)); // 0 degrees of difference => weight 1. 180 degrees of difference => weight 0.
+            */
+            // else {}
+                float weight = 1.0f - (dot(lastMedian, quaternion) / (PI / 2.0f)); // 0 degrees of difference => weight 1. 180 degrees of difference => weight 0.
                 Vector4 weightedQuaternion = lerp(lastMedian, quaternion, weight);
                 
-                //weightedQuaternion = clamp(weightedQuaternion);
                 //std::cerr << "weight: " <<  weight << "\n";
                 median.x += weightedQuaternion.x;
                 median.y += weightedQuaternion.y;
                 median.z += weightedQuaternion.z;
                 median.w += weightedQuaternion.w;
-            }
+            
         }
 
         median.x /= quaternions.size();

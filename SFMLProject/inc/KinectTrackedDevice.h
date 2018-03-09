@@ -9,19 +9,28 @@
 #include <openvr_math.h>
 #include "VectorMath.h"
 
+enum class KinectDeviceRole {
+    LeftFoot,
+    RightFoot,
+    Hip,
+    KinectSensor,
+    LeftHand,
+    RightHand
+};
+
 class KinectTrackedDevice {
 public:
     KinectTrackedDevice(
         vrinputemulator::VRInputEmulator& inputEmulator,
         KinectJointType j0,
         KinectJointType j1,
-        bool isKinect)
+        KinectDeviceRole r)
         :
         inputEmulatorRef(inputEmulator),
         joint0(j0),
         joint1(j1),
         trackedPositionVROffset({ 0,0,0 }),
-        isKinectRepresentation(isKinect)
+        role(r)
     {
         deviceId = initTracker(inputEmulator, true);
     }
@@ -35,12 +44,12 @@ public:
         sf::Vector3f jPosition = { rawJointPos.v[0],rawJointPos.v[1] ,rawJointPos.v[2] };
 
         //Rotate the position around the kinect rep's rot
-        if (isKinectRepresentation) {
+        if (isSensor()) {
             //Rotate arrow by 180
             rawJointRotation = rawJointRotation * vrmath::quaternionFromRotationY(PI);
         }
-        sf::Vector3f laterallyRotatedPos = rotate(jPosition, { 0,1,0 },  KinectSettings::kinectRadRotation.v[1]);
-        sf::Vector3f tiltRotatedPos = rotate(laterallyRotatedPos, { 1,0,0 }, KinectSettings::kinectRadRotation.v[0]);
+        sf::Vector3f laterallyRotatedPos = KMath::rotate(jPosition, { 0,1,0 },  KinectSettings::kinectRadRotation.v[1]);
+        sf::Vector3f tiltRotatedPos = KMath::rotate(laterallyRotatedPos, { 1,0,0 }, KinectSettings::kinectRadRotation.v[0]);
         vr::HmdVector3_t pos = { { tiltRotatedPos.x,tiltRotatedPos.y,tiltRotatedPos.z } };
 
         //Adjust this position by the Kinect's VR pos offset
@@ -50,12 +59,12 @@ public:
 
         //std::cerr << "jPOS:" << pos.v[0] << ", " << pos.v[1] << ", " << pos.v[2] << "\n";
         //JOINT ROTATION
-        if (!isKinectRepresentation) {
+        if (!isSensor()) {
             //std::cerr << "KROT:" << KinectSettings::kinectRepRotation.w << ", " << KinectSettings::kinectRepRotation.x << ", " << KinectSettings::kinectRepRotation.y << ", " << KinectSettings::kinectRepRotation.z << "\n";
             //std::cerr << "RAW:" << rawJointRotation.w << ", " << rawJointRotation.x << ", " << rawJointRotation.y << ", " << rawJointRotation.z << "\n";
 
 
-            rawJointRotation = rawJointRotation * KinectSettings::kinectRepRotation;
+            rawJointRotation =  KinectSettings::kinectRepRotation * rawJointRotation;
 
 
             //std::cerr << "ADJ:" << rawJointRotation.w << ", " << rawJointRotation.x << ", " << rawJointRotation.y << ", " << rawJointRotation.z << "\n";
@@ -91,6 +100,10 @@ public:
         }
     }
     */
+    bool isSensor() {
+        return role == KinectDeviceRole::KinectSensor;
+    }
+
     ~KinectTrackedDevice() {
         
     }
@@ -106,6 +119,7 @@ public:
 
     vr::HmdVector3_t trackedPositionVROffset;
     vr::HmdVector3_t lastRawPos{ 0,0,0 };
-    bool isKinectRepresentation;
+
+    KinectDeviceRole role;
 };
 
