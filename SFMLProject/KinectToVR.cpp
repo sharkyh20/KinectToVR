@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "KinectToVR.h"
 
+#include "wtypes.h"
+
 #include "KinectSettings.h"
 #include "VRController.h"
 #include "GUIHandler.h"
@@ -84,11 +86,41 @@ void processKeyEvents(sf::Event event) {
 void toggle(bool &b) {
     b = !b;
 }
-
+// Get the horizontal and vertical screen sizes in pixel
+//  https://stackoverflow.com/questions/8690619/how-to-get-screen-resolution-in-c
+void getDesktopResolution(int& horizontal, int& vertical)
+{
+    RECT desktop;
+    // Get a handle to the desktop window
+    const HWND hDesktop = GetDesktopWindow();
+    // Get the size of screen to the variable desktop
+    GetWindowRect(hDesktop, &desktop);
+    // The top left corner will have coordinates (0,0)
+    // and the bottom right corner will have coordinates
+    // (horizontal, vertical)
+    horizontal = desktop.right;
+    vertical = desktop.bottom;
+}
+sf::VideoMode getScaledWindowResolution() {
+    int h;
+    int v;
+    getDesktopResolution(h, v);
+    
+    sf::VideoMode mode = sf::VideoMode(SFMLsettings::windowScale*float(h), SFMLsettings::windowScale*float(v));
+    //std::cerr << "desktop: " << h << ", " << v << '\n';
+    //std::cerr << "scaled: " << mode.width << ", " << mode.height << '\n';
+    return mode;
+}
+void updateKinectWindowRes(const sf::RenderWindow& window) {
+    SFMLsettings::m_window_width = window.getSize().x;
+    SFMLsettings::m_window_height = window.getSize().y;
+    //std::cerr << "w: " << SFMLsettings::m_window_width << " h: " << SFMLsettings::m_window_height << "\n";
+}
 void processLoop(KinectHandlerBase& kinect) {
-    sf::RenderWindow renderWindow(sf::VideoMode(SFMLsettings::m_window_width, SFMLsettings::m_window_height), "KinectToVR", sf::Style::Titlebar | sf::Style::Close);
+    sf::RenderWindow renderWindow(getScaledWindowResolution(), "KinectToVR: " + KinectSettings::KVRversion, sf::Style::Titlebar | sf::Style::Close);
+    updateKinectWindowRes(renderWindow);
     renderWindow.setFramerateLimit(45);   //Prevents ridiculous overupdating and high CPU usage - plus 90Hz is the recommended refresh rate for most VR panels 
-
+    
     sf::Clock clock;
 
     sf::Font font;
@@ -157,10 +189,13 @@ void processLoop(KinectHandlerBase& kinect) {
     KinectSettings::userChangingZero = true;
     while (renderWindow.isOpen())
     {
+        
         std::stringstream ss;
         double currentTime = clock.restart().asSeconds();
         double deltaT = currentTime;
         ss << "FPS = " << 1.0 / deltaT << '\n';
+
+        updateKinectWindowRes(renderWindow);
 
         sf::Event event;
         while (renderWindow.pollEvent(event))
@@ -228,31 +263,6 @@ void processLoop(KinectHandlerBase& kinect) {
                     KinectSettings::adjustingKinectRepresentationRot = false;
                     guiRef.toggleRotButton();
                     rightController.setHapticPulse(.15, 1000, 0);
-                }
-            }
-            else {
-                if (!kinect.isZeroed()) {          //Initial attempt to allow user to get into position before setting the trackers -  ** zeroAll sets zeroed to true  **
-                    if (rightController.GetPress(vr::EVRButtonId::k_EButton_Grip)) {
-                        kinect.zeroAllTracking(m_VRSystem);
-                        rightController.setHapticPulse(.15, 1000, 0);
-                    }
-                }
-                if (KinectSettings::userChangingZero) {
-                    if (leftController.GetTouch(vr::EVRButtonId::k_EButton_SteamVR_Touchpad)) {
-                        sf::Vector2f axis = leftController.GetControllerAxisValue(vr::EVRButtonId::k_EButton_SteamVR_Touchpad);
-
-                        kinect.trackedPositionVROffset.v[0] += deltaScaled(1.0, deltaT) * axis.x;
-                        kinect.trackedPositionVROffset.v[2] += deltaScaled(1.0, deltaT) * axis.y;
-                    }
-                    if (rightController.GetTouch(vr::EVRButtonId::k_EButton_SteamVR_Touchpad)) {
-                        sf::Vector2f axis = rightController.GetControllerAxisValue(vr::EVRButtonId::k_EButton_SteamVR_Touchpad);
-
-                        kinect.trackedPositionVROffset.v[1] += deltaScaled(1.0, deltaT) * axis.y;
-                    }
-                    if (rightController.GetTrigger()) {
-                        KinectSettings::userChangingZero = false;
-                        rightController.setHapticPulse(.15, 1000, 0);
-                    }
                 }
             }
             kinect.updateTrackersWithSkeletonPosition(inputEmulator, v_trackers);

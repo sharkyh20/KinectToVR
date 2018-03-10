@@ -7,6 +7,9 @@
 
 namespace KinectSettings {
     #define CFG_NAME "KinectToVR.cfg"
+    std::string KVRversion = "a0.4.7";
+
+
     bool isKinectDrawn = false;
     bool isSkeletonDrawn = false;
     bool ignoreInferredPositions = true;
@@ -78,6 +81,7 @@ namespace KinectSettings {
 namespace SFMLsettings {
     int m_window_width = 800;
     int m_window_height = 600;
+    float windowScale = .6f;
 }
 # define M_PI           3.14159265358979323846
 

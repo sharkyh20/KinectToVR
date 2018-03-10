@@ -21,12 +21,17 @@ public:
         guiWindow->SetTitle("Main Window");
 
         setDefaultSignals();
+        
         setLineWrapping();
         packElementsIntoMainBox();
         setRequisitions();
 
         guiWindow->Add(mainGUIBox);
         guiDesktop.Add(guiWindow);
+
+
+        setScale();
+
         bool b = guiDesktop.LoadThemeFromFile("main_theme.theme");
         guiDesktop.Update(0.f);
     }
@@ -49,6 +54,17 @@ public:
         CalibrationEntryRotX->SetRequisition(sf::Vector2f(40.f, 0.f));
         CalibrationEntryRotY->SetRequisition(sf::Vector2f(40.f, 0.f));
         CalibrationEntryRotZ->SetRequisition(sf::Vector2f(40.f, 0.f));
+    }
+    void setScale() {
+        guiWindow->SetRequisition(sf::Vector2f(.55f*SFMLsettings::m_window_width, .55f*SFMLsettings::m_window_height));
+        //Text scaling
+        /*
+        Window > * > * > Label{
+            FontSize : 18;
+        /*FontName: data/linden_hill.otf;*/
+        float defaultFontSize = 12.f / 1920.f; // Percentage relative to 1080p
+        float scaledFontSize = defaultFontSize * (SFMLsettings::m_window_width/ SFMLsettings::windowScale);
+        guiDesktop.SetProperty("Window Label, Button, CheckButton, ToggleButton, Label", "FontSize", scaledFontSize);
     }
     void toggleRotButton() {
         KinectRotButton->SetActive(KinectSettings::adjustingKinectRepresentationRot);
@@ -242,6 +258,7 @@ public:
     }
 
 private:
+    sf::Font mainGUIFont;
     sfg::SFGUI sfguiRef;
     sfg::Window::Ptr guiWindow = sfg::Window::Create();
     sfg::Desktop guiDesktop;

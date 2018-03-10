@@ -2,6 +2,7 @@
 #include "stdafx.h"
 #include <openvr.h>
 #include <SFML/System/Vector3.hpp>
+#include <string>
 
 enum class KinectVersion {
     Version1 = 0,   //AKA Xbox 360/ Windows v1
@@ -35,6 +36,7 @@ namespace KinectSettings {
     extern bool adjustingKinectRepresentationRot;
     extern bool adjustingKinectRepresentationPos;
 
+    extern std::string KVRversion;
 
     void serializeKinectSettings();
     void writeKinectSettings();
@@ -42,5 +44,6 @@ namespace KinectSettings {
 namespace SFMLsettings {
     extern int m_window_width;
     extern int m_window_height;
+    extern float windowScale;
 }
 # define M_PI           3.14159265358979323846

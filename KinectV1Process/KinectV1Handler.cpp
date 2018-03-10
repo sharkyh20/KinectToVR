@@ -184,11 +184,8 @@
             if (getRawTrackedJointPos(device, jointPosition)) {
                 //std::cerr << "jP: " << jointPosition.v[0] << ", " << jointPosition.v[1] << ", " << jointPosition.v[2] << "\n";
                 //Rotation - Need to seperate into function
-                if (device.role == KinectDeviceRole::Hip)
                     NUI_SKELETON_BONE_ROTATION kRotation = boneOrientations[convertJoint(device.joint0)].absoluteRotation;
-                else {
-                    NUI_SKELETON_BONE_ROTATION kRotation = 
-                }
+
                 jointRotation.w = kRotation.rotationQuaternion.w;
                 jointRotation.x = kRotation.rotationQuaternion.x;
                 jointRotation.y = kRotation.rotationQuaternion.y;
