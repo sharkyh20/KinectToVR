@@ -120,19 +120,20 @@ void processLoop(KinectHandlerBase& kinect) {
     sf::RenderWindow renderWindow(getScaledWindowResolution(), "KinectToVR: " + KinectSettings::KVRversion, sf::Style::Titlebar | sf::Style::Close);
     updateKinectWindowRes(renderWindow);
     renderWindow.setFramerateLimit(45);   //Prevents ridiculous overupdating and high CPU usage - plus 90Hz is the recommended refresh rate for most VR panels 
-    
+
     sf::Clock clock;
 
     sf::Font font;
-    sf::Text text;
+    sf::Text debugText;
     // Global Debug Font
 
     font.loadFromFile("arial.ttf");
-    text.setFont(font);
-    text.setString("");
-    text.setCharacterSize(40);
-    text.setFillColor(sf::Color::Red);
-    renderWindow.draw(text);
+    debugText.setFont(font);
+    debugText.setString("");
+    debugText.setCharacterSize(40);
+    debugText.setFillColor(sf::Color::Red);
+
+    debugText.setString(SFMLsettings::debugDisplayTextStream.str());
 
     //SFGUI Handling -------------------------------------- 
     GUIHandler guiRef;
@@ -189,7 +190,10 @@ void processLoop(KinectHandlerBase& kinect) {
     KinectSettings::userChangingZero = true;
     while (renderWindow.isOpen())
     {
-        
+        //Clear the debug text display
+        SFMLsettings::debugDisplayTextStream.str(std::string());
+        SFMLsettings::debugDisplayTextStream.clear();
+
         std::stringstream ss;
         double currentTime = clock.restart().asSeconds();
         double deltaT = currentTime;
@@ -208,14 +212,15 @@ void processLoop(KinectHandlerBase& kinect) {
                 processKeyEvents(event);
             }
         }
-        //Update GUI
-        guiRef.updateDesktop(deltaT);
+        
 
         //Clear ---------------------------------------
         renderWindow.clear();
 
 
         //Process -------------------------------------
+        //Update GUI
+        guiRef.updateDesktop(deltaT);
         // Update Kinect Status
         rightController.Connect(m_VRSystem);
         leftController.Connect(m_VRSystem);
@@ -271,11 +276,12 @@ void processLoop(KinectHandlerBase& kinect) {
             kinect.drawKinectData(renderWindow);
         }
 
+        
         renderWindow.pushGLStates();
-        renderWindow.resetGLStates();
 
         //Draw debug font
-        renderWindow.draw(text);
+        debugText.setString(SFMLsettings::debugDisplayTextStream.str());
+        renderWindow.draw(debugText);
 
         // Draw GUI
         renderWindow.setActive(true);

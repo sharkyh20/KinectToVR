@@ -97,10 +97,10 @@ public:
             });
         IgnoreInferredCheckButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
             if (IgnoreInferredCheckButton->IsActive()) {
-                KinectSettings::ignoreInferredPositions = false;    // No longer stops updating trackers when Kinect isn't sure about a position
+                KinectSettings::ignoreInferredPositions = true;    // No longer stops updating trackers when Kinect isn't sure about a position
             }
             else {
-                KinectSettings::ignoreInferredPositions = true;
+                KinectSettings::ignoreInferredPositions = false;
             }
         });
         IgnoreRotSmoothingCheckButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
@@ -291,8 +291,8 @@ private:
 
 
     // Allows for unrestricted tracking, but may be unstable
-    sfg::Label::Ptr InferredLabel = sfg::Label::Create("Checking this makes the trackers directly copy the Kinect movement. This may have the benefit of reducing lag, and improving tracking when partially occluded, but may also have the consequence of spazzing wildly if tracking is lost.");
-    sfg::CheckButton::Ptr IgnoreInferredCheckButton = sfg::CheckButton::Create("Enable Raw Positional Tracking");
+    sfg::Label::Ptr InferredLabel = sfg::Label::Create("Checking this stops the trackers if it's not absolutely 100% sure where they are. Leaving this disabled may cause better tracking in poorly lit environments, but at the cost of slight jerks aside sometimes.");
+    sfg::CheckButton::Ptr IgnoreInferredCheckButton = sfg::CheckButton::Create("Disable Raw Positional Tracking");
     sfg::CheckButton::Ptr IgnoreRotSmoothingCheckButton = sfg::CheckButton::Create("Enable Raw Orientation Tracking (Rotation smoothing is in development!!!)");
 
     sfg::Label::Ptr InstructionsLabel = sfg::Label::Create("Stand in front of the Kinect sensor.\n If the trackers don't update, then try crouching slightly until they move.\n\n Calibration: The arrow represents the position and rotation of the Kinect - match it as closely to real life as possible for the trackers to line up.\n\n The arrow pos/rot is set with the thumbsticks on the controllers, and confirmed with the trigger.");    //Blegh - There has to be a better way than this, maybe serialization?

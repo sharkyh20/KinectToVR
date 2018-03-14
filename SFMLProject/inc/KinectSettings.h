@@ -2,7 +2,9 @@
 #include "stdafx.h"
 #include <openvr.h>
 #include <SFML/System/Vector3.hpp>
+#include <SFML\Graphics\Text.hpp>
 #include <string>
+#include <sstream>
 
 enum class KinectVersion {
     Version1 = 0,   //AKA Xbox 360/ Windows v1
@@ -45,5 +47,7 @@ namespace SFMLsettings {
     extern int m_window_width;
     extern int m_window_height;
     extern float windowScale;
+
+    extern std::stringstream debugDisplayTextStream;
 }
 # define M_PI           3.14159265358979323846

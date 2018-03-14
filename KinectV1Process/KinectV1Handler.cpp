@@ -184,8 +184,7 @@
             if (getRawTrackedJointPos(device, jointPosition)) {
                 //std::cerr << "jP: " << jointPosition.v[0] << ", " << jointPosition.v[1] << ", " << jointPosition.v[2] << "\n";
                 //Rotation - Need to seperate into function
-                    NUI_SKELETON_BONE_ROTATION kRotation = boneOrientations[convertJoint(device.joint0)].absoluteRotation;
-
+                NUI_SKELETON_BONE_ROTATION kRotation = boneOrientations[convertJoint(device.joint1)].absoluteRotation;
                 jointRotation.w = kRotation.rotationQuaternion.w;
                 jointRotation.x = kRotation.rotationQuaternion.x;
                 jointRotation.y = kRotation.rotationQuaternion.y;
@@ -400,14 +399,16 @@ void KinectV1Handler::getKinectRGBData() {
                 Vector4 orientation = boneOrientations[i].absoluteRotation.rotationQuaternion;
                 std::cerr << "Joint " << i << ": " << orientation.w << ", " << orientation.x << ", " << orientation.y << ", " << orientation.z << '\n';
             }*/
-            Vector4 orientation = boneOrientations[convertJoint(KinectJointType::AnkleLeft)].absoluteRotation.rotationQuaternion;
-            //std::cerr << "AnkleLeftRot " << ": " << orientation.w << ", " << orientation.x << ", " << orientation.y << ", " << orientation.z << '\n';
-            orientation = boneOrientations[convertJoint(KinectJointType::FootLeft)].absoluteRotation.rotationQuaternion;
-            //std::cerr << "FootLeftRot " << ": " << orientation.w << ", " << orientation.x << ", " << orientation.y << ", " << orientation.z << '\n';
-            orientation = boneOrientations[convertJoint(KinectJointType::AnkleRight)].absoluteRotation.rotationQuaternion;
-            //std::cerr << "AnkleRightRot " << ": " << orientation.w << ", " << orientation.x << ", " << orientation.y << ", " << orientation.z << '\n';
-            orientation = boneOrientations[convertJoint(KinectJointType::FootRight)].absoluteRotation.rotationQuaternion;
-            //std::cerr << "FootLeftRot " << ": " << orientation.w << ", " << orientation.x << ", " << orientation.y << ", " << orientation.z << '\n';
+            //Vector4 orientation = boneOrientations[convertJoint(KinectJointType::AnkleLeft)].absoluteRotation.rotationQuaternion;
+            //using namespace SFMLsettings;
+
+            //debugDisplayTextStream << "AnkleLeftRot " << ": " << orientation.w << ", " << orientation.x << ", " << orientation.y << ", " << orientation.z << '\n';
+            //orientation = boneOrientations[convertJoint(KinectJointType::FootLeft)].absoluteRotation.rotationQuaternion;
+            //debugDisplayTextStream << "FootLeftRot " << ": " << orientation.w << ", " << orientation.x << ", " << orientation.y << ", " << orientation.z << '\n';
+            //orientation = boneOrientations[convertJoint(KinectJointType::AnkleRight)].absoluteRotation.rotationQuaternion;
+            //debugDisplayTextStream << "AnkleRightRot " << ": " << orientation.w << ", " << orientation.x << ", " << orientation.y << ", " << orientation.z << '\n';
+            //orientation = boneOrientations[convertJoint(KinectJointType::FootRight)].absoluteRotation.rotationQuaternion;
+            //debugDisplayTextStream << "FootLeftRot " << ": " << orientation.w << ", " << orientation.x << ", " << orientation.y << ", " << orientation.z << '\n';
         }
         
         return;
@@ -415,7 +416,7 @@ void KinectV1Handler::getKinectRGBData() {
     void KinectV1Handler::DrawSkeleton(const NUI_SKELETON_DATA & skel, sf::RenderWindow &window) {
         for (int i = 0; i < NUI_SKELETON_POSITION_COUNT; ++i) {
             screenSkelePoints[i] = SkeletonToScreen(jointPositions[i], SFMLsettings::m_window_width, SFMLsettings::m_window_height);
-            std::cerr << "m_points[" << i << "] = " << screenSkelePoints[i].x << ", " << screenSkelePoints[i].y << std::endl;
+            //std::cerr << "m_points[" << i << "] = " << screenSkelePoints[i].x << ", " << screenSkelePoints[i].y << '\n';
             // Same with the other cerr, without this, the skeleton flickers
         }
         // Render Torso
@@ -476,9 +477,9 @@ void KinectV1Handler::getKinectRGBData() {
         // NuiTransformSkeletonToDepthImage returns coordinates in NUI_IMAGE_RESOLUTION_320x240 space
         NuiTransformSkeletonToDepthImage(skeletonPoint, &x, &y, &depth);
 
-        float screenPointX = static_cast<float>(x * _width) / 320;
-        float screenPointY = static_cast<float>(y * _height) / 240;
-        std::cerr << "x = " << x << " ScreenX = " << screenPointX << " y = " << y << " ScreenY = " << screenPointY << std::endl;
+        float screenPointX = x * _width / 320.f;
+        float screenPointY = y * _height / 240.f;
+        //std::cerr << "x = " << x << " ScreenX = " << screenPointX << " y = " << y << " ScreenY = " << screenPointY << '\n';
 
         // The skeleton constantly flickers and drops out without the cerr command...
         return sf::Vector2f(screenPointX, screenPointY);
@@ -515,7 +516,7 @@ void KinectV1Handler::getKinectRGBData() {
         line.setColor(colour);
         line.setThickness(lineThickness);
         window.draw(line);
-        std::cerr << "Line drawn at: " << start.x << ", " << start.y << " to " << end.x << ", " << end.y << "\n";
+        //std::cerr << "Line drawn at: " << start.x << ", " << start.y << " to " << end.x << ", " << end.y << "\n";
     }
     Vector4 KinectV1Handler::zeroKinectPosition(int trackedSkeletonIndex) {
         return jointPositions[NUI_SKELETON_POSITION_HEAD];

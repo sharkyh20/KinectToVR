@@ -8,12 +8,17 @@
 
 HRESULT KinectV2Handler::getStatusResult()
 {
-    return E_NOTIMPL;
+    BOOLEAN avail;
+    return kinectSensor->get_IsAvailable(&avail);
 }
 
 std::string KinectV2Handler::statusResultString(HRESULT stat)
 {
-    return std::string();
+    switch (stat) {
+    case S_OK: return "S_OK";
+    case S_FALSE: return "Sensor Unavailable! Check if it's plugged in to your USB and power plugs";
+    default: return "Uh Oh undefined kinect error! " + std::to_string(stat);
+    }
 }
 
 void KinectV2Handler::initialise() {
