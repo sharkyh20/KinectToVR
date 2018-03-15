@@ -15,6 +15,15 @@ It currently allows for the hips, left foot and right foot to be tracked with th
 ## Getting Started - Users
 There is no installation required by this project itself, however, it requires the Kinect Runtime from Microsoft, and the InputEmulator from matzman666.
 
+## Kinect Compatibility
+
+| VR System | Xbox 360/V1 | Xbox One/V2|
+|-------------|------------|------------|
+| Oculus Rift | Yes | Yes|
+| HTC Vive | Yes | With Adjustment* |
+| Windows MR | Untested | Yes |
+
+\* The Xbone sensor can't be facing directly into a base station, but it otherwise works flawlessly 
 ### Prerequisites
 
 [Visual Studio Redist 2010 x64](https://www.microsoft.com/en-us/download/details.aspx?id=14632)
