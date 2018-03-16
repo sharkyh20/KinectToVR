@@ -6,7 +6,7 @@ It currently allows for the hips, left foot and right foot to be tracked with th
 
 ## For those who want video instructions [go here](https://www.youtube.com/playlist?list=PL9kBn2ECbDU_NFxcJRx7XXfJavCsVol_Y)
 
-## I'm available in Discord @sharkyh20#4689 if you require any help (Australian timezone, though)
+## *The Official Discord is [here](https://discord.gg/422qZtz) (Australian timezone, though)*
 
 ## If you're unfamiliar with github: [Go here to download](https://github.com/sharkyh20/KinectToVR/releases)
 
