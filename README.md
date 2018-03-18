@@ -21,7 +21,7 @@ There is no installation required by this project itself, however, it requires t
 |-------------|------------|------------|
 | Oculus Rift | Yes | Yes|
 | HTC Vive | Yes | With Adjustment* |
-| Windows MR | Untested | Yes |
+| Windows MR | Yes | Yes |
 
 \* The Xbone sensor can't be facing directly into a base station, but it otherwise works flawlessly 
 ### Prerequisites
