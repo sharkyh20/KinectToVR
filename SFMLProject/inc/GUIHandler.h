@@ -77,7 +77,14 @@ public:
         hidePostTrackerInitUI();
 
         //Signals
-        
+        EnableGamepadButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
+            if (EnableGamepadButton->IsActive()) {
+                SFMLsettings::usingGamepad = true;
+            }
+            else {
+                SFMLsettings::usingGamepad = false;
+            }
+        });
         ShowSkeletonButton->GetSignal(sfg::Widget::OnLeftClick).Connect([] {
             toggle(KinectSettings::isSkeletonDrawn);
         });
@@ -201,6 +208,7 @@ public:
 
         mainGUIBox->Pack(ShowSkeletonButton);
 
+        mainGUIBox->Pack(EnableGamepadButton);
         mainGUIBox->Pack(ReconControllersLabel);
         mainGUIBox->Pack(ReconControllersButton);
 
@@ -285,7 +293,8 @@ private:
     sfg::CheckButton::Ptr KinectPosButton = sfg::CheckButton::Create("Enable Kinect Position Calibration");
 
 
-    //Redetect Controllers
+    // Controllers
+    sfg::CheckButton::Ptr EnableGamepadButton = sfg::CheckButton::Create("Enable Gamepad Calibration Controls");
     sfg::Label::Ptr ReconControllersLabel = sfg::Label::Create("If controller input isn't working, press this to reconnect them.\n Make sure both are on, and not in standby.");
     sfg::Button::Ptr ReconControllersButton = sfg::Button::Create("Reconnect VR Controllers");
 

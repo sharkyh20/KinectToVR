@@ -23,7 +23,7 @@
     <ProjectGuid>{9E612475-CF0A-4384-969A-3C01C9543935}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>SFMLProject</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.10586.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
     <ProjectName>KinectToVR</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -176,6 +176,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GamepadController.h" />
     <ClInclude Include="inc\GUIHandler.h" />
     <ClInclude Include="inc\IETracker.h" />
     <ClInclude Include="inc\IKinectHandler.h" />

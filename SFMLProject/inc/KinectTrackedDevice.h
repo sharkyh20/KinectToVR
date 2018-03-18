@@ -85,6 +85,7 @@ public:
         }
         */
         pose.poseIsValid = true;
+
         pose.result = vr::TrackingResult_Running_OK;
         inputEmulatorRef.setVirtualDevicePose(deviceId, pose);
     }

@@ -48,6 +48,8 @@ namespace SFMLsettings {
     extern int m_window_height;
     extern float windowScale;
 
+    extern bool usingGamepad;
+
     extern std::stringstream debugDisplayTextStream;
 }
 # define M_PI           3.14159265358979323846

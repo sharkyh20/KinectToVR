@@ -82,6 +82,8 @@ namespace SFMLsettings {
     int m_window_width = 800;
     int m_window_height = 600;
     float windowScale = .6f;
+
+    bool usingGamepad = false;
     std::stringstream debugDisplayTextStream;
 }
 # define M_PI           3.14159265358979323846
