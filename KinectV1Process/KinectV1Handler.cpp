@@ -226,9 +226,9 @@ bool KinectV1Handler::getRawTrackedJointPos(KinectTrackedDevice device, vr::HmdV
     }
     return false;
 }
-NUI_SKELETON_POSITION_INDEX KinectV1Handler::convertJoint(KinectJoint joint)
+NUI_SKELETON_POSITION_INDEX KinectV1Handler::convertJoint(KVR_Joint::KinectJoint joint)
 {
-
+    using namespace KVR_Joint;
     //Unfortunately I believe this is required because there are mismatches between v1 and v2 joint IDs
     //Might consider investigating to see if there's a way to shorten this
     switch (joint.joint) {
@@ -532,7 +532,7 @@ void KinectV1Handler::getKinectRGBData() {
     }
 
 
-    bool KinectV1Handler::jointsUntracked(KinectJoint joint0, KinectJoint joint1, NUI_SKELETON_DATA data) {
+    bool KinectV1Handler::jointsUntracked(KVR_Joint::KinectJoint joint0, KVR_Joint::KinectJoint joint1, NUI_SKELETON_DATA data) {
         NUI_SKELETON_POSITION_TRACKING_STATE joint0State = data.eSkeletonPositionTrackingState[convertJoint(joint0)];
         NUI_SKELETON_POSITION_TRACKING_STATE joint1State = data.eSkeletonPositionTrackingState[convertJoint(joint1)];
 
@@ -541,7 +541,7 @@ void KinectV1Handler::getKinectRGBData() {
             || joint1State == NUI_SKELETON_POSITION_NOT_TRACKED)
             && KinectSettings::ignoreInferredPositions);
     }
-    bool KinectV1Handler::jointsInferred(KinectJoint joint0, KinectJoint joint1, NUI_SKELETON_DATA data) {
+    bool KinectV1Handler::jointsInferred(KVR_Joint::KinectJoint joint0, KVR_Joint::KinectJoint joint1, NUI_SKELETON_DATA data) {
         NUI_SKELETON_POSITION_TRACKING_STATE joint0State = data.eSkeletonPositionTrackingState[convertJoint(joint0)];
         NUI_SKELETON_POSITION_TRACKING_STATE joint1State = data.eSkeletonPositionTrackingState[convertJoint(joint1)];
 

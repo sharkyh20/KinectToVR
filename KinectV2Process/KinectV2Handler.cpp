@@ -246,7 +246,7 @@ void KinectV2Handler::updateTrackersWithSkeletonPosition(vrinputemulator::VRInpu
                 jointRotation.z = kRotation.z;
                 */
                 // ---------------------------------------------
-                if (device.joint0.joint == KinectJointType::SpineBase) {
+                if (device.joint0.joint == KVR_Joint::KinectJointType::SpineBase) {
                     //V2 only offset while I figure out a comfortable way to adjust individual trackers
                     device.trackedPositionVROffset = { 0, .23f, 0 };
                 }
@@ -406,7 +406,7 @@ void KinectV2Handler::drawLine(sf::Vector2f start, sf::Vector2f end, sf::Color c
     line.setThickness(lineThickness);
     window.draw(line);
 }
-JointType KinectV2Handler::convertJoint(KinectJoint kJoint) {
+JointType KinectV2Handler::convertJoint(KVR_Joint::KinectJoint kJoint) {
     // Currently, the v2 SDK id's match my jointtype class 1:1
     return static_cast<JointType>(kJoint.joint);
 }

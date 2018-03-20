@@ -6,6 +6,7 @@
 #include "KinectSettings.h"
 #include "KinectHandlerBase.h"
 #include "KinectTrackedDevice.h"
+#include "KinectJoint.h"
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Window/Mouse.hpp>
@@ -16,6 +17,12 @@
 #include <string>
 
 class GUIHandler {
+private:
+    struct TempTracker {
+        int GUID;
+        KVR_Joint::KinectJointType joint;
+        bool isController = false;
+    };
 public:
     GUIHandler() {
         guiWindow->SetTitle("Main Window");
@@ -24,9 +31,13 @@ public:
         
         setLineWrapping();
         packElementsIntoMainBox();
+        packElementsIntoAdvTrackerBox();
         setRequisitions();
 
-        guiWindow->Add(mainGUIBox);
+        mainNotebook->AppendPage(mainGUIBox, sfg::Label::Create("KinectToVR"));
+        mainNotebook->AppendPage(advancedTrackerBox, sfg::Label::Create("Adv. Trackers"));
+
+        guiWindow->Add(mainNotebook);
         guiDesktop.Add(guiWindow);
 
 
@@ -41,84 +52,131 @@ public:
         sfguiRef.Display(window);
     }
 
-    void desktopHandleEvents(sf::Event event) {
-        guiDesktop.HandleEvent(event);
-    }
-    void updateDesktop(float d) {
-        guiDesktop.Update(d);
-    }
-    void setRequisitions() {
-        CalibrationEntryPosX->SetRequisition(sf::Vector2f(40.f, 0.f));
-        CalibrationEntryPosY->SetRequisition(sf::Vector2f(40.f, 0.f));
-        CalibrationEntryPosZ->SetRequisition(sf::Vector2f(40.f, 0.f));
-        CalibrationEntryRotX->SetRequisition(sf::Vector2f(40.f, 0.f));
-        CalibrationEntryRotY->SetRequisition(sf::Vector2f(40.f, 0.f));
-        CalibrationEntryRotZ->SetRequisition(sf::Vector2f(40.f, 0.f));
-    }
-    void setScale() {
-        guiWindow->SetRequisition(sf::Vector2f(.55f*SFMLsettings::m_window_width, .55f*SFMLsettings::m_window_height));
-        //Text scaling
-        /*
-        Window > * > * > Label{
-            FontSize : 18;
-        /*FontName: data/linden_hill.otf;*/
-        float defaultFontSize = 12.f / 1920.f; // Percentage relative to 1080p
-        float scaledFontSize = defaultFontSize * (SFMLsettings::m_window_width/ SFMLsettings::windowScale);
-        guiDesktop.SetProperty("Window Label, Button, CheckButton, ToggleButton, Label", "FontSize", scaledFontSize);
-    }
-    void toggleRotButton() {
-        KinectRotButton->SetActive(KinectSettings::adjustingKinectRepresentationRot);
-    }
-    void togglePosButton() {
-        KinectPosButton->SetActive(KinectSettings::adjustingKinectRepresentationPos);
-    }
-    void setDefaultSignals() {
-        //Post VR Tracker Initialisation
-        hidePostTrackerInitUI();
+void desktopHandleEvents(sf::Event event) {
+    guiDesktop.HandleEvent(event);
+}
+void updateDesktop(float d) {
+    guiDesktop.Update(d);
+}
+void setRequisitions() {
+    CalibrationEntryPosX->SetRequisition(sf::Vector2f(40.f, 0.f));
+    CalibrationEntryPosY->SetRequisition(sf::Vector2f(40.f, 0.f));
+    CalibrationEntryPosZ->SetRequisition(sf::Vector2f(40.f, 0.f));
+    CalibrationEntryRotX->SetRequisition(sf::Vector2f(40.f, 0.f));
+    CalibrationEntryRotY->SetRequisition(sf::Vector2f(40.f, 0.f));
+    CalibrationEntryRotZ->SetRequisition(sf::Vector2f(40.f, 0.f));
+}
+void setScale() {
+    guiWindow->SetRequisition(sf::Vector2f(.55f*SFMLsettings::m_window_width, .55f*SFMLsettings::m_window_height));
+    //Text scaling
+    /*
+    Window > * > * > Label{
+        FontSize : 18;
+    /*FontName: data/linden_hill.otf;*/
+    float defaultFontSize = 12.f / 1920.f; // Percentage relative to 1080p
+    float scaledFontSize = defaultFontSize * (SFMLsettings::m_window_width / SFMLsettings::windowScale);
+    guiDesktop.SetProperty("Window Label, Button, CheckButton, ToggleButton, Label", "FontSize", scaledFontSize);
+}
+void toggleRotButton() {
+    KinectRotButton->SetActive(KinectSettings::adjustingKinectRepresentationRot);
+}
+void togglePosButton() {
+    KinectPosButton->SetActive(KinectSettings::adjustingKinectRepresentationPos);
+}
+void setDefaultSignals() {
+    //Post VR Tracker Initialisation
+    hidePostTrackerInitUI();
 
-        //Signals
-        EnableGamepadButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
-            if (EnableGamepadButton->IsActive()) {
-                SFMLsettings::usingGamepad = true;
-            }
-            else {
-                SFMLsettings::usingGamepad = false;
-            }
-        });
-        ShowSkeletonButton->GetSignal(sfg::Widget::OnLeftClick).Connect([] {
-            toggle(KinectSettings::isSkeletonDrawn);
-        });
+    //Signals
+    EnableGamepadButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
+        if (EnableGamepadButton->IsActive()) {
+            SFMLsettings::usingGamepad = true;
+        }
+        else {
+            SFMLsettings::usingGamepad = false;
+        }
+    });
+    ShowSkeletonButton->GetSignal(sfg::Widget::OnLeftClick).Connect([] {
+        toggle(KinectSettings::isSkeletonDrawn);
+    });
 
-        KinectRotButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
-            if (KinectRotButton->IsActive()) {
-                KinectSettings::adjustingKinectRepresentationRot = true;
-            } else
-                KinectSettings::adjustingKinectRepresentationRot = false;
-        });
-        KinectPosButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] 
-        {    if (KinectPosButton->IsActive()) {
-                KinectSettings::adjustingKinectRepresentationPos = true;
-            }
-            else
-               KinectSettings::adjustingKinectRepresentationPos = false;
-            });
-        IgnoreInferredCheckButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
-            if (IgnoreInferredCheckButton->IsActive()) {
-                KinectSettings::ignoreInferredPositions = true;    // No longer stops updating trackers when Kinect isn't sure about a position
-            }
-            else {
-                KinectSettings::ignoreInferredPositions = false;
-            }
-        });
-        IgnoreRotSmoothingCheckButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
-            if (IgnoreRotSmoothingCheckButton->IsActive()) {
-                KinectSettings::ignoreRotationSmoothing = true;    // No longer tries to smooth the joints
-            }
-            else {
-                KinectSettings::ignoreRotationSmoothing = false;
-            }
-        });
+    KinectRotButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
+        if (KinectRotButton->IsActive()) {
+            KinectSettings::adjustingKinectRepresentationRot = true;
+        }
+        else
+            KinectSettings::adjustingKinectRepresentationRot = false;
+    });
+    KinectPosButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this]
+    {    if (KinectPosButton->IsActive()) {
+        KinectSettings::adjustingKinectRepresentationPos = true;
     }
+    else
+        KinectSettings::adjustingKinectRepresentationPos = false;
+    });
+    IgnoreInferredCheckButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
+        if (IgnoreInferredCheckButton->IsActive()) {
+            KinectSettings::ignoreInferredPositions = true;    // No longer stops updating trackers when Kinect isn't sure about a position
+        }
+        else {
+            KinectSettings::ignoreInferredPositions = false;
+        }
+    });
+    IgnoreRotSmoothingCheckButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
+        if (IgnoreRotSmoothingCheckButton->IsActive()) {
+            KinectSettings::ignoreRotationSmoothing = true;    // No longer tries to smooth the joints
+        }
+        else {
+            KinectSettings::ignoreRotationSmoothing = false;
+        }
+    });
+
+
+    AddHandControllersToList->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
+        //Add a left and right hand tracker as a controller
+    });
+    AddTrackerToListButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
+        // Get the ID from latest number
+        // Get joint from currently selected bone in list
+        // Get bool from checkbutton
+        addTrackerToList();
+    });
+}
+void addTrackerToList() {
+    TempTracker temp;
+    temp.GUID = TrackersToBeInitialised.size();
+    temp.isController = IsControllerButton->IsActive();
+    temp.joint = KVR_Joint::KinectJointType(BonesList->GetSelectedItem());
+
+    TrackersToBeInitialised.push_back(temp);
+    updateTrackerList(temp);
+}
+void addTrackerToList(KVR_Joint::KinectJointType joint, bool isController) {
+    TempTracker temp;
+    temp.GUID = TrackersToBeInitialised.size();
+    temp.isController = isController;
+    temp.joint = joint;
+
+    TrackersToBeInitialised.push_back(temp);
+    updateTrackerList(temp);
+}
+void updateTrackerList(TempTracker temp) {
+    // Display a radio button menu where selecting each button selects that tracker
+    // Displays the joint of each tracker and (Tracker)/(Controller)
+    std::stringstream ss;
+    if (temp.isController)
+        ss << " (Controller)";
+    else
+        ss << " (Tracker)";
+    auto radio = sfg::RadioButton::Create(KVR_Joint::KinectJointName[int(temp.joint)] + ss.str());
+    if (TrackerRadioButtons.size()) {
+        auto group = TrackerRadioButtons.back()->GetGroup();
+        radio->SetGroup(group);
+    }
+
+    TrackerRadioButtons.push_back(radio);
+    TrackerList->Pack(radio);
+}
     void setCalibrationSignal() {
         CalibrationSetButton->GetSignal(sfg::Widget::OnLeftClick).Connect(
             [this] {
@@ -153,7 +211,7 @@ public:
     void setTrackerInitButtonSignal(vrinputemulator::VRInputEmulator &inputE, std::vector<KinectTrackedDevice> &v_trackers ) {
         TrackerInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers, &inputE] {
             TrackerInitButton->SetLabel("Trackers Initialised");
-            spawnDefaultFullBodyTrackers(inputE, v_trackers);
+            spawnDefaultLowerBodyTrackers(inputE, v_trackers);
             spawnAndConnectKinectTracker(inputE, v_trackers);
 
             showPostTrackerInitUI();
@@ -233,7 +291,28 @@ public:
 
         //mainGUIBox->Pack(calibrationBox); //Calibration left out of main UI because it is not currently implemented
     }
+    void packElementsIntoAdvTrackerBox() {
+        advancedTrackerBox->Pack(AddHandControllersToList);
+        advancedTrackerBox->Pack(AddLowerTrackersToList);
+        advancedTrackerBox->Pack(TrackerList);
 
+        TrackerList->Pack(TrackerListLabel);
+
+        setBonesListItems();
+
+        TrackerListOptionsBox->Pack(BonesList);
+        TrackerListOptionsBox->Pack(IsControllerButton);
+        TrackerListOptionsBox->Pack(AddTrackerToListButton);
+        TrackerListOptionsBox->Pack(RemoveTrackerFromListButton);
+
+        advancedTrackerBox->Pack(TrackerListOptionsBox);
+    }
+    void setBonesListItems() {
+        using namespace KVR_Joint;
+        for (int i = 0; i < KinectJointCount; ++i) {
+            BonesList->AppendItem(KinectJointName[i]);
+        }
+    }
     void updateKinectStatusLabel(KinectHandlerBase& kinect) {
         if (kinect.isInitialised()) {
             HRESULT status = kinect.getStatusResult();
@@ -266,13 +345,17 @@ public:
     }
 
 private:
+    
     sf::Font mainGUIFont;
     sfg::SFGUI sfguiRef;
     sfg::Window::Ptr guiWindow = sfg::Window::Create();
+    sfg::Notebook::Ptr mainNotebook = sfg::Notebook::Create();
+
     sfg::Desktop guiDesktop;
 
     sfg::Box::Ptr mainGUIBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
     sfg::Box::Ptr calibrationBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
+    sfg::Box::Ptr advancedTrackerBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
     //Statuses
     sfg::Label::Ptr KinectStatusLabel = sfg::Label::Create();
     sfg::Label::Ptr SteamVRStatusLabel = sfg::Label::Create();
@@ -316,6 +399,23 @@ private:
     sfg::Entry::Ptr CalibrationEntryRotZ = sfg::Entry::Create("");
 
     sfg::Button::Ptr CalibrationSetButton = sfg::Button::Create();
+
+    //Adv Trackers
+    sfg::Button::Ptr AddHandControllersToList = sfg::Button::Create("Add Hand Controllers");
+    sfg::Button::Ptr AddLowerTrackersToList = sfg::Button::Create("Add Lower Body Trackers");
+
+    sfg::Box::Ptr TrackerList = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5);
+    sfg::Label::Ptr TrackerListLabel = sfg::Label::Create("Trackers to be spawned:");
+
+    sfg::Box::Ptr TrackerListOptionsBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5);
+
+    sfg::ComboBox::Ptr BonesList = sfg::ComboBox::Create();
+    sfg::CheckButton::Ptr IsControllerButton = sfg::CheckButton::Create("Controller");
+    sfg::Button::Ptr AddTrackerToListButton = sfg::Button::Create("Add");
+    sfg::Button::Ptr RemoveTrackerFromListButton = sfg::Button::Create("Remove");
+
+    std::vector<TempTracker> TrackersToBeInitialised;
+    std::vector<sfg::RadioButton::Ptr> TrackerRadioButtons;
 
     void updateKinectStatusLabelDisconnected() {
         KinectStatusLabel->SetText("Kinect Status: ERROR KINECT NOT DETECTED");

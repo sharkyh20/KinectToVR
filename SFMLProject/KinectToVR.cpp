@@ -233,7 +233,7 @@ void processLoop(KinectHandlerBase& kinect) {
         else {
             std::cerr << "Error updating controllers: Could not connect to the SteamVR system! OpenVR init error-code " << std::to_string(eError) << std::endl;
         }
-        std::cerr << gamepad.rightTriggerValue() << '\n';
+
         guiRef.updateKinectStatusLabel(kinect);
         if (kinect.isInitialised()) {
             kinect.update();
@@ -334,22 +334,27 @@ void processLoop(KinectHandlerBase& kinect) {
     vr::VR_Shutdown();
 }
 
-void spawnAndConnectTracker(vrinputemulator::VRInputEmulator & inputE, std::vector<KinectTrackedDevice>& v_trackers, KinectJointType mainJoint, KinectJointType secondaryJoint, KinectDeviceRole role)
+void spawnAndConnectHandTrackers(vrinputemulator::VRInputEmulator & inputE, std::vector<KinectTrackedDevice>& v_trackers) {
+    spawnAndConnectTracker(inputE, v_trackers, KVR_Joint::KinectJointType::WristLeft, KVR_Joint::KinectJointType::HandLeft, KinectDeviceRole::LeftHand);
+    spawnAndConnectTracker(inputE, v_trackers, KVR_Joint::KinectJointType::WristRight, KVR_Joint::KinectJointType::HandRight, KinectDeviceRole::RightHand);
+}
+
+void spawnAndConnectTracker(vrinputemulator::VRInputEmulator & inputE, std::vector<KinectTrackedDevice>& v_trackers, KVR_Joint::KinectJointType mainJoint, KVR_Joint::KinectJointType secondaryJoint, KinectDeviceRole role)
 {
     KinectTrackedDevice device(inputE, mainJoint, secondaryJoint, role);
     v_trackers.push_back(device);
 }
 
-void spawnDefaultFullBodyTrackers(vrinputemulator::VRInputEmulator & inputE, std::vector<KinectTrackedDevice>& v_trackers)
+void spawnDefaultLowerBodyTrackers(vrinputemulator::VRInputEmulator & inputE, std::vector<KinectTrackedDevice>& v_trackers)
 {
-    spawnAndConnectTracker(inputE, v_trackers, KinectJointType::AnkleLeft, KinectJointType::FootLeft, KinectDeviceRole::LeftFoot);
-    spawnAndConnectTracker(inputE, v_trackers, KinectJointType::AnkleRight, KinectJointType::FootRight, KinectDeviceRole::RightFoot);
-    spawnAndConnectTracker(inputE, v_trackers, KinectJointType::SpineBase, KinectJointType::SpineMid, KinectDeviceRole::Hip);
+    spawnAndConnectTracker(inputE, v_trackers, KVR_Joint::KinectJointType::AnkleLeft, KVR_Joint::KinectJointType::FootLeft, KinectDeviceRole::LeftFoot);
+    spawnAndConnectTracker(inputE, v_trackers, KVR_Joint::KinectJointType::AnkleRight, KVR_Joint::KinectJointType::FootRight, KinectDeviceRole::RightFoot);
+    spawnAndConnectTracker(inputE, v_trackers, KVR_Joint::KinectJointType::SpineBase, KVR_Joint::KinectJointType::SpineMid, KinectDeviceRole::Hip);
 }
 
 void spawnAndConnectKinectTracker(vrinputemulator::VRInputEmulator &inputE, std::vector<KinectTrackedDevice> &v_trackers)
 {
-    KinectTrackedDevice kinectTrackerRef(inputE, KinectJointType::Head, KinectJointType::Head, KinectDeviceRole::KinectSensor);
+    KinectTrackedDevice kinectTrackerRef(inputE, KVR_Joint::KinectJointType::Head, KVR_Joint::KinectJointType::Head, KinectDeviceRole::KinectSensor);
     setKinectTrackerProperties(kinectTrackerRef.deviceId);
     v_trackers.push_back(kinectTrackerRef);
 }

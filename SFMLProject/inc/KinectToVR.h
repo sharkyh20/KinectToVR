@@ -18,6 +18,7 @@ double deltaScaled(double valuePerSecond, double delta);
 
 void processLoop(KinectHandlerBase& kinect);
 
-void spawnAndConnectTracker(vrinputemulator::VRInputEmulator &inputE, std::vector<KinectTrackedDevice> &v_trackers, KinectJointType mainJoint, KinectJointType secondaryJoint);
-void spawnDefaultFullBodyTrackers(vrinputemulator::VRInputEmulator &inputE, std::vector<KinectTrackedDevice> &v_trackers);
+void spawnAndConnectHandTrackers(vrinputemulator::VRInputEmulator & inputE, std::vector<KinectTrackedDevice>& v_trackers);
+void spawnAndConnectTracker(vrinputemulator::VRInputEmulator &inputE, std::vector<KinectTrackedDevice> &v_trackers, KVR_Joint::KinectJointType mainJoint, KVR_Joint::KinectJointType secondaryJoint, KinectDeviceRole role);
+void spawnDefaultLowerBodyTrackers(vrinputemulator::VRInputEmulator &inputE, std::vector<KinectTrackedDevice> &v_trackers);
 void spawnAndConnectKinectTracker(vrinputemulator::VRInputEmulator &inputE, std::vector<KinectTrackedDevice> &v_trackers);

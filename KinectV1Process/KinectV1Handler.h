@@ -41,7 +41,7 @@ public:
         std::vector<KinectTrackedDevice> trackers);
 
     bool getRawTrackedJointPos(KinectTrackedDevice device, vr::HmdVector3_t& position);
-    NUI_SKELETON_POSITION_INDEX convertJoint(KinectJoint joint);
+    NUI_SKELETON_POSITION_INDEX convertJoint(KVR_Joint::KinectJoint joint);
 private:
     bool initKinect();
     void getKinectRGBData();
@@ -60,6 +60,6 @@ private:
     Vector4 zeroKinectPosition(int trackedSkeletonIndex);
     void setKinectToVRMultiplier(int skeletonIndex);
 
-    bool jointsUntracked(KinectJoint joint0, KinectJoint joint1, NUI_SKELETON_DATA data);
-    bool jointsInferred(KinectJoint joint0, KinectJoint joint1, NUI_SKELETON_DATA data);
+    bool jointsUntracked(KVR_Joint::KinectJoint joint0, KVR_Joint::KinectJoint joint1, NUI_SKELETON_DATA data);
+    bool jointsInferred(KVR_Joint::KinectJoint joint0, KVR_Joint::KinectJoint joint1, NUI_SKELETON_DATA data);
 };

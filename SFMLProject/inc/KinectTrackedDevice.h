@@ -22,8 +22,8 @@ class KinectTrackedDevice {
 public:
     KinectTrackedDevice(
         vrinputemulator::VRInputEmulator& inputEmulator,
-        KinectJointType j0,
-        KinectJointType j1,
+        KVR_Joint::KinectJointType j0,
+        KVR_Joint::KinectJointType j1,
         KinectDeviceRole r)
         :
         inputEmulatorRef(inputEmulator),
@@ -115,8 +115,8 @@ public:
     vrinputemulator::VRInputEmulator &inputEmulatorRef;
     uint32_t deviceId;
 
-    KinectJoint joint0;
-    KinectJoint joint1;
+    KVR_Joint::KinectJoint joint0;
+    KVR_Joint::KinectJoint joint1;
 
     vr::HmdVector3_t trackedPositionVROffset;
     vr::HmdVector3_t lastRawPos{ 0,0,0 };
