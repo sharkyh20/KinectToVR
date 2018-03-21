@@ -10,6 +10,7 @@
 #include "VectorMath.h"
 
 enum class KinectDeviceRole {
+    Unassigned,
     LeftFoot,
     RightFoot,
     Hip,

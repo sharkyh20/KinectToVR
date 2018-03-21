@@ -12,7 +12,7 @@ namespace KinectSettings {
 
     bool isKinectDrawn = false;
     bool isSkeletonDrawn = false;
-    bool ignoreInferredPositions = true;
+    bool ignoreInferredPositions = false;
     bool ignoreRotationSmoothing = false;
 
     bool userChangingZero = false;
