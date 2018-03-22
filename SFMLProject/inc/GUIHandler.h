@@ -18,10 +18,12 @@
 
 class GUIHandler {
 private:
-    struct TempTracker {
+struct TempTracker {
         sfg::RadioButton::Ptr radioButton;
         int GUID;
-        KVR_Joint::KinectJointType joint;
+		KVR_Joint::KinectJointType joint0;
+		KVR_Joint::KinectJointType joint1;
+		KinectDeviceRole role;
         bool isController = false;
     };
 public:
@@ -76,7 +78,7 @@ void setScale() {
     /*FontName: data/linden_hill.otf;*/
     float defaultFontSize = 12.f / 1920.f; // Percentage relative to 1080p
     float scaledFontSize = defaultFontSize * (SFMLsettings::m_window_width / SFMLsettings::windowScale);
-    guiDesktop.SetProperty("Window Label, Button, CheckButton, ToggleButton, Label", "FontSize", scaledFontSize);
+    guiDesktop.SetProperty("Window Label, Button, CheckButton, ToggleButton, Label, RadioButton, ComboBox", "FontSize", scaledFontSize);
 }
 void toggleRotButton() {
     KinectRotButton->SetActive(KinectSettings::adjustingKinectRepresentationRot);
@@ -163,16 +165,17 @@ void addCurrentTrackerToList() {
     TempTracker temp;
     temp.GUID = TrackersToBeInitialised.size();
     temp.isController = IsControllerButton->IsActive();
-    temp.joint = KVR_Joint::KinectJointType(BonesList->GetSelectedItem());
-
+    temp.joint0 = KVR_Joint::KinectJointType(BonesList->GetSelectedItem());
+	temp.joint1 = temp.joint0;	//TEMP BEFORE SELECTION IMPLEMENTED
     
     updateTrackerLists(temp);
 }
 void addTrackerToList(KVR_Joint::KinectJointType joint, bool isController) {
-    TempTracker temp;
+	TempTracker temp;
     temp.GUID = TrackersToBeInitialised.size();
     temp.isController = isController;
-    temp.joint = joint;
+    temp.joint0 = joint;
+	temp.joint1 = temp.joint0; //TEMP BEFORE SELECTION IMPLEMENTED
 
    
     updateTrackerLists(temp);
@@ -184,7 +187,6 @@ void updateTempTrackerIDs() {
 }
 void updateTempTrackerButtonGroups() {
     for (int i = 0; i < TrackersToBeInitialised.size(); ++i)  {
-        
             TrackersToBeInitialised[i].radioButton = sfg::RadioButton::Create(TrackersToBeInitialised[i].radioButton->GetLabel()); //Can't set group to nothing :/
             if (TrackersToBeInitialised.size() > 1 && i != 0) {
                 auto group = TrackersToBeInitialised[i - 1].radioButton->GetGroup();
@@ -200,7 +202,7 @@ void updateTrackerLists(TempTracker &temp) {
         ss << " (Controller)";
     else
         ss << " (Tracker)";
-    temp.radioButton = sfg::RadioButton::Create(KVR_Joint::KinectJointName[int(temp.joint)] + ss.str());
+    temp.radioButton = sfg::RadioButton::Create(KVR_Joint::KinectJointName[int(temp.joint0)] + ss.str());
     if (TrackersToBeInitialised.size()) {
         auto group = TrackersToBeInitialised.back().radioButton->GetGroup();
         temp.radioButton->SetGroup(group);
@@ -249,11 +251,11 @@ void updateTrackerLists(TempTracker &temp) {
             }
             else {
                 for (TempTracker tracker : TrackersToBeInitialised) {
-                    spawnAndConnectTracker(inputE, v_trackers, tracker.joint, tracker.joint, KinectDeviceRole::Unassigned);
+                    spawnAndConnectTracker(inputE, v_trackers, tracker.joint0, tracker.joint1, KinectDeviceRole::Unassigned);
                     if (tracker.isController) {
-                        if (tracker.joint == KVR_Joint::KinectJointType::WristLeft || tracker.joint == KVR_Joint::KinectJointType::HandLeft)
+                        if (tracker.joint0 == KVR_Joint::KinectJointType::WristLeft || tracker.joint0 == KVR_Joint::KinectJointType::HandLeft)
                             setDeviceProperty(v_trackers.back().deviceId, 3007, "int32", "1");
-                        else if (tracker.joint == KVR_Joint::KinectJointType::WristRight || tracker.joint == KVR_Joint::KinectJointType::HandRight)
+                        else if (tracker.joint0 == KVR_Joint::KinectJointType::WristRight || tracker.joint0 == KVR_Joint::KinectJointType::HandRight)
                             setDeviceProperty(v_trackers.back().deviceId, 3007, "int32", "2");
                     }
                 }

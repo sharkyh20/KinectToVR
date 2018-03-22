@@ -33,9 +33,11 @@ public:
         trackedPositionVROffset({ 0,0,0 }),
         role(r)
     {
-        deviceId = initTracker(inputEmulator, true);
+        
     }
-
+	void init(vrinputemulator::VRInputEmulator& inputEmulator) {
+		deviceId = initTracker(inputEmulator, true);
+	}
     void update(vr::HmdVector3_t additionalOffset, vr::HmdVector3_t rawJointPos, vr::HmdQuaternion_t rawJointRotation) {
         lastRawPos = rawJointPos;
         auto pose = inputEmulatorRef.getVirtualDevicePose(deviceId);
