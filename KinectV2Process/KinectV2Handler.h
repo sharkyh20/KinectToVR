@@ -48,7 +48,7 @@ public:
         vrinputemulator::VRInputEmulator &emulator,
         std::vector<KinectTrackedDevice> trackers);
 
-    JointType convertJoint(KVR_Joint::KinectJoint joint);
+    JointType convertJoint(KVR::KinectJoint joint);
 private:
     bool initKinect();
     void getKinectData();

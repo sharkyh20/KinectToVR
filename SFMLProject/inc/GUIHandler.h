@@ -21,9 +21,9 @@ private:
 struct TempTracker {
         sfg::RadioButton::Ptr radioButton;
         int GUID;
-		KVR_Joint::KinectJointType joint0;
-		KVR_Joint::KinectJointType joint1;
-		KinectDeviceRole role;
+		KVR::KinectJointType joint0;
+		KVR::KinectJointType joint1;
+		KVR::KinectDeviceRole role;
         bool isController = false;
     };
 public:
@@ -137,8 +137,8 @@ void setDefaultSignals() {
 
     AddHandControllersToList->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
         //Add a left and right hand tracker as a controller
-        addTrackerToList(KVR_Joint::KinectJointType::WristLeft, true);
-        addTrackerToList(KVR_Joint::KinectJointType::WristRight, true);
+        addTrackerToList(KVR::KinectJointType::WristLeft, true);
+        addTrackerToList(KVR::KinectJointType::WristRight, true);
     });
     AddTrackerToListButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
         // Get the ID from latest number
@@ -165,12 +165,12 @@ void addCurrentTrackerToList() {
     TempTracker temp;
     temp.GUID = TrackersToBeInitialised.size();
     temp.isController = IsControllerButton->IsActive();
-    temp.joint0 = KVR_Joint::KinectJointType(BonesList->GetSelectedItem());
+    temp.joint0 = KVR::KinectJointType(BonesList->GetSelectedItem());
 	temp.joint1 = temp.joint0;	//TEMP BEFORE SELECTION IMPLEMENTED
-    
+    temp.role = KVR::KinectDeviceRole(RolesList->GetSelectedItem());
     updateTrackerLists(temp);
 }
-void addTrackerToList(KVR_Joint::KinectJointType joint, bool isController) {
+void addTrackerToList(KVR::KinectJointType joint, bool isController) {
 	TempTracker temp;
     temp.GUID = TrackersToBeInitialised.size();
     temp.isController = isController;
@@ -202,7 +202,7 @@ void updateTrackerLists(TempTracker &temp) {
         ss << " (Controller)";
     else
         ss << " (Tracker)";
-    temp.radioButton = sfg::RadioButton::Create(KVR_Joint::KinectJointName[int(temp.joint0)] + ss.str());
+    temp.radioButton = sfg::RadioButton::Create(KVR::KinectJointName[int(temp.joint0)] + ss.str());
     if (TrackersToBeInitialised.size()) {
         auto group = TrackersToBeInitialised.back().radioButton->GetGroup();
         temp.radioButton->SetGroup(group);
@@ -243,7 +243,7 @@ void updateTrackerLists(TempTracker &temp) {
             kinect.initialise();
         });
     }
-    void setTrackerInitButtonSignal(vrinputemulator::VRInputEmulator &inputE, std::vector<KinectTrackedDevice> &v_trackers ) {
+    void setTrackerInitButtonSignal(vrinputemulator::VRInputEmulator &inputE, std::vector<KVR::KinectTrackedDevice> &v_trackers ) {
         TrackerInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers, &inputE] {
             TrackerInitButton->SetLabel("Trackers Initialised");
             if (TrackersToBeInitialised.empty()) {
@@ -251,12 +251,15 @@ void updateTrackerLists(TempTracker &temp) {
             }
             else {
                 for (TempTracker tracker : TrackersToBeInitialised) {
-                    spawnAndConnectTracker(inputE, v_trackers, tracker.joint0, tracker.joint1, KinectDeviceRole::Unassigned);
+                    spawnAndConnectTracker(inputE, v_trackers, tracker.joint0, tracker.joint1, tracker.role);
                     if (tracker.isController) {
-                        if (tracker.joint0 == KVR_Joint::KinectJointType::WristLeft || tracker.joint0 == KVR_Joint::KinectJointType::HandLeft)
-                            setDeviceProperty(v_trackers.back().deviceId, 3007, "int32", "1");
-                        else if (tracker.joint0 == KVR_Joint::KinectJointType::WristRight || tracker.joint0 == KVR_Joint::KinectJointType::HandRight)
-                            setDeviceProperty(v_trackers.back().deviceId, 3007, "int32", "2");
+                        setDeviceProperty(v_trackers.back().deviceId, 1029, "int32", "2"); // Device Class: Controller
+                        if (tracker.role == KVR::KinectDeviceRole::LeftHand) {
+                            setDeviceProperty(v_trackers.back().deviceId, 3007, "int32", "1"); // ControllerRole Left
+                        }
+                        else if (tracker.role == KVR::KinectDeviceRole::RightHand) {
+                            setDeviceProperty(v_trackers.back().deviceId, 3007, "int32", "2"); // ControllerRole Right
+                        }
                     }
                 }
             }
@@ -347,8 +350,10 @@ void updateTrackerLists(TempTracker &temp) {
         TrackerList->Pack(TrackerListLabel);
 
         setBonesListItems();
+        setRolesListItems();
 
         TrackerListOptionsBox->Pack(BonesList);
+        TrackerListOptionsBox->Pack(RolesList);
         TrackerListOptionsBox->Pack(IsControllerButton);
         TrackerListOptionsBox->Pack(AddTrackerToListButton);
         TrackerListOptionsBox->Pack(RemoveTrackerFromListButton);
@@ -356,10 +361,19 @@ void updateTrackerLists(TempTracker &temp) {
         advancedTrackerBox->Pack(TrackerListOptionsBox);
     }
     void setBonesListItems() {
-        using namespace KVR_Joint;
+        using namespace KVR;
         for (int i = 0; i < KinectJointCount; ++i) {
             BonesList->AppendItem(KinectJointName[i]);
         }
+        // Set as default - to prevent garbage additions 
+        BonesList->SelectItem(0);
+    }
+    void setRolesListItems() {
+        for (int i = 0; i < (int)KVR::KinectDeviceRole::Count; ++i) {
+            RolesList->AppendItem(KVR::KinectDeviceRoleName[i]);
+        }
+        // Set as default - to prevent garbage additions 
+        RolesList->SelectItem(0);
     }
     void updateKinectStatusLabel(KinectHandlerBase& kinect) {
         if (kinect.isInitialised()) {
@@ -457,6 +471,7 @@ private:
     sfg::Box::Ptr TrackerListOptionsBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5);
 
     sfg::ComboBox::Ptr BonesList = sfg::ComboBox::Create();
+    sfg::ComboBox::Ptr RolesList = sfg::ComboBox::Create();
     sfg::CheckButton::Ptr IsControllerButton = sfg::CheckButton::Create("Controller");
     sfg::Button::Ptr AddTrackerToListButton = sfg::Button::Create("Add");
     sfg::Button::Ptr RemoveTrackerFromListButton = sfg::Button::Create("Remove");

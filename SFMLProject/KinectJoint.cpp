@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "KinectJoint.h"
 
-namespace KVR_Joint {
+namespace KVR {
     std::string KinectJointName[KinectJointCount]{
         "Spine Base",
         "Spine Mid",

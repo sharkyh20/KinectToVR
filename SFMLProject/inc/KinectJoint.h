@@ -2,7 +2,7 @@
 #include "stdafx.h"
 #include <string>
 
-namespace KVR_Joint {
+namespace KVR {
     const int KinectJointCount = 25;
     enum class KinectJointType {
         SpineBase = 0,
