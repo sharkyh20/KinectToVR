@@ -31,6 +31,8 @@ namespace KinectSettings {
 
     extern double kinectToVRScale;
 
+    extern double hipRoleHeightAdjust;
+
     extern vr::HmdVector3_t hmdZero; //TEMP GLOBAL
     extern vr::HmdQuaternion_t kinectRepRotation;
     extern vr::HmdVector3_t kinectRadRotation;

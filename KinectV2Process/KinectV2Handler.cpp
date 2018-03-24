@@ -227,35 +227,21 @@ void KinectV2Handler::setKinectToVRMultiplier(int skeletonIndex) {
     std::cerr << "head pos: " << joints[JointType_Head].Position.Y << '\n';
     std::cerr << "foot pos: " << joints[JointType_AnkleLeft].Position.Y << '\n';
 }
-void KinectV2Handler::updateTrackersWithSkeletonPosition(vrinputemulator::VRInputEmulator & emulator, std::vector<KinectTrackedDevice> trackers)
+void KinectV2Handler::updateTrackersWithSkeletonPosition(vrinputemulator::VRInputEmulator & emulator, std::vector<KVR::KinectTrackedDevice> trackers)
 {
-    for (KinectTrackedDevice device : trackers) {
+    for (KVR::KinectTrackedDevice device : trackers) {
         if (device.isSensor()) {
             device.update(KinectSettings::kinectRepPosition, {0,0,0}, KinectSettings::kinectRepRotation);
         } else {
             vr::HmdVector3_t jointPosition{ 0,0,0 };
             vr::HmdQuaternion_t jointRotation{ 0,0,0,0 };
             if (getFilteredJoint(device, jointPosition, jointRotation)) {
-                //UPDATE
-                // Remove this once orient filtering works -----
-                /*
-                Vector4 kRotation = jointOrientations[convertJoint(device.joint0)].Orientation;
-                jointRotation.w = kRotation.w;
-                jointRotation.x = kRotation.x;
-                jointRotation.y = kRotation.y;
-                jointRotation.z = kRotation.z;
-                */
-                // ---------------------------------------------
-                if (device.joint0.joint == KVR::KinectJointType::SpineBase) {
-                    //V2 only offset while I figure out a comfortable way to adjust individual trackers
-                    device.trackedPositionVROffset = { 0, .23f, 0 };
-                }
                 device.update(trackedPositionVROffset, jointPosition, jointRotation);
             }
         }
     }
 }
-bool KinectV2Handler::getFilteredJoint(KinectTrackedDevice device, vr::HmdVector3_t& position, vr::HmdQuaternion_t &rotation) {
+bool KinectV2Handler::getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdVector3_t& position, vr::HmdQuaternion_t &rotation) {
     sf::Vector3f filteredPos = filter.GetFilteredJoints()[convertJoint(device.joint0)];
     float jointX = filteredPos.x;
     float jointY = filteredPos.y;

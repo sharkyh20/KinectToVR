@@ -20,10 +20,10 @@ class GUIHandler {
 private:
 struct TempTracker {
         sfg::RadioButton::Ptr radioButton;
-        int GUID;
-		KVR::KinectJointType joint0;
-		KVR::KinectJointType joint1;
-		KVR::KinectDeviceRole role;
+        int GUID = 404;
+		KVR::KinectJointType joint0 = KVR::KinectJointType::Head;
+		KVR::KinectJointType joint1 = KVR::KinectJointType::Head;
+		KVR::KinectDeviceRole role= KVR::KinectDeviceRole::Unassigned;
         bool isController = false;
     };
 public:
@@ -137,14 +137,16 @@ void setDefaultSignals() {
 
     AddHandControllersToList->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
         //Add a left and right hand tracker as a controller
-        addTrackerToList(KVR::KinectJointType::WristLeft, true);
-        addTrackerToList(KVR::KinectJointType::WristRight, true);
+        addTrackerToList(KVR::KinectJointType::HandLeft, KVR::KinectDeviceRole::LeftHand, true);
+        addTrackerToList(KVR::KinectJointType::HandRight, KVR::KinectDeviceRole::RightHand, true);
+    });
+    AddLowerTrackersToList->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
+        addTrackerToList(KVR::KinectJointType::AnkleLeft, KVR::KinectDeviceRole::LeftFoot, false);
+        addTrackerToList(KVR::KinectJointType::AnkleRight, KVR::KinectDeviceRole::RightFoot, false);
+        addTrackerToList(KVR::KinectJointType::SpineBase, KVR::KinectDeviceRole::Hip, false);
     });
     AddTrackerToListButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
-        // Get the ID from latest number
-        // Get joint from currently selected bone in list
-        // Get bool from checkbutton
-        addCurrentTrackerToList();
+        addUserTrackerToList();
     });
     RemoveTrackerFromListButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
         int i = 0;
@@ -159,9 +161,14 @@ void setDefaultSignals() {
         //updateTempTrackerButtonGroups();
     });
 
+    HipScale->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
+        // Update the Global hip offset
+        KinectSettings::hipRoleHeightAdjust = HipScale->GetValue();
+    }
+    );
 }
 
-void addCurrentTrackerToList() {
+void addUserTrackerToList() {
     TempTracker temp;
     temp.GUID = TrackersToBeInitialised.size();
     temp.isController = IsControllerButton->IsActive();
@@ -170,38 +177,26 @@ void addCurrentTrackerToList() {
     temp.role = KVR::KinectDeviceRole(RolesList->GetSelectedItem());
     updateTrackerLists(temp);
 }
-void addTrackerToList(KVR::KinectJointType joint, bool isController) {
+void addTrackerToList(KVR::KinectJointType joint, KVR::KinectDeviceRole role, bool isController) {
 	TempTracker temp;
     temp.GUID = TrackersToBeInitialised.size();
     temp.isController = isController;
     temp.joint0 = joint;
 	temp.joint1 = temp.joint0; //TEMP BEFORE SELECTION IMPLEMENTED
+    temp.role = role;
 
-   
     updateTrackerLists(temp);
 }
-void updateTempTrackerIDs() {
-    for (int i = 0; i < TrackersToBeInitialised.size(); ++i) {
-        TrackersToBeInitialised[i].GUID = i;
-    }
-}
-void updateTempTrackerButtonGroups() {
-    for (int i = 0; i < TrackersToBeInitialised.size(); ++i)  {
-            TrackersToBeInitialised[i].radioButton = sfg::RadioButton::Create(TrackersToBeInitialised[i].radioButton->GetLabel()); //Can't set group to nothing :/
-            if (TrackersToBeInitialised.size() > 1 && i != 0) {
-                auto group = TrackersToBeInitialised[i - 1].radioButton->GetGroup();
-                TrackersToBeInitialised[i].radioButton->SetGroup(group);
-            }
-    }
-}
+
 void updateTrackerLists(TempTracker &temp) {
     // Display a radio button menu where selecting each button selects that tracker
     // Displays the joint of each tracker and (Tracker)/(Controller)
     std::stringstream ss;
     if (temp.isController)
-        ss << " (Controller)";
+        ss << " (Tracked Controller) ";
     else
-        ss << " (Tracker)";
+        ss << " (Tracker) ";
+    ss << "(Role: " << KVR::KinectDeviceRoleName[int(temp.role)] << ") ";
     temp.radioButton = sfg::RadioButton::Create(KVR::KinectJointName[int(temp.joint0)] + ss.str());
     if (TrackersToBeInitialised.size()) {
         auto group = TrackersToBeInitialised.back().radioButton->GetGroup();
@@ -212,199 +207,206 @@ void updateTrackerLists(TempTracker &temp) {
 
     TrackersToBeInitialised.push_back(temp);
 }
-    void setCalibrationSignal() {
-        CalibrationSetButton->GetSignal(sfg::Widget::OnLeftClick).Connect(
-            [this] {
-            //NEED TO VALIDATE THESE INPUTS
-            std::stringstream ss;
-            ss <<  CalibrationEntryPosX->GetText().toAnsiString();
-            KinectSettings::kinectRepPosition.v[0] = std::stof(ss.str());
-            ss.clear();
-            ss << CalibrationEntryPosY->GetText().toAnsiString();
-            KinectSettings::kinectRepPosition.v[1] = std::stof(ss.str());
-            ss.clear();
-            ss << CalibrationEntryPosZ->GetText().toAnsiString();
-            KinectSettings::kinectRepPosition.v[2] = std::stof(ss.str());
-            ss.clear();
+void setCalibrationSignal() {
+    CalibrationSetButton->GetSignal(sfg::Widget::OnLeftClick).Connect(
+        [this] {
+        //NEED TO VALIDATE THESE INPUTS
+        std::stringstream ss;
+        ss << CalibrationEntryPosX->GetText().toAnsiString();
+        KinectSettings::kinectRepPosition.v[0] = std::stof(ss.str());
+        ss.clear();
+        ss << CalibrationEntryPosY->GetText().toAnsiString();
+        KinectSettings::kinectRepPosition.v[1] = std::stof(ss.str());
+        ss.clear();
+        ss << CalibrationEntryPosZ->GetText().toAnsiString();
+        KinectSettings::kinectRepPosition.v[2] = std::stof(ss.str());
+        ss.clear();
 
-            ss << CalibrationEntryRotX->GetText().toAnsiString();
-            KinectSettings::kinectRadRotation.v[0] = std::stof(ss.str());
-            ss.clear();
-            ss << CalibrationEntryRotY->GetText().toAnsiString();
-            KinectSettings::kinectRadRotation.v[1] = std::stof(ss.str());
-            ss.clear();
-            ss << CalibrationEntryRotZ->GetText().toAnsiString();
-            KinectSettings::kinectRadRotation.v[2] = std::stof(ss.str());
-            ss.clear();
-        });
-    }
-    void setKinectButtonSignal(KinectHandlerBase& kinect) {
-        reconKinectButton->GetSignal(sfg::Widget::OnLeftClick).Connect([&kinect] {
-            kinect.initialise();
-        });
-    }
-    void setTrackerInitButtonSignal(vrinputemulator::VRInputEmulator &inputE, std::vector<KVR::KinectTrackedDevice> &v_trackers ) {
-        TrackerInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers, &inputE] {
-            TrackerInitButton->SetLabel("Trackers Initialised");
-            if (TrackersToBeInitialised.empty()) {
-                spawnDefaultLowerBodyTrackers(inputE, v_trackers);
-            }
-            else {
-                for (TempTracker tracker : TrackersToBeInitialised) {
-                    spawnAndConnectTracker(inputE, v_trackers, tracker.joint0, tracker.joint1, tracker.role);
-                    if (tracker.isController) {
-                        setDeviceProperty(v_trackers.back().deviceId, 1029, "int32", "2"); // Device Class: Controller
-                        if (tracker.role == KVR::KinectDeviceRole::LeftHand) {
-                            setDeviceProperty(v_trackers.back().deviceId, 3007, "int32", "1"); // ControllerRole Left
-                        }
-                        else if (tracker.role == KVR::KinectDeviceRole::RightHand) {
-                            setDeviceProperty(v_trackers.back().deviceId, 3007, "int32", "2"); // ControllerRole Right
-                        }
+        ss << CalibrationEntryRotX->GetText().toAnsiString();
+        KinectSettings::kinectRadRotation.v[0] = std::stof(ss.str());
+        ss.clear();
+        ss << CalibrationEntryRotY->GetText().toAnsiString();
+        KinectSettings::kinectRadRotation.v[1] = std::stof(ss.str());
+        ss.clear();
+        ss << CalibrationEntryRotZ->GetText().toAnsiString();
+        KinectSettings::kinectRadRotation.v[2] = std::stof(ss.str());
+        ss.clear();
+    });
+}
+void setKinectButtonSignal(KinectHandlerBase& kinect) {
+    reconKinectButton->GetSignal(sfg::Widget::OnLeftClick).Connect([&kinect] {
+        kinect.initialise();
+    });
+}
+void setTrackerInitButtonSignal(vrinputemulator::VRInputEmulator &inputE, std::vector<KVR::KinectTrackedDevice> &v_trackers) {
+    TrackerInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers, &inputE] {
+        TrackerInitButton->SetLabel("Trackers Initialised");
+        if (TrackersToBeInitialised.empty()) {
+            spawnDefaultLowerBodyTrackers(inputE, v_trackers);
+        }
+        else {
+            for (TempTracker tracker : TrackersToBeInitialised) {
+                spawnAndConnectTracker(inputE, v_trackers, tracker.joint0, tracker.joint1, tracker.role);
+                if (tracker.isController) {
+                    setDeviceProperty(v_trackers.back().deviceId, 1029, "int32", "2"); // Device Class: Controller
+                    if (tracker.role == KVR::KinectDeviceRole::LeftHand) {
+                        setDeviceProperty(v_trackers.back().deviceId, 3007, "int32", "1"); // ControllerRole Left
+                    }
+                    else if (tracker.role == KVR::KinectDeviceRole::RightHand) {
+                        setDeviceProperty(v_trackers.back().deviceId, 3007, "int32", "2"); // ControllerRole Right
                     }
                 }
             }
-            spawnAndConnectKinectTracker(inputE, v_trackers);
-
-            showPostTrackerInitUI();
-
-            TrackerInitButton->SetState(sfg::Widget::State::INSENSITIVE);
-        });
-    }
-    void updateTrackerInitButtonLabelFail() {
-        TrackerInitButton->SetLabel("Input Emulator not connected! Can't init trackers");
-    }
-
-    void setReconnectControllerButtonSignal(VRcontroller& left, VRcontroller& right, vr::IVRSystem* &sys
-    ) {
-        ReconControllersButton->GetSignal(sfg::Button::OnLeftClick).Connect([&left, &right, &sys, this] {
-            std::stringstream stream;
-            stream << "If controller input isn't working, press this to reconnect them.\n Make sure both are on, and not in standby.\n";
-            if (right.Connect(sys)) {
-                stream << "RIGHT: OK!\t";
-            }
-            else {
-                stream << "RIGHT: DISCONNECTED!\t";
-            }
-            if (left.Connect(sys)) {
-                stream << "LEFT: OK!\t";
-            }
-            else {
-                stream << "LEFT: DISCONNECTED!\t";
-            }
-            ReconControllersLabel->SetText(stream.str());
-        });
-    }
-
-    void setLineWrapping() {
-        InferredLabel->SetLineWrap(true);
-        InferredLabel->SetRequisition(sf::Vector2f(600.f, 20.f));
-
-        InstructionsLabel->SetLineWrap(true);
-        InstructionsLabel->SetRequisition(sf::Vector2f(600.f, 50.f));
-
-        CalibrationSettingsLabel->SetLineWrap(true);
-        CalibrationSettingsLabel->SetRequisition(sf::Vector2f(600.f, 20.f));
-    }
-    void packElementsIntoMainBox() {
-        //Statuses are at the top
-        mainGUIBox->Pack(KinectStatusLabel);
-        mainGUIBox->Pack(SteamVRStatusLabel);
-        mainGUIBox->Pack(InputEmulatorStatusLabel);
-
-        mainGUIBox->Pack(reconKinectButton);
-        mainGUIBox->Pack(TrackerInitButton);
-        mainGUIBox->Pack(InstructionsLabel);
-
-        mainGUIBox->Pack(ShowSkeletonButton);
-
-        mainGUIBox->Pack(EnableGamepadButton);
-        mainGUIBox->Pack(ReconControllersLabel);
-        mainGUIBox->Pack(ReconControllersButton);
-
-        mainGUIBox->Pack(KinectRotLabel);
-        mainGUIBox->Pack(KinectRotButton);
-
-        mainGUIBox->Pack(KinectPosLabel);
-        mainGUIBox->Pack(KinectPosButton);
-
-        mainGUIBox->Pack(InferredLabel);
-        mainGUIBox->Pack(IgnoreInferredCheckButton);
-        mainGUIBox->Pack(IgnoreRotSmoothingCheckButton);
-
-        //mainGUIBox->Pack(CalibrationSettingsLabel); //Calibration left out of main UI because it is not currently implemented
-        calibrationBox->Pack(CalibrationSetButton);
-        calibrationBox->Pack(CalibrationEntryPosX);
-        calibrationBox->Pack(CalibrationEntryPosY);
-        calibrationBox->Pack(CalibrationEntryPosZ);
-        calibrationBox->Pack(CalibrationEntryRotX);
-        calibrationBox->Pack(CalibrationEntryRotY);
-        calibrationBox->Pack(CalibrationEntryRotZ);
-
-        //mainGUIBox->Pack(calibrationBox); //Calibration left out of main UI because it is not currently implemented
-    }
-    void packElementsIntoAdvTrackerBox() {
-        advancedTrackerBox->Pack(AddHandControllersToList);
-        advancedTrackerBox->Pack(AddLowerTrackersToList);
-        advancedTrackerBox->Pack(TrackerList);
-
-        TrackerList->Pack(TrackerListLabel);
-
-        setBonesListItems();
-        setRolesListItems();
-
-        TrackerListOptionsBox->Pack(BonesList);
-        TrackerListOptionsBox->Pack(RolesList);
-        TrackerListOptionsBox->Pack(IsControllerButton);
-        TrackerListOptionsBox->Pack(AddTrackerToListButton);
-        TrackerListOptionsBox->Pack(RemoveTrackerFromListButton);
-
-        advancedTrackerBox->Pack(TrackerListOptionsBox);
-    }
-    void setBonesListItems() {
-        using namespace KVR;
-        for (int i = 0; i < KinectJointCount; ++i) {
-            BonesList->AppendItem(KinectJointName[i]);
         }
-        // Set as default - to prevent garbage additions 
-        BonesList->SelectItem(0);
-    }
-    void setRolesListItems() {
-        for (int i = 0; i < (int)KVR::KinectDeviceRole::Count; ++i) {
-            RolesList->AppendItem(KVR::KinectDeviceRoleName[i]);
+        spawnAndConnectKinectTracker(inputE, v_trackers);
+
+        showPostTrackerInitUI();
+
+        TrackerInitButton->SetState(sfg::Widget::State::INSENSITIVE);
+    });
+}
+void updateTrackerInitButtonLabelFail() {
+    TrackerInitButton->SetLabel("Input Emulator not connected! Can't init trackers");
+}
+
+void setReconnectControllerButtonSignal(VRcontroller& left, VRcontroller& right, vr::IVRSystem* &sys
+) {
+    ReconControllersButton->GetSignal(sfg::Button::OnLeftClick).Connect([&left, &right, &sys, this] {
+        std::stringstream stream;
+        stream << "If controller input isn't working, press this to reconnect them.\n Make sure both are on, and not in standby.\n";
+        if (right.Connect(sys)) {
+            stream << "RIGHT: OK!\t";
         }
-        // Set as default - to prevent garbage additions 
-        RolesList->SelectItem(0);
-    }
-    void updateKinectStatusLabel(KinectHandlerBase& kinect) {
-        if (kinect.isInitialised()) {
-            HRESULT status = kinect.getStatusResult();
-            switch (status) {
-            case S_OK:
-                KinectStatusLabel->SetText("Kinect Status: Success!");
-                break;
-            default:
-                KinectStatusLabel->SetText("Kinect Status: ERROR " + kinect.statusResultString(status));
-                break;
-            }
+        else {
+            stream << "RIGHT: DISCONNECTED!\t";
         }
-        else
-            updateKinectStatusLabelDisconnected();
+        if (left.Connect(sys)) {
+            stream << "LEFT: OK!\t";
+        }
+        else {
+            stream << "LEFT: DISCONNECTED!\t";
+        }
+        ReconControllersLabel->SetText(stream.str());
+    });
+}
+
+void setLineWrapping() {
+    InferredLabel->SetLineWrap(true);
+    InferredLabel->SetRequisition(sf::Vector2f(600.f, 20.f));
+
+    InstructionsLabel->SetLineWrap(true);
+    InstructionsLabel->SetRequisition(sf::Vector2f(600.f, 50.f));
+
+    CalibrationSettingsLabel->SetLineWrap(true);
+    CalibrationSettingsLabel->SetRequisition(sf::Vector2f(600.f, 20.f));
+}
+void packElementsIntoMainBox() {
+    //Statuses are at the top
+    mainGUIBox->Pack(KinectStatusLabel);
+    mainGUIBox->Pack(SteamVRStatusLabel);
+    mainGUIBox->Pack(InputEmulatorStatusLabel);
+
+    mainGUIBox->Pack(reconKinectButton);
+    mainGUIBox->Pack(TrackerInitButton);
+    mainGUIBox->Pack(InstructionsLabel);
+
+    mainGUIBox->Pack(ShowSkeletonButton);
+
+    mainGUIBox->Pack(EnableGamepadButton);
+    mainGUIBox->Pack(ReconControllersLabel);
+    mainGUIBox->Pack(ReconControllersButton);
+
+    mainGUIBox->Pack(KinectRotLabel);
+    mainGUIBox->Pack(KinectRotButton);
+
+    mainGUIBox->Pack(KinectPosLabel);
+    mainGUIBox->Pack(KinectPosButton);
+
+    mainGUIBox->Pack(InferredLabel);
+    mainGUIBox->Pack(IgnoreInferredCheckButton);
+    mainGUIBox->Pack(IgnoreRotSmoothingCheckButton);
+
+    //mainGUIBox->Pack(CalibrationSettingsLabel); //Calibration left out of main UI because it is not currently implemented
+    calibrationBox->Pack(CalibrationSetButton);
+    calibrationBox->Pack(CalibrationEntryPosX);
+    calibrationBox->Pack(CalibrationEntryPosY);
+    calibrationBox->Pack(CalibrationEntryPosZ);
+    calibrationBox->Pack(CalibrationEntryRotX);
+    calibrationBox->Pack(CalibrationEntryRotY);
+    calibrationBox->Pack(CalibrationEntryRotZ);
+
+    //mainGUIBox->Pack(calibrationBox); //Calibration left out of main UI because it is not currently implemented
+}
+void packElementsIntoAdvTrackerBox() {
+    advancedTrackerBox->Pack(AddHandControllersToList);
+    advancedTrackerBox->Pack(AddLowerTrackersToList);
+
+    auto HipLabel = sfg::Label::Create("Vertical Hip Adjustment (metres)");
+    auto scalebox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
+    scalebox->Pack(HipLabel, false, false);
+    scalebox->Pack(HipScale);
+    advancedTrackerBox->Pack(scalebox);
+
+    advancedTrackerBox->Pack(TrackerList);
+
+    TrackerList->Pack(TrackerListLabel);
+
+    setBonesListItems();
+    setRolesListItems();
+
+    TrackerListOptionsBox->Pack(BonesList);
+    TrackerListOptionsBox->Pack(RolesList);
+    TrackerListOptionsBox->Pack(IsControllerButton);
+    TrackerListOptionsBox->Pack(AddTrackerToListButton);
+    TrackerListOptionsBox->Pack(RemoveTrackerFromListButton);
+
+    advancedTrackerBox->Pack(TrackerListOptionsBox);
+}
+void setBonesListItems() {
+    using namespace KVR;
+    for (int i = 0; i < KinectJointCount; ++i) {
+        BonesList->AppendItem(KinectJointName[i]);
     }
+    // Set as default - to prevent garbage additions 
+    BonesList->SelectItem(0);
+}
+void setRolesListItems() {
+    for (int i = 0; i < (int)KVR::KinectDeviceRole::Count; ++i) {
+        RolesList->AppendItem(KVR::KinectDeviceRoleName[i]);
+    }
+    // Set as default - to prevent garbage additions 
+    RolesList->SelectItem(0);
+}
+void updateKinectStatusLabel(KinectHandlerBase& kinect) {
+    if (kinect.isInitialised()) {
+        HRESULT status = kinect.getStatusResult();
+        switch (status) {
+        case S_OK:
+            KinectStatusLabel->SetText("Kinect Status: Success!");
+            break;
+        default:
+            KinectStatusLabel->SetText("Kinect Status: ERROR " + kinect.statusResultString(status));
+            break;
+        }
+    }
+    else
+        updateKinectStatusLabelDisconnected();
+}
 
 
-    void updateEmuStatusLabelError(vrinputemulator::vrinputemulator_connectionerror e) {
-        InputEmulatorStatusLabel->SetText("Input Emu Status: NOT Connected! Error " + std::to_string(e.errorcode) + " " + e.what() + "\n\n Is SteamVR open and InputEmulator installed?");
-    }
-    void updateEmuStatusLabelSuccess() {
-        InputEmulatorStatusLabel->SetText("Input Emu Status: Success!");
-    }
+void updateEmuStatusLabelError(vrinputemulator::vrinputemulator_connectionerror e) {
+    InputEmulatorStatusLabel->SetText("Input Emu Status: NOT Connected! Error " + std::to_string(e.errorcode) + " " + e.what() + "\n\n Is SteamVR open and InputEmulator installed?");
+}
+void updateEmuStatusLabelSuccess() {
+    InputEmulatorStatusLabel->SetText("Input Emu Status: Success!");
+}
 
-    void updateVRStatusLabel(vr::EVRInitError eError) {
-        if (eError == vr::VRInitError_None)
-            SteamVRStatusLabel->SetText("VR Status: Success!");
-        else
-            SteamVRStatusLabel->SetText("VR Status: ERROR " + std::to_string(eError));
-    }
+void updateVRStatusLabel(vr::EVRInitError eError) {
+    if (eError == vr::VRInitError_None)
+        SteamVRStatusLabel->SetText("VR Status: Success!");
+    else
+        SteamVRStatusLabel->SetText("VR Status: ERROR " + std::to_string(eError));
+}
 
 private:
     sf::Font mainGUIFont;
@@ -469,6 +471,7 @@ private:
     sfg::Label::Ptr TrackerListLabel = sfg::Label::Create("Trackers to be spawned:");
 
     sfg::Box::Ptr TrackerListOptionsBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5);
+    sfg::SpinButton::Ptr HipScale = sfg::SpinButton::Create(sfg::Adjustment::Create(KinectSettings::hipRoleHeightAdjust, .0f, 1.f, .001f));;
 
     sfg::ComboBox::Ptr BonesList = sfg::ComboBox::Create();
     sfg::ComboBox::Ptr RolesList = sfg::ComboBox::Create();

@@ -182,7 +182,6 @@
             vr::HmdVector3_t jointPosition{ 0,0,0 };
             vr::HmdQuaternion_t jointRotation{ 0,0,0,0 };
             if (getRawTrackedJointPos(device, jointPosition)) {
-                //std::cerr << "jP: " << jointPosition.v[0] << ", " << jointPosition.v[1] << ", " << jointPosition.v[2] << "\n";
                 //Rotation - Need to seperate into function
                 NUI_SKELETON_BONE_ROTATION kRotation = boneOrientations[convertJoint(device.joint1)].absoluteRotation;
                 jointRotation.w = kRotation.rotationQuaternion.w;

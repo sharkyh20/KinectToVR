@@ -165,17 +165,6 @@ private:
         r = normalisedQ(r);
         return r;
     }
-    float clip(float n, float lower, float upper) {
-        return max(lower, min(n, upper));
-    }
-    Vector4 clamp(Vector4 v) {
-        Vector4 temp = v;
-        temp.x = clip(temp.x, -1.0f, 1.0f);
-        temp.y = clip(temp.y, -1.0f, 1.0f);
-        temp.z = clip(temp.z, -1.0f, 1.0f);
-        temp.w = clip(temp.w, -1.0f, 1.0f);
-        return temp;
-    }
     
     Vector4 SmoothFilter(std::deque<Vector4> quaternions, Vector4 lastMedian)
     {

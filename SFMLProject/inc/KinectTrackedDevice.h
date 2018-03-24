@@ -92,6 +92,9 @@ namespace KVR {
             pose.qRotation.z = rawJointRotation.z;
             pose.vecPosition[0] = pos.v[0] + trackedPositionVROffset.v[0];
             pose.vecPosition[1] = pos.v[1] + trackedPositionVROffset.v[1];
+            if (role == KinectDeviceRole::Hip) {
+                pose.vecPosition[1] += KinectSettings::hipRoleHeightAdjust;
+            }
             pose.vecPosition[2] = pos.v[2] + trackedPositionVROffset.v[2];
             //Debug
             /*

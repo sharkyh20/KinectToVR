@@ -128,10 +128,12 @@ void processLoop(KinectHandlerBase& kinect) {
 
     sf::Clock clock;
 
+    //Initialise Settings
+    KinectSettings::serializeKinectSettings();
+
     sf::Font font;
     sf::Text debugText;
     // Global Debug Font
-
     font.loadFromFile("arial.ttf");
     debugText.setFont(font);
     debugText.setString("");
@@ -145,7 +147,6 @@ void processLoop(KinectHandlerBase& kinect) {
     // ----------------------------------------------------
 
     //Initialise Kinect
-    KinectSettings::serializeKinectSettings();
     KinectSettings::kinectRepRotation = vrmath::quaternionFromYawPitchRoll(KinectSettings::kinectRadRotation.v[1], KinectSettings::kinectRadRotation.v[0], KinectSettings::kinectRadRotation.v[2]);
     kinect.update();
 
