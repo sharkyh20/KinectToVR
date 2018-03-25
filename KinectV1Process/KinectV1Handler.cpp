@@ -183,11 +183,17 @@
             vr::HmdQuaternion_t jointRotation{ 0,0,0,0 };
             if (getRawTrackedJointPos(device, jointPosition)) {
                 //Rotation - Need to seperate into function
-                NUI_SKELETON_BONE_ROTATION kRotation = boneOrientations[convertJoint(device.joint1)].absoluteRotation;
-                jointRotation.w = kRotation.rotationQuaternion.w;
-                jointRotation.x = kRotation.rotationQuaternion.x;
-                jointRotation.y = kRotation.rotationQuaternion.y;
-                jointRotation.z = kRotation.rotationQuaternion.z;
+                Vector4 kRotation = { 0,0,0,0 };
+                if (KinectSettings::ignoreRotationSmoothing) {
+                    kRotation = boneOrientations[convertJoint(device.joint1)].absoluteRotation.rotationQuaternion;
+                }
+                else {
+                    kRotation = rotFilter.GetFilteredJoints()[convertJoint(device.joint0)];
+                }
+                jointRotation.w = kRotation.w;
+                jointRotation.x = kRotation.x;
+                jointRotation.y = kRotation.y;
+                jointRotation.z = kRotation.z;
 
                 device.update(trackedPositionVROffset, jointPosition, jointRotation);
             } 
@@ -388,6 +394,7 @@ void KinectV1Handler::getKinectRGBData() {
                         jointPositions[j] = skeletonFrame.SkeletonData[i].SkeletonPositions[j];
                     }
                     NuiSkeletonCalculateBoneOrientations(&skeletonFrame.SkeletonData[i], boneOrientations);
+                    rotFilter.update(boneOrientations);
                     break;
                 }
             }

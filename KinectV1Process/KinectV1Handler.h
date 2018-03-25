@@ -2,6 +2,7 @@
 #include "stdafx.h"
 #include "KinectV1Includes.h"
 #include "KinectHandlerBase.h"
+#include "KinectOrientationFilter.h"
 
 class KinectV1Handler : public KinectHandlerBase {
     // A representation of the Kinect elements for the v1 api
@@ -13,6 +14,7 @@ public:
     }
     HANDLE kinectRGBStream = nullptr;
     INuiSensor* kinectSensor = nullptr;
+    RotationalSmoothingFilter rotFilter;
     GLuint kinectTextureId;    // ID of the texture to contain Kinect RGB Data
     NUI_SKELETON_FRAME skeletonFrame = { 0 };
 

@@ -58,44 +58,47 @@ namespace KVR {
             //JOINT POSITION
             //Perspective Correction for changing coord systems
             //Convert to sf vector for rotation fn
-            sf::Vector3f jPosition = { rawJointPos.v[0],rawJointPos.v[1] ,rawJointPos.v[2] };
+            //sf::Vector3f jPosition = { rawJointPos.v[0],rawJointPos.v[1] ,rawJointPos.v[2] };
 
             //Rotate the position around the kinect rep's rot
             if (isSensor()) {
                 //Rotate arrow by 180
                 rawJointRotation = rawJointRotation * vrmath::quaternionFromRotationY(PI);
             }
-            sf::Vector3f laterallyRotatedPos = KMath::rotate(jPosition, { 0,1,0 }, KinectSettings::kinectRadRotation.v[1]);
-            sf::Vector3f tiltRotatedPos = KMath::rotate(laterallyRotatedPos, { 1,0,0 }, KinectSettings::kinectRadRotation.v[0]);
-            vr::HmdVector3_t pos = { { tiltRotatedPos.x,tiltRotatedPos.y,tiltRotatedPos.z } };
+            vr::HmdQuaternion_t rotation = vrmath::quaternionFromYawPitchRoll(  // Y, X, Z
+                KinectSettings::kinectRadRotation.v[1],
+                KinectSettings::kinectRadRotation.v[0],
+                KinectSettings::kinectRadRotation.v[2]);
+            //sf::Vector3f laterallyRotatedPos = KMath::rotate(jPosition, { 0,1,0 }, KinectSettings::kinectRadRotation.v[1]);
+            //sf::Vector3f tiltRotatedPos = KMath::rotate(laterallyRotatedPos, { 1,0,0 }, KinectSettings::kinectRadRotation.v[0]);
+
+            //vr::HmdVector3_t pos = { { tiltRotatedPos.x,tiltRotatedPos.y,tiltRotatedPos.z } };
+            vr::HmdVector3d_t dPos = { rawJointPos.v[0], rawJointPos.v[1], rawJointPos.v[2]};
+            vr::HmdVector3d_t rotatedPos = vrmath::quaternionRotateVector(rotation, dPos, false);
 
             //Adjust this position by the Kinect's VR pos offset
-            pos.v[0] += KinectSettings::kinectRepPosition.v[0];
-            pos.v[1] += KinectSettings::kinectRepPosition.v[1];
-            pos.v[2] += KinectSettings::kinectRepPosition.v[2];
+            rotatedPos.v[0] += KinectSettings::kinectRepPosition.v[0];
+            rotatedPos.v[1] += KinectSettings::kinectRepPosition.v[1];
+            rotatedPos.v[2] += KinectSettings::kinectRepPosition.v[2];
 
             //std::cerr << "jPOS:" << pos.v[0] << ", " << pos.v[1] << ", " << pos.v[2] << "\n";
             //JOINT ROTATION
             if (!isSensor()) {
                 //std::cerr << "KROT:" << KinectSettings::kinectRepRotation.w << ", " << KinectSettings::kinectRepRotation.x << ", " << KinectSettings::kinectRepRotation.y << ", " << KinectSettings::kinectRepRotation.z << "\n";
                 //std::cerr << "RAW:" << rawJointRotation.w << ", " << rawJointRotation.x << ", " << rawJointRotation.y << ", " << rawJointRotation.z << "\n";
-
-
                 rawJointRotation = KinectSettings::kinectRepRotation * rawJointRotation;
-
-
                 //std::cerr << "ADJ:" << rawJointRotation.w << ", " << rawJointRotation.x << ", " << rawJointRotation.y << ", " << rawJointRotation.z << "\n";
             }
             pose.qRotation.w = rawJointRotation.w;
             pose.qRotation.x = rawJointRotation.x;
             pose.qRotation.y = rawJointRotation.y;
             pose.qRotation.z = rawJointRotation.z;
-            pose.vecPosition[0] = pos.v[0] + trackedPositionVROffset.v[0];
-            pose.vecPosition[1] = pos.v[1] + trackedPositionVROffset.v[1];
+            pose.vecPosition[0] = rotatedPos.v[0] + trackedPositionVROffset.v[0];
+            pose.vecPosition[1] = rotatedPos.v[1] + trackedPositionVROffset.v[1];
             if (role == KinectDeviceRole::Hip) {
                 pose.vecPosition[1] += KinectSettings::hipRoleHeightAdjust;
             }
-            pose.vecPosition[2] = pos.v[2] + trackedPositionVROffset.v[2];
+            pose.vecPosition[2] = rotatedPos.v[2] + trackedPositionVROffset.v[2];
             //Debug
             /*
             if (isKinectRepresentation) {

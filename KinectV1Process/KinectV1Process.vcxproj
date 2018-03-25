@@ -152,6 +152,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="KinectOrientationFilter.h" />
     <ClInclude Include="KinectV1Handler.h" />
     <ClInclude Include="KinectV1Includes.h" />
     <ClInclude Include="stdafx.h" />

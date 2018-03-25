@@ -78,7 +78,7 @@ void setScale() {
     /*FontName: data/linden_hill.otf;*/
     float defaultFontSize = 12.f / 1920.f; // Percentage relative to 1080p
     float scaledFontSize = defaultFontSize * (SFMLsettings::m_window_width / SFMLsettings::windowScale);
-    guiDesktop.SetProperty("Window Label, Button, CheckButton, ToggleButton, Label, RadioButton, ComboBox", "FontSize", scaledFontSize);
+    guiDesktop.SetProperty("Window Label, Button, CheckButton, ToggleButton, Label, RadioButton, ComboBox, SpinButton", "FontSize", scaledFontSize);
 }
 void toggleRotButton() {
     KinectRotButton->SetActive(KinectSettings::adjustingKinectRepresentationRot);
@@ -310,6 +310,7 @@ void packElementsIntoMainBox() {
     mainGUIBox->Pack(TrackerInitButton);
     mainGUIBox->Pack(InstructionsLabel);
 
+    setHipScaleBox();
     mainGUIBox->Pack(ShowSkeletonButton);
 
     mainGUIBox->Pack(EnableGamepadButton);
@@ -337,15 +338,17 @@ void packElementsIntoMainBox() {
 
     //mainGUIBox->Pack(calibrationBox); //Calibration left out of main UI because it is not currently implemented
 }
+void setHipScaleBox() {
+    auto HipLabel = sfg::Label::Create("Vertical Hip Adjustment (metres)");
+    HipScale->SetDigits(3);
+    
+    HipScaleBox->Pack(HipLabel, false, false);
+    HipScaleBox->Pack(HipScale);
+    mainGUIBox->Pack(HipScaleBox);
+}
 void packElementsIntoAdvTrackerBox() {
     advancedTrackerBox->Pack(AddHandControllersToList);
     advancedTrackerBox->Pack(AddLowerTrackersToList);
-
-    auto HipLabel = sfg::Label::Create("Vertical Hip Adjustment (metres)");
-    auto scalebox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
-    scalebox->Pack(HipLabel, false, false);
-    scalebox->Pack(HipScale);
-    advancedTrackerBox->Pack(scalebox);
 
     advancedTrackerBox->Pack(TrackerList);
 
@@ -471,7 +474,8 @@ private:
     sfg::Label::Ptr TrackerListLabel = sfg::Label::Create("Trackers to be spawned:");
 
     sfg::Box::Ptr TrackerListOptionsBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5);
-    sfg::SpinButton::Ptr HipScale = sfg::SpinButton::Create(sfg::Adjustment::Create(KinectSettings::hipRoleHeightAdjust, .0f, 1.f, .001f));;
+    sfg::SpinButton::Ptr HipScale = sfg::SpinButton::Create(sfg::Adjustment::Create(KinectSettings::hipRoleHeightAdjust, .0f, 1.f, .05f));
+    sfg::Box::Ptr HipScaleBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
 
     sfg::ComboBox::Ptr BonesList = sfg::ComboBox::Create();
     sfg::ComboBox::Ptr RolesList = sfg::ComboBox::Create();
@@ -496,6 +500,8 @@ private:
         InferredLabel->Show(show);
         IgnoreInferredCheckButton->Show(show);
         IgnoreRotSmoothingCheckButton->Show(show);
+        HipScale->Show(show);
+        HipScaleBox->Show(show);
 
         calibrationBox->Show(show);
     }
