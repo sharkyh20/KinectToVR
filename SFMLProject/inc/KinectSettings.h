@@ -2,6 +2,9 @@
 #include "stdafx.h"
 #include <openvr.h>
 #include <SFML/System/Vector3.hpp>
+#include <SFML\Graphics\Text.hpp>
+#include <string>
+#include <sstream>
 
 enum class KinectVersion {
     Version1 = 0,   //AKA Xbox 360/ Windows v1
@@ -28,6 +31,8 @@ namespace KinectSettings {
 
     extern double kinectToVRScale;
 
+    extern double hipRoleHeightAdjust;
+
     extern vr::HmdVector3_t hmdZero; //TEMP GLOBAL
     extern vr::HmdQuaternion_t kinectRepRotation;
     extern vr::HmdVector3_t kinectRadRotation;
@@ -35,6 +40,7 @@ namespace KinectSettings {
     extern bool adjustingKinectRepresentationRot;
     extern bool adjustingKinectRepresentationPos;
 
+    extern std::string KVRversion;
 
     void serializeKinectSettings();
     void writeKinectSettings();
@@ -42,5 +48,10 @@ namespace KinectSettings {
 namespace SFMLsettings {
     extern int m_window_width;
     extern int m_window_height;
+    extern float windowScale;
+
+    extern bool usingGamepad;
+
+    extern std::stringstream debugDisplayTextStream;
 }
 # define M_PI           3.14159265358979323846

@@ -31,7 +31,7 @@ public:
     virtual void zeroAllTracking(vr::IVRSystem* &m_sys) = 0;
     virtual void updateTrackersWithSkeletonPosition(
         vrinputemulator::VRInputEmulator &emulator,
-        std::vector<KinectTrackedDevice> trackers
+        std::vector<KVR::KinectTrackedDevice> trackers
     ) = 0;
 
     bool isInitialised() { return initialised; }

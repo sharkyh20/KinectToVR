@@ -46,9 +46,9 @@ public:
     virtual void zeroAllTracking(vr::IVRSystem* &m_sys);
     virtual void updateTrackersWithSkeletonPosition(
         vrinputemulator::VRInputEmulator &emulator,
-        std::vector<KinectTrackedDevice> trackers);
+        std::vector<KVR::KinectTrackedDevice> trackers);
 
-    JointType convertJoint(KinectJoint joint);
+    JointType convertJoint(KVR::KinectJoint joint);
 private:
     bool initKinect();
     void getKinectData();
@@ -59,7 +59,7 @@ private:
 
 
 
-    bool getFilteredJoint(KinectTrackedDevice device, vr::HmdVector3_t& position, vr::HmdQuaternion_t &rotation);
+    bool getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdVector3_t& position, vr::HmdQuaternion_t &rotation);
     sf::Vector2f BodyToScreen(const CameraSpacePoint& bodyPoint, int width, int height) {
         // Calculate the body's position on the screen
         DepthSpacePoint depthPoint = { 0 };

@@ -129,7 +129,7 @@ void DoubleExponentialFilter::update(Joint joints[], UINT JointID, SmoothingPara
     {
         // First apply jitter filter
         vDiff = vRawPosition - vPrevFilteredPosition;
-        vectorLength = length(vDiff);
+        vectorLength = KMath::length(vDiff);
         fDiff = fabs(vectorLength);
 
         if (fDiff <= smoothingParams.jitterRadius)
@@ -162,7 +162,7 @@ void DoubleExponentialFilter::update(Joint joints[], UINT JointID, SmoothingPara
 
     // Check that we are not too far away from raw data
     vDiff = vPredictedPosition - vRawPosition;
-    vectorLength = length(vDiff);
+    vectorLength = KMath::length(vDiff);
     fDiff = fabs(vectorLength);
 
     if (fDiff > smoothingParams.maxDeviationRadius)

@@ -2,6 +2,7 @@
 #include "stdafx.h"
 #include "KinectV1Includes.h"
 #include "KinectHandlerBase.h"
+#include "KinectOrientationFilter.h"
 
 class KinectV1Handler : public KinectHandlerBase {
     // A representation of the Kinect elements for the v1 api
@@ -13,6 +14,7 @@ public:
     }
     HANDLE kinectRGBStream = nullptr;
     INuiSensor* kinectSensor = nullptr;
+    RotationalSmoothingFilter rotFilter;
     GLuint kinectTextureId;    // ID of the texture to contain Kinect RGB Data
     NUI_SKELETON_FRAME skeletonFrame = { 0 };
 
@@ -38,10 +40,10 @@ public:
     virtual void zeroAllTracking(vr::IVRSystem* &m_sys);
     virtual void updateTrackersWithSkeletonPosition(
         vrinputemulator::VRInputEmulator &emulator,
-        std::vector<KinectTrackedDevice> trackers);
+        std::vector<KVR::KinectTrackedDevice> trackers);
 
-    bool getRawTrackedJointPos(KinectTrackedDevice device, vr::HmdVector3_t& position);
-    NUI_SKELETON_POSITION_INDEX convertJoint(KinectJoint joint);
+    bool getRawTrackedJointPos(KVR::KinectTrackedDevice device, vr::HmdVector3_t& position);
+    NUI_SKELETON_POSITION_INDEX convertJoint(KVR::KinectJoint joint);
 private:
     bool initKinect();
     void getKinectRGBData();
@@ -60,6 +62,6 @@ private:
     Vector4 zeroKinectPosition(int trackedSkeletonIndex);
     void setKinectToVRMultiplier(int skeletonIndex);
 
-    bool jointsUntracked(KinectJoint joint0, KinectJoint joint1, NUI_SKELETON_DATA data);
-    bool jointsInferred(KinectJoint joint0, KinectJoint joint1, NUI_SKELETON_DATA data);
+    bool jointsUntracked(KVR::KinectJoint joint0, KVR::KinectJoint joint1, NUI_SKELETON_DATA data);
+    bool jointsInferred(KVR::KinectJoint joint0, KVR::KinectJoint joint1, NUI_SKELETON_DATA data);
 };

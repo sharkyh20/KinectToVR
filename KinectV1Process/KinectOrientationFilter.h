@@ -8,7 +8,7 @@
 
 #include <SFML\System\Vector3.hpp>
 #include <KinectSettings.h>
-#include "Kinect.h"
+#include "KinectV1Includes.h"
 #include <openvr_math.h>
 #include <VectorMath.h>
 
@@ -25,7 +25,7 @@ class RotationalSmoothingFilter {
 public:
     RotationalSmoothingFilter() { init(); }
     ~RotationalSmoothingFilter() {}
-    JointType jointType;
+    NUI_SKELETON_POSITION_INDEX jointType;
     int queueSize = 5;
 
     void init() {
@@ -35,17 +35,17 @@ public:
             rotations.push_back({ 0,0,0,0 }); //MAY NEED TO CHANGE THIS TO SOME OTHER ROT
         }
         */
-        for (int i = 0; i < JointType_Count; ++i) {
+        for (int i = 0; i < NUI_SKELETON_POSITION_COUNT; ++i) {
             filteredJointOrientations[i] = { 0,0,0,0 };
         }
     }
-    void update(JointOrientation joints[]) {
+    void update(NUI_SKELETON_BONE_ORIENTATION joints[]) {
         ApplyJointRotation(joints);
     }
     inline const Vector4* GetFilteredJoints() const { return &filteredJointOrientations[0]; }
 private:
     std::deque<Vector4> rotations;
-    Vector4 filteredJointOrientations[JointType_Count];
+    Vector4 filteredJointOrientations[NUI_SKELETON_POSITION_COUNT];
 
 
     Vector4 vrToKinectQuat(vr::HmdQuaternion_t vrQuaternion) {
@@ -119,15 +119,15 @@ private:
             (lhs.w * rhs.w) - (lhs.x * rhs.x) - (lhs.y * rhs.y) - (lhs.z * rhs.z)
         };
     }
-    void ApplyJointRotation(JointOrientation joints[])
+    void ApplyJointRotation(NUI_SKELETON_BONE_ORIENTATION joints[])
     {
         const Vector4 fromTo = fromToRotation(upVRAxis(), forwardVRAxis());
-        for (int i = 0; i < JointType_Count; ++i) {
+        for (int i = 0; i < NUI_SKELETON_POSITION_COUNT; ++i) {
             if (i == 14) {
                 std::cerr << "";
             }
             Vector4 lastRotation = product(
-                joints[i].Orientation,
+                joints[i].absoluteRotation.rotationQuaternion,
                 fromTo);
             //std::cerr << "Joint lastRot" << i << ": " << lastRotation.w << ", " << lastRotation.x << ", " << lastRotation.y << ", " << lastRotation.z << '\n';
             rotations.push_back(lastRotation);

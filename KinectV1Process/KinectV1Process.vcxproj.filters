@@ -30,6 +30,9 @@
     <ClInclude Include="KinectV1Includes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="KinectOrientationFilter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

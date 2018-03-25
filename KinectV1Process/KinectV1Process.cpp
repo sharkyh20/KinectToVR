@@ -8,7 +8,6 @@
 
 int main()
 {
-
     KinectV1Handler kinect;
     
     processLoop(kinect);

@@ -7,6 +7,7 @@
 
 int main()
 {
+
     KinectV2Handler kinect;
     processLoop(kinect);
     return 0;
