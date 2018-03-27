@@ -34,8 +34,8 @@ namespace KinectSettings {
     vr::HmdQuaternion_t kinectRepRotation{0,0,0,0};  //TEMP
     vr::HmdVector3_t kinectRadRotation{0,0,0};
     vr::HmdVector3_t kinectRepPosition{0,0,0};
-    bool adjustingKinectRepresentationRot = true;
-    bool adjustingKinectRepresentationPos = true;
+    bool adjustingKinectRepresentationRot = false;
+    bool adjustingKinectRepresentationPos = false;
 
     void serializeKinectSettings() {
         std::ifstream is(CFG_NAME);
