@@ -248,12 +248,12 @@ void setTrackerInitButtonSignal(vrinputemulator::VRInputEmulator &inputE, std::v
             for (TempTracker tracker : TrackersToBeInitialised) {
                 spawnAndConnectTracker(inputE, v_trackers, tracker.joint0, tracker.joint1, tracker.role);
                 if (tracker.isController) {
-                    setDeviceProperty(v_trackers.back().deviceId, 1029, "int32", "2"); // Device Class: Controller
+                    setDeviceProperty(inputE, v_trackers.back().deviceId, 1029, "int32", "2"); // Device Class: Controller
                     if (tracker.role == KVR::KinectDeviceRole::LeftHand) {
-                        setDeviceProperty(v_trackers.back().deviceId, 3007, "int32", "1"); // ControllerRole Left
+                        setDeviceProperty(inputE, v_trackers.back().deviceId, 3007, "int32", "1"); // ControllerRole Left
                     }
                     else if (tracker.role == KVR::KinectDeviceRole::RightHand) {
-                        setDeviceProperty(v_trackers.back().deviceId, 3007, "int32", "2"); // ControllerRole Right
+                        setDeviceProperty(inputE, v_trackers.back().deviceId, 3007, "int32", "2"); // ControllerRole Right
                     }
                 }
             }

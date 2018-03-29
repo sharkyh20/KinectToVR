@@ -9,8 +9,6 @@
 //void updateKinectTracker(vrinputemulator::VRInputEmulator &emulator, KinectTrackedDevice device);
 void toEulerAngle(vr::HmdQuaternion_t q, double& roll, double& pitch, double& yaw);
 
-void setKinectTrackerProperties(uint32_t deviceId); //TODO: TEMP HOLD BEFORE GETTING MULTIPLE ORIENTATIONS TO WORK
-
 void processKeyEvents(sf::Event event);
 void toggle(bool &b);
 

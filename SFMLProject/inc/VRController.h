@@ -39,14 +39,22 @@ public:
         deltaTime = delta;
         if (m_HMDSystem != nullptr)
         {
-            lastStateValid = m_HMDSystem->GetControllerStateWithPose(
-                vr::ETrackingUniverseOrigin::TrackingUniverseStanding, controllerID, &state_, sizeof(state_), &controllerPose
-            );
-            if (lastStateValid) {
-                prevState_ = state_;
+            if (controllerID == vr::k_unTrackedDeviceIndexInvalid) {
+                controllerID = m_HMDSystem->GetTrackedDeviceIndexForControllerRole(controllerType);
             }
-            UpdateTrigger();
-            UpdateHapticPulse();
+            else {
+                lastStateValid = m_HMDSystem->GetControllerState(controllerID, &state_, sizeof(state_));
+                vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
+                m_HMDSystem->GetDeviceToAbsoluteTrackingPose(
+                    vr::ETrackingUniverseOrigin::TrackingUniverseStanding, 0, poses, vr::k_unMaxTrackedDeviceCount);
+                controllerPose = poses[controllerID];
+                if (lastStateValid) {
+                    prevState_ = state_;
+                }
+                UpdateTrigger();
+                UpdateHapticPulse();
+            }
+            
         }
     }
 
@@ -156,8 +164,11 @@ public:
         controllerPulse.active = true;
         controllerPulse.elapsed = 0;
     }
-    float lerp(float start, float finish, float alpha) {
-        return (1 - alpha) * start + alpha * finish; 
+    bool isOutOfTrackingRange() {
+        //return lastStateValid;
+        if (controllerPose.eTrackingResult == vr::TrackingResult_Running_OutOfRange)
+            return true;
+        return false;
     }
 
 private:
@@ -176,6 +187,9 @@ private:
         uint32_t axisId = 0;
         bool active = false;
     };
+    float lerp(float start, float finish, float alpha) {
+        return (1 - alpha) * start + alpha * finish;
+    }
     HapticPulse controllerPulse;
 
     bool triggerOn;
@@ -187,6 +201,8 @@ private:
     float deltaTime;
     vr::IVRSystem* m_HMDSystem;
     vr::ETrackedControllerRole controllerType;
+
+    bool OverrideTrackedPosWithKinect = false;  // Mainly for MR controllers, when tracking lost, if true, then the kinect hand position will override MR hand position
 };
 /** VR controller button and axis IDs ---pasted from openvr.h--- */
 /*

@@ -124,7 +124,7 @@ void updateKinectWindowRes(const sf::RenderWindow& window) {
 void processLoop(KinectHandlerBase& kinect) {
     sf::RenderWindow renderWindow(getScaledWindowResolution(), "KinectToVR: " + KinectSettings::KVRversion, sf::Style::Titlebar | sf::Style::Close);
     updateKinectWindowRes(renderWindow);
-    renderWindow.setFramerateLimit(45);   //Prevents ridiculous overupdating and high CPU usage - plus 90Hz is the recommended refresh rate for most VR panels 
+    renderWindow.setFramerateLimit(90);   //Prevents ridiculous overupdating and high CPU usage - plus 90Hz is the recommended refresh rate for most VR panels 
 
     sf::Clock clock;
 
@@ -133,8 +133,10 @@ void processLoop(KinectHandlerBase& kinect) {
     sf::Font font;
     sf::Text debugText;
     // Global Debug Font
-    //font.loadFromFile("arial.ttf");
-    //debugText.setFont(font);
+#if _DEBUG
+    font.loadFromFile("arial.ttf");
+    debugText.setFont(font);
+#endif
     debugText.setString("");
     debugText.setCharacterSize(40);
     debugText.setFillColor(sf::Color::Red);
@@ -227,17 +229,22 @@ void processLoop(KinectHandlerBase& kinect) {
         //Process -------------------------------------
         //Update GUI
         guiRef.updateDesktop(deltaT);
-        // Update Kinect Status
-        rightController.Connect(m_VRSystem);
-        leftController.Connect(m_VRSystem);
+        
+        //VR Controllers
         if (eError == vr::VRInitError_None) {
             rightController.update(deltaT);
             leftController.update(deltaT);
+            /*
+            if (rightController.isOutOfTrackingRange()) {
+                SFMLsettings::debugDisplayTextStream << "RIGHT CONTROLLER POSE IS INVALID!\n";
+            }
+            */
         }
         else {
             std::cerr << "Error updating controllers: Could not connect to the SteamVR system! OpenVR init error-code " << std::to_string(eError) << std::endl;
         }
 
+        // Update Kinect Status
         guiRef.updateKinectStatusLabel(kinect);
         if (kinect.isInitialised()) {
             kinect.update();
@@ -361,6 +368,6 @@ void spawnAndConnectKinectTracker(vrinputemulator::VRInputEmulator &inputE, std:
 {
     KinectTrackedDevice kinectTrackerRef(inputE, KVR::KinectJointType::Head, KVR::KinectJointType::Head, KinectDeviceRole::KinectSensor);
 	kinectTrackerRef.init(inputE);
-    setKinectTrackerProperties(kinectTrackerRef.deviceId);
+    setKinectTrackerProperties(inputE, kinectTrackerRef.deviceId);
     v_trackers.push_back(kinectTrackerRef);
 }
