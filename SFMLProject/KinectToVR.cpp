@@ -130,12 +130,11 @@ void processLoop(KinectHandlerBase& kinect) {
 
     //Initialise Settings
     KinectSettings::serializeKinectSettings();
-
     sf::Font font;
     sf::Text debugText;
     // Global Debug Font
-    font.loadFromFile("arial.ttf");
-    debugText.setFont(font);
+    //font.loadFromFile("arial.ttf");
+    //debugText.setFont(font);
     debugText.setString("");
     debugText.setCharacterSize(40);
     debugText.setFillColor(sf::Color::Red);

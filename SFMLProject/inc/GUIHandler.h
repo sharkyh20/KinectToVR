@@ -474,7 +474,7 @@ private:
     sfg::Label::Ptr TrackerListLabel = sfg::Label::Create("Trackers to be spawned:");
 
     sfg::Box::Ptr TrackerListOptionsBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5);
-    sfg::SpinButton::Ptr HipScale = sfg::SpinButton::Create(sfg::Adjustment::Create(KinectSettings::hipRoleHeightAdjust, -1.f, 1.f, .05f));
+    sfg::SpinButton::Ptr HipScale = sfg::SpinButton::Create(sfg::Adjustment::Create(KinectSettings::hipRoleHeightAdjust, -1.f, 1.f, .01f));
     sfg::Box::Ptr HipScaleBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
 
     sfg::ComboBox::Ptr BonesList = sfg::ComboBox::Create();
