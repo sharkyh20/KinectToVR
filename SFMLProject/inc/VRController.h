@@ -177,6 +177,10 @@ private:
     vr::VRControllerState_t state_;
     vr::VRControllerState_t prevState_;
 
+    
+    float lerp(float start, float finish, float alpha) {
+        return (1 - alpha) * start + alpha * finish;
+    }
     struct HapticPulse {
         //length is how long the vibration should go for
         //strength is vibration strength from 0-1
@@ -187,9 +191,6 @@ private:
         uint32_t axisId = 0;
         bool active = false;
     };
-    float lerp(float start, float finish, float alpha) {
-        return (1 - alpha) * start + alpha * finish;
-    }
     HapticPulse controllerPulse;
 
     bool triggerOn;

@@ -176,7 +176,9 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Calibrator.h" />
     <ClInclude Include="GamepadController.h" />
+    <ClInclude Include="GenericController.h" />
     <ClInclude Include="inc\GUIHandler.h" />
     <ClInclude Include="inc\IETracker.h" />
     <ClInclude Include="inc\IKinectHandler.h" />
@@ -189,6 +191,7 @@
     <ClInclude Include="inc\VectorMath.h" />
     <ClInclude Include="inc\VRController.h" />
     <ClInclude Include="inc\VRHelper.h" />
+    <ClInclude Include="ManualCalibrator.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
@@ -197,6 +200,7 @@
     <ClCompile Include="KinectJoint.cpp" />
     <ClCompile Include="KinectSettings.cpp" />
     <ClCompile Include="KinectToVR.cpp" />
+    <ClCompile Include="ManualCalibrator.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

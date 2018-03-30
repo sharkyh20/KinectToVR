@@ -63,6 +63,15 @@
     <ClInclude Include="GamepadController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Calibrator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ManualCalibrator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GenericController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -84,6 +93,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="KinectJoint.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ManualCalibrator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
