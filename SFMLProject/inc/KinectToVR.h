@@ -15,6 +15,7 @@ void toggle(bool &b);
 
 void processLoop(KinectHandlerBase& kinect);
 
+void updateFilePath();
 
 void spawnAndConnectHandTrackers(vrinputemulator::VRInputEmulator & inputE, std::vector<KVR::KinectTrackedDevice>& v_trackers);
 void spawnAndConnectTracker(vrinputemulator::VRInputEmulator &inputE, std::vector<KVR::KinectTrackedDevice> &v_trackers, KVR::KinectJointType mainJoint, KVR::KinectJointType secondaryJoint, KVR::KinectDeviceRole role);

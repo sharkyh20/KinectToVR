@@ -42,7 +42,7 @@ public:
         vrinputemulator::VRInputEmulator &emulator,
         std::vector<KVR::KinectTrackedDevice> trackers);
 
-    bool getRawTrackedJointPos(KVR::KinectTrackedDevice device, vr::HmdVector3_t& position);
+    bool getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdVector3_t& position, vr::HmdQuaternion_t &rotation);
     NUI_SKELETON_POSITION_INDEX convertJoint(KVR::KinectJoint joint);
 private:
     bool initKinect();

@@ -206,6 +206,7 @@ sf::Vector3f KinectV2Handler::zeroKinectPosition(int trackedSkeletonIndex) {
 }
 void KinectV2Handler::zeroAllTracking(vr::IVRSystem *& m_sys)
 {
+    /*
     for (int i = 0; i < BODY_COUNT; ++i) {
         TrackingState trackingState = joints->TrackingState;
 
@@ -216,9 +217,10 @@ void KinectV2Handler::zeroAllTracking(vr::IVRSystem *& m_sys)
             break;
         }
     }
+    */
 }
 void KinectV2Handler::setKinectToVRMultiplier(int skeletonIndex) {
-    
+    /*
     KinectSettings::kinectToVRScale = KinectSettings::hmdZero.v[1]
         / (joints[JointType_Head].Position.Y
             +
@@ -226,6 +228,7 @@ void KinectV2Handler::setKinectToVRMultiplier(int skeletonIndex) {
     std::cerr << "HMD zero: " << KinectSettings::hmdZero.v[1] << '\n';
     std::cerr << "head pos: " << joints[JointType_Head].Position.Y << '\n';
     std::cerr << "foot pos: " << joints[JointType_AnkleLeft].Position.Y << '\n';
+    */
 }
 void KinectV2Handler::updateTrackersWithSkeletonPosition(vrinputemulator::VRInputEmulator & emulator, std::vector<KVR::KinectTrackedDevice> trackers)
 {
@@ -236,6 +239,7 @@ void KinectV2Handler::updateTrackersWithSkeletonPosition(vrinputemulator::VRInpu
             vr::HmdVector3_t jointPosition{ 0,0,0 };
             vr::HmdQuaternion_t jointRotation{ 0,0,0,0 };
             if (getFilteredJoint(device, jointPosition, jointRotation)) {
+                
                 device.update(trackedPositionVROffset, jointPosition, jointRotation);
             }
         }
@@ -250,13 +254,29 @@ bool KinectV2Handler::getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdV
 
     //Rotation - need to seperate into function
     Vector4 kRotation;
-    if (KinectSettings::ignoreRotationSmoothing) {
+    switch (device.rotationOption) {
+    case KVR::JointRotationOption::Unfiltered:
         kRotation = jointOrientations[convertJoint(device.joint0)].Orientation;
-    }
-    else {
+        break;
+    case KVR::JointRotationOption::Filtered:
         kRotation = rotFilter.GetFilteredJoints()[convertJoint(device.joint0)];
+        break;
+    case KVR::JointRotationOption::HeadLook: {        // Ew
+        auto q = KinectSettings::hmdRotation;
+        //Isolate Yaw
+        float yaw = atan2(2 * q.w*q.y + 2 * q.x*q.z, +q.w*q.w + q.x*q.x - q.z*q.z - q.y*q.y);
+
+        auto kq = vrmath::quaternionFromRotationY(yaw);
+        kRotation.w = kq.w;
+        kRotation.x = kq.x;
+        kRotation.y = kq.y;
+        kRotation.z = kq.z;
     }
-    
+                                             break;
+    default:
+        std::cerr << "JOINT ROTATION OPTION UNDEFINED IN DEVICE " << device.deviceId << '\n';
+        break;
+    }
     rotation.w = kRotation.w;
     rotation.x = kRotation.x;
     rotation.y = kRotation.y;

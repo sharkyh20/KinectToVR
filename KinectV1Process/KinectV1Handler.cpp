@@ -154,13 +154,13 @@
 };
 
 //Consider moving this tracking stuff into a seperate class
- void KinectV1Handler::zeroAllTracking(vr::IVRSystem* &m_sys) {
+ void KinectV1Handler::zeroAllTracking(vr::IVRSystem* &m_sys) { // Holdover from previous implementation
     for (int i = 0; i < NUI_SKELETON_COUNT; ++i) {
         NUI_SKELETON_TRACKING_STATE trackingState = skeletonFrame.SkeletonData[i].eTrackingState;
 
         if (NUI_SKELETON_TRACKED == trackingState)
         {
-            KinectSettings::hmdZero = getHMDPosition(m_sys);
+            //KinectSettings::hmdZero = getHMDPosition(m_sys);
 
             setKinectToVRMultiplier(i);
             zeroed = true;
@@ -181,19 +181,8 @@
         else {
             vr::HmdVector3_t jointPosition{ 0,0,0 };
             vr::HmdQuaternion_t jointRotation{ 0,0,0,0 };
-            if (getRawTrackedJointPos(device, jointPosition)) {
-                //Rotation - Need to seperate into function
-                Vector4 kRotation = { 0,0,0,0 };
-                if (KinectSettings::ignoreRotationSmoothing) {
-                    kRotation = boneOrientations[convertJoint(device.joint1)].absoluteRotation.rotationQuaternion;
-                }
-                else {
-                    kRotation = rotFilter.GetFilteredJoints()[convertJoint(device.joint0)];
-                }
-                jointRotation.w = kRotation.w;
-                jointRotation.x = kRotation.x;
-                jointRotation.y = kRotation.y;
-                jointRotation.z = kRotation.z;
+            if (getFilteredJoint(device, jointPosition, jointRotation)) {
+                
 
                 device.update(trackedPositionVROffset, jointPosition, jointRotation);
             } 
@@ -202,7 +191,7 @@
 }
  
 
-bool KinectV1Handler::getRawTrackedJointPos(KVR::KinectTrackedDevice device, vr::HmdVector3_t& position) {
+bool KinectV1Handler::getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdVector3_t& position, vr::HmdQuaternion_t &rotation) {
     for (int i = 0; i < NUI_SKELETON_COUNT; ++i) {
         NUI_SKELETON_TRACKING_STATE trackingState = skeletonFrame.SkeletonData[i].eTrackingState;
 
@@ -225,6 +214,38 @@ bool KinectV1Handler::getRawTrackedJointPos(KVR::KinectTrackedDevice device, vr:
                 float jointY = jointPositions[convertJoint(device.joint0)].y;
                 float jointZ = jointPositions[convertJoint(device.joint0)].z;
                 position = vr::HmdVector3_t{ jointX,jointY,jointZ };
+
+                //Rotation - Need to seperate into function
+                Vector4 kRotation = { 0,0,0,0 };
+                switch (device.rotationOption) {
+                case KVR::JointRotationOption::Unfiltered:
+                    kRotation = boneOrientations[convertJoint(device.joint1)].absoluteRotation.rotationQuaternion;
+                    break;
+                case KVR::JointRotationOption::Filtered:
+                    kRotation = rotFilter.GetFilteredJoints()[convertJoint(device.joint0)];
+                    break;
+                case KVR::JointRotationOption::HeadLook: {        // Ew
+                    auto q = KinectSettings::hmdRotation;
+                    //Isolate Yaw
+                    float yaw = atan2(2 * q.w*q.y + 2 * q.x*q.z, +q.w*q.w + q.x*q.x - q.z*q.z - q.y*q.y);
+
+                    auto kq = vrmath::quaternionFromRotationY(yaw);
+                    kRotation.w = kq.w;
+                    kRotation.x = kq.x;
+                    kRotation.y = kq.y;
+                    kRotation.z = kq.z;
+                }
+                                                         break;
+                default:
+                    std::cerr << "JOINT ROTATION OPTION UNDEFINED IN DEVICE " << device.deviceId << '\n';
+                    break;
+                }
+                rotation.w = kRotation.w;
+                rotation.x = kRotation.x;
+                rotation.y = kRotation.y;
+                rotation.z = kRotation.z;
+
+
                 return true;
             }
         }
@@ -528,13 +549,15 @@ void KinectV1Handler::getKinectRGBData() {
         return jointPositions[NUI_SKELETON_POSITION_HEAD];
     }
     void KinectV1Handler::setKinectToVRMultiplier(int skeletonIndex) {
+        /*
         KinectSettings::kinectToVRScale = KinectSettings::hmdZero.v[1]
             / (jointPositions[NUI_SKELETON_POSITION_HEAD].y
                 +
                 -jointPositions[NUI_SKELETON_POSITION_FOOT_LEFT].y);
-        std::cerr << "HMD zero: " << KinectSettings::hmdZero.v[1] << '\n';
+        //std::cerr << "HMD zero: " << KinectSettings::hmdZero.v[1] << '\n';
         std::cerr << "head pos: " << jointPositions[NUI_SKELETON_POSITION_HEAD].y << '\n';
         std::cerr << "foot pos: " << jointPositions[NUI_SKELETON_POSITION_FOOT_LEFT].y << '\n';
+        */
     }
 
 

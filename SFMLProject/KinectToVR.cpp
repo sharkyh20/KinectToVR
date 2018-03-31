@@ -2,14 +2,20 @@
 #include "KinectToVR.h"
 
 #include "wtypes.h"
+#include "Windows.h"
 
 #include "KinectSettings.h"
 #include "VRController.h"
+#include "VRHelper.h"
 #include "GamepadController.h"
 #include "GUIHandler.h"
 #include "ManualCalibrator.h"
 #include <SFML\Audio.hpp>
+
+#include <locale>
+#include <codecvt>
 #include <iostream>
+#include <string>
 //GUI
 #include <SFGUI\SFGUI.hpp>
 #include <SFGUI/Widgets.hpp>
@@ -120,7 +126,37 @@ void updateKinectWindowRes(const sf::RenderWindow& window) {
     SFMLsettings::m_window_height = window.getSize().y;
     //std::cerr << "w: " << SFMLsettings::m_window_width << " h: " << SFMLsettings::m_window_height << "\n";
 }
+void updateFilePath() {
+    HMODULE module = GetModuleHandleW(NULL);
+    WCHAR exeFilePath[MAX_PATH];
+    GetModuleFileNameW(module, exeFilePath, MAX_PATH);
+     
+    //Get rid of exe from name
+    WCHAR directory[_MAX_PATH];
+    WCHAR drive[_MAX_DRIVE];
+    WCHAR dir[_MAX_DIR];
+    WCHAR fname[_MAX_FNAME];
+    WCHAR ext[_MAX_EXT];
+    _wsplitpath_s(exeFilePath, drive, _MAX_DRIVE, dir, _MAX_DIR, fname,
+        _MAX_FNAME, ext, _MAX_EXT);
+
+    WCHAR filename[_MAX_FNAME]{};
+    WCHAR extension[_MAX_EXT]{};
+    WCHAR directoryFilePath[MAX_PATH];
+    _wmakepath_s(directoryFilePath, _MAX_PATH, drive, dir, filename, extension);
+    std::wstring string_to_convert(directoryFilePath);
+
+    //setup converter
+    using convert_type = std::codecvt_utf8<wchar_t>;
+    std::wstring_convert<convert_type, wchar_t> converter;
+
+    //use converter (.to_bytes: wstr->str, .from_bytes: str->wstr)
+    std::string converted_str = converter.to_bytes(string_to_convert);
+    SFMLsettings::fileDirectoryPath = converted_str;
+}
+
 void processLoop(KinectHandlerBase& kinect) {
+    updateFilePath();
     sf::RenderWindow renderWindow(getScaledWindowResolution(), "KinectToVR: " + KinectSettings::KVRversion, sf::Style::Titlebar | sf::Style::Close);
     updateKinectWindowRes(renderWindow);
     renderWindow.setFramerateLimit(90);   //Prevents ridiculous overupdating and high CPU usage - plus 90Hz is the recommended refresh rate for most VR panels 
@@ -133,7 +169,8 @@ void processLoop(KinectHandlerBase& kinect) {
     sf::Text debugText;
     // Global Debug Font
 #if _DEBUG
-    font.loadFromFile("arial.ttf");
+    std::cout << "Attemping Debug Font Load: " << KVR::fileToDirPath("arial.ttf") << '\n';
+    font.loadFromFile(KVR::fileToDirPath("arial.ttf"));
     debugText.setFont(font);
 #endif
     debugText.setString("");
@@ -167,7 +204,7 @@ void processLoop(KinectHandlerBase& kinect) {
 
     // Tracker Initialisation Lambda
     if (inputEmulator.isConnected()) {
-        guiRef.setTrackerInitButtonSignal(inputEmulator, v_trackers);
+        guiRef.setTrackerButtonSignals(inputEmulator, v_trackers);
         guiRef.updateEmuStatusLabelSuccess();
     }
     else {
@@ -233,6 +270,7 @@ void processLoop(KinectHandlerBase& kinect) {
         if (eError == vr::VRInitError_None) {
             rightController.update(deltaT);
             leftController.update(deltaT);
+            updateHMDPosAndRot(m_VRSystem);
             /*
             if (rightController.isOutOfTrackingRange()) {
                 SFMLsettings::debugDisplayTextStream << "RIGHT CONTROLLER POSE IS INVALID!\n";
