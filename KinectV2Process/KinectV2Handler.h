@@ -4,6 +4,7 @@
 #include "KinectHandlerBase.h"
 #include "KinectJointFilter.h"
 #include "KinectOrientationFilter.h"
+#include "KinectDoubleExponentialRotationFilter.h"
 // Kinect V2 - directory local due to my win 7 machine being unsupported for actual install
 
 #include <Kinect.h>
@@ -16,7 +17,8 @@ public:
     virtual ~KinectV2Handler() {}
 
     DoubleExponentialFilter filter;
-    RotationalSmoothingFilter rotFilter;
+    //RotationalSmoothingFilter rotFilter;
+    DoubleExpBoneOrientationsFilter rotationFilter;
     IKinectSensor* kinectSensor = nullptr;
     IMultiSourceFrameReader* frameReader = nullptr;
     IMultiSourceFrame* multiFrame = nullptr;

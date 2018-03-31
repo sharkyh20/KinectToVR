@@ -26,10 +26,10 @@ public:
     RotationalSmoothingFilter() { init(); }
     ~RotationalSmoothingFilter() {}
     JointType jointType;
-    int queueSize = 5;
+    int queueSize = 16;
 
     void init() {
-        rotations = std::deque<Vector4>();
+        rotations = std::vector<std::deque<Vector4>>(JointType_Count);
         /*
         for (int i = 0; i < queueSize; ++i) {
             rotations.push_back({ 0,0,0,0 }); //MAY NEED TO CHANGE THIS TO SOME OTHER ROT
@@ -44,7 +44,7 @@ public:
     }
     inline const Vector4* GetFilteredJoints() const { return &filteredJointOrientations[0]; }
 private:
-    std::deque<Vector4> rotations;
+    std::vector<std::deque<Vector4>> rotations;
     Vector4 filteredJointOrientations[JointType_Count];
 
 
@@ -123,17 +123,18 @@ private:
     {
         const Vector4 fromTo = fromToRotation(upVRAxis(), forwardVRAxis());
         for (int i = 0; i < JointType_Count; ++i) {
-            if (i == 14) {
-                std::cerr << "";
-            }
             Vector4 lastRotation = product(
                 joints[i].Orientation,
                 fromTo);
             //std::cerr << "Joint lastRot" << i << ": " << lastRotation.w << ", " << lastRotation.x << ", " << lastRotation.y << ", " << lastRotation.z << '\n';
-            rotations.push_back(lastRotation);
-            filteredJointOrientations[i] = SmoothFilter(rotations, filteredJointOrientations[i]);
-
-            rotations.pop_front();
+            rotations[i].push_back(lastRotation);
+            filteredJointOrientations[i] = SmoothFilter(rotations[i], filteredJointOrientations[i]);
+            if (rotations[i].size() == queueSize)
+                rotations[i].pop_front();
+            if (i == 14) {
+                for (Vector4 v : rotations[i])
+                    SFMLsettings::debugDisplayTextStream << v.w << ", " << v.x << ", " << v.y << ", " << v.z << '\n';
+            }
         }
     }
     sf::Vector3f upVRAxis() { return { 0,1,0 }; }
@@ -187,7 +188,6 @@ private:
                 median.w += weightedQuaternion.w;
             
         }
-
         median.x /= quaternions.size();
         median.y /= quaternions.size();
         median.z /= quaternions.size();
