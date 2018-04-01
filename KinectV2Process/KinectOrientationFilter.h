@@ -26,7 +26,7 @@ public:
     RotationalSmoothingFilter() { init(); }
     ~RotationalSmoothingFilter() {}
     JointType jointType;
-    int queueSize = 16;
+    int queueSize = 1;
 
     void init() {
         rotations = std::vector<std::deque<Vector4>>(JointType_Count);
@@ -132,8 +132,8 @@ private:
             if (rotations[i].size() == queueSize)
                 rotations[i].pop_front();
             if (i == 14) {
-                for (Vector4 v : rotations[i])
-                    SFMLsettings::debugDisplayTextStream << v.w << ", " << v.x << ", " << v.y << ", " << v.z << '\n';
+                //for (Vector4 v : rotations[i])
+                    //SFMLsettings::debugDisplayTextStream << v.w << ", " << v.x << ", " << v.y << ", " << v.z << '\n';
             }
         }
     }

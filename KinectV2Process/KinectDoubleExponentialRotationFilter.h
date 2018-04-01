@@ -5,6 +5,8 @@
 #include <algorithm>
 #include "Kinect.h"
 #include "SmoothingParameters.h"
+#include "openvr.h"
+#include "openvr_math.h"
 
 #define max(a,b)            (((a) > (b)) ? (a) : (b))
 //Copyright credited to Microsoft, and source code found at https://github.com/zwang87/MixedRealitywithLaserWhiteboard/blob/master/Assets/Scripts/KinectScripts/Filters/BoneOrientationsFilter.cs
@@ -112,14 +114,15 @@ public:
         tempSmoothingParams.correction = smoothParameters.correction;
         tempSmoothingParams.prediction = smoothParameters.prediction;
 
+        Joint joints[JointType_Count];
+        pBody->GetJoints(JointType_Count, joints);
         for (int jointIndex = 0; jointIndex < JointType_Count; jointIndex++)
         {
             //KinectWrapper.NuiSkeletonPositionIndex jt = (KinectWrapper.NuiSkeletonPositionIndex)jointIndex;
 
             // If not tracked, we smooth a bit more by using a bigger jitter radius
             // Always filter feet highly as they are so noisy
-            Joint joints[JointType_Count];
-            pBody->GetJoints(JointType_Count, joints);
+            
             if (joints[jointIndex].TrackingState != TrackingState::TrackingState_Tracked ||
                 jointIndex == JointType_FootLeft || jointIndex == JointType_FootRight)
             {
@@ -272,6 +275,22 @@ protected:
         r = normalisedQ(r);
         return r;
     }
+    Vector4 vrToKinectQuat(vr::HmdQuaternion_t vrQuaternion) {
+        Vector4 temp;
+        temp.w = vrQuaternion.w;
+        temp.x = vrQuaternion.x;
+        temp.y = vrQuaternion.y;
+        temp.z = vrQuaternion.z;
+        return temp;
+    }
+    vr::HmdQuaternion_t kinectToVRQuat(Vector4 kQuaternion) {
+        vr::HmdQuaternion_t temp;
+        temp.w = kQuaternion.w;
+        temp.x = kQuaternion.x;
+        temp.y = kQuaternion.y;
+        temp.z = kQuaternion.z;
+        return temp;
+    }
 
     bool isTrackedOrInferred(Joint joints[], int index) {
         return (joints[index].TrackingState == TrackingState_Inferred || joints[index].TrackingState == TrackingState_Tracked);
@@ -295,8 +314,9 @@ protected:
         sf::Vector3f upAxis = { 0,1,0 };
         if (fwdVector == sf::Vector3f{0, 0, 0})
             return;
+        vr::HmdVector3d_t v = { fwdVector.x, fwdVector.y, fwdVector.z };
         //Vector4 rawOrientation = fromToRotation(fwdVector, jointOrientations[jointIndex].Orientation);
-        Vector4 rawOrientation = jointOrientations[jointIndex].Orientation;
+        Vector4 rawOrientation = jointOrientations[jointIndex].Orientation;// Might need to do product of forward vector
         Vector4 prevFilteredOrientation = history[jointIndex].FilteredBoneOrientation;
         Vector4 prevTrend = history[jointIndex].Trend;
         sf::Vector3f rawPosition = { joints[jointIndex].Position.X, joints[jointIndex].Position.Y, joints[jointIndex].Position.Z};
