@@ -82,7 +82,7 @@ public:
     void Reset()
     {
         for (int i = 0; i < JointType_Count; ++i)
-            history[i] = FilterDoubleExponentialData();
+            history[i] = FilterDoubleExponentialData{};
     }
 
     // Implements a double exponential smoothing filter on the skeleton bone orientation quaternions.
@@ -120,7 +120,7 @@ public:
             // Always filter feet highly as they are so noisy
             Joint joints[JointType_Count];
             pBody->GetJoints(JointType_Count, joints);
-            if (joints[jointIndex].TrackingState == TrackingState::TrackingState_Inferred ||
+            if (joints[jointIndex].TrackingState != TrackingState::TrackingState_Tracked ||
                 jointIndex == JointType_FootLeft || jointIndex == JointType_FootRight)
             {
                 tempSmoothingParams.jitterRadius = smoothParameters.jitterRadius * 2.0f;
@@ -251,16 +251,35 @@ protected:
         float angle = 2.0f * acos(rotation.w);
         return angle;
     }
+    Vector4 EnhancedQuaternionSlerp(Vector4 quaternionA, Vector4 quaternionB, float amount)
+    {
+        Vector4 modifiedB = EnsureQuaternionNeighborhood(quaternionA, quaternionB);
+        return slerp(quaternionA, modifiedB, amount);
+    }
+    Vector4 slerp(const Vector4& a, const Vector4& b, const float t)
+    {
+        Vector4 r;
+        float t_ = 1 - t;
+        float Wa, Wb;
+        float theta = acos(a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w);
+        float sn = sin(theta);
+        Wa = sin(t_*theta) / sn;
+        Wb = sin(t*theta) / sn;
+        r.x = Wa*a.x + Wb*b.x;
+        r.y = Wa*a.y + Wb*b.y;
+        r.z = Wa*a.z + Wb*b.z;
+        r.w = Wa*a.w + Wb*b.w;
+        r = normalisedQ(r);
+        return r;
+    }
 
     bool isTrackedOrInferred(Joint joints[], int index) {
         return (joints[index].TrackingState == TrackingState_Inferred || joints[index].TrackingState == TrackingState_Tracked);
     }
     bool rotationIsValid(Vector4 q) {
-        if (q.w == 0 && q.x == 0 && q.y == 0 && q.z == 0)
-            return false;
-        return true;
+        return !(isnan(q.x) || isnan(q.y) || isnan(q.z) || isnan(q.w));
     }
-    void FilterJoint(Joint joints[], int jointIndex, SmoothingParameters & params, JointOrientation *jointOrientations)
+    void FilterJoint(Joint *joints, int jointIndex, SmoothingParameters & params, JointOrientation *jointOrientations)
     {
         //        if (null == skeleton)
         //        {
@@ -269,8 +288,8 @@ protected:
 
         //        int jointIndex = (int)jt;
 
-        Vector4 filteredOrientation;
-        Vector4 trend;
+        Vector4 filteredOrientation{};
+        Vector4 trend{};
 
         sf::Vector3f fwdVector = { 0, 0 , 1 }; // LOOK INTO THIS VALUE!!!
         sf::Vector3f upAxis = { 0,1,0 };
@@ -280,7 +299,7 @@ protected:
         Vector4 rawOrientation = jointOrientations[jointIndex].Orientation;
         Vector4 prevFilteredOrientation = history[jointIndex].FilteredBoneOrientation;
         Vector4 prevTrend = history[jointIndex].Trend;
-        sf::Vector3f rawPosition = { joints[jointIndex].Position.X, joints[jointIndex].Position.Y, joints[jointIndex].Position .Z};
+        sf::Vector3f rawPosition = { joints[jointIndex].Position.X, joints[jointIndex].Position.Y, joints[jointIndex].Position.Z};
         bool orientationIsValid = jointPositionIsValid(rawPosition) && isTrackedOrInferred(joints, jointIndex) && rotationIsValid(rawOrientation);
 
         if (!orientationIsValid)
@@ -297,16 +316,16 @@ protected:
         {
             // Use raw position and zero trend for first value
             filteredOrientation = rawOrientation;
-            trend = Vector4{ 0,0,0,0 };
+            trend = Vector4{ 0,0,0,1 }; // TRY USING w = 1!!!
         }
         else if (history[jointIndex].FrameCount == 1)
         {
             // Use average of two positions and calculate proper trend for end value
             Vector4 prevRawOrientation = history[jointIndex].RawBoneOrientation;
-            filteredOrientation = lerp(prevRawOrientation, rawOrientation, 0.5f);
+            filteredOrientation = EnhancedQuaternionSlerp(prevRawOrientation, rawOrientation, 0.5f);
 
-            Vector4 diffStarted = lerp(filteredOrientation, prevFilteredOrientation, 0); // Might not be 0!!!
-            trend = lerp(prevTrend, diffStarted, params.correction);
+            Vector4 diffStarted = RotationBetweenQuaternions(filteredOrientation, prevFilteredOrientation); 
+            trend = EnhancedQuaternionSlerp(prevTrend, diffStarted, params.correction);
         }
         else
         {
@@ -316,7 +335,7 @@ protected:
 
             if (diffValJitter <= params.jitterRadius)
             {
-                filteredOrientation = lerp(prevFilteredOrientation, rawOrientation, diffValJitter / params.jitterRadius);
+                filteredOrientation = EnhancedQuaternionSlerp(prevFilteredOrientation, rawOrientation, diffValJitter / params.jitterRadius);
             }
             else
             {
@@ -324,14 +343,14 @@ protected:
             }
 
             // Now the double exponential smoothing filter
-            filteredOrientation = lerp(filteredOrientation, product(prevFilteredOrientation, prevTrend), params.smoothing);
+            filteredOrientation = EnhancedQuaternionSlerp(filteredOrientation, product(prevFilteredOrientation, prevTrend), params.smoothing);
 
             diffJitter = RotationBetweenQuaternions(filteredOrientation, prevFilteredOrientation);
-            trend = lerp(prevTrend, diffJitter, params.correction);
+            trend = EnhancedQuaternionSlerp(prevTrend, diffJitter, params.correction);
         }
 
         // Use the trend and predict into the future to reduce latency
-        Vector4 predictedOrientation = product(filteredOrientation,lerp(Vector4{ 0,0,0,0 }, trend, params.prediction));
+        Vector4 predictedOrientation = product(filteredOrientation, EnhancedQuaternionSlerp(Vector4{ 0,0,0,1 }, trend, params.prediction));
 
         // Check that we are not too far away from raw data
         Vector4 diff = RotationBetweenQuaternions(predictedOrientation, filteredOrientation);
@@ -339,7 +358,7 @@ protected:
 
         if (diffVal > params.maxDeviationRadius)
         {
-            predictedOrientation = lerp(filteredOrientation, predictedOrientation, params.maxDeviationRadius / diffVal);
+            predictedOrientation = EnhancedQuaternionSlerp(filteredOrientation, predictedOrientation, params.maxDeviationRadius / diffVal);
         }
 
         //        predictedOrientation.Normalize();
