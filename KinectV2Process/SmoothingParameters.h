@@ -7,4 +7,5 @@
 struct SmoothingParameters;
 SmoothingParameters getDefaultSmoothingParams();
 SmoothingParameters getAggressiveSmoothingParams();
+SmoothingParameters getRotationSmoothingParams();
 #endif

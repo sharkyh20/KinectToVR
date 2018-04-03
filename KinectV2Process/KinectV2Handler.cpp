@@ -192,8 +192,8 @@ void KinectV2Handler::updateSkeletalData() {
 
             //Smooth
             filter.update(joints);
-            rotFilter.update(jointOrientations);  //TODO FIX
-            //rotationFilter.UpdateFilter(kinectBodies[i], jointOrientations); // New filter, still not properly implemented
+            //rotFilter.update(jointOrientations);  //TODO FIX
+            rotationFilter.UpdateFilter(kinectBodies[i], jointOrientations); // New filter, still not properly implemented
             break;
         }
     }
@@ -260,8 +260,8 @@ bool KinectV2Handler::getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdV
         kRotation = jointOrientations[convertJoint(device.joint0)].Orientation;
         break;
     case KVR::JointRotationOption::Filtered:
-        kRotation = rotFilter.GetFilteredJoints()[convertJoint(device.joint0)];
-        //kRotation = rotationFilter.GetFilteredJoints()[convertJoint(device.joint0)]; //New filter
+        //kRotation = rotFilter.GetFilteredJoints()[convertJoint(device.joint0)];
+        kRotation = rotationFilter.GetFilteredJoints()[convertJoint(device.joint0)]; //New filter
         break;
     case KVR::JointRotationOption::HeadLook: {        // Ew
         auto q = KinectSettings::hmdRotation;

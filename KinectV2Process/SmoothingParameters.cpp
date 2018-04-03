@@ -25,3 +25,12 @@ SmoothingParameters getAggressiveSmoothingParams() {
     params.prediction = .25f;
     return params;
 }
+SmoothingParameters getRotationSmoothingParams() {
+    SmoothingParameters params;
+    params.smoothing = .5f;
+    params.correction = .25f;
+    params.maxDeviationRadius = .25f;
+    params.jitterRadius = 0.4f;
+    params.prediction = .25f;
+    return params;
+}

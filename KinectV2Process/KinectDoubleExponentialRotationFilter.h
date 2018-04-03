@@ -7,6 +7,7 @@
 #include "SmoothingParameters.h"
 #include "openvr.h"
 #include "openvr_math.h"
+#include "VectorMath.h"
 
 #define max(a,b)            (((a) > (b)) ? (a) : (b))
 //Copyright credited to Microsoft, and source code found at https://github.com/zwang87/MixedRealitywithLaserWhiteboard/blob/master/Assets/Scripts/KinectScripts/Filters/BoneOrientationsFilter.cs
@@ -29,7 +30,7 @@ private:
         Vector4 Trend = { 0,0,0,0 };
 
         // Gets or sets Historical FrameCount.  
-        int FrameCount = 0;
+        unsigned int FrameCount = 0;
     };
 
     // The previous filtered orientation data.
@@ -59,7 +60,7 @@ public:
 
     void Init(float smoothingValue, float correctionValue, float predictionValue, float jitterRadiusValue, float maxDeviationRadiusValue)
     {
-        smoothParameters = getDefaultSmoothingParams();
+        smoothParameters = getRotationSmoothingParams();
 
         smoothParameters.maxDeviationRadius = maxDeviationRadiusValue; // Size of the max prediction radius Can snap back to noisy data when too high
         smoothParameters.smoothing = smoothingValue;                   // How much soothing will occur.  Will lag when too high
@@ -83,8 +84,14 @@ public:
     /// Resets the filter to default values.
     void Reset()
     {
-        for (int i = 0; i < JointType_Count; ++i)
-            history[i] = FilterDoubleExponentialData{};
+        for (int i = 0; i < JointType_Count; ++i) {
+            FilterDoubleExponentialData d;
+            d.FilteredBoneOrientation = { 0,0,0,1 };
+            d.FrameCount = 0;
+            d.RawBoneOrientation = { 0,0,0,1 };
+            d.Trend = { 0,0,0,1 };
+            history[i] = d;
+        }
     }
 
     // Implements a double exponential smoothing filter on the skeleton bone orientation quaternions.
@@ -94,18 +101,16 @@ public:
         //        {
         //            return;
         //        }
+        Joint joints[JointType_Count];
+        pBody->GetJoints(JointType_Count, joints);
 
-        //        if (skeleton.eTrackingState != KinectWrapper.NuiSkeletonTrackingState.SkeletonTracked)
-        //        {
-        //            return;
-        //        }
 
         if (init == false)
         {
             Init(); // initialize with default parameters                
         }
 
-        SmoothingParameters tempSmoothingParams = getDefaultSmoothingParams();
+        SmoothingParameters tempSmoothingParams = getRotationSmoothingParams();
 
         // Check for divide by zero. Use an epsilon of a 10th of a millimeter
         smoothParameters.jitterRadius = max(0.0001f, smoothParameters.jitterRadius);
@@ -114,8 +119,7 @@ public:
         tempSmoothingParams.correction = smoothParameters.correction;
         tempSmoothingParams.prediction = smoothParameters.prediction;
 
-        Joint joints[JointType_Count];
-        pBody->GetJoints(JointType_Count, joints);
+        
         for (int jointIndex = 0; jointIndex < JointType_Count; jointIndex++)
         {
             //KinectWrapper.NuiSkeletonPositionIndex jt = (KinectWrapper.NuiSkeletonPositionIndex)jointIndex;
@@ -138,7 +142,7 @@ public:
             FilterJoint(joints, jointIndex, tempSmoothingParams, jointsOrientations);
         }
     }
-protected:
+private:
     // Update the filter for one joint.  
     bool jointPositionIsValid(sf::Vector3f vJointPosition)
     {
@@ -146,7 +150,7 @@ protected:
             vJointPosition.y != 0.0f ||
             vJointPosition.z != 0.0f);
     }
-    sf::Vector3f normalise(const sf::Vector3f & v) {
+    sf::Vector3f normalise(sf::Vector3f v) {
         float  length = v.x*v.x + v.y*v.y + v.z*v.z;
         if (length == 0)
             return v;
@@ -156,6 +160,14 @@ protected:
             v.x * length,
             v.y * length,
             v.z * length };
+    }
+    bool equal(const Vector4& lhs, const Vector4& rhs) {
+        return
+            lhs.w == rhs.w
+            && lhs.x == rhs.x
+            && lhs.y == rhs.y
+            && lhs.z == rhs.z
+            ;
     }
     float length(Vector4 v) {
         return sqrt(v.w*v.w + v.x *v.x + v.y*v.y + v.z*v.z);
@@ -213,24 +225,55 @@ protected:
     }
     Vector4 divide(const Vector4& x, float k) {
         Vector4 q;
-        q.w = x.w /k;
+        q.w = x.w / k;
         q.x = x.x / k;
         q.y = x.y / k;
         q.z = x.z / k;
         return q;
     }
+    Vector4 subtract(Vector4 left, Vector4 right) 
+    {
+        return Vector4{ left.x - right.x, left.y - right.y, left.z - right.z, left.w - right.w };
+    }
+    Vector4 add(Vector4 left, Vector4 right) 
+    {
+        return Vector4{ left.x + right.x, left.y + right.y, left.z + right.z,left.w + right.w };
+    }
+    Vector4 product(Vector4 q, float k) {
+        return Vector4{ k*q.x, k*q.y, k*q.z,k*q.w };
+    }
     Vector4 conj(const Vector4 x) {
-        return { x.w, -x.x, -x.y, -x.z };
+        return {  -x.x, -x.y, -x.z, x.w };
     }
+    
     Vector4 inverse(const Vector4 x) {   // Might need to take in reference
-        return divide(conj(x), norm_squared(x));
+        auto sq = norm_squared(x);
+        if (sq == 0.0f)
+            return { 0,0,0,1 };
+        return divide(conj(x), sq);
     }
+    /*
+    Vector4 inverse( Vector4 a) {
+        float a0 = a.x, a1 = a.y, a2 = a.z, a3 = a.z,
+            dot = a0 * a0 + a1 * a1 + a2 * a2 + a3 * a3,
+            invDot = dot ? 1.0 / dot : 0;
 
+        // TODO: Would be faster to return [0,0,0,0] immediately if dot == 0
+        Vector4 out;
+        out.x = -a0 * invDot;
+        out.y = -a1 * invDot;
+        out.z = -a2 * invDot;
+        out.w = a3 * invDot;
+        return out;
+    }
+    */
     float norm_squared(const Vector4 x) const {
         return  x.w * x.w + x.x * x.x + x.y * x.y + x.z * x.z;
     }
     Vector4 RotationBetweenQuaternions(Vector4 quaternionA, Vector4 quaternionB)
     {
+        if (equal(quaternionA, quaternionB))
+            return quaternionA;
         Vector4 modifiedB = EnsureQuaternionNeighborhood(quaternionA, quaternionB);
         return product(inverse(quaternionA), modifiedB);
     }
@@ -256,24 +299,42 @@ protected:
     }
     Vector4 EnhancedQuaternionSlerp(Vector4 quaternionA, Vector4 quaternionB, float amount)
     {
+        if (equal(quaternionA, quaternionB))
+            return quaternionA;
         Vector4 modifiedB = EnsureQuaternionNeighborhood(quaternionA, quaternionB);
         return slerp(quaternionA, modifiedB, amount);
     }
-    Vector4 slerp(const Vector4& a, const Vector4& b, const float t)
+    Vector4 slerp(const Vector4& q1, const Vector4& q2, const float t)
     {
-        Vector4 r;
-        float t_ = 1 - t;
-        float Wa, Wb;
-        float theta = acos(a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w);
-        float sn = sin(theta);
-        Wa = sin(t_*theta) / sn;
-        Wb = sin(t*theta) / sn;
-        r.x = Wa*a.x + Wb*b.x;
-        r.y = Wa*a.y + Wb*b.y;
-        r.z = Wa*a.z + Wb*b.z;
-        r.w = Wa*a.w + Wb*b.w;
-        r = normalisedQ(r);
-        return r;
+        // From wikipedia
+        Vector4 a = normalisedQ(q1);
+        Vector4 b = normalisedQ(q2);
+
+        // Compute the cosine of the angle between the two vectors.
+        double dproduct = dot(a, b);
+
+        // If the dot product is negative, the quaternions
+        // have opposite handed-ness and slerp won't take
+        // the shorter path. Fix by reversing one quaternion.
+        if (dproduct < 0.0f) {
+            b = Vector4{ -b.x, -b.y, -b.z, -b.w };
+            dproduct = -dproduct;
+        }
+        const double DOT_THRESHOLD = 0.9995;
+        if (dproduct > DOT_THRESHOLD) {
+            // If the inputs are too close for comfort, linearly interpolate
+            // and normalize the result.
+            Vector4 result = add(a, product( subtract(b,a) ,t));
+            result = normalisedQ(result);
+            return result;
+        }
+        double theta_0 = acos(dproduct);
+        double theta = theta_0 * t;    // theta = angle between v0 and result
+
+        double s0 = cos(theta) - dproduct * sin(theta) / sin(theta_0);  // == sin(theta_0 - theta) / sin(theta_0)
+        double s1 = sin(theta) / sin(theta_0);
+
+        return (add(product(a, s0), product(b, s1)));
     }
     Vector4 vrToKinectQuat(vr::HmdQuaternion_t vrQuaternion) {
         Vector4 temp;
@@ -291,6 +352,61 @@ protected:
         temp.z = kQuaternion.z;
         return temp;
     }
+    Vector4 rotationBetween(sf::Vector3f v1, sf::Vector3f v2) {
+        if (KMath::dot(v1, v2) > 0.999999 && KMath::dot(v1, v1) < -0.999999) {
+            return { 0,0,0,1 }; // IDENTITY Q
+        }
+    }
+    Vector4 getRotationTo(sf::Vector3f from,sf::Vector3f dest,
+        sf::Vector3f fallbackAxis = { 0,0,0 }) 
+    {
+        // Taken from Ogre3d's Vector3.h
+        // Based on Stan Melax's article in Game Programming Gems
+        Vector4 q;
+        // Copy, since cannot modify local
+        sf::Vector3f v0 = from;
+        sf::Vector3f v1 = dest;
+        v0 = normalise(v0);
+        v1 = normalise(v1);
+
+        float d = KMath::dot(v0, v1);
+        // If dot == 1, vectors are the same
+        if (d >= 1.0f)
+        {
+            return { 0,0,0,1 };
+        }
+        if (d < (1e-6f - 1.0f))
+        {
+            if (fallbackAxis != sf::Vector3f{0, 0, 0})
+            {
+                // rotate 180 degrees about the fallback axis
+                q = vrToKinectQuat(vrmath::quaternionFromRotationAxis(PI, fallbackAxis.x, fallbackAxis.y, fallbackAxis.z));
+            }
+            else
+            {
+                // Generate an axis
+                sf::Vector3f axis = KMath::cross({ 1,0,0 }, v0);
+                if (KMath::length(axis) == 0.0f) // pick another if colinear
+                    axis = KMath::cross({ 0,1,0 },v0);
+                axis = normalise(axis);
+                q = vrToKinectQuat(vrmath::quaternionFromRotationAxis(PI, axis.x, axis.y, axis.z));
+            }
+        }
+        else
+        {
+            float s = sqrt((1 + d) * 2);
+            float invs = 1 / s;
+
+            sf::Vector3f c = KMath::cross(v0,v1);
+
+            q.x = c.x * invs;
+            q.y = c.y * invs;
+            q.z = c.z * invs;
+            q.w = s * 0.5f;
+            q = normalisedQ(q);
+        }
+        return q;
+    }
 
     bool isTrackedOrInferred(Joint joints[], int index) {
         return (joints[index].TrackingState == TrackingState_Inferred || joints[index].TrackingState == TrackingState_Tracked);
@@ -307,6 +423,7 @@ protected:
 
         //        int jointIndex = (int)jt;
 
+
         Vector4 filteredOrientation{};
         Vector4 trend{};
 
@@ -317,6 +434,8 @@ protected:
         vr::HmdVector3d_t v = { fwdVector.x, fwdVector.y, fwdVector.z };
         //Vector4 rawOrientation = fromToRotation(fwdVector, jointOrientations[jointIndex].Orientation);
         Vector4 rawOrientation = jointOrientations[jointIndex].Orientation;// Might need to do product of forward vector
+        if (equal(rawOrientation, { 0,0,0,0 }))
+            rawOrientation = { 0,0,0,1 };
         Vector4 prevFilteredOrientation = history[jointIndex].FilteredBoneOrientation;
         Vector4 prevTrend = history[jointIndex].Trend;
         sf::Vector3f rawPosition = { joints[jointIndex].Position.X, joints[jointIndex].Position.Y, joints[jointIndex].Position.Z};
@@ -330,13 +449,18 @@ protected:
                 history[jointIndex].FrameCount = 0;
             }
         }
-
+        /*
+        if (equal(rawOrientation, { 0,0,0,0 })) {
+            // Causing NaN errors
+            return;
+        }
+        */
         // Initial start values or reset values
         if (history[jointIndex].FrameCount == 0)
         {
             // Use raw position and zero trend for first value
             filteredOrientation = rawOrientation;
-            trend = Vector4{ 0,0,0,1 }; // TRY USING w = 1!!!
+            trend = Vector4{ 0,0,0,1}; // TRY USING w = 1!!!
         }
         else if (history[jointIndex].FrameCount == 1)
         {
@@ -351,6 +475,7 @@ protected:
         {
             // First apply a jitter filter
             Vector4 diffJitter = RotationBetweenQuaternions(rawOrientation, prevFilteredOrientation);
+
             float diffValJitter = abs(QuaternionAngle(diffJitter));
 
             if (diffValJitter <= params.jitterRadius)
@@ -366,6 +491,7 @@ protected:
             filteredOrientation = EnhancedQuaternionSlerp(filteredOrientation, product(prevFilteredOrientation, prevTrend), params.smoothing);
 
             diffJitter = RotationBetweenQuaternions(filteredOrientation, prevFilteredOrientation);
+
             trend = EnhancedQuaternionSlerp(prevTrend, diffJitter, params.correction);
         }
 
@@ -396,6 +522,7 @@ protected:
         {
             filteredOrientations[jointIndex] = predictedOrientation; //Was previously a TRS matrix!!!
         }
+        
     }
     Vector4 product(const Vector4 &lhs, const Vector4 &rhs) {
         return {

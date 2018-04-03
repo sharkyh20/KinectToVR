@@ -17,8 +17,8 @@ public:
     virtual ~KinectV2Handler() {}
 
     DoubleExponentialFilter filter;
-    RotationalSmoothingFilter rotFilter;
-    //DoubleExpBoneOrientationsFilter rotationFilter;
+    //RotationalSmoothingFilter rotFilter;
+    DoubleExpBoneOrientationsFilter rotationFilter;
     IKinectSensor* kinectSensor = nullptr;
     IMultiSourceFrameReader* frameReader = nullptr;
     IMultiSourceFrame* multiFrame = nullptr;

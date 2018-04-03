@@ -343,9 +343,7 @@ void packElementsIntoMainBox() {
     
     mainGUIBox->Pack(InferredLabel);
     mainGUIBox->Pack(IgnoreInferredCheckButton);
-    mainGUIBox->Pack(SetAllJointsRotUnfiltered);
-    mainGUIBox->Pack(SetAllJointsRotFiltered);
-    mainGUIBox->Pack(SetAllJointsRotHead);
+    
 
     //mainGUIBox->Pack(CalibrationSettingsLabel); //Calibration left out of main UI because it is not currently implemented
     calibrationBox->Pack(CalibrationSetButton);
@@ -369,6 +367,9 @@ void setHipScaleBox() {
 void packElementsIntoAdvTrackerBox() {
     advancedTrackerBox->Pack(AddHandControllersToList);
     advancedTrackerBox->Pack(AddLowerTrackersToList);
+    advancedTrackerBox->Pack(SetAllJointsRotUnfiltered);
+    advancedTrackerBox->Pack(SetAllJointsRotFiltered);
+    advancedTrackerBox->Pack(SetAllJointsRotHead);
 
     advancedTrackerBox->Pack(TrackerList);
 
@@ -382,6 +383,7 @@ void packElementsIntoAdvTrackerBox() {
     TrackerListOptionsBox->Pack(IsControllerButton);
     TrackerListOptionsBox->Pack(AddTrackerToListButton);
     TrackerListOptionsBox->Pack(RemoveTrackerFromListButton);
+
 
     advancedTrackerBox->Pack(TrackerListOptionsBox);
 }
