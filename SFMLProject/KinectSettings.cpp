@@ -7,7 +7,7 @@
 
 namespace KinectSettings {
     #define CFG_NAME "KinectToVR.cfg"
-    std::string KVRversion = "a0.5.4";
+    std::string KVRversion = "a0.5.6";
 
 
     bool isKinectDrawn = false;

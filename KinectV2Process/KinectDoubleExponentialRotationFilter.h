@@ -10,6 +10,8 @@
 #include "VectorMath.h"
 
 #define max(a,b)            (((a) > (b)) ? (a) : (b))
+#define QuaternionIdentity Vector4{0,0,0,1}
+
 //Copyright credited to Microsoft, and source code found at https://github.com/zwang87/MixedRealitywithLaserWhiteboard/blob/master/Assets/Scripts/KinectScripts/Filters/BoneOrientationsFilter.cs
 // Converted into C++
 
@@ -21,13 +23,13 @@ private:
     struct FilterDoubleExponentialData
     {
         // Gets or sets Historical Position.  
-        Vector4 RawBoneOrientation = { 0,0,0,0 };
+        Vector4 RawBoneOrientation = QuaternionIdentity;
 
         // Gets or sets Historical Filtered Position.  
-        Vector4 FilteredBoneOrientation = { 0,0,0,0 };
+        Vector4 FilteredBoneOrientation = QuaternionIdentity;
 
         // Gets or sets Historical Trend.  
-        Vector4 Trend = { 0,0,0,0 };
+        Vector4 Trend = QuaternionIdentity;
 
         // Gets or sets Historical FrameCount.  
         unsigned int FrameCount = 0;
@@ -86,10 +88,10 @@ public:
     {
         for (int i = 0; i < JointType_Count; ++i) {
             FilterDoubleExponentialData d;
-            d.FilteredBoneOrientation = { 0,0,0,1 };
+            d.FilteredBoneOrientation = QuaternionIdentity;
             d.FrameCount = 0;
-            d.RawBoneOrientation = { 0,0,0,1 };
-            d.Trend = { 0,0,0,1 };
+            d.RawBoneOrientation = QuaternionIdentity;
+            d.Trend = QuaternionIdentity;
             history[i] = d;
         }
     }
@@ -249,7 +251,7 @@ private:
     Vector4 inverse(const Vector4 x) {   // Might need to take in reference
         auto sq = norm_squared(x);
         if (sq == 0.0f)
-            return { 0,0,0,1 };
+            return QuaternionIdentity;
         return divide(conj(x), sq);
     }
     /*
@@ -354,7 +356,7 @@ private:
     }
     Vector4 rotationBetween(sf::Vector3f v1, sf::Vector3f v2) {
         if (KMath::dot(v1, v2) > 0.999999 && KMath::dot(v1, v1) < -0.999999) {
-            return { 0,0,0,1 }; // IDENTITY Q
+            return QuaternionIdentity;
         }
     }
     Vector4 getRotationTo(sf::Vector3f from,sf::Vector3f dest,
@@ -373,7 +375,7 @@ private:
         // If dot == 1, vectors are the same
         if (d >= 1.0f)
         {
-            return { 0,0,0,1 };
+            return QuaternionIdentity;
         }
         if (d < (1e-6f - 1.0f))
         {
@@ -432,10 +434,11 @@ private:
         if (fwdVector == sf::Vector3f{0, 0, 0})
             return;
         vr::HmdVector3d_t v = { fwdVector.x, fwdVector.y, fwdVector.z };
-        //Vector4 rawOrientation = fromToRotation(fwdVector, jointOrientations[jointIndex].Orientation);
-        Vector4 rawOrientation = jointOrientations[jointIndex].Orientation;// Might need to do product of forward vector
+
+        Vector4 rawOrientation = jointOrientations[jointIndex].Orientation;
         if (equal(rawOrientation, { 0,0,0,0 }))
-            rawOrientation = { 0,0,0,1 };
+            rawOrientation = QuaternionIdentity;
+
         Vector4 prevFilteredOrientation = history[jointIndex].FilteredBoneOrientation;
         Vector4 prevTrend = history[jointIndex].Trend;
         sf::Vector3f rawPosition = { joints[jointIndex].Position.X, joints[jointIndex].Position.Y, joints[jointIndex].Position.Z};
@@ -460,7 +463,7 @@ private:
         {
             // Use raw position and zero trend for first value
             filteredOrientation = rawOrientation;
-            trend = Vector4{ 0,0,0,1}; // TRY USING w = 1!!!
+            trend = QuaternionIdentity;
         }
         else if (history[jointIndex].FrameCount == 1)
         {
@@ -496,7 +499,7 @@ private:
         }
 
         // Use the trend and predict into the future to reduce latency
-        Vector4 predictedOrientation = product(filteredOrientation, EnhancedQuaternionSlerp(Vector4{ 0,0,0,1 }, trend, params.prediction));
+        Vector4 predictedOrientation = product(filteredOrientation, EnhancedQuaternionSlerp(QuaternionIdentity, trend, params.prediction));
 
         // Check that we are not too far away from raw data
         Vector4 diff = RotationBetweenQuaternions(predictedOrientation, filteredOrientation);

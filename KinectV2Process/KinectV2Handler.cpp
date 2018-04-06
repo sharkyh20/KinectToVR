@@ -166,13 +166,21 @@ void KinectV2Handler::drawHand(HandState handState, const sf::Vector2f& handPosi
         break;
     }
 }
-
+void KinectV2Handler::onBodyFrameArrived(IBodyFrameReader& sender, IBodyFrameArrivedEventArgs& eventArgs) {
+    updateSkeletalData();
+    
+}
 void KinectV2Handler::updateSkeletalData() {
     IBodyFrame* bodyFrame = nullptr;
-    IBodyFrameReference* frameRef = nullptr;
-    multiFrame->get_BodyFrameReference(&frameRef);
-    frameRef->AcquireFrame(&bodyFrame);
-    if (frameRef) frameRef->Release();
+    //IBodyFrameReference* frameRef = nullptr;
+    IBodyFrameSource *frameSource = nullptr;
+    IBodyFrameReader* bodyReader = nullptr;
+        kinectSensor->get_BodyFrameSource(&frameSource);
+        frameSource->OpenReader(&bodyReader);
+    //multiFrame->get_BodyFrameReference(&frameRef);
+    //frameRef->AcquireFrame(&bodyFrame);
+    bodyReader->AcquireLatestFrame(&bodyFrame);
+    //if (frameRef) frameRef->Release();
 
     if (!bodyFrame) return;
 
@@ -192,8 +200,7 @@ void KinectV2Handler::updateSkeletalData() {
 
             //Smooth
             filter.update(joints);
-            //rotFilter.update(jointOrientations);  //TODO FIX
-            rotationFilter.UpdateFilter(kinectBodies[i], jointOrientations); // New filter, still not properly implemented
+            rotationFilter.UpdateFilter(kinectBodies[i], jointOrientations);
             break;
         }
     }
@@ -260,8 +267,7 @@ bool KinectV2Handler::getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdV
         kRotation = jointOrientations[convertJoint(device.joint0)].Orientation;
         break;
     case KVR::JointRotationOption::Filtered:
-        //kRotation = rotFilter.GetFilteredJoints()[convertJoint(device.joint0)];
-        kRotation = rotationFilter.GetFilteredJoints()[convertJoint(device.joint0)]; //New filter
+        kRotation = rotationFilter.GetFilteredJoints()[convertJoint(device.joint0)]; 
         break;
     case KVR::JointRotationOption::HeadLook: {        // Ew
         auto q = KinectSettings::hmdRotation;

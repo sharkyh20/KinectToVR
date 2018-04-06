@@ -336,9 +336,9 @@ bool KinectV1Handler::initKinect() {
         return false;
     //Initialise Sensor
     kinectSensor->NuiInitialize(NUI_INITIALIZE_FLAG_USES_DEPTH_AND_PLAYER_INDEX
-        | NUI_INITIALIZE_FLAG_USES_COLOR
         | NUI_INITIALIZE_FLAG_USES_SKELETON);
-
+    
+    /*
     kinectSensor->NuiImageStreamOpen(
         NUI_IMAGE_TYPE_COLOR,               //Depth Camera or RGB Camera?
         NUI_IMAGE_RESOLUTION_640x480,       //Image Resolution
@@ -346,11 +346,20 @@ bool KinectV1Handler::initKinect() {
         2,                                  //Number of frames to buffer
         NULL,                               //Event handle
         &kinectRGBStream);
-
+    
+    */
+    kinectSensor->NuiImageStreamOpen(
+        NUI_IMAGE_TYPE_DEPTH_AND_PLAYER_INDEX,               //Depth Camera or RGB Camera?
+        NUI_IMAGE_RESOLUTION_320x240,       //Image Resolution
+        0,                                  //Image stream flags, e.g. near mode
+        2,                                  //Number of frames to buffer
+        NULL,                               //Event handle
+        &kinectDepthStream);
     kinectSensor->NuiSkeletonTrackingEnable(
-        NULL, 0 |
+        NULL,
         NUI_SKELETON_TRACKING_FLAG_ENABLE_IN_NEAR_RANGE
     );
+    
     return kinectSensor;
 }
 void KinectV1Handler::getKinectRGBData() {

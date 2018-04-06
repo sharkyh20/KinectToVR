@@ -30,9 +30,6 @@
     <ClInclude Include="..\KinectV1Process\KinectJointFilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="KinectOrientationFilter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="KinectDoubleExponentialRotationFilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -51,9 +48,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="KinectJointFilter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="KinectOrientationFilter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SmoothingParameters.cpp">

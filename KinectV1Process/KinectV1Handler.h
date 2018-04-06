@@ -13,6 +13,7 @@ public:
         initOpenGL();
     }
     HANDLE kinectRGBStream = nullptr;
+    HANDLE kinectDepthStream = nullptr;
     INuiSensor* kinectSensor = nullptr;
     RotationalSmoothingFilter rotFilter;
     GLuint kinectTextureId;    // ID of the texture to contain Kinect RGB Data

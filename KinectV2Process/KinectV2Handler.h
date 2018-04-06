@@ -3,7 +3,6 @@
 #include "IKinectHandler.h"
 #include "KinectHandlerBase.h"
 #include "KinectJointFilter.h"
-#include "KinectOrientationFilter.h"
 #include "KinectDoubleExponentialRotationFilter.h"
 // Kinect V2 - directory local due to my win 7 machine being unsupported for actual install
 
@@ -17,7 +16,6 @@ public:
     virtual ~KinectV2Handler() {}
 
     DoubleExponentialFilter filter;
-    //RotationalSmoothingFilter rotFilter;
     DoubleExpBoneOrientationsFilter rotationFilter;
     IKinectSensor* kinectSensor = nullptr;
     IMultiSourceFrameReader* frameReader = nullptr;
@@ -44,6 +42,7 @@ public:
     virtual void drawKinectImageData(sf::RenderWindow &win);
     virtual void drawTrackedSkeletons(sf::RenderWindow &win);
 
+    void onBodyFrameArrived(IBodyFrameReader& sender, IBodyFrameArrivedEventArgs& eventArgs);
     virtual void updateSkeletalData();
     virtual void zeroAllTracking(vr::IVRSystem* &m_sys);
     virtual void updateTrackersWithSkeletonPosition(
