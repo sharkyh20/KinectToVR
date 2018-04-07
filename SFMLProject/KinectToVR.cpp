@@ -217,7 +217,7 @@ void processLoop(KinectHandlerBase& kinect) {
     VRcontroller rightController(vr::TrackedControllerRole_RightHand);
     VRcontroller leftController(vr::TrackedControllerRole_LeftHand);
     
-    GamepadController gamepad;
+    //GamepadController gamepad;
 
     vr::EVRInitError eError = vr::VRInitError_None;
     vr::IVRSystem *m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Utility);
