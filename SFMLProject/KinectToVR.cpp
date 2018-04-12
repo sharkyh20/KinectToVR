@@ -161,7 +161,7 @@ void PlayspaceMovementUpdate(sf::Vector3f& lastLeftPosition, sf::Vector3f& lastR
 	lastLeftPosition = leftPos;
 
 	sf::Vector3f rdelta = rightPos - lastRightPosition;
-	lastLeftPosition = leftPos;
+	lastRightPosition = rightPos;
 
 	int button = KinectSettings::leftHandPlayspaceMovementButton;
 	if (button && (leftButtons.ulButtonPressed & (1 << (button - 1)))) {
