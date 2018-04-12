@@ -308,6 +308,7 @@ void processLoop(KinectHandlerBase& kinect) {
                     }
                 }
             }
+
             kinect.updateTrackersWithSkeletonPosition(inputEmulator, v_trackers);
 
             //Draw
