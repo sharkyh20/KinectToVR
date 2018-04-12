@@ -146,7 +146,7 @@ void PlayspaceMovementUpdate(sf::Vector3f& lastLeftPosition, sf::Vector3f& lastR
 		return;
 	}
 	vr::HmdMatrix34_t* leftMat = &(leftPose->mDeviceToAbsoluteTracking);
-	vr::HmdMatrix34_t* rightMat = &(leftPose->mDeviceToAbsoluteTracking);
+	vr::HmdMatrix34_t* rightMat = &(rightPose->mDeviceToAbsoluteTracking);
 	sf::Vector3f leftPos = sf::Vector3f(leftMat->m[0][3], leftMat->m[1][3], leftMat->m[2][3]);
 	sf::Vector3f rightPos = sf::Vector3f(rightMat->m[0][3], rightMat->m[1][3], rightMat->m[2][3]);
 

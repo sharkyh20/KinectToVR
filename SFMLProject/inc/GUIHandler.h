@@ -548,8 +548,8 @@ private:
 	// Playspace Movement
 	sfg::Label::Ptr LeftHandPlayspaceMovementEnabled = sfg::Label::Create("Left Hand Playspace Movement");
 	sfg::Label::Ptr RightHandPlayspaceMovementEnabled = sfg::Label::Create("Right Hand Playspace Movement");
-	sfg::Label::Ptr RightFootPlayspaceMovementEnabled = sfg::Label::Create("Right Hand Playspace Movement");
-	sfg::Label::Ptr LeftFootPlayspaceMovementEnabled = sfg::Label::Create("Left Hand Playspace Movement");
+	sfg::Label::Ptr RightFootPlayspaceMovementEnabled = sfg::Label::Create("Right Foot Playspace Movement");
+	sfg::Label::Ptr LeftFootPlayspaceMovementEnabled = sfg::Label::Create("Left Foot Playspace Movement");
 	sfg::ComboBox::Ptr ButtonListLeftHand = sfg::ComboBox::Create();
 	sfg::ComboBox::Ptr ButtonListRightHand = sfg::ComboBox::Create();
 	sfg::ComboBox::Ptr ButtonListRightFoot = sfg::ComboBox::Create();
