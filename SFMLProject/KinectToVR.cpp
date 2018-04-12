@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "KinectToVR.h"
+#include "VRHelper.h"
 
 #include "wtypes.h"
 
@@ -121,6 +122,57 @@ void updateKinectWindowRes(const sf::RenderWindow& window) {
     SFMLsettings::m_window_height = window.getSize().y;
     //std::cerr << "w: " << SFMLsettings::m_window_width << " h: " << SFMLsettings::m_window_height << "\n";
 }
+
+void PlayspaceMovementUpdate(sf::Vector3f& lastLeftPosition, sf::Vector3f& lastRightPosition) {
+	// Grab controllers
+	vr::TrackedDevicePose_t devicePoses[vr::k_unMaxTrackedDeviceCount];
+	vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0.0f, devicePoses, vr::k_unMaxTrackedDeviceCount);
+	auto leftId = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
+	if (leftId == vr::k_unTrackedDeviceIndexInvalid) {
+		return;
+	}
+	auto rightId = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand);
+	if (rightId == vr::k_unTrackedDeviceIndexInvalid) {
+		return;
+	}
+	// Grab controller positions
+	vr::TrackedDevicePose_t* leftPose = devicePoses+leftId;
+	vr::TrackedDevicePose_t* rightPose = devicePoses+rightId;
+
+	if (!leftPose->bPoseIsValid || !leftPose->bDeviceIsConnected ) {
+		return;
+	}
+	if (!rightPose->bPoseIsValid || !rightPose->bDeviceIsConnected ) {
+		return;
+	}
+	vr::HmdMatrix34_t* leftMat = &(leftPose->mDeviceToAbsoluteTracking);
+	vr::HmdMatrix34_t* rightMat = &(leftPose->mDeviceToAbsoluteTracking);
+	sf::Vector3f leftPos = sf::Vector3f(leftMat->m[0][3], leftMat->m[1][3], leftMat->m[2][3]);
+	sf::Vector3f rightPos = sf::Vector3f(rightMat->m[0][3], rightMat->m[1][3], rightMat->m[2][3]);
+
+	// Grab controller buttons
+	vr::VRControllerState_t leftButtons;
+	vr::VRControllerState_t rightButtons;
+	vr::VRSystem()->GetControllerState(rightId, &rightButtons, sizeof(vr::VRControllerState_t));
+	vr::VRSystem()->GetControllerState(leftId, &leftButtons, sizeof(vr::VRControllerState_t));
+
+	// Check if left hand button is pressed
+	sf::Vector3f ldelta = leftPos - lastLeftPosition;
+	lastLeftPosition = leftPos;
+
+	sf::Vector3f rdelta = rightPos - lastRightPosition;
+	lastLeftPosition = leftPos;
+
+	int button = KinectSettings::leftHandPlayspaceMovementButton;
+	if (button && (leftButtons.ulButtonPressed & (1 << (button - 1)))) {
+		MoveUniverseOrigin(vr::TrackingUniverseStanding, ldelta);
+	}
+	button = KinectSettings::rightHandPlayspaceMovementButton;
+	if (button && (rightButtons.ulButtonPressed & (1 << (button - 1)))) {
+		MoveUniverseOrigin(vr::TrackingUniverseStanding, rdelta);
+	}
+}
+
 void processLoop(KinectHandlerBase& kinect) {
     sf::RenderWindow renderWindow(getScaledWindowResolution(), "KinectToVR: " + KinectSettings::KVRversion, sf::Style::Titlebar | sf::Style::Close);
     updateKinectWindowRes(renderWindow);
@@ -195,6 +247,9 @@ void processLoop(KinectHandlerBase& kinect) {
     guiRef.setReconnectControllerButtonSignal(leftController, rightController, m_VRSystem);
 
     KinectSettings::userChangingZero = true;
+	// FIXME: frame 0 to 1, delta position will be wrong, if they're holding the movement buttons, they'll get zipped into space.
+	sf::Vector3f lastLeftPosition = sf::Vector3f(0, 0, 0);
+	sf::Vector3f lastRightPosition = sf::Vector3f(0, 0, 0);
     while (renderWindow.isOpen())
     {
         //Clear the debug text display
@@ -228,6 +283,7 @@ void processLoop(KinectHandlerBase& kinect) {
         //Update GUI
         guiRef.updateDesktop(deltaT);
         // Update Kinect Status
+		PlayspaceMovementUpdate(lastLeftPosition, lastRightPosition);
         rightController.Connect(m_VRSystem);
         leftController.Connect(m_VRSystem);
         if (eError == vr::VRInitError_None) {
@@ -308,6 +364,7 @@ void processLoop(KinectHandlerBase& kinect) {
                     }
                 }
             }
+
 
             kinect.updateTrackersWithSkeletonPosition(inputEmulator, v_trackers);
 

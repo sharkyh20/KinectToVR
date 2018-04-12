@@ -46,3 +46,27 @@ vr::HmdVector3_t GetVRPositionFromMatrix(vr::HmdMatrix34_t matrix) {
 
     return vector;
 }
+
+//void ResetUniverseOrigin(vr::ETrackingUniverseOrigin universe) {
+
+//}
+
+void MoveUniverseOrigin(vr::ETrackingUniverseOrigin universe, sf::Vector3f delta) {
+	vr::HmdMatrix34_t curPos;
+	vr::VRChaperoneSetup()->RevertWorkingCopy();
+	if (universe == vr::TrackingUniverseStanding) {
+		vr::VRChaperoneSetup()->GetWorkingStandingZeroPoseToRawTrackingPose(&curPos);
+	} else {
+		vr::VRChaperoneSetup()->GetWorkingSeatedZeroPoseToRawTrackingPose(&curPos);
+	}
+	// Adjust for world scale
+	curPos.m[0][3] += delta.x;
+	curPos.m[1][3] += delta.y;
+	curPos.m[2][3] += delta.z;
+	if (universe == vr::TrackingUniverseStanding) {
+		vr::VRChaperoneSetup()->SetWorkingStandingZeroPoseToRawTrackingPose(&curPos);
+	} else {
+		vr::VRChaperoneSetup()->SetWorkingSeatedZeroPoseToRawTrackingPose(&curPos);
+	}
+	vr::VRChaperoneSetup()->CommitWorkingCopy(vr::EChaperoneConfigFile_Live);
+}
