@@ -142,15 +142,19 @@ void PlayspaceMovementUpdate(sf::Vector3f& lastLeftPosition, sf::Vector3f& lastR
 	sf::Vector3f rightPos = sf::Vector3f(rightMat->m[0][3], rightMat->m[1][3], rightMat->m[2][3]);
 
 	sf::Vector3f delta = sf::Vector3f(0, 0, 0);
-	if (KinectSettings::leftHandPlayspaceMovementButton && leftController.GetPress((vr::EVRButtonId)(KinectSettings::leftHandPlayspaceMovementButton-1)) && leftPose->bPoseIsValid && leftPose->bDeviceIsConnected) {
+	if (KinectSettings::leftHandPlayspaceMovementButton && leftController.GetPress((vr::EVRButtonId)(KinectSettings::leftHandPlayspaceMovementButton - 1)) && leftPose->bPoseIsValid && leftPose->bDeviceIsConnected) {
 		delta = leftPos - lastLeftPosition;
 	}
 	if (KinectSettings::rightHandPlayspaceMovementButton && rightController.GetPress((vr::EVRButtonId)(KinectSettings::rightHandPlayspaceMovementButton - 1)) && rightPose->bPoseIsValid && rightPose->bDeviceIsConnected) {
 		delta = rightPos - lastRightPosition;
 	}
-	lastLeftPosition = leftPos - delta; // Take into account the playspace suddenly moving.
-	lastRightPosition = rightPos - delta;
-	MoveUniverseOrigin(vr::TrackingUniverseStanding, delta);
+	if (leftPose->bPoseIsValid && leftPose->bDeviceIsConnected) {
+		lastLeftPosition = leftPos - delta; // Take into account the playspace suddenly moving.
+	}
+	if (rightPose->bPoseIsValid && rightPose->bDeviceIsConnected) {
+		lastRightPosition = rightPos - delta;
+	}
+	MoveUniverseOrigin(delta);
 }
 
 void processLoop(KinectHandlerBase& kinect) {
@@ -214,7 +218,8 @@ void processLoop(KinectHandlerBase& kinect) {
     GamepadController gamepad;
 
     vr::EVRInitError eError = vr::VRInitError_None;
-    vr::IVRSystem *m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Utility);
+	// Switched to VRApplication_Background because I need access to the compositor to check if we dropped a frame!
+    vr::IVRSystem *m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Background);
     if (eError == vr::VRInitError_None) {
         std::cerr << "Attempting connection to controllers.... " << std::endl;    // DEBUG
         leftController.Connect(m_VRSystem);
@@ -230,6 +235,7 @@ void processLoop(KinectHandlerBase& kinect) {
 	// FIXME: frame 0 to 1, delta position will be wrong, if they're holding the movement buttons, they'll get zipped into space.
 	sf::Vector3f lastLeftPosition = sf::Vector3f(0, 0, 0);
 	sf::Vector3f lastRightPosition = sf::Vector3f(0, 0, 0);
+	vr::VRChaperoneSetup()->RevertWorkingCopy();
     while (renderWindow.isOpen())
     {
         //Clear the debug text display
@@ -273,6 +279,17 @@ void processLoop(KinectHandlerBase& kinect) {
             std::cerr << "Error updating controllers: Could not connect to the SteamVR system! OpenVR init error-code " << std::to_string(eError) << std::endl;
         }
 		PlayspaceMovementUpdate(lastLeftPosition, lastRightPosition, leftController, rightController);
+		// After updating the movement, we decide if we want to commit the changes.
+		// If the compositor dropped a frame, it'll get confused and warp us to the origin for that frame.
+		// This code avoids that by simply not commiting if we're dropping frames :v
+		vr::Compositor_FrameTiming timing;
+		timing.m_nSize = sizeof(vr::Compositor_FrameTiming);	
+		if (vr::VRCompositor() != NULL) {
+			bool hasFrame = vr::VRCompositor()->GetFrameTiming(&timing, 0);
+			if (hasFrame && timing.m_nNumDroppedFrames <= 0) {
+				vr::VRChaperoneSetup()->CommitWorkingCopy(vr::EChaperoneConfigFile_Temp);
+			}
+		}
 
         guiRef.updateKinectStatusLabel(kinect);
         if (kinect.isInitialised()) {

@@ -51,24 +51,20 @@ vr::HmdVector3_t GetVRPositionFromMatrix(vr::HmdMatrix34_t matrix) {
 
 //}
 
-void MoveUniverseOrigin(vr::ETrackingUniverseOrigin universe, sf::Vector3f delta) {
-	if (delta.x + delta.y + delta.z == 0) { return; }
+void MoveUniverseOrigin(sf::Vector3f delta) {
+	if (vr::VRChaperone()->GetCalibrationState() != vr::ChaperoneCalibrationState_OK) {
+		return;
+	}
 	vr::HmdMatrix34_t curPos;
-	// FIXME: Crashes if steamvr isn't running.
-	vr::VRChaperoneSetup()->RevertWorkingCopy();
-	if (universe == vr::TrackingUniverseStanding) {
-		vr::VRChaperoneSetup()->GetWorkingStandingZeroPoseToRawTrackingPose(&curPos);
-	} else {
-		vr::VRChaperoneSetup()->GetWorkingSeatedZeroPoseToRawTrackingPose(&curPos);
-	}
-	// Adjust for world scale
-	curPos.m[0][3] += delta.x;
-	curPos.m[1][3] += delta.y;
-	curPos.m[2][3] += delta.z;
-	if (universe == vr::TrackingUniverseStanding) {
-		vr::VRChaperoneSetup()->SetWorkingStandingZeroPoseToRawTrackingPose(&curPos);
-	} else {
-		vr::VRChaperoneSetup()->SetWorkingSeatedZeroPoseToRawTrackingPose(&curPos);
-	}
-	vr::VRChaperoneSetup()->CommitWorkingCopy(vr::EChaperoneConfigFile_Temp);
+	vr::VRChaperoneSetup()->GetWorkingStandingZeroPoseToRawTrackingPose(&curPos);
+	// Adjust direction of delta to match the universe forward direction.
+	sf::Vector3f universeDelta = sf::Vector3f(
+		curPos.m[0][0] * delta.x + curPos.m[0][1] * delta.y + curPos.m[0][2] * delta.z,
+		curPos.m[1][0] * delta.x + curPos.m[1][1] * delta.y + curPos.m[1][2] * delta.z,
+		curPos.m[2][0] * delta.x + curPos.m[2][1] * delta.y + curPos.m[2][2] * delta.z
+	);
+	curPos.m[0][3] += universeDelta.x;
+	curPos.m[1][3] += universeDelta.y;
+	curPos.m[2][3] += universeDelta.z;
+	vr::VRChaperoneSetup()->SetWorkingStandingZeroPoseToRawTrackingPose(&curPos);
 }

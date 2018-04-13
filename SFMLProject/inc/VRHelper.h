@@ -10,4 +10,4 @@ vr::HmdQuaternion_t GetVRRotationFromMatrix(vr::HmdMatrix34_t matrix);
 // Get the vector representing the position
 vr::HmdVector3_t GetVRPositionFromMatrix(vr::HmdMatrix34_t matrix);
 
-void MoveUniverseOrigin(vr::ETrackingUniverseOrigin universe, sf::Vector3f delta);
+void MoveUniverseOrigin(sf::Vector3f delta);
