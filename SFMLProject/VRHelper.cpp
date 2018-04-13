@@ -52,7 +52,9 @@ vr::HmdVector3_t GetVRPositionFromMatrix(vr::HmdMatrix34_t matrix) {
 //}
 
 void MoveUniverseOrigin(vr::ETrackingUniverseOrigin universe, sf::Vector3f delta) {
+	if (delta.x + delta.y + delta.z == 0) { return; }
 	vr::HmdMatrix34_t curPos;
+	// FIXME: Crashes if steamvr isn't running.
 	vr::VRChaperoneSetup()->RevertWorkingCopy();
 	if (universe == vr::TrackingUniverseStanding) {
 		vr::VRChaperoneSetup()->GetWorkingStandingZeroPoseToRawTrackingPose(&curPos);
@@ -68,5 +70,5 @@ void MoveUniverseOrigin(vr::ETrackingUniverseOrigin universe, sf::Vector3f delta
 	} else {
 		vr::VRChaperoneSetup()->SetWorkingSeatedZeroPoseToRawTrackingPose(&curPos);
 	}
-	vr::VRChaperoneSetup()->CommitWorkingCopy(vr::EChaperoneConfigFile_Live);
+	vr::VRChaperoneSetup()->CommitWorkingCopy(vr::EChaperoneConfigFile_Temp);
 }

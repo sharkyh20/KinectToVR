@@ -123,10 +123,9 @@ void updateKinectWindowRes(const sf::RenderWindow& window) {
     //std::cerr << "w: " << SFMLsettings::m_window_width << " h: " << SFMLsettings::m_window_height << "\n";
 }
 
-void PlayspaceMovementUpdate(sf::Vector3f& lastLeftPosition, sf::Vector3f& lastRightPosition) {
-	// Grab controllers
+void PlayspaceMovementUpdate(sf::Vector3f& lastLeftPosition, sf::Vector3f& lastRightPosition, VRcontroller& leftController, VRcontroller& rightController) {
 	vr::TrackedDevicePose_t devicePoses[vr::k_unMaxTrackedDeviceCount];
-	vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0.0f, devicePoses, vr::k_unMaxTrackedDeviceCount);
+	vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, devicePoses, vr::k_unMaxTrackedDeviceCount);
 	auto leftId = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
 	if (leftId == vr::k_unTrackedDeviceIndexInvalid) {
 		return;
@@ -135,42 +134,23 @@ void PlayspaceMovementUpdate(sf::Vector3f& lastLeftPosition, sf::Vector3f& lastR
 	if (rightId == vr::k_unTrackedDeviceIndexInvalid) {
 		return;
 	}
-	// Grab controller positions
-	vr::TrackedDevicePose_t* leftPose = devicePoses+leftId;
-	vr::TrackedDevicePose_t* rightPose = devicePoses+rightId;
-
-	if (!leftPose->bPoseIsValid || !leftPose->bDeviceIsConnected ) {
-		return;
-	}
-	if (!rightPose->bPoseIsValid || !rightPose->bDeviceIsConnected ) {
-		return;
-	}
+	vr::TrackedDevicePose_t* leftPose = devicePoses + leftId;
+	vr::TrackedDevicePose_t* rightPose = devicePoses + rightId;
 	vr::HmdMatrix34_t* leftMat = &(leftPose->mDeviceToAbsoluteTracking);
 	vr::HmdMatrix34_t* rightMat = &(rightPose->mDeviceToAbsoluteTracking);
 	sf::Vector3f leftPos = sf::Vector3f(leftMat->m[0][3], leftMat->m[1][3], leftMat->m[2][3]);
 	sf::Vector3f rightPos = sf::Vector3f(rightMat->m[0][3], rightMat->m[1][3], rightMat->m[2][3]);
 
-	// Grab controller buttons
-	vr::VRControllerState_t leftButtons;
-	vr::VRControllerState_t rightButtons;
-	vr::VRSystem()->GetControllerState(rightId, &rightButtons, sizeof(vr::VRControllerState_t));
-	vr::VRSystem()->GetControllerState(leftId, &leftButtons, sizeof(vr::VRControllerState_t));
-
-	// Check if left hand button is pressed
-	sf::Vector3f ldelta = leftPos - lastLeftPosition;
-	lastLeftPosition = leftPos;
-
-	sf::Vector3f rdelta = rightPos - lastRightPosition;
-	lastRightPosition = rightPos;
-
-	int button = KinectSettings::leftHandPlayspaceMovementButton;
-	if (button && (leftButtons.ulButtonPressed & (1 << (button - 1)))) {
-		MoveUniverseOrigin(vr::TrackingUniverseStanding, ldelta);
+	sf::Vector3f delta = sf::Vector3f(0, 0, 0);
+	if (KinectSettings::leftHandPlayspaceMovementButton && leftController.GetPress((vr::EVRButtonId)(KinectSettings::leftHandPlayspaceMovementButton-1)) && leftPose->bPoseIsValid && leftPose->bDeviceIsConnected) {
+		delta = leftPos - lastLeftPosition;
 	}
-	button = KinectSettings::rightHandPlayspaceMovementButton;
-	if (button && (rightButtons.ulButtonPressed & (1 << (button - 1)))) {
-		MoveUniverseOrigin(vr::TrackingUniverseStanding, rdelta);
+	if (KinectSettings::rightHandPlayspaceMovementButton && rightController.GetPress((vr::EVRButtonId)(KinectSettings::rightHandPlayspaceMovementButton - 1)) && rightPose->bPoseIsValid && rightPose->bDeviceIsConnected) {
+		delta = rightPos - lastRightPosition;
 	}
+	lastLeftPosition = leftPos - delta; // Take into account the playspace suddenly moving.
+	lastRightPosition = rightPos - delta;
+	MoveUniverseOrigin(vr::TrackingUniverseStanding, delta);
 }
 
 void processLoop(KinectHandlerBase& kinect) {
@@ -283,7 +263,6 @@ void processLoop(KinectHandlerBase& kinect) {
         //Update GUI
         guiRef.updateDesktop(deltaT);
         // Update Kinect Status
-		PlayspaceMovementUpdate(lastLeftPosition, lastRightPosition);
         rightController.Connect(m_VRSystem);
         leftController.Connect(m_VRSystem);
         if (eError == vr::VRInitError_None) {
@@ -293,6 +272,7 @@ void processLoop(KinectHandlerBase& kinect) {
         else {
             std::cerr << "Error updating controllers: Could not connect to the SteamVR system! OpenVR init error-code " << std::to_string(eError) << std::endl;
         }
+		PlayspaceMovementUpdate(lastLeftPosition, lastRightPosition, leftController, rightController);
 
         guiRef.updateKinectStatusLabel(kinect);
         if (kinect.isInitialised()) {

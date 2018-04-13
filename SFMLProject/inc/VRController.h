@@ -5,6 +5,7 @@
 
 #include <openvr.h>
 #include <SFML\System\Vector2.hpp>
+#include <SFML\System\Vector3.hpp>
 
 class VRcontroller {
 public:
@@ -35,13 +36,11 @@ public:
         }
         return false;
     }
+
     void update(float delta) {
         deltaTime = delta;
-        if (m_HMDSystem != nullptr)
-        {
-            lastStateValid = m_HMDSystem->GetControllerStateWithPose(
-                vr::ETrackingUniverseOrigin::TrackingUniverseStanding, controllerID, &state_, sizeof(state_), &controllerPose
-            );
+        if (m_HMDSystem != nullptr) {
+            lastStateValid = m_HMDSystem->GetControllerStateWithPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, controllerID, &state_, sizeof(state_), &controllerPose);
             if (lastStateValid) {
                 prevState_ = state_;
             }
@@ -67,6 +66,10 @@ public:
         }
         return sf::Vector2f(0.0f, 0.0f);
     }
+
+	int GetID() {
+		return controllerID;
+	}
 
     //Trigger Input
     void UpdateTrigger()    //TODO test returned values, as they may be acidentally triggering on touch
@@ -103,35 +106,35 @@ public:
     //controller input
     bool GetPress(vr::EVRButtonId buttonId) { 
         if (lastStateValid) 
-            return (state_.ulButtonPressed& vr::ButtonMaskFromId(buttonId)) != 0; 
+            return (state_.ulButtonPressed & vr::ButtonMaskFromId(buttonId)) != 0; 
         else return false; }
     bool GetPressDown(vr::EVRButtonId buttonId) { 
         if (lastStateValid) 
-            return (state_.ulButtonPressed& vr::ButtonMaskFromId(buttonId)) != 0 
+            return (state_.ulButtonPressed & vr::ButtonMaskFromId(buttonId)) != 0 
             && (prevState_.ulButtonPressed & vr::ButtonMaskFromId(buttonId)) == 0; 
         else return false;
     }
     bool GetPressUp(vr::EVRButtonId buttonId) { 
         if (lastStateValid) 
-            return (state_.ulButtonPressed& vr::ButtonMaskFromId(buttonId)) == 0 
+            return (state_.ulButtonPressed & vr::ButtonMaskFromId(buttonId)) == 0 
             && (prevState_.ulButtonPressed & vr::ButtonMaskFromId(buttonId)) != 0; 
         else return false;
     }
 
     bool GetTouch(vr::EVRButtonId buttonId) { 
         if (lastStateValid) 
-            return (state_.ulButtonTouched& vr::ButtonMaskFromId(buttonId)) != 0; 
+            return (state_.ulButtonTouched & vr::ButtonMaskFromId(buttonId)) != 0; 
         else return false;
     }
     bool GetTouchDown(vr::EVRButtonId buttonId) { 
         if (lastStateValid) 
-            return (state_.ulButtonTouched& vr::ButtonMaskFromId(buttonId)) != 0 
+            return (state_.ulButtonTouched & vr::ButtonMaskFromId(buttonId)) != 0 
             && (prevState_.ulButtonTouched & vr::ButtonMaskFromId(buttonId)) == 0; 
         else return false;
     }
     bool GetTouchUp(vr::EVRButtonId buttonId) { 
         if (lastStateValid) 
-            return (state_.ulButtonTouched& vr::ButtonMaskFromId(buttonId)) == 0 
+            return (state_.ulButtonTouched & vr::ButtonMaskFromId(buttonId)) == 0 
             && (prevState_.ulButtonTouched & vr::ButtonMaskFromId(buttonId)) != 0; 
         else return false;
     }
