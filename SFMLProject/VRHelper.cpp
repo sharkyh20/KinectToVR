@@ -51,12 +51,7 @@ vr::HmdVector3_t GetVRPositionFromMatrix(vr::HmdMatrix34_t matrix) {
 
 //}
 
-void MoveUniverseOrigin(sf::Vector3f delta) {
-	if (vr::VRChaperone()->GetCalibrationState() != vr::ChaperoneCalibrationState_OK) {
-		return;
-	}
-	vr::HmdMatrix34_t curPos;
-	vr::VRChaperoneSetup()->GetWorkingStandingZeroPoseToRawTrackingPose(&curPos);
+bool MoveUniverseOrigin(vr::HmdMatrix34_t& curPos, sf::Vector3f delta) {
 	// Adjust direction of delta to match the universe forward direction.
 	sf::Vector3f universeDelta = sf::Vector3f(
 		curPos.m[0][0] * delta.x + curPos.m[0][1] * delta.y + curPos.m[0][2] * delta.z,
@@ -66,5 +61,5 @@ void MoveUniverseOrigin(sf::Vector3f delta) {
 	curPos.m[0][3] += universeDelta.x;
 	curPos.m[1][3] += universeDelta.y;
 	curPos.m[2][3] += universeDelta.z;
-	vr::VRChaperoneSetup()->SetWorkingStandingZeroPoseToRawTrackingPose(&curPos);
+	return true;
 }

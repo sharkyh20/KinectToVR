@@ -123,16 +123,16 @@ void updateKinectWindowRes(const sf::RenderWindow& window) {
     //std::cerr << "w: " << SFMLsettings::m_window_width << " h: " << SFMLsettings::m_window_height << "\n";
 }
 
-void PlayspaceMovementUpdate(sf::Vector3f& lastLeftPosition, sf::Vector3f& lastRightPosition, VRcontroller& leftController, VRcontroller& rightController) {
+bool PlayspaceMovementUpdate(vr::HmdMatrix34_t& curPos, sf::Vector3f& lastLeftPosition, sf::Vector3f& lastRightPosition, VRcontroller& leftController, VRcontroller& rightController) {
 	vr::TrackedDevicePose_t devicePoses[vr::k_unMaxTrackedDeviceCount];
 	vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, devicePoses, vr::k_unMaxTrackedDeviceCount);
 	auto leftId = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
 	if (leftId == vr::k_unTrackedDeviceIndexInvalid) {
-		return;
+		return false;
 	}
 	auto rightId = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand);
 	if (rightId == vr::k_unTrackedDeviceIndexInvalid) {
-		return;
+		return false;
 	}
 	vr::TrackedDevicePose_t* leftPose = devicePoses + leftId;
 	vr::TrackedDevicePose_t* rightPose = devicePoses + rightId;
@@ -154,7 +154,10 @@ void PlayspaceMovementUpdate(sf::Vector3f& lastLeftPosition, sf::Vector3f& lastR
 	if (rightPose->bPoseIsValid && rightPose->bDeviceIsConnected) {
 		lastRightPosition = rightPos - delta;
 	}
-	MoveUniverseOrigin(delta);
+	if (delta.x + delta.y + delta.z != 0) {
+		return MoveUniverseOrigin(curPos, delta);
+	}
+	return false;
 }
 
 void processLoop(KinectHandlerBase& kinect) {
@@ -218,8 +221,7 @@ void processLoop(KinectHandlerBase& kinect) {
     GamepadController gamepad;
 
     vr::EVRInitError eError = vr::VRInitError_None;
-	// Switched to VRApplication_Background because I need access to the compositor to check if we dropped a frame!
-    vr::IVRSystem *m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Background);
+    vr::IVRSystem *m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Utility);
     if (eError == vr::VRInitError_None) {
         std::cerr << "Attempting connection to controllers.... " << std::endl;    // DEBUG
         leftController.Connect(m_VRSystem);
@@ -236,6 +238,11 @@ void processLoop(KinectHandlerBase& kinect) {
 	sf::Vector3f lastLeftPosition = sf::Vector3f(0, 0, 0);
 	sf::Vector3f lastRightPosition = sf::Vector3f(0, 0, 0);
 	vr::VRChaperoneSetup()->RevertWorkingCopy();
+	vr::HmdMatrix34_t curPos;
+	vr::VRChaperoneSetup()->GetWorkingStandingZeroPoseToRawTrackingPose(&curPos);
+	//vr::VRChaperoneSetup()->SetWorkingPhysicalBoundsInfo(NULL, 0);
+	//vr::VRChaperoneSetup()->SetWorkingPlayAreaSize(999999,999999);
+	bool changedPlaySpace = false;
     while (renderWindow.isOpen())
     {
         //Clear the debug text display
@@ -278,16 +285,14 @@ void processLoop(KinectHandlerBase& kinect) {
         else {
             std::cerr << "Error updating controllers: Could not connect to the SteamVR system! OpenVR init error-code " << std::to_string(eError) << std::endl;
         }
-		PlayspaceMovementUpdate(lastLeftPosition, lastRightPosition, leftController, rightController);
-		// After updating the movement, we decide if we want to commit the changes.
-		// If the compositor dropped a frame, it'll get confused and warp us to the origin for that frame.
-		// This code avoids that by simply not commiting if we're dropping frames :v
-		vr::Compositor_FrameTiming timing;
-		timing.m_nSize = sizeof(vr::Compositor_FrameTiming);	
-		if (vr::VRCompositor() != NULL) {
-			bool hasFrame = vr::VRCompositor()->GetFrameTiming(&timing, 0);
-			if (hasFrame && timing.m_nNumDroppedFrames <= 0) {
-				vr::VRChaperoneSetup()->CommitWorkingCopy(vr::EChaperoneConfigFile_Temp);
+
+		bool changedPlayspace = changedPlaySpace || PlayspaceMovementUpdate(curPos, lastLeftPosition, lastRightPosition, leftController, rightController);
+		if (changedPlayspace) {
+			if (vr::VRChaperone()->GetCalibrationState() == vr::ChaperoneCalibrationState_OK) {
+				//vr::VRChaperoneSetup()->SetWorkingSeatedZeroPoseToRawTrackingPose(&curPos);
+				vr::VRChaperoneSetup()->SetWorkingStandingZeroPoseToRawTrackingPose(&curPos);
+				while (!vr::VRChaperoneSetup()->CommitWorkingCopy(vr::EChaperoneConfigFile_Temp)) {}
+				changedPlaySpace = false;
 			}
 		}
 
