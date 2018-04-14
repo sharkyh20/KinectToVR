@@ -84,9 +84,13 @@ public:
         return sf::Vector2f(0.0f, 0.0f);
     }
 
-	int GetID() {
+	unsigned int GetID() {
 		return controllerID;
 	}
+
+    vr::TrackedDevicePose_t GetPose() {
+        return controllerPose;
+    }
 
     //Trigger Input
     void UpdateTrigger()    //TODO test returned values, as they may be acidentally triggering on touch

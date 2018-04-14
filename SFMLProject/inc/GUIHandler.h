@@ -7,6 +7,7 @@
 #include "KinectHandlerBase.h"
 #include "KinectTrackedDevice.h"
 #include "KinectJoint.h"
+#include "PlayspaceMovementAdjuster.h"
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Window/Mouse.hpp>
@@ -164,6 +165,7 @@ void setDefaultSignals() {
     );
 
 	// Playspace Movement Bindings
+ 
 	ButtonListLeftHand->GetSignal(sfg::ComboBox::OnSelect).Connect([this] {
 		KinectSettings::leftHandPlayspaceMovementButton = ButtonListLeftHand->GetSelectedItem();
 	}
@@ -181,6 +183,11 @@ void setDefaultSignals() {
 	}
 	);
 
+}
+void setPlayspaceResetButtonSignal(PlayspaceMovementAdjuster& adjuster) {
+    ResetPlayspaceButton->GetSignal(sfg::Button::OnMouseLeftPress).Connect([this, &adjuster] {
+        adjuster.resetPlayspaceAdjustments();
+    });
 }
 
 void addUserTrackerToList() {
@@ -404,6 +411,7 @@ void packElementsIntoPlayspaceMovementBox() {
 	ButtonListRightFoot->SelectItem(KinectSettings::rightFootPlayspaceMovementButton);
 	ButtonListLeftFoot->SelectItem(KinectSettings::leftFootPlayspaceMovementButton);
 
+    playspaceMovementBox->Pack(ResetPlayspaceButton);
 	playspaceMovementBox->Pack(LeftHandPlayspaceMovementEnabled);
 	playspaceMovementBox->Pack(ButtonListLeftHand);
 	playspaceMovementBox->Pack(RightHandPlayspaceMovementEnabled);
@@ -569,6 +577,7 @@ private:
     sfg::Button::Ptr CalibrationSetButton = sfg::Button::Create();
 
 	// Playspace Movement
+    sfg::Button::Ptr ResetPlayspaceButton = sfg::Button::Create("Reset Adjustments");
 	sfg::Label::Ptr LeftHandPlayspaceMovementEnabled = sfg::Label::Create("Left Hand Playspace Movement");
 	sfg::Label::Ptr RightHandPlayspaceMovementEnabled = sfg::Label::Create("Right Hand Playspace Movement");
 	sfg::Label::Ptr RightFootPlayspaceMovementEnabled = sfg::Label::Create("Right Foot Playspace Movement");

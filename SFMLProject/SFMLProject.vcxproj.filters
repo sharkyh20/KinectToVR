@@ -72,6 +72,9 @@
     <ClInclude Include="GenericController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="PlayspaceMovementAdjuster.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
