@@ -172,15 +172,10 @@ void KinectV2Handler::onBodyFrameArrived(IBodyFrameReader& sender, IBodyFrameArr
 }
 void KinectV2Handler::updateSkeletalData() {
     IBodyFrame* bodyFrame = nullptr;
-    //IBodyFrameReference* frameRef = nullptr;
-    IBodyFrameSource *frameSource = nullptr;
-    IBodyFrameReader* bodyReader = nullptr;
-        kinectSensor->get_BodyFrameSource(&frameSource);
-        frameSource->OpenReader(&bodyReader);
-    //multiFrame->get_BodyFrameReference(&frameRef);
-    //frameRef->AcquireFrame(&bodyFrame);
-    bodyReader->AcquireLatestFrame(&bodyFrame);
-    //if (frameRef) frameRef->Release();
+    IBodyFrameReference* frameRef = nullptr;
+    multiFrame->get_BodyFrameReference(&frameRef);
+    frameRef->AcquireFrame(&bodyFrame);
+    if (frameRef) frameRef->Release();
 
     if (!bodyFrame) return;
 
@@ -191,12 +186,6 @@ void KinectV2Handler::updateSkeletalData() {
         if (isTracking) {
             kinectBodies[i]->GetJoints(JointType_Count, joints);
             kinectBodies[i]->GetJointOrientations(JointType_Count, jointOrientations);
-
-
-            for (int i = 0; i < JointType_Count; i++) {
-                Vector4 orientation = jointOrientations[i].Orientation;
-                //std::cerr << "Joint " << i << ": " << orientation.w << ", " << orientation.x << ", " << orientation.y << ", " << orientation.z << '\n';
-            }
 
             //Smooth
             filter.update(joints);
@@ -312,7 +301,7 @@ bool KinectV2Handler::initKinect() {
 }
 void KinectV2Handler::getKinectData() {
     if (SUCCEEDED(frameReader->AcquireLatestFrame(&multiFrame))) {
-        getRGBImageData(multiFrame);
+        //getRGBImageData(multiFrame);
         updateSkeletalData();
     }
     if (multiFrame) multiFrame->Release();

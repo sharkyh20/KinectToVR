@@ -57,6 +57,12 @@ public:
             
         }
     }
+    vr::TrackedDevicePose_t getPose() {
+        return controllerPose;
+    }
+    vr::TrackedDeviceIndex_t getID() {
+        return controllerID;
+    }
 
     sf::Vector2f GetControllerAxisValue(vr::EVRButtonId buttonId)
     {

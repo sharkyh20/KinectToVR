@@ -29,8 +29,8 @@ SmoothingParameters getRotationSmoothingParams() {
     SmoothingParameters params;
     params.smoothing = .6f;
     params.correction = .4f;
-    params.maxDeviationRadius = .25f;
+    params.maxDeviationRadius = .3f;
     params.jitterRadius = 0.5f;
-    params.prediction = .15f;
+    params.prediction = .25f;
     return params;
 }

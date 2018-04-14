@@ -50,7 +50,7 @@ public:
     DoubleExpBoneOrientationsFilter()
     {
         init = false;
-        Init();
+        Init(getRotationSmoothingParams());
     }
     inline const Vector4* GetFilteredJoints() const { return &filteredOrientations[0]; }
     // Initialize the filter with a default set of TransformSmoothParameters.

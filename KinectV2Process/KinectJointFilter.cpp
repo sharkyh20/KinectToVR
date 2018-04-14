@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "KinectJointFilter.h"
+#include <iostream>
 #include "VectorMath.h"
 inline float lerp(float f1, float f2, float fBlend)
 {
@@ -127,6 +128,7 @@ void DoubleExponentialFilter::update(Joint joints[], UINT JointID, SmoothingPara
     }
     else
     {
+
         // First apply jitter filter
         vDiff = vRawPosition - vPrevFilteredPosition;
         vectorLength = KMath::length(vDiff);
@@ -180,4 +182,6 @@ void DoubleExponentialFilter::update(Joint joints[], UINT JointID, SmoothingPara
 
     // Output the data
     filteredJointPoints[JointID] = vPredictedPosition;
+    //if (JointID == 14)
+       // std::cerr << "Foot Frame " << pointHistory[JointID].frameCount << " , Predicted: " << vPredictedPosition.x << ", " << vPredictedPosition.y << ", " << vPredictedPosition.z << "\n";
 }
