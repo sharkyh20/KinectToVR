@@ -2,8 +2,9 @@
 
 #include "VRHelper.h"
 #include <openvr_math.h>
+#include "KinectSettings.h"
 
-vr::HmdVector3_t getHMDPosition(vr::IVRSystem* &m_system) {
+vr::HmdVector3_t updateHMDPosAndRot(vr::IVRSystem* &m_system) {
     //Gets the HMD location for relative position setting
     // Use the head joint for the zero location!
     vr::HmdVector3_t position{};
@@ -16,7 +17,9 @@ vr::HmdVector3_t getHMDPosition(vr::IVRSystem* &m_system) {
         if (vr::VRSystem()->GetTrackedDeviceClass(HMD_INDEX) == vr::TrackedDeviceClass_HMD) {
             hmdPose = devicePose[HMD_INDEX];
             position = GetVRPositionFromMatrix(hmdPose.mDeviceToAbsoluteTracking);
-            vr::HmdQuaternion_t quaternion = GetVRRotationFromMatrix(hmdPose.mDeviceToAbsoluteTracking);    //Currently unused
+            vr::HmdQuaternion_t quaternion = GetVRRotationFromMatrix(hmdPose.mDeviceToAbsoluteTracking);
+            KinectSettings::hmdPosition = position;
+            KinectSettings::hmdRotation = quaternion;
         }
     }
     return position;

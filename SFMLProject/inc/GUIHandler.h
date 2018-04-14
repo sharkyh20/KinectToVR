@@ -128,14 +128,7 @@ void setDefaultSignals() {
             KinectSettings::ignoreInferredPositions = false;
         }
     });
-    IgnoreRotSmoothingCheckButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
-        if (IgnoreRotSmoothingCheckButton->IsActive()) {
-            KinectSettings::ignoreRotationSmoothing = true;    // No longer tries to smooth the joints
-        }
-        else {
-            KinectSettings::ignoreRotationSmoothing = false;
-        }
-    });
+    
 
 
     AddHandControllersToList->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
@@ -260,7 +253,7 @@ void setKinectButtonSignal(KinectHandlerBase& kinect) {
         kinect.initialise();
     });
 }
-void setTrackerInitButtonSignal(vrinputemulator::VRInputEmulator &inputE, std::vector<KVR::KinectTrackedDevice> &v_trackers) {
+void setTrackerButtonSignals(vrinputemulator::VRInputEmulator &inputE, std::vector<KVR::KinectTrackedDevice> &v_trackers) {
     TrackerInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers, &inputE] {
         TrackerInitButton->SetLabel("Trackers Initialised");
         if (TrackersToBeInitialised.empty()) {
@@ -270,12 +263,12 @@ void setTrackerInitButtonSignal(vrinputemulator::VRInputEmulator &inputE, std::v
             for (TempTracker tracker : TrackersToBeInitialised) {
                 spawnAndConnectTracker(inputE, v_trackers, tracker.joint0, tracker.joint1, tracker.role);
                 if (tracker.isController) {
-                    setDeviceProperty(v_trackers.back().deviceId, 1029, "int32", "2"); // Device Class: Controller
+                    setDeviceProperty(inputE, v_trackers.back().deviceId, 1029, "int32", "2"); // Device Class: Controller
                     if (tracker.role == KVR::KinectDeviceRole::LeftHand) {
-                        setDeviceProperty(v_trackers.back().deviceId, 3007, "int32", "1"); // ControllerRole Left
+                        setDeviceProperty(inputE, v_trackers.back().deviceId, 3007, "int32", "1"); // ControllerRole Left
                     }
                     else if (tracker.role == KVR::KinectDeviceRole::RightHand) {
-                        setDeviceProperty(v_trackers.back().deviceId, 3007, "int32", "2"); // ControllerRole Right
+                        setDeviceProperty(inputE, v_trackers.back().deviceId, 3007, "int32", "2"); // ControllerRole Right
                     }
                 }
             }
@@ -285,6 +278,30 @@ void setTrackerInitButtonSignal(vrinputemulator::VRInputEmulator &inputE, std::v
         showPostTrackerInitUI();
 
         TrackerInitButton->SetState(sfg::Widget::State::INSENSITIVE);
+    });
+    SetAllJointsRotUnfiltered->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers] {
+        for (KVR::KinectTrackedDevice &d : v_trackers) {
+            if (d.isSensor()){}
+            else {
+                d.rotationOption = KVR::JointRotationOption::Unfiltered;
+            }
+        }
+    });
+    SetAllJointsRotFiltered->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers] {
+        for (KVR::KinectTrackedDevice &d : v_trackers) {
+            if (d.isSensor()) {}
+            else {
+                d.rotationOption = KVR::JointRotationOption::Filtered;
+            }
+        }
+    });
+    SetAllJointsRotHead->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers] {
+        for (KVR::KinectTrackedDevice &d : v_trackers) {
+            if (d.isSensor()) {}
+            else {
+                d.rotationOption = KVR::JointRotationOption::HeadLook;
+            }
+        }
     });
 }
 void updateTrackerInitButtonLabelFail() {
@@ -345,9 +362,10 @@ void packElementsIntoMainBox() {
     mainGUIBox->Pack(KinectPosLabel);
     mainGUIBox->Pack(KinectPosButton);
 
+    
     mainGUIBox->Pack(InferredLabel);
     mainGUIBox->Pack(IgnoreInferredCheckButton);
-    mainGUIBox->Pack(IgnoreRotSmoothingCheckButton);
+    
 
     //mainGUIBox->Pack(CalibrationSettingsLabel); //Calibration left out of main UI because it is not currently implemented
     calibrationBox->Pack(CalibrationSetButton);
@@ -400,6 +418,9 @@ void packElementsIntoPlayspaceMovementBox() {
 void packElementsIntoAdvTrackerBox() {
     advancedTrackerBox->Pack(AddHandControllersToList);
     advancedTrackerBox->Pack(AddLowerTrackersToList);
+    advancedTrackerBox->Pack(SetAllJointsRotUnfiltered);
+    advancedTrackerBox->Pack(SetAllJointsRotFiltered);
+    advancedTrackerBox->Pack(SetAllJointsRotHead);
 
     advancedTrackerBox->Pack(TrackerList);
 
@@ -413,6 +434,7 @@ void packElementsIntoAdvTrackerBox() {
     TrackerListOptionsBox->Pack(IsControllerButton);
     TrackerListOptionsBox->Pack(AddTrackerToListButton);
     TrackerListOptionsBox->Pack(RemoveTrackerFromListButton);
+
 
     advancedTrackerBox->Pack(TrackerListOptionsBox);
 }
@@ -527,10 +549,11 @@ private:
     sfg::Button::Ptr ReconControllersButton = sfg::Button::Create("Reconnect VR Controllers");
 
 
-    // Allows for unrestricted tracking, but may be unstable
     sfg::Label::Ptr InferredLabel = sfg::Label::Create("Checking this stops the trackers if it's not absolutely 100% sure where they are. Leaving this disabled may cause better tracking in poorly lit environments, but at the cost of slight jerks aside sometimes.");
     sfg::CheckButton::Ptr IgnoreInferredCheckButton = sfg::CheckButton::Create("Disable Raw Positional Tracking");
-    sfg::CheckButton::Ptr IgnoreRotSmoothingCheckButton = sfg::CheckButton::Create("Enable Raw Orientation Tracking (Rotation smoothing is in development!!!)");
+    sfg::Button::Ptr SetAllJointsRotUnfiltered = sfg::Button::Create("Disable rotation smoothing for ALL joints (Rotation smoothing is in development!!!)");
+    sfg::Button::Ptr SetAllJointsRotFiltered = sfg::Button::Create("Enable rotation smoothing for ALL joints (Rotation smoothing is in development!!!)");
+    sfg::Button::Ptr SetAllJointsRotHead = sfg::Button::Create("Use Head orientation for ALL joints - may fix issues with jumping trackers at cost of limited rotation");
 
     sfg::Label::Ptr InstructionsLabel = sfg::Label::Create("Stand in front of the Kinect sensor.\n If the trackers don't update, then try crouching slightly until they move.\n\n Calibration: The arrow represents the position and rotation of the Kinect - match it as closely to real life as possible for the trackers to line up.\n\n The arrow pos/rot is set with the thumbsticks on the controllers, and confirmed with the trigger.");    //Blegh - There has to be a better way than this, maybe serialization?
 
@@ -588,9 +611,11 @@ private:
         ReconControllersButton->Show(show);
         InferredLabel->Show(show);
         IgnoreInferredCheckButton->Show(show);
-        IgnoreRotSmoothingCheckButton->Show(show);
+        SetAllJointsRotUnfiltered->Show(show);
         HipScale->Show(show);
         HipScaleBox->Show(show);
+        SetAllJointsRotHead->Show(show);
+        SetAllJointsRotFiltered->Show(show);
 
         calibrationBox->Show(show);
     }

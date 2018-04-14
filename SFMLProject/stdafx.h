@@ -5,6 +5,10 @@
 
 #pragma once
 
+#define WIN32_LEAN_AND_MEAN //Fix for intellisense errors
+// Windows Header Files:
+#include <windows.h>
+
 #include "targetver.h"
 
 #include <stdio.h>

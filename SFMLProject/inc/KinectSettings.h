@@ -38,7 +38,10 @@ namespace KinectSettings {
 
     extern double hipRoleHeightAdjust;
 
-    extern vr::HmdVector3_t hmdZero; //TEMP GLOBAL
+    extern vr::HmdVector3_t hmdPosition; 
+    extern vr::HmdQuaternion_t hmdRotation;
+
+
     extern vr::HmdQuaternion_t kinectRepRotation;
     extern vr::HmdVector3_t kinectRadRotation;
     extern vr::HmdVector3_t kinectRepPosition;
@@ -57,6 +60,11 @@ namespace SFMLsettings {
 
     extern bool usingGamepad;
 
+    extern std::string fileDirectoryPath;
+
     extern std::stringstream debugDisplayTextStream;
+}
+namespace KVR {
+    std::string fileToDirPath(std::string relativeFilePath);
 }
 # define M_PI           3.14159265358979323846

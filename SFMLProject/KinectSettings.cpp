@@ -7,7 +7,7 @@
 
 namespace KinectSettings {
     #define CFG_NAME "KinectToVR.cfg"
-    std::string KVRversion = "a0.5.2";
+    std::string KVRversion = "a0.5.6";
 
     bool isKinectDrawn = false;
     bool isSkeletonDrawn = false;
@@ -35,7 +35,9 @@ namespace KinectSettings {
     double kinectToVRScale = 1;
     double hipRoleHeightAdjust = 0.0;   // in metres up - applied post-scale
 
-    vr::HmdVector3_t hmdZero; //TEMP GLOBAL
+    vr::HmdVector3_t hmdPosition = { 0,0,0 };
+    vr::HmdQuaternion_t hmdRotation = { 0,0,0,0 };
+
     vr::HmdQuaternion_t kinectRepRotation{0,0,0,0};  //TEMP
     vr::HmdVector3_t kinectRadRotation{0,0,0};
     vr::HmdVector3_t kinectRepPosition{0,0,0};
@@ -43,7 +45,8 @@ namespace KinectSettings {
     bool adjustingKinectRepresentationPos = false;
 
     void serializeKinectSettings() {
-        std::ifstream is(CFG_NAME);
+        std::ifstream is(KVR::fileToDirPath(CFG_NAME));
+        std::cout << "Attempted CFG load: " << KVR::fileToDirPath(CFG_NAME) << '\n';
         //CHECK IF VALID
         if (is.fail()) {
             //FAIL!!!!
@@ -51,6 +54,7 @@ namespace KinectSettings {
             writeKinectSettings();
         }
         else {
+            std::cout << "CFG Loaded successfully!\n";
             cereal::JSONInputArchive archive(is);
             using namespace KinectSettings;
             float rot[3] = { 0,0,0 };
@@ -83,7 +87,7 @@ namespace KinectSettings {
     }
 
     void writeKinectSettings() {
-        std::ofstream os(CFG_NAME);
+        std::ofstream os(KVR::fileToDirPath(CFG_NAME));
         cereal::JSONOutputArchive archive(os);
 
         if (os.fail()) {
@@ -114,8 +118,17 @@ namespace SFMLsettings {
     int m_window_height = 600;
     float windowScale = .6f;
 
+    std::string fileDirectoryPath;
+
     bool usingGamepad = false;
     std::stringstream debugDisplayTextStream;
+
+    
+}
+namespace KVR {
+    std::string fileToDirPath(std::string relativeFilePath) {
+        return SFMLsettings::fileDirectoryPath + relativeFilePath;
+    }
 }
 # define M_PI           3.14159265358979323846
 

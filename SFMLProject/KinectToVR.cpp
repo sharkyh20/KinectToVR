@@ -3,13 +3,20 @@
 #include "VRHelper.h"
 
 #include "wtypes.h"
+#include "Windows.h"
 
 #include "KinectSettings.h"
 #include "VRController.h"
+#include "VRHelper.h"
 #include "GamepadController.h"
 #include "GUIHandler.h"
+#include "ManualCalibrator.h"
 #include <SFML\Audio.hpp>
+
+#include <locale>
+#include <codecvt>
 #include <iostream>
+#include <string>
 //GUI
 #include <SFGUI\SFGUI.hpp>
 #include <SFGUI/Widgets.hpp>
@@ -49,9 +56,7 @@ void updateKinectTracker(vrinputemulator::VRInputEmulator &emulator, KinectTrack
     emulator.setVirtualDevicePose(device.deviceId, pose);
 }
 */
-double deltaScaled(double valuePerSecond, double delta) {
-    return valuePerSecond * delta;
-}
+
 void toEulerAngle(vr::HmdQuaternion_t q, double& roll, double& pitch, double& yaw)
 {
     // roll (x-axis rotation)
@@ -124,46 +129,75 @@ void updateKinectWindowRes(const sf::RenderWindow& window) {
 }
 
 bool PlayspaceMovementUpdate(vr::HmdMatrix34_t& curPos, sf::Vector3f& lastLeftPosition, sf::Vector3f& lastRightPosition, VRcontroller& leftController, VRcontroller& rightController) {
-	vr::TrackedDevicePose_t devicePoses[vr::k_unMaxTrackedDeviceCount];
-	vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, devicePoses, vr::k_unMaxTrackedDeviceCount);
-	auto leftId = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
-	if (leftId == vr::k_unTrackedDeviceIndexInvalid) {
-		return false;
-	}
-	auto rightId = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand);
-	if (rightId == vr::k_unTrackedDeviceIndexInvalid) {
-		return false;
-	}
-	vr::TrackedDevicePose_t* leftPose = devicePoses + leftId;
-	vr::TrackedDevicePose_t* rightPose = devicePoses + rightId;
-	vr::HmdMatrix34_t* leftMat = &(leftPose->mDeviceToAbsoluteTracking);
-	vr::HmdMatrix34_t* rightMat = &(rightPose->mDeviceToAbsoluteTracking);
-	sf::Vector3f leftPos = sf::Vector3f(leftMat->m[0][3], leftMat->m[1][3], leftMat->m[2][3]);
-	sf::Vector3f rightPos = sf::Vector3f(rightMat->m[0][3], rightMat->m[1][3], rightMat->m[2][3]);
+    vr::TrackedDevicePose_t devicePoses[vr::k_unMaxTrackedDeviceCount];
+    vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, devicePoses, vr::k_unMaxTrackedDeviceCount);
+    auto leftId = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
+    if (leftId == vr::k_unTrackedDeviceIndexInvalid) {
+        return false;
+    }
+    auto rightId = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand);
+    if (rightId == vr::k_unTrackedDeviceIndexInvalid) {
+        return false;
+    }
+    vr::TrackedDevicePose_t* leftPose = devicePoses + leftId;
+    vr::TrackedDevicePose_t* rightPose = devicePoses + rightId;
+    vr::HmdMatrix34_t* leftMat = &(leftPose->mDeviceToAbsoluteTracking);
+    vr::HmdMatrix34_t* rightMat = &(rightPose->mDeviceToAbsoluteTracking);
+    sf::Vector3f leftPos = sf::Vector3f(leftMat->m[0][3], leftMat->m[1][3], leftMat->m[2][3]);
+    sf::Vector3f rightPos = sf::Vector3f(rightMat->m[0][3], rightMat->m[1][3], rightMat->m[2][3]);
 
-	sf::Vector3f delta = sf::Vector3f(0, 0, 0);
-	if (KinectSettings::leftHandPlayspaceMovementButton && leftController.GetPress((vr::EVRButtonId)(KinectSettings::leftHandPlayspaceMovementButton - 1)) && leftPose->bPoseIsValid && leftPose->bDeviceIsConnected) {
-		delta = leftPos - lastLeftPosition;
-	}
-	if (KinectSettings::rightHandPlayspaceMovementButton && rightController.GetPress((vr::EVRButtonId)(KinectSettings::rightHandPlayspaceMovementButton - 1)) && rightPose->bPoseIsValid && rightPose->bDeviceIsConnected) {
-		delta = rightPos - lastRightPosition;
-	}
-	if (leftPose->bPoseIsValid && leftPose->bDeviceIsConnected) {
-		lastLeftPosition = leftPos - delta; // Take into account the playspace suddenly moving.
-	}
-	if (rightPose->bPoseIsValid && rightPose->bDeviceIsConnected) {
-		lastRightPosition = rightPos - delta;
-	}
-	if (delta.x + delta.y + delta.z != 0) {
-		return MoveUniverseOrigin(curPos, delta);
-	}
-	return false;
+    sf::Vector3f delta = sf::Vector3f(0, 0, 0);
+    if (KinectSettings::leftHandPlayspaceMovementButton && leftController.GetPress((vr::EVRButtonId)(KinectSettings::leftHandPlayspaceMovementButton - 1)) && leftPose->bPoseIsValid && leftPose->bDeviceIsConnected) {
+        delta = leftPos - lastLeftPosition;
+    }
+    if (KinectSettings::rightHandPlayspaceMovementButton && rightController.GetPress((vr::EVRButtonId)(KinectSettings::rightHandPlayspaceMovementButton - 1)) && rightPose->bPoseIsValid && rightPose->bDeviceIsConnected) {
+        delta = rightPos - lastRightPosition;
+    }
+    if (leftPose->bPoseIsValid && leftPose->bDeviceIsConnected) {
+        lastLeftPosition = leftPos - delta; // Take into account the playspace suddenly moving.
+    }
+    if (rightPose->bPoseIsValid && rightPose->bDeviceIsConnected) {
+        lastRightPosition = rightPos - delta;
+    }
+    if (delta.x + delta.y + delta.z != 0) {
+        return MoveUniverseOrigin(curPos, delta);
+    }
+    return false;
+}
+void updateFilePath() {
+    HMODULE module = GetModuleHandleW(NULL);
+    WCHAR exeFilePath[MAX_PATH];
+    GetModuleFileNameW(module, exeFilePath, MAX_PATH);
+     
+    //Get rid of exe from name
+    WCHAR directory[_MAX_PATH];
+    WCHAR drive[_MAX_DRIVE];
+    WCHAR dir[_MAX_DIR];
+    WCHAR fname[_MAX_FNAME];
+    WCHAR ext[_MAX_EXT];
+    _wsplitpath_s(exeFilePath, drive, _MAX_DRIVE, dir, _MAX_DIR, fname,
+        _MAX_FNAME, ext, _MAX_EXT);
+
+    WCHAR filename[_MAX_FNAME]{};
+    WCHAR extension[_MAX_EXT]{};
+    WCHAR directoryFilePath[MAX_PATH];
+    _wmakepath_s(directoryFilePath, _MAX_PATH, drive, dir, filename, extension);
+    std::wstring string_to_convert(directoryFilePath);
+
+    //setup converter
+    using convert_type = std::codecvt_utf8<wchar_t>;
+    std::wstring_convert<convert_type, wchar_t> converter;
+
+    //use converter (.to_bytes: wstr->str, .from_bytes: str->wstr)
+    std::string converted_str = converter.to_bytes(string_to_convert);
+    SFMLsettings::fileDirectoryPath = converted_str;
 }
 
 void processLoop(KinectHandlerBase& kinect) {
+    updateFilePath();
     sf::RenderWindow renderWindow(getScaledWindowResolution(), "KinectToVR: " + KinectSettings::KVRversion, sf::Style::Titlebar | sf::Style::Close);
     updateKinectWindowRes(renderWindow);
-    renderWindow.setFramerateLimit(45);   //Prevents ridiculous overupdating and high CPU usage - plus 90Hz is the recommended refresh rate for most VR panels 
+    renderWindow.setFramerateLimit(90);   //Prevents ridiculous overupdating and high CPU usage - plus 90Hz is the recommended refresh rate for most VR panels 
 
     sf::Clock clock;
 
@@ -172,8 +206,11 @@ void processLoop(KinectHandlerBase& kinect) {
     sf::Font font;
     sf::Text debugText;
     // Global Debug Font
-    //font.loadFromFile("arial.ttf");
-    //debugText.setFont(font);
+#if _DEBUG
+    std::cout << "Attemping Debug Font Load: " << KVR::fileToDirPath("arial.ttf") << '\n';
+    font.loadFromFile(KVR::fileToDirPath("arial.ttf"));
+    debugText.setFont(font);
+#endif
     debugText.setString("");
     debugText.setCharacterSize(40);
     debugText.setFillColor(sf::Color::Red);
@@ -205,7 +242,7 @@ void processLoop(KinectHandlerBase& kinect) {
 
     // Tracker Initialisation Lambda
     if (inputEmulator.isConnected()) {
-        guiRef.setTrackerInitButtonSignal(inputEmulator, v_trackers);
+        guiRef.setTrackerButtonSignals(inputEmulator, v_trackers);
         guiRef.updateEmuStatusLabelSuccess();
     }
     else {
@@ -218,7 +255,7 @@ void processLoop(KinectHandlerBase& kinect) {
     VRcontroller rightController(vr::TrackedControllerRole_RightHand);
     VRcontroller leftController(vr::TrackedControllerRole_LeftHand);
     
-    GamepadController gamepad;
+    //GamepadController gamepad;
 
     vr::EVRInitError eError = vr::VRInitError_None;
     vr::IVRSystem *m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Utility);
@@ -275,12 +312,17 @@ void processLoop(KinectHandlerBase& kinect) {
         //Process -------------------------------------
         //Update GUI
         guiRef.updateDesktop(deltaT);
-        // Update Kinect Status
-        rightController.Connect(m_VRSystem);
-        leftController.Connect(m_VRSystem);
+        
+        //VR Controllers
         if (eError == vr::VRInitError_None) {
             rightController.update(deltaT);
             leftController.update(deltaT);
+            updateHMDPosAndRot(m_VRSystem);
+            /*
+            if (rightController.isOutOfTrackingRange()) {
+                SFMLsettings::debugDisplayTextStream << "RIGHT CONTROLLER POSE IS INVALID!\n";
+            }
+            */
         }
         else {
             std::cerr << "Error updating controllers: Could not connect to the SteamVR system! OpenVR init error-code " << std::to_string(eError) << std::endl;
@@ -295,81 +337,15 @@ void processLoop(KinectHandlerBase& kinect) {
 				changedPlaySpace = false;
 			}
 		}
-
+        // Update Kinect Status
         guiRef.updateKinectStatusLabel(kinect);
         if (kinect.isInitialised()) {
             kinect.update();
-            
-            if (KinectSettings::adjustingKinectRepresentationPos) { //TEMP FOR TESTING IMPLMENTATION- Warning Gross af
-                if (SFMLsettings::usingGamepad) {
-                    sf::Vector2f axis = gamepad.leftThumbstickValue();
-                    KinectSettings::kinectRepPosition.v[0] += deltaScaled(1.0, deltaT) * axis.x;
-                    KinectSettings::kinectRepPosition.v[2] += deltaScaled(1.0, deltaT) * axis.y;
-
-                    axis = gamepad.rightThumbstickValue();
-                    KinectSettings::kinectRepPosition.v[1] += deltaScaled(1.0, deltaT) * axis.y;
-
-                    if (gamepad.pressedRightTrigger()) {
-                        KinectSettings::adjustingKinectRepresentationPos = false;
-                        guiRef.togglePosButton();
-                        rightController.setHapticPulse(.15, 1000, 0);
-                    }
-                }
-                else {
-                    if (leftController.GetTouch(vr::EVRButtonId::k_EButton_SteamVR_Touchpad)) {
-                        sf::Vector2f axis = leftController.GetControllerAxisValue(vr::EVRButtonId::k_EButton_SteamVR_Touchpad);
-                        KinectSettings::kinectRepPosition.v[0] += deltaScaled(1.0, deltaT) * axis.x;
-                        KinectSettings::kinectRepPosition.v[2] += deltaScaled(1.0, deltaT) * axis.y;
-                    }
-                    if (rightController.GetTouch(vr::EVRButtonId::k_EButton_SteamVR_Touchpad)) {
-                        sf::Vector2f axis = rightController.GetControllerAxisValue(vr::EVRButtonId::k_EButton_SteamVR_Touchpad);
-                        KinectSettings::kinectRepPosition.v[1] += deltaScaled(1.0, deltaT) * axis.y;
-                    }
-                    if (rightController.GetTrigger()) {
-                        KinectSettings::adjustingKinectRepresentationPos = false;
-                        guiRef.togglePosButton();
-                    }
-                }
-                
-            }
-            else if (KinectSettings::adjustingKinectRepresentationRot) { //TEMP FOR TESTING IMPLMENTATION
-                KinectSettings::kinectRepRotation = vrmath::quaternionFromYawPitchRoll(KinectSettings::kinectRadRotation.v[1], KinectSettings::kinectRadRotation.v[0], KinectSettings::kinectRadRotation.v[2]);
-                if (SFMLsettings::usingGamepad) {
-                    sf::Vector2f axis = gamepad.leftThumbstickValue();
-                    KinectSettings::kinectRadRotation.v[1] += deltaScaled(3.0, deltaT) * axis.x;
-
-                    axis = gamepad.rightThumbstickValue();
-                    KinectSettings::kinectRadRotation.v[0] += deltaScaled(3.0, deltaT) * axis.y;
-
-                    if (gamepad.pressedRightTrigger()) {
-                        KinectSettings::adjustingKinectRepresentationRot = false;
-                        guiRef.toggleRotButton();
-                    }
-                }
-                else {
-                    
-                    //std::cerr << isRotating << '\n';
-                    if (leftController.GetTouch(vr::EVRButtonId::k_EButton_SteamVR_Touchpad)) {
-                        sf::Vector2f axis = leftController.GetControllerAxisValue(vr::EVRButtonId::k_EButton_SteamVR_Touchpad);
-                        KinectSettings::kinectRadRotation.v[1] += deltaScaled(3.0, deltaT) * axis.x;
-                        //std::cerr << "ROT ADJUSTED L\n";
-                    }
-                    if (rightController.GetTouch(vr::EVRButtonId::k_EButton_SteamVR_Touchpad)) {
-                        sf::Vector2f axis = rightController.GetControllerAxisValue(vr::EVRButtonId::k_EButton_SteamVR_Touchpad);
-                        KinectSettings::kinectRadRotation.v[0] += deltaScaled(3.0, deltaT) * axis.y;
-                        //std::cerr << "ROT ADJUSTED R\n";
-                    }
-                    if (rightController.GetTrigger()) {
-                        KinectSettings::adjustingKinectRepresentationRot = false;
-                        guiRef.toggleRotButton();
-                        rightController.setHapticPulse(.15, 1000, 0);
-                    }
-                }
-            }
-
+            if (KinectSettings::adjustingKinectRepresentationPos
+                || KinectSettings::adjustingKinectRepresentationRot)
+                ManualCalibrator::Calibrate(deltaT, leftController, rightController, guiRef);
 
             kinect.updateTrackersWithSkeletonPosition(inputEmulator, v_trackers);
-
             //Draw
             kinect.drawKinectData(renderWindow);
         }
@@ -421,6 +397,7 @@ void spawnAndConnectKinectTracker(vrinputemulator::VRInputEmulator &inputE, std:
 {
     KinectTrackedDevice kinectTrackerRef(inputE, KVR::KinectJointType::Head, KVR::KinectJointType::Head, KinectDeviceRole::KinectSensor);
 	kinectTrackerRef.init(inputE);
-    setKinectTrackerProperties(kinectTrackerRef.deviceId);
+    setKinectTrackerProperties(inputE, kinectTrackerRef.deviceId);
     v_trackers.push_back(kinectTrackerRef);
 }
+

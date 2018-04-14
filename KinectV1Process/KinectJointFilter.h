@@ -9,35 +9,11 @@
 #include <openvr_math.h>
 #include "VectorMath.h"
 
+#include "SmoothingParameters.h"
 
 // Joint Filter 
 // Courtesy of https://social.msdn.microsoft.com/Forums/en-US/045b058a-ae3a-4d01-beb6-b756631b4b42/joint-smoothing-code?forum=kinectv2sdk
-struct SmoothingParameters {
-    float smoothing;    // [0..1], lower values closer to raw data
-    float correction;   // [0..1], lower values slower to correct towards the raw data
-    float prediction;   // [0..n], the number of frames to predict into the future
-    float jitterRadius; // The radius in meters for jitter reduction
-    float maxDeviationRadius; // The maximum radius in meters that filtered positions are allowed to deviate from raw data
-};
 
-SmoothingParameters getDefaultSmoothingParams() {
-    SmoothingParameters params;
-    params.smoothing = .25f;
-    params.correction = .25f;
-    params.maxDeviationRadius = .05f;
-    params.jitterRadius = 0.03f;
-    params.prediction = .25f;
-        return params;
-}
-SmoothingParameters getAggressiveSmoothingParams() {
-    SmoothingParameters params;
-    params.smoothing = .25f;
-    params.correction = .25f;
-    params.maxDeviationRadius = .25f;
-    params.jitterRadius = 0.4f;
-    params.prediction = .25f;
-        return params;
-}
 // A holt double exponential smoothing filter
 class DoubleExponentialFilterData {
 public:
