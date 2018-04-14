@@ -103,7 +103,7 @@ void setDefaultSignals() {
     });
 
 	ShowSkeletonButton->GetSignal(sfg::Widget::OnLeftClick).Connect([] {
-		//toggle(KinectSettings::isSkeletonDrawn);
+		toggle(KinectSettings::isSkeletonDrawn);
 	});
 
     KinectRotButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
