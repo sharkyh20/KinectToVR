@@ -130,8 +130,6 @@ void updateKinectWindowRes(const sf::RenderWindow& window) {
     //std::cerr << "w: " << SFMLsettings::m_window_width << " h: " << SFMLsettings::m_window_height << "\n";
 }
 
-
-
 void updateFilePath() {
     HMODULE module = GetModuleHandleW(NULL);
     WCHAR exeFilePath[MAX_PATH];
@@ -239,10 +237,8 @@ void processLoop(KinectHandlerBase& kinect) {
     guiRef.setReconnectControllerButtonSignal(leftController, rightController, m_VRSystem);
 
     KinectSettings::userChangingZero = true;
-	
-    PlayspaceMovementAdjuster playspaceMovementAdjuster;
+    PlayspaceMovementAdjuster playspaceMovementAdjuster(&inputEmulator);
     guiRef.setPlayspaceResetButtonSignal(playspaceMovementAdjuster);
-
     while (renderWindow.isOpen())
     {
         //Clear the debug text display
@@ -292,7 +288,6 @@ void processLoop(KinectHandlerBase& kinect) {
         }
 
         playspaceMovementAdjuster.update(leftController, rightController);
-
         // Update Kinect Status
         guiRef.updateKinectStatusLabel(kinect);
         if (kinect.isInitialised()) {

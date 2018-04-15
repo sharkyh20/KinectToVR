@@ -50,11 +50,28 @@ vr::HmdVector3_t GetVRPositionFromMatrix(vr::HmdMatrix34_t matrix) {
     return vector;
 }
 
-//void ResetUniverseOrigin(vr::ETrackingUniverseOrigin universe) {
+void SetUniverseOrigin(vr::HmdMatrix34_t& curPos, sf::Vector3f pos, vrinputemulator::VRInputEmulator& inputEmulator) {
+	sf::Vector3f universePos = sf::Vector3f(
+		curPos.m[0][0] * pos.x + curPos.m[0][1] * pos.y + curPos.m[0][2] * pos.z,
+		curPos.m[1][0] * pos.x + curPos.m[1][1] * pos.y + curPos.m[1][2] * pos.z,
+		curPos.m[2][0] * pos.x + curPos.m[2][1] * pos.y + curPos.m[2][2] * pos.z
+	);
+	vr::HmdVector3d_t vec;
+	vec.v[0] = -curPos.m[0][3];
+	vec.v[1] = -curPos.m[1][3];
+	vec.v[2] = -curPos.m[2][3];
+    vr::TrackedDevicePose_t devicePoses[vr::k_unMaxTrackedDeviceCount];
+    vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, devicePoses, vr::k_unMaxTrackedDeviceCount);
+	for (int i = 0; i < vr::k_unMaxTrackedDeviceCount; i++) {
+		if (!devicePoses[i].bDeviceIsConnected) {
+			continue;
+		}
+		inputEmulator.enableDeviceOffsets(i, true);
+		inputEmulator.setWorldFromDriverTranslationOffset(i, vec);
+	}
+}
 
-//}
-
-bool MoveUniverseOrigin(vr::HmdMatrix34_t& curPos, sf::Vector3f delta) {
+void MoveUniverseOrigin(vr::HmdMatrix34_t& curPos, sf::Vector3f delta, vrinputemulator::VRInputEmulator& inputEmulator) {
 	// Adjust direction of delta to match the universe forward direction.
 	sf::Vector3f universeDelta = sf::Vector3f(
 		curPos.m[0][0] * delta.x + curPos.m[0][1] * delta.y + curPos.m[0][2] * delta.z,
@@ -64,5 +81,17 @@ bool MoveUniverseOrigin(vr::HmdMatrix34_t& curPos, sf::Vector3f delta) {
 	curPos.m[0][3] += universeDelta.x;
 	curPos.m[1][3] += universeDelta.y;
 	curPos.m[2][3] += universeDelta.z;
-	return true;
+	vr::HmdVector3d_t vec;
+	vec.v[0] = -curPos.m[0][3];
+	vec.v[1] = -curPos.m[1][3];
+	vec.v[2] = -curPos.m[2][3];
+    vr::TrackedDevicePose_t devicePoses[vr::k_unMaxTrackedDeviceCount];
+    vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, devicePoses, vr::k_unMaxTrackedDeviceCount);
+	for (int i = 0; i < vr::k_unMaxTrackedDeviceCount; i++) {
+		if (!devicePoses[i].bDeviceIsConnected) {
+			continue;
+		}
+		inputEmulator.enableDeviceOffsets(i, true);
+		inputEmulator.setWorldFromDriverTranslationOffset(i, vec);
+	}
 }
