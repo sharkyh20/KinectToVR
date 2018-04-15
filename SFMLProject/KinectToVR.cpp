@@ -287,7 +287,7 @@ void processLoop(KinectHandlerBase& kinect) {
             std::cerr << "Error updating controllers: Could not connect to the SteamVR system! OpenVR init error-code " << std::to_string(eError) << std::endl;
         }
 
-        playspaceMovementAdjuster.update(leftController, rightController);
+        
         // Update Kinect Status
         guiRef.updateKinectStatusLabel(kinect);
         if (kinect.isInitialised()) {
@@ -300,7 +300,12 @@ void processLoop(KinectHandlerBase& kinect) {
             //Draw
             kinect.drawKinectData(renderWindow);
         }
-
+        std::vector<uint32_t> virtualDeviceIndexes;
+        for (KinectTrackedDevice d : v_trackers) {
+            vrinputemulator::VirtualDeviceInfo info = inputEmulator.getVirtualDeviceInfo(d.deviceId);
+            virtualDeviceIndexes.push_back(info.openvrDeviceId); // needs to be converted into openvr's id - as inputEmulator has it's own Id's starting from zero
+        }
+        playspaceMovementAdjuster.update(leftController, rightController, virtualDeviceIndexes);
         
         renderWindow.pushGLStates();
 
