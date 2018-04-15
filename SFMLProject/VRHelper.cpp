@@ -89,17 +89,22 @@ void translateRealDevicesWorldFromDriver(vrinputemulator::VRInputEmulator& input
 
  
 void SetUniverseOrigin(const vr::HmdMatrix34_t& curPos, sf::Vector3f pos, vrinputemulator::VRInputEmulator& inputEmulator, std::vector<uint32_t> virtualDeviceIndexes) {
-	sf::Vector3f universePos = sf::Vector3f(
-		curPos.m[0][0] * pos.x + curPos.m[0][1] * pos.y + curPos.m[0][2] * pos.z,
-		curPos.m[1][0] * pos.x + curPos.m[1][1] * pos.y + curPos.m[1][2] * pos.z,
-		curPos.m[2][0] * pos.x + curPos.m[2][1] * pos.y + curPos.m[2][2] * pos.z
-	);
-	vr::HmdVector3d_t vec;
-	vec.v[0] = -curPos.m[0][3];
-	vec.v[1] = -curPos.m[1][3];
-	vec.v[2] = -curPos.m[2][3];
+    if (pos == sf::Vector3f(0, 0, 0)) {
+        translateRealDevicesWorldFromDriver(inputEmulator, { 0,0,0 }, virtualDeviceIndexes);
+    }
+    else {
+        sf::Vector3f universePos = sf::Vector3f(
+            curPos.m[0][0] * pos.x + curPos.m[0][1] * pos.y + curPos.m[0][2] * pos.z,
+            curPos.m[1][0] * pos.x + curPos.m[1][1] * pos.y + curPos.m[1][2] * pos.z,
+            curPos.m[2][0] * pos.x + curPos.m[2][1] * pos.y + curPos.m[2][2] * pos.z
+        );
+        vr::HmdVector3d_t vec;
+        vec.v[0] = -curPos.m[0][3];
+        vec.v[1] = -curPos.m[1][3];
+        vec.v[2] = -curPos.m[2][3];
 
-    translateRealDevicesWorldFromDriver(inputEmulator, vec, virtualDeviceIndexes);
+        translateRealDevicesWorldFromDriver(inputEmulator, vec, virtualDeviceIndexes);
+    }
 }
 
 void MoveUniverseOrigin(vr::HmdMatrix34_t& curPos, sf::Vector3f delta, vrinputemulator::VRInputEmulator& inputEmulator, std::vector<uint32_t> virtualDeviceIndexes) {
