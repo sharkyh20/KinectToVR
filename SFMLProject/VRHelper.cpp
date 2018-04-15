@@ -72,7 +72,7 @@ void translateRealDevicesWorldFromDriver(vrinputemulator::VRInputEmulator& input
             continue;
         }
         if (deviceIsVirtual(deviceIndex, virtualDeviceIndexes)) {
-            //Don't adjust it - as the virtual stuff relies on the Driver space to remain as is.
+            //The virtual stuff is differently scaled than the physical stuff - may need to look into this, as the value might change with changes to the Kinect tracking
             vr::HmdVector3d_t adjustedVec;
             adjustedVec.v[0] = vec.v[0] * 0.5f;
             adjustedVec.v[1] = vec.v[1] * 0.5f;
