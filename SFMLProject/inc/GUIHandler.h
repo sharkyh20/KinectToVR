@@ -7,6 +7,7 @@
 #include "KinectHandlerBase.h"
 #include "KinectTrackedDevice.h"
 #include "KinectJoint.h"
+#include "PlayspaceMovementAdjuster.h"
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Window/Mouse.hpp>
@@ -35,10 +36,12 @@ public:
         setLineWrapping();
         packElementsIntoMainBox();
         packElementsIntoAdvTrackerBox();
+		packElementsIntoPlayspaceMovementBox();
         setRequisitions();
 
         mainNotebook->AppendPage(mainGUIBox, sfg::Label::Create("KinectToVR"));
         mainNotebook->AppendPage(advancedTrackerBox, sfg::Label::Create("Adv. Trackers"));
+		mainNotebook->AppendPage(playspaceMovementBox, sfg::Label::Create("Playspace Movement"));
 
         guiWindow->Add(mainNotebook);
         guiDesktop.Add(guiWindow);
@@ -99,9 +102,10 @@ void setDefaultSignals() {
             SFMLsettings::usingGamepad = false;
         }
     });
-    ShowSkeletonButton->GetSignal(sfg::Widget::OnLeftClick).Connect([] {
-        toggle(KinectSettings::isSkeletonDrawn);
-    });
+
+	ShowSkeletonButton->GetSignal(sfg::Widget::OnLeftClick).Connect([] {
+		toggle(KinectSettings::isSkeletonDrawn);
+	});
 
     KinectRotButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
         if (KinectRotButton->IsActive()) {
@@ -159,6 +163,31 @@ void setDefaultSignals() {
         KinectSettings::hipRoleHeightAdjust = HipScale->GetValue();
     }
     );
+
+	// Playspace Movement Bindings
+ 
+	ButtonListLeftHand->GetSignal(sfg::ComboBox::OnSelect).Connect([this] {
+		KinectSettings::leftHandPlayspaceMovementButton = ButtonListLeftHand->GetSelectedItem();
+	}
+	);
+	ButtonListRightHand->GetSignal(sfg::ComboBox::OnSelect).Connect([this] {
+		KinectSettings::rightHandPlayspaceMovementButton = ButtonListRightHand->GetSelectedItem();
+	}
+	);
+	ButtonListLeftFoot->GetSignal(sfg::ComboBox::OnSelect).Connect([this] {
+		KinectSettings::leftFootPlayspaceMovementButton = ButtonListLeftFoot->GetSelectedItem();
+	}
+	);
+	ButtonListRightFoot->GetSignal(sfg::ComboBox::OnSelect).Connect([this] {
+		KinectSettings::rightFootPlayspaceMovementButton = ButtonListRightFoot->GetSelectedItem();
+	}
+	);
+
+}
+void setPlayspaceResetButtonSignal(PlayspaceMovementAdjuster& adjuster) {
+    ResetPlayspaceButton->GetSignal(sfg::Button::OnMouseLeftPress).Connect([this, &adjuster] {
+        adjuster.resetPlayspaceAdjustments();
+    });
 }
 
 void addUserTrackerToList() {
@@ -356,6 +385,7 @@ void packElementsIntoMainBox() {
 
     //mainGUIBox->Pack(calibrationBox); //Calibration left out of main UI because it is not currently implemented
 }
+
 void setHipScaleBox() {
     auto HipLabel = sfg::Label::Create("Vertical Hip Adjustment (metres)");
     HipScale->SetDigits(3);
@@ -364,6 +394,35 @@ void setHipScaleBox() {
     HipScaleBox->Pack(HipScale);
     mainGUIBox->Pack(HipScaleBox);
 }
+
+void packElementsIntoPlayspaceMovementBox() {
+	setButtonListLeftItems(ButtonListLeftHand);
+	setButtonListRightItems(ButtonListRightHand);
+	setButtonListRightItems(ButtonListRightFoot);
+	setButtonListLeftItems(ButtonListLeftFoot);
+
+	ButtonListRightHand->SelectItem(KinectSettings::rightHandPlayspaceMovementButton);
+	ButtonListLeftHand->SelectItem(KinectSettings::leftHandPlayspaceMovementButton);
+	ButtonListLeftFoot->SelectItem(KinectSettings::leftFootPlayspaceMovementButton);
+	ButtonListRightFoot->SelectItem(KinectSettings::rightFootPlayspaceMovementButton);
+
+	ButtonListRightHand->SelectItem(KinectSettings::rightHandPlayspaceMovementButton);
+	ButtonListLeftHand->SelectItem(KinectSettings::leftHandPlayspaceMovementButton);
+	ButtonListRightFoot->SelectItem(KinectSettings::rightFootPlayspaceMovementButton);
+	ButtonListLeftFoot->SelectItem(KinectSettings::leftFootPlayspaceMovementButton);
+
+    playspaceMovementBox->Pack(ResetPlayspaceButton);
+	playspaceMovementBox->Pack(LeftHandPlayspaceMovementEnabled);
+	playspaceMovementBox->Pack(ButtonListLeftHand);
+	playspaceMovementBox->Pack(RightHandPlayspaceMovementEnabled);
+	playspaceMovementBox->Pack(ButtonListRightHand);
+	playspaceMovementBox->Pack(LeftFootPlayspaceMovementEnabled);
+	playspaceMovementBox->Pack(ButtonListLeftFoot);
+	playspaceMovementBox->Pack(RightFootPlayspaceMovementEnabled);
+	playspaceMovementBox->Pack(ButtonListRightFoot);
+
+}
+
 void packElementsIntoAdvTrackerBox() {
     advancedTrackerBox->Pack(AddHandControllersToList);
     advancedTrackerBox->Pack(AddLowerTrackersToList);
@@ -376,7 +435,7 @@ void packElementsIntoAdvTrackerBox() {
     TrackerList->Pack(TrackerListLabel);
 
     setBonesListItems();
-    setRolesListItems();
+    setRolesListItems(RolesList);
 
     TrackerListOptionsBox->Pack(BonesList);
     TrackerListOptionsBox->Pack(RolesList);
@@ -387,6 +446,7 @@ void packElementsIntoAdvTrackerBox() {
 
     advancedTrackerBox->Pack(TrackerListOptionsBox);
 }
+
 void setBonesListItems() {
     using namespace KVR;
     for (int i = 0; i < KinectJointCount; ++i) {
@@ -395,13 +455,39 @@ void setBonesListItems() {
     // Set as default - to prevent garbage additions 
     BonesList->SelectItem(0);
 }
-void setRolesListItems() {
+
+void setRolesListItems(sfg::ComboBox::Ptr comboBox) {
     for (int i = 0; i < (int)KVR::KinectDeviceRole::Count; ++i) {
-        RolesList->AppendItem(KVR::KinectDeviceRoleName[i]);
+		comboBox->AppendItem(KVR::KinectDeviceRoleName[i]);
     }
     // Set as default - to prevent garbage additions 
-    RolesList->SelectItem(0);
+	comboBox->SelectItem(0);
 }
+
+void setButtonListRightItems(sfg::ComboBox::Ptr comboBox) {
+	// FIXME: Actually do button/controller detection stuff
+	comboBox->AppendItem("Disabled");
+	for (int i = 0; i < 16; i++) {
+		std::stringstream ss;
+		ss << "Right Controller: Button ";
+		ss << i;
+		comboBox->AppendItem(ss.str());
+	}
+	comboBox->SelectItem(0);
+}
+
+void setButtonListLeftItems(sfg::ComboBox::Ptr comboBox) {
+	// FIXME: Actually do button/controller detection stuff
+	comboBox->AppendItem("Disabled");
+	for (int i = 0; i < 16; i++) {
+		std::stringstream ss;
+		ss << "Left Controller: Button ";
+		ss << i;
+		comboBox->AppendItem(ss.str());
+	}
+	comboBox->SelectItem(0);
+}
+
 void updateKinectStatusLabel(KinectHandlerBase& kinect) {
     if (kinect.isInitialised()) {
         HRESULT status = kinect.getStatusResult();
@@ -444,6 +530,7 @@ private:
     sfg::Box::Ptr mainGUIBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
     sfg::Box::Ptr calibrationBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
     sfg::Box::Ptr advancedTrackerBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
+	sfg::Box::Ptr playspaceMovementBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
     //Statuses
     sfg::Label::Ptr KinectStatusLabel = sfg::Label::Create();
     sfg::Label::Ptr SteamVRStatusLabel = sfg::Label::Create();
@@ -488,6 +575,17 @@ private:
     sfg::Entry::Ptr CalibrationEntryRotZ = sfg::Entry::Create("");
 
     sfg::Button::Ptr CalibrationSetButton = sfg::Button::Create();
+
+	// Playspace Movement
+    sfg::Button::Ptr ResetPlayspaceButton = sfg::Button::Create("Reset Adjustments");
+	sfg::Label::Ptr LeftHandPlayspaceMovementEnabled = sfg::Label::Create("Left Hand Playspace Movement");
+	sfg::Label::Ptr RightHandPlayspaceMovementEnabled = sfg::Label::Create("Right Hand Playspace Movement");
+	sfg::Label::Ptr RightFootPlayspaceMovementEnabled = sfg::Label::Create("Right Foot Playspace Movement");
+	sfg::Label::Ptr LeftFootPlayspaceMovementEnabled = sfg::Label::Create("Left Foot Playspace Movement");
+	sfg::ComboBox::Ptr ButtonListLeftHand = sfg::ComboBox::Create();
+	sfg::ComboBox::Ptr ButtonListRightHand = sfg::ComboBox::Create();
+	sfg::ComboBox::Ptr ButtonListRightFoot = sfg::ComboBox::Create();
+	sfg::ComboBox::Ptr ButtonListLeftFoot = sfg::ComboBox::Create();
 
     //Adv Trackers
     sfg::Button::Ptr AddHandControllersToList = sfg::Button::Create("Add Hand Controllers");

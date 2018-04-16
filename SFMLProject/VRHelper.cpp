@@ -49,3 +49,78 @@ vr::HmdVector3_t GetVRPositionFromMatrix(vr::HmdMatrix34_t matrix) {
 
     return vector;
 }
+void translateAllDevicesWorldFromDriver(vrinputemulator::VRInputEmulator& inputEmulator, vr::HmdVector3d_t vec) {
+    vr::TrackedDevicePose_t devicePoses[vr::k_unMaxTrackedDeviceCount];
+    vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, devicePoses, vr::k_unMaxTrackedDeviceCount);
+    for (uint32_t i = 0; i < vr::k_unMaxTrackedDeviceCount; i++) {
+        if (!devicePoses[i].bDeviceIsConnected) {
+            continue;
+        }
+        inputEmulator.enableDeviceOffsets(i, true);
+        inputEmulator.setWorldFromDriverTranslationOffset(i, vec);
+    }
+}
+bool deviceIsVirtual(uint32_t deviceIndex, std::vector<uint32_t> virtualDeviceIndexes) {
+    if (virtualDeviceIndexes.empty()) return false;
+    return std::find(virtualDeviceIndexes.begin(), virtualDeviceIndexes.end(), deviceIndex) != virtualDeviceIndexes.end();
+}
+void translateRealDevicesWorldFromDriver(vrinputemulator::VRInputEmulator& inputEmulator, vr::HmdVector3d_t vec, std::vector<uint32_t> virtualDeviceIndexes) {
+    vr::TrackedDevicePose_t devicePoses[vr::k_unMaxTrackedDeviceCount];
+    vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, devicePoses, vr::k_unMaxTrackedDeviceCount);
+    for (uint32_t deviceIndex = 0; deviceIndex < vr::k_unMaxTrackedDeviceCount; deviceIndex++) {
+        if (!devicePoses[deviceIndex].bDeviceIsConnected) {
+            continue;
+        }
+        if (deviceIsVirtual(deviceIndex, virtualDeviceIndexes)) {
+            //The virtual stuff is differently scaled than the physical stuff - may need to look into this, as the value might change with changes to the Kinect tracking
+            vr::HmdVector3d_t adjustedVec;
+            adjustedVec.v[0] = vec.v[0] * 0.5f;
+            adjustedVec.v[1] = vec.v[1] * 0.5f;
+            adjustedVec.v[2] = vec.v[2] * 0.5f;
+            inputEmulator.enableDeviceOffsets(deviceIndex, true);
+            inputEmulator.setWorldFromDriverTranslationOffset(deviceIndex, adjustedVec);
+        }
+        else {
+            inputEmulator.enableDeviceOffsets(deviceIndex, true);
+            inputEmulator.setWorldFromDriverTranslationOffset(deviceIndex, vec);
+        }
+    }
+}
+
+ 
+void SetUniverseOrigin(const vr::HmdMatrix34_t& curPos, sf::Vector3f pos, vrinputemulator::VRInputEmulator& inputEmulator, std::vector<uint32_t> virtualDeviceIndexes) {
+    if (pos == sf::Vector3f(0, 0, 0)) {
+        translateRealDevicesWorldFromDriver(inputEmulator, { 0,0,0 }, virtualDeviceIndexes);
+    }
+    else {
+        sf::Vector3f universePos = sf::Vector3f(
+            curPos.m[0][0] * pos.x + curPos.m[0][1] * pos.y + curPos.m[0][2] * pos.z,
+            curPos.m[1][0] * pos.x + curPos.m[1][1] * pos.y + curPos.m[1][2] * pos.z,
+            curPos.m[2][0] * pos.x + curPos.m[2][1] * pos.y + curPos.m[2][2] * pos.z
+        );
+        vr::HmdVector3d_t vec;
+        vec.v[0] = -curPos.m[0][3];
+        vec.v[1] = -curPos.m[1][3];
+        vec.v[2] = -curPos.m[2][3];
+
+        translateRealDevicesWorldFromDriver(inputEmulator, vec, virtualDeviceIndexes);
+    }
+}
+
+void MoveUniverseOrigin(vr::HmdMatrix34_t& curPos, sf::Vector3f delta, vrinputemulator::VRInputEmulator& inputEmulator, std::vector<uint32_t> virtualDeviceIndexes) {
+    // Adjust direction of delta to match the universe forward direction.
+    sf::Vector3f universeDelta = sf::Vector3f(
+        curPos.m[0][0] * delta.x + curPos.m[0][1] * delta.y + curPos.m[0][2] * delta.z,
+        curPos.m[1][0] * delta.x + curPos.m[1][1] * delta.y + curPos.m[1][2] * delta.z,
+        curPos.m[2][0] * delta.x + curPos.m[2][1] * delta.y + curPos.m[2][2] * delta.z
+    );
+    curPos.m[0][3] += universeDelta.x;
+    curPos.m[1][3] += universeDelta.y;
+    curPos.m[2][3] += universeDelta.z;
+    vr::HmdVector3d_t vec;
+    vec.v[0] = -curPos.m[0][3];
+    vec.v[1] = -curPos.m[1][3];
+    vec.v[2] = -curPos.m[2][3];
+
+    translateRealDevicesWorldFromDriver(inputEmulator, vec, virtualDeviceIndexes);
+}

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "KinectToVR.h"
+#include "VRHelper.h"
 
 #include "wtypes.h"
 #include "Windows.h"
@@ -10,6 +11,8 @@
 #include "GamepadController.h"
 #include "GUIHandler.h"
 #include "ManualCalibrator.h"
+#include "PlayspaceMovementAdjuster.h"
+
 #include <SFML\Audio.hpp>
 
 #include <locale>
@@ -126,6 +129,7 @@ void updateKinectWindowRes(const sf::RenderWindow& window) {
     SFMLsettings::m_window_height = window.getSize().y;
     //std::cerr << "w: " << SFMLsettings::m_window_width << " h: " << SFMLsettings::m_window_height << "\n";
 }
+
 void updateFilePath() {
     HMODULE module = GetModuleHandleW(NULL);
     WCHAR exeFilePath[MAX_PATH];
@@ -199,7 +203,7 @@ void processLoop(KinectHandlerBase& kinect) {
     }
     catch (vrinputemulator::vrinputemulator_connectionerror e) {
         guiRef.updateEmuStatusLabelError(e);
-        std::cerr << "Attempted connection to Input Emulator" << std::to_string(e.errorcode) + " " + e.what() + "\n\n Is SteamVR open and InputEmulator installed?" << std::endl;   // DEBUG
+        std::cerr << "Attempted connection to Input Emulator" << std::to_string(e.errorcode) + " " + e.what() + "\n\n Is SteamVR open and InputEmulator installed?" << std::endl;   
     }
 
     // Tracker Initialisation Lambda
@@ -233,6 +237,8 @@ void processLoop(KinectHandlerBase& kinect) {
     guiRef.setReconnectControllerButtonSignal(leftController, rightController, m_VRSystem);
 
     KinectSettings::userChangingZero = true;
+    PlayspaceMovementAdjuster playspaceMovementAdjuster(&inputEmulator);
+    guiRef.setPlayspaceResetButtonSignal(playspaceMovementAdjuster);
     while (renderWindow.isOpen())
     {
         //Clear the debug text display
@@ -281,6 +287,7 @@ void processLoop(KinectHandlerBase& kinect) {
             std::cerr << "Error updating controllers: Could not connect to the SteamVR system! OpenVR init error-code " << std::to_string(eError) << std::endl;
         }
 
+        
         // Update Kinect Status
         guiRef.updateKinectStatusLabel(kinect);
         if (kinect.isInitialised()) {
@@ -293,7 +300,12 @@ void processLoop(KinectHandlerBase& kinect) {
             //Draw
             kinect.drawKinectData(renderWindow);
         }
-
+        std::vector<uint32_t> virtualDeviceIndexes;
+        for (KinectTrackedDevice d : v_trackers) {
+            vrinputemulator::VirtualDeviceInfo info = inputEmulator.getVirtualDeviceInfo(d.deviceId);
+            virtualDeviceIndexes.push_back(info.openvrDeviceId); // needs to be converted into openvr's id - as inputEmulator has it's own Id's starting from zero
+        }
+        playspaceMovementAdjuster.update(leftController, rightController, virtualDeviceIndexes);
         
         renderWindow.pushGLStates();
 
@@ -315,6 +327,9 @@ void processLoop(KinectHandlerBase& kinect) {
         d.destroy();
     }
     KinectSettings::writeKinectSettings();
+
+    playspaceMovementAdjuster.resetPlayspaceAdjustments();
+
     vr::VR_Shutdown();
 }
 
