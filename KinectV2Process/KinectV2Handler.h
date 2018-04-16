@@ -4,6 +4,8 @@
 #include "KinectHandlerBase.h"
 #include "KinectJointFilter.h"
 #include "KinectDoubleExponentialRotationFilter.h"
+
+#include <opencv2/opencv.hpp>
 // Kinect V2 - directory local due to my win 7 machine being unsupported for actual install
 
 #include <Kinect.h>
@@ -41,6 +43,24 @@ public:
     virtual void drawKinectData(sf::RenderWindow &win);
     virtual void drawKinectImageData(sf::RenderWindow &win);
     virtual void drawTrackedSkeletons(sf::RenderWindow &win);
+
+    virtual bool putRGBDataIntoMatrix(cv::Mat& image) override {
+        /*
+        image.create(1080, 1920, CV_8UC4);
+        BYTE* imgDataPtr = (BYTE*)image.data;
+        imgDataPtr = kinectImageData.get();
+        
+        return true;
+        */
+
+        const unsigned int img_size = 1920 * 1080 * 4;
+        image = cv::Mat(1080, 1920, CV_8UC4);
+
+        // copy data
+        memcpy(image.data, kinectImageData.get(), img_size);
+
+        return true;
+    }
 
     void onBodyFrameArrived(IBodyFrameReader& sender, IBodyFrameArrivedEventArgs& eventArgs);
     virtual void updateSkeletalData();

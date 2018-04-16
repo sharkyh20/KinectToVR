@@ -37,6 +37,10 @@ public:
     virtual void drawKinectImageData(sf::RenderWindow &win);
     virtual void drawTrackedSkeletons(sf::RenderWindow &win);
 
+    virtual bool putRGBDataIntoMatrix(cv::Mat& image) override {
+        return false;
+    }
+
     //Consider moving this tracking stuff into a seperate class
     virtual void zeroAllTracking(vr::IVRSystem* &m_sys);
     virtual void updateTrackersWithSkeletonPosition(

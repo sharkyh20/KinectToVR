@@ -10,6 +10,7 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <glew.h>
 
+#include <opencv2\opencv.hpp>
 
 class IKinectHandler {
     // Interface base for Kinectv1 and v2
@@ -27,6 +28,8 @@ public:
     virtual void drawKinectData(sf::RenderWindow &win) = 0;  // Houses the below draw functions with a check
     virtual void drawKinectImageData(sf::RenderWindow &win) = 0;
     virtual void drawTrackedSkeletons(sf::RenderWindow &win) = 0;
+
+    virtual bool putRGBDataIntoMatrix(cv::Mat& image) = 0;
 
     virtual void zeroAllTracking(vr::IVRSystem* &m_sys) = 0;
     virtual void updateTrackersWithSkeletonPosition(

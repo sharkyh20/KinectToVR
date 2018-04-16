@@ -316,10 +316,12 @@ void KinectV2Handler::getRGBImageData(IMultiSourceFrame* multiFrame) {
     if (!colorFrame) return;
 
     //Get data from current frame
-    colorFrame->CopyConvertedFrameDataToArray(KinectSettings::kinectV2Width*KinectSettings::kinectV2Height * 4, kinectImageData.get(), ColorImageFormat_Rgba);
-
+    colorFrame->CopyConvertedFrameDataToArray(KinectSettings::kinectV2Width*KinectSettings::kinectV2Height * 4, kinectImageData.get(), ColorImageFormat_Bgra);
     if (colorFrame) colorFrame->Release();
 }
+
+
+ 
 void KinectV2Handler::drawBody(const Joint * pJoints, const sf::Vector2f * pJointPoints, sf::RenderWindow & window)
 {
     // Draw the bones

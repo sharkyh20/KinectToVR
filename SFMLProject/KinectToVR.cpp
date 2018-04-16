@@ -12,6 +12,7 @@
 #include "GUIHandler.h"
 #include "ManualCalibrator.h"
 #include "PlayspaceMovementAdjuster.h"
+#include "ColorTracker.h"
 
 #include <SFML\Audio.hpp>
 
@@ -29,39 +30,6 @@
 
 
 using namespace KVR;
-
-/*
-void updateKinectTracker(vrinputemulator::VRInputEmulator &emulator, KinectTrackedDevice device)
-{
-    auto pose = emulator.getVirtualDevicePose(device.deviceId);
-    // The Kinect Tracker position must be rotated, as otherwise the tracker is oriented to the wrong direction
-    
-    double kRelativeX =  - kinectZero.x;
-    double kRelativeY =  - kinectZero.y;
-    double kRelativeZ = - kinectZero.z;
-    double rawPositionX = hmdZero.v[0] + kRelativeX;
-    double rawPositionZ =  hmdZero.v[2] + kRelativeZ;
-
-    pose.vecPosition[0] = kinectToVRScale * rawPositionX;
-    pose.vecPosition[1] = kinectToVRScale * kRelativeY;
-    pose.vecPosition[2] = kinectToVRScale * rawPositionZ;
-    
-
-    double kRelativeX = -kinectZero.x;
-    double kRelativeY = -kinectZero.y;
-    double kRelativeZ = -kinectZero.z;
-    double rawPositionX = hmdZero.v[0] + kRelativeX;
-    double rawPositionZ = hmdZero.v[2] + kRelativeZ;
-
-    pose.vecPosition[0] = rawPositionX;
-    pose.vecPosition[1] = kinectToVRScale * kRelativeY;
-    pose.vecPosition[2] = rawPositionZ;
-
-    pose.poseIsValid = true;
-    pose.result = vr::TrackingResult_Running_OK;
-    emulator.setVirtualDevicePose(device.deviceId, pose);
-}
-*/
 
 void toEulerAngle(vr::HmdQuaternion_t q, double& roll, double& pitch, double& yaw)
 {
@@ -244,6 +212,8 @@ void processLoop(KinectHandlerBase& kinect) {
     PlayspaceMovementAdjuster playspaceMovementAdjuster(&inputEmulator);
     guiRef.setPlayspaceResetButtonSignal(playspaceMovementAdjuster);
 
+    ColorTracker mainColorTracker(KinectSettings::kinectV2Width, KinectSettings::kinectV2Height);
+
     while (renderWindow.isOpen())
     {
         //Clear the debug text display
@@ -302,6 +272,11 @@ void processLoop(KinectHandlerBase& kinect) {
                 ManualCalibrator::Calibrate(deltaT, leftController, rightController, guiRef);
 
             kinect.updateTrackersWithSkeletonPosition(inputEmulator, v_trackers);
+            cv::Mat kinectRGBImage;
+            if (kinect.putRGBDataIntoMatrix(kinectRGBImage))
+                mainColorTracker.update(kinectRGBImage);
+            else
+                std::cerr << "Could not get RGB data\n";
             //Draw
             kinect.drawKinectData(renderWindow);
         }

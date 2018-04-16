@@ -177,6 +177,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Calibrator.h" />
+    <ClInclude Include="ColorTracker.h" />
     <ClInclude Include="GamepadController.h" />
     <ClInclude Include="GenericController.h" />
     <ClInclude Include="inc\GUIHandler.h" />
