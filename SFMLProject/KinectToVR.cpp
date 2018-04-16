@@ -23,6 +23,10 @@
 #include <SFGUI\SFGUI.hpp>
 #include <SFGUI/Widgets.hpp>
 
+//OpenCV
+#include <opencv2\opencv.hpp>
+
+
 
 using namespace KVR;
 
@@ -239,6 +243,7 @@ void processLoop(KinectHandlerBase& kinect) {
     KinectSettings::userChangingZero = true;
     PlayspaceMovementAdjuster playspaceMovementAdjuster(&inputEmulator);
     guiRef.setPlayspaceResetButtonSignal(playspaceMovementAdjuster);
+
     while (renderWindow.isOpen())
     {
         //Clear the debug text display

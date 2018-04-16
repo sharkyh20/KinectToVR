@@ -289,9 +289,8 @@ bool KinectV2Handler::initKinect() {
         kinectSensor->get_CoordinateMapper(&coordMapper);
 
         kinectSensor->Open();
-        //             FrameSourceTypes::FrameSourceTypes_Depth
-        // | FrameSourceTypes::FrameSourceTypes_Color |
-        kinectSensor->OpenMultiSourceFrameReader( FrameSourceTypes::FrameSourceTypes_Body,
+        kinectSensor->OpenMultiSourceFrameReader( FrameSourceTypes::FrameSourceTypes_Body| FrameSourceTypes::FrameSourceTypes_Depth
+             | FrameSourceTypes::FrameSourceTypes_Color,
             &frameReader);
         return frameReader;
     }
@@ -301,7 +300,7 @@ bool KinectV2Handler::initKinect() {
 }
 void KinectV2Handler::getKinectData() {
     if (SUCCEEDED(frameReader->AcquireLatestFrame(&multiFrame))) {
-        //getRGBImageData(multiFrame);
+        getRGBImageData(multiFrame);
         updateSkeletalData();
     }
     if (multiFrame) multiFrame->Release();
