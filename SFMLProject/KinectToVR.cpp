@@ -272,11 +272,7 @@ void processLoop(KinectHandlerBase& kinect) {
                 ManualCalibrator::Calibrate(deltaT, leftController, rightController, guiRef);
 
             kinect.updateTrackersWithSkeletonPosition(inputEmulator, v_trackers);
-            cv::Mat kinectRGBImage;
-            if (kinect.putRGBDataIntoMatrix(kinectRGBImage))
-                mainColorTracker.update(kinectRGBImage);
-            else
-                std::cerr << "Could not get RGB data\n";
+            mainColorTracker.update(kinect.colorMat);
             //Draw
             kinect.drawKinectData(renderWindow);
         }

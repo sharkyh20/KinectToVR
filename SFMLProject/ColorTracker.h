@@ -19,6 +19,7 @@ struct HSVFilter {
 class ColorTracker {
 public:
     ColorTracker(int frameWidth, int frameHeight) : FRAME_HEIGHT(frameHeight), FRAME_WIDTH(frameWidth) {
+        cv::setUseOptimized(true);
         MaximumObjectArea = FRAME_HEIGHT * FRAME_WIDTH / 1.5;
         addFilter();
         createTrackbars();
@@ -61,7 +62,7 @@ public:
 
         //delay 30ms so that screen can refresh.
         //image will not appear without this waitKey() command
-        //waitKey(1);
+        //waitKey(30);
     }
     void addFilter() {
         HSVFilter f;

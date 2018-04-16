@@ -5,6 +5,8 @@
 #include <iostream>
 #include <VRHelper.h>
 #include "KinectJointFilter.h"
+#include <ppl.h>
+
 
 HRESULT KinectV2Handler::getStatusResult()
 {
@@ -26,11 +28,49 @@ void KinectV2Handler::initialise() {
         kVersion = KinectVersion::Version2;
         kinectImageData = std::make_unique<GLubyte[]>(KinectSettings::kinectV2Width * KinectSettings::kinectV2Height * 4);  //RGBA
         initialised = initKinect();
+        initialiseColor();
+        initialiseDepth();
         if (!initialised) throw FailedKinectInitialisation;
     }
     catch (std::exception& e) {
         std::cerr << e.what() << std::endl;
     }
+}
+void KinectV2Handler::initialiseColor()
+{
+https://github.com/UnaNancyOwen/Kinect2Sample/blob/master/sample/CoordinateMapper/app.h
+    // Open Color Reader
+    IColorFrameSource* colorFrameSource;
+    kinectSensor->get_ColorFrameSource(&colorFrameSource);
+    colorFrameSource->OpenReader(&colorFrameReader);
+
+    // Retrieve Color Description
+    IFrameDescription* colorFrameDescription;
+    colorFrameSource->CreateFrameDescription(ColorImageFormat::ColorImageFormat_Bgra, &colorFrameDescription);
+    colorFrameDescription->get_Width(&colorWidth); // 1920
+    colorFrameDescription->get_Height(&colorHeight); // 1080
+    colorFrameDescription->get_BytesPerPixel(&colorBytesPerPixel); // 4
+
+                                                                                // Allocation Color Buffer
+    colorBuffer.resize(colorWidth * colorHeight * colorBytesPerPixel);
+}
+void KinectV2Handler::initialiseDepth()
+{
+https://github.com/UnaNancyOwen/Kinect2Sample/blob/master/sample/CoordinateMapper/app.h
+
+    // Open Depth Reader
+    IDepthFrameSource* depthFrameSource;
+    kinectSensor->get_DepthFrameSource(&depthFrameSource);
+    depthFrameSource->OpenReader(&depthFrameReader);
+
+    // Retrieve Depth Description
+    IFrameDescription* depthFrameDescription;
+    depthFrameSource->get_FrameDescription(&depthFrameDescription);
+    depthFrameDescription->get_Width(&depthWidth); // 512
+    depthFrameDescription->get_Height(&depthHeight); // 424
+    depthFrameDescription->get_BytesPerPixel(&depthBytesPerPixel); // 2
+                                                                                // Allocation Depth Buffer
+    depthBuffer.resize(depthWidth * depthHeight);
 }
 void KinectV2Handler::initOpenGL()
 {
@@ -74,6 +114,63 @@ void KinectV2Handler::update()
             getKinectData();
         }
     }
+}
+void KinectV2Handler::updateColorData()
+{
+    IColorFrame* colorFrame;
+    const HRESULT retrieveFrame = colorFrameReader->AcquireLatestFrame(&colorFrame);
+    if (FAILED(retrieveFrame)) {
+        std::cerr << "FAILED TO RETRIEVE COLOR FRAME\n";
+        return;
+    }
+    //Convert from YUY2 -> BGRA
+    colorFrame->CopyConvertedFrameDataToArray(static_cast<UINT>(colorBuffer.size()), &colorBuffer[0], ColorImageFormat::ColorImageFormat_Bgra);
+    if (convertColorToDepthResolution) {
+        std::vector<ColorSpacePoint> colorSpacePoints(depthWidth * depthHeight);
+        coordMapper->MapDepthFrameToColorSpace(depthBuffer.size(), &depthBuffer[0], colorSpacePoints.size(), &colorSpacePoints[0]);
+
+        // Mapping Color to Depth Resolution
+        std::vector<BYTE> buffer(depthWidth * depthHeight * colorBytesPerPixel);
+
+        Concurrency::parallel_for(0, depthHeight, [&](const int depthY) {
+            const unsigned int depthOffset = depthY * depthWidth;
+            for (int depthX = 0; depthX < depthWidth; depthX++) {
+                unsigned int depthIndex = depthOffset + depthX;
+                const int colorX = static_cast<int>(colorSpacePoints[depthIndex].X + 0.5f);
+                const int colorY = static_cast<int>(colorSpacePoints[depthIndex].Y + 0.5f);
+                if ((0 <= colorX) && (colorX < colorWidth) && (0 <= colorY) && (colorY < colorHeight)) {
+                    const unsigned int colorIndex = (colorY * colorWidth + colorX) * colorBytesPerPixel;
+                    depthIndex = depthIndex * colorBytesPerPixel;
+                    buffer[depthIndex + 0] = colorBuffer[colorIndex + 0];
+                    buffer[depthIndex + 1] = colorBuffer[colorIndex + 1];
+                    buffer[depthIndex + 2] = colorBuffer[colorIndex + 2];
+                    buffer[depthIndex + 3] = colorBuffer[colorIndex + 3];
+                }
+            }
+        });
+
+        // Create cv::Mat from Coordinate Buffer
+        colorMat = cv::Mat(depthHeight, depthWidth, CV_8UC4, &buffer[0]).clone();
+    }
+    else {
+        // Create cv::Mat from Color Buffer
+        colorMat = cv::Mat(colorHeight, colorWidth, CV_8UC4, &colorBuffer[0]);
+    }
+}
+void KinectV2Handler::updateDepthData()
+{
+    // Retrieve Depth Frame
+    IDepthFrame* depthFrame;
+    const HRESULT retrieveFrame = depthFrameReader->AcquireLatestFrame(&depthFrame);
+    if (FAILED(retrieveFrame)) {
+        return;
+    }
+
+    // Retrieve Depth Data
+    depthFrame->CopyFrameDataToArray(static_cast<UINT>(depthBuffer.size()), &depthBuffer[0]);
+
+    // Create cv::Mat from Depth Buffer
+    depthMat = cv::Mat(depthHeight, depthWidth, CV_16UC1, &depthBuffer[0]);
 }
 void KinectV2Handler::drawKinectData(sf::RenderWindow &win) {
     if (KinectSettings::isKinectDrawn) {
@@ -300,7 +397,9 @@ bool KinectV2Handler::initKinect() {
 }
 void KinectV2Handler::getKinectData() {
     if (SUCCEEDED(frameReader->AcquireLatestFrame(&multiFrame))) {
-        getRGBImageData(multiFrame);
+        //getRGBImageData(multiFrame);
+        updateColorData();
+        updateDepthData();
         updateSkeletalData();
     }
     if (multiFrame) multiFrame->Release();

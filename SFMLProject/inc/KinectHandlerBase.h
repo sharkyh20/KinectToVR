@@ -9,6 +9,21 @@ public:
     ~KinectHandlerBase() {
 
     }
+    bool convertColorToDepthResolution = false;
+    // Color Buffer
+    std::vector<BYTE> colorBuffer;
+    int colorWidth;
+    int colorHeight;
+    unsigned int colorBytesPerPixel;
+    cv::Mat colorMat;
+
+    // Depth Buffer
+    std::vector<UINT16> depthBuffer;
+    int depthWidth;
+    int depthHeight;
+    unsigned int depthBytesPerPixel;
+    cv::Mat depthMat;
+
     virtual void initOpenGL() {};
     virtual void initialise() {};
 

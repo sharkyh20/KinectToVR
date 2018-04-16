@@ -21,9 +21,13 @@ public:
     DoubleExpBoneOrientationsFilter rotationFilter;
     IKinectSensor* kinectSensor = nullptr;
     IMultiSourceFrameReader* frameReader = nullptr;
+    IColorFrameReader* colorFrameReader = nullptr;
+    IDepthFrameReader* depthFrameReader = nullptr;
     IMultiSourceFrame* multiFrame = nullptr;
     ICoordinateMapper* coordMapper = nullptr;
     BOOLEAN isTracking = false;
+
+    
 
     Joint joints[JointType_Count];
     JointOrientation jointOrientations[JointType_Count];
@@ -37,21 +41,26 @@ public:
     virtual std::string statusResultString(HRESULT stat);
 
     virtual void initialise();
+    void initialiseColor();
+    void initialiseDepth();
     virtual void initOpenGL();
     virtual void update();
+    void updateColorData();
+    void updateDepthData();
 
     virtual void drawKinectData(sf::RenderWindow &win);
     virtual void drawKinectImageData(sf::RenderWindow &win);
     virtual void drawTrackedSkeletons(sf::RenderWindow &win);
 
+    /*
     virtual bool putRGBDataIntoMatrix(cv::Mat& image) override {
-        /*
-        image.create(1080, 1920, CV_8UC4);
-        BYTE* imgDataPtr = (BYTE*)image.data;
-        imgDataPtr = kinectImageData.get();
         
-        return true;
-        */
+        //image.create(1080, 1920, CV_8UC4);
+        //BYTE* imgDataPtr = (BYTE*)image.data;
+        //imgDataPtr = kinectImageData.get();
+        //
+        //return true;
+        
 
         const unsigned int img_size = 1920 * 1080 * 4;
         image = cv::Mat(1080, 1920, CV_8UC4);
@@ -61,7 +70,7 @@ public:
 
         return true;
     }
-
+    */
     void onBodyFrameArrived(IBodyFrameReader& sender, IBodyFrameArrivedEventArgs& eventArgs);
     virtual void updateSkeletalData();
     virtual void zeroAllTracking(vr::IVRSystem* &m_sys);
