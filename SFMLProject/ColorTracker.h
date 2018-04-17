@@ -21,25 +21,32 @@ public:
     ColorTracker(int frameWidth, int frameHeight) : FRAME_HEIGHT(frameHeight), FRAME_WIDTH(frameWidth) {
         cv::setUseOptimized(true);
         MaximumObjectArea = FRAME_HEIGHT * FRAME_WIDTH / 1.5;
-        addFilter();
+        addBlueFilter();
         createTrackbars();
+
         namedWindow(windowName, WINDOW_NORMAL);
         namedWindow(windowName1, WINDOW_NORMAL);
         namedWindow(windowName2, WINDOW_NORMAL);
-
+        namedWindow(depthWindow, WINDOW_NORMAL);
         resizeWindow(windowName, 640, 360);
         resizeWindow(windowName1, 640, 360);
         resizeWindow(windowName2, 640, 360);
-
+        resizeWindow(depthWindow, 640, 360);
     }
     ~ColorTracker() {
 
     }
-    void update(Mat imageFeed) {
+    std::vector<sf::Vector2i> getTrackedPoints() {
+        std::vector<sf::Vector2i> points;
+        points.push_back(sf::Vector2i(trackedPositionX, trackedPositionY));
+        return points;
+    }
+    void update(Mat imageFeed, Mat depthFeed) {
+        cv::setNumThreads(0);
         //convert frame from BGR to HSV colorspace
-        Mat RGB;
-        cvtColor(imageFeed, RGB, COLOR_BGRA2RGB);
-        cvtColor(RGB, imageHSV, COLOR_RGB2HSV);
+        //Mat RGB;
+        cvtColor(imageFeed, imageHSV, COLOR_BGR2HSV);
+        //cvtColor(RGB, imageHSV, COLOR_RGB2HSV);
         //filter HSV image between values and store filtered image to
         //threshold matrix
         HSVFilter& f = filters[currentFilterIndex];
@@ -58,14 +65,24 @@ public:
         imshow(windowName2, imageThresholded);
         imshow(windowName, imageFeed);
         imshow(windowName1, imageHSV);
-
+        imshow(depthWindow, depthFeed);
 
         //delay 30ms so that screen can refresh.
         //image will not appear without this waitKey() command
-        //waitKey(30);
+        waitKey(1);
     }
     void addFilter() {
         HSVFilter f;
+        filters.push_back(f);
+    }
+    void addBlueFilter() {
+        HSVFilter f;
+        f.H_MIN = 95;
+        f.H_MAX = 207;
+        f.S_MIN = 74;
+        f.S_MAX = 256;
+        f.V_MIN = 174;
+        f.V_MAX = 256;
         filters.push_back(f);
     }
 
@@ -89,6 +106,7 @@ private:
 
     //names that will appear at the top of each window
     const std::string windowName = "Original Image";
+    const std::string depthWindow = "Depth Image";
     const std::string windowName1 = "HSV Image";
     const std::string windowName2 = "Thresholded Image";
     const std::string windowName3 = "After Morphological Operations";

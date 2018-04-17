@@ -6,7 +6,8 @@
 #include <VRHelper.h>
 #include "KinectJointFilter.h"
 #include <ppl.h>
-
+#include <thread>
+#include <chrono>
 
 HRESULT KinectV2Handler::getStatusResult()
 {
@@ -30,11 +31,20 @@ void KinectV2Handler::initialise() {
         initialised = initKinect();
         initialiseColor();
         initialiseDepth();
+        initialiseSkeleton();
+        std::this_thread::sleep_for(std::chrono::seconds(2));
         if (!initialised) throw FailedKinectInitialisation;
     }
     catch (std::exception& e) {
         std::cerr << e.what() << std::endl;
     }
+}
+void KinectV2Handler::initialiseSkeleton()
+{
+    IBodyFrameSource* bodyFrameSource;
+    kinectSensor->get_BodyFrameSource(&bodyFrameSource);
+    bodyFrameSource->OpenReader(&bodyFrameReader);
+    if (bodyFrameSource) bodyFrameSource->Release();
 }
 void KinectV2Handler::initialiseColor()
 {
@@ -53,6 +63,7 @@ https://github.com/UnaNancyOwen/Kinect2Sample/blob/master/sample/CoordinateMappe
 
                                                                                 // Allocation Color Buffer
     colorBuffer.resize(colorWidth * colorHeight * colorBytesPerPixel);
+    if (colorFrameSource) colorFrameSource->Release();
 }
 void KinectV2Handler::initialiseDepth()
 {
@@ -71,6 +82,8 @@ https://github.com/UnaNancyOwen/Kinect2Sample/blob/master/sample/CoordinateMappe
     depthFrameDescription->get_BytesPerPixel(&depthBytesPerPixel); // 2
                                                                                 // Allocation Depth Buffer
     depthBuffer.resize(depthWidth * depthHeight);
+
+    if (depthFrameSource) depthFrameSource->Release();
 }
 void KinectV2Handler::initOpenGL()
 {
@@ -148,7 +161,7 @@ void KinectV2Handler::updateColorData()
                 }
             }
         });
-
+        std::cerr << "Converted Color to depth\n";
         // Create cv::Mat from Coordinate Buffer
         colorMat = cv::Mat(depthHeight, depthWidth, CV_8UC4, &buffer[0]).clone();
     }
@@ -156,6 +169,7 @@ void KinectV2Handler::updateColorData()
         // Create cv::Mat from Color Buffer
         colorMat = cv::Mat(colorHeight, colorWidth, CV_8UC4, &colorBuffer[0]);
     }
+    if (colorFrame) colorFrame->Release();
 }
 void KinectV2Handler::updateDepthData()
 {
@@ -171,6 +185,7 @@ void KinectV2Handler::updateDepthData()
 
     // Create cv::Mat from Depth Buffer
     depthMat = cv::Mat(depthHeight, depthWidth, CV_16UC1, &depthBuffer[0]);
+    if (depthFrame) depthFrame->Release();
 }
 void KinectV2Handler::drawKinectData(sf::RenderWindow &win) {
     if (KinectSettings::isKinectDrawn) {
@@ -269,11 +284,12 @@ void KinectV2Handler::onBodyFrameArrived(IBodyFrameReader& sender, IBodyFrameArr
 }
 void KinectV2Handler::updateSkeletalData() {
     IBodyFrame* bodyFrame = nullptr;
-    IBodyFrameReference* frameRef = nullptr;
-    multiFrame->get_BodyFrameReference(&frameRef);
-    frameRef->AcquireFrame(&bodyFrame);
-    if (frameRef) frameRef->Release();
-
+    bodyFrameReader->AcquireLatestFrame(&bodyFrame);
+    //IBodyFrameReference* frameRef = nullptr;
+    //multiFrame->get_BodyFrameReference(&frameRef);
+    //frameRef->AcquireFrame(&bodyFrame);
+    //if (frameRef) frameRef->Release();
+    //if (bodyFrameReader) bodyFrameReader->Release();
     if (!bodyFrame) return;
 
     
@@ -339,6 +355,39 @@ void KinectV2Handler::updateTrackersWithSkeletonPosition(vrinputemulator::VRInpu
         }
     }
 }
+void KinectV2Handler::updateTrackersWithColorPosition(vrinputemulator::VRInputEmulator & emulator, std::vector<KVR::KinectTrackedDevice> trackers, sf::Vector2i pos)
+{
+    std::cerr << "Tracked Point: " << pos.x << ", " << pos.y << '\n';
+    //Convert colour to position
+    //std::unique_ptr<CameraSpacePoint[]> resultArray;
+    //resultArray = std::make_unique<CameraSpacePoint[]>(1920 * 1080);
+    CameraSpacePoint *resultArray = new CameraSpacePoint[1920 * 1080];
+    HRESULT hr = coordMapper->MapColorFrameToCameraSpace(512 * 424, &depthBuffer[0], colorBuffer.size(), resultArray);
+    if (hr) {
+        int colorX = static_cast<int>(pos.x + 0.5f);
+        int colorY = static_cast<int>(pos.y + 0.5f);
+        long colorIndex = (long)(colorY * 1920 + colorX);
+        CameraSpacePoint worldCoordinate = resultArray[colorIndex];
+        //auto worldCoordinate = resultArray[pos.y * 1920 + pos.x];
+        std::cerr << "Tracked Point: " << worldCoordinate.X << ", " << worldCoordinate.Y << ", " << worldCoordinate.Z << '\n';
+        for (KVR::KinectTrackedDevice device : trackers) {
+            if (device.isSensor()) {
+                device.update(KinectSettings::kinectRepPosition, { 0,0,0 }, KinectSettings::kinectRepRotation);
+            }
+            else {
+                vr::HmdVector3_t jointPosition{ 0,0,0 };
+                if (worldCoordinate.X + worldCoordinate.Y + worldCoordinate.Z != 0) {
+
+                    jointPosition.v[0] = worldCoordinate.X;
+                    jointPosition.v[1] = worldCoordinate.Y;
+                    jointPosition.v[2] = worldCoordinate.Z;
+                    device.update(trackedPositionVROffset, jointPosition, { 0,0,0,1 });
+                }
+            }
+        }
+    }
+    delete[] resultArray;
+}
 bool KinectV2Handler::getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdVector3_t& position, vr::HmdQuaternion_t &rotation) {
     sf::Vector3f filteredPos = filter.GetFilteredJoints()[convertJoint(device.joint0)];
     float jointX = filteredPos.x;
@@ -386,23 +435,24 @@ bool KinectV2Handler::initKinect() {
         kinectSensor->get_CoordinateMapper(&coordMapper);
 
         kinectSensor->Open();
-        kinectSensor->OpenMultiSourceFrameReader( FrameSourceTypes::FrameSourceTypes_Body| FrameSourceTypes::FrameSourceTypes_Depth
-             | FrameSourceTypes::FrameSourceTypes_Color,
-            &frameReader);
-        return frameReader;
+        //kinectSensor->OpenMultiSourceFrameReader( FrameSourceTypes::FrameSourceTypes_Body| FrameSourceTypes::FrameSourceTypes_Depth
+         //    | FrameSourceTypes::FrameSourceTypes_Color,
+         //   &frameReader);
+        //return frameReader;
+        return true;
     }
     else {
         return false;
     }
 }
 void KinectV2Handler::getKinectData() {
-    if (SUCCEEDED(frameReader->AcquireLatestFrame(&multiFrame))) {
+    //if (SUCCEEDED(frameReader->AcquireLatestFrame(&multiFrame))) {
         //getRGBImageData(multiFrame);
         updateColorData();
         updateDepthData();
         updateSkeletalData();
-    }
-    if (multiFrame) multiFrame->Release();
+    //}
+    //if (multiFrame) multiFrame->Release();
 }
 void KinectV2Handler::getRGBImageData(IMultiSourceFrame* multiFrame) {
     IColorFrame* colorFrame = nullptr;

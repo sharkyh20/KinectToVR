@@ -42,4 +42,6 @@ public:
         vrinputemulator::VRInputEmulator &emulator,
         std::vector<KVR::KinectTrackedDevice> trackers
     ) {};
+    virtual void updateTrackersWithColorPosition(vrinputemulator::VRInputEmulator &emulator,
+        std::vector<KVR::KinectTrackedDevice> trackers, sf::Vector2i pos) {}
 };

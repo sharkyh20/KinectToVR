@@ -20,7 +20,8 @@ public:
     DoubleExponentialFilter filter;
     DoubleExpBoneOrientationsFilter rotationFilter;
     IKinectSensor* kinectSensor = nullptr;
-    IMultiSourceFrameReader* frameReader = nullptr;
+    //IMultiSourceFrameReader* frameReader = nullptr;
+    IBodyFrameReader* bodyFrameReader = nullptr;
     IColorFrameReader* colorFrameReader = nullptr;
     IDepthFrameReader* depthFrameReader = nullptr;
     IMultiSourceFrame* multiFrame = nullptr;
@@ -41,6 +42,7 @@ public:
     virtual std::string statusResultString(HRESULT stat);
 
     virtual void initialise();
+    void initialiseSkeleton();
     void initialiseColor();
     void initialiseDepth();
     virtual void initOpenGL();
@@ -52,6 +54,7 @@ public:
     virtual void drawKinectImageData(sf::RenderWindow &win);
     virtual void drawTrackedSkeletons(sf::RenderWindow &win);
 
+    bool convertColorToDepthResolution = false;
     /*
     virtual bool putRGBDataIntoMatrix(cv::Mat& image) override {
         
@@ -77,7 +80,8 @@ public:
     virtual void updateTrackersWithSkeletonPosition(
         vrinputemulator::VRInputEmulator &emulator,
         std::vector<KVR::KinectTrackedDevice> trackers);
-
+    virtual void updateTrackersWithColorPosition(vrinputemulator::VRInputEmulator &emulator,
+        std::vector<KVR::KinectTrackedDevice> trackers, sf::Vector2i pos);
     JointType convertJoint(KVR::KinectJoint joint);
 private:
     bool initKinect();

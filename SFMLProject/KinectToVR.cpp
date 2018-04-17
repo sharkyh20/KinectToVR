@@ -135,7 +135,7 @@ void processLoop(KinectHandlerBase& kinect) {
     updateFilePath();
     sf::RenderWindow renderWindow(getScaledWindowResolution(), "KinectToVR: " + KinectSettings::KVRversion, sf::Style::Titlebar | sf::Style::Close);
     updateKinectWindowRes(renderWindow);
-    renderWindow.setFramerateLimit(90);   //Prevents ridiculous overupdating and high CPU usage - plus 90Hz is the recommended refresh rate for most VR panels 
+    renderWindow.setFramerateLimit(30);   //Prevents ridiculous overupdating and high CPU usage - plus 90Hz is the recommended refresh rate for most VR panels 
 
     sf::Clock clock;
 
@@ -271,8 +271,10 @@ void processLoop(KinectHandlerBase& kinect) {
                 || KinectSettings::adjustingKinectRepresentationRot)
                 ManualCalibrator::Calibrate(deltaT, leftController, rightController, guiRef);
 
-            kinect.updateTrackersWithSkeletonPosition(inputEmulator, v_trackers);
-            mainColorTracker.update(kinect.colorMat);
+            //kinect.updateTrackersWithSkeletonPosition(inputEmulator, v_trackers);
+            mainColorTracker.update(kinect.colorMat, kinect.depthMat);
+            sf::Vector2i position = mainColorTracker.getTrackedPoints()[0];
+            kinect.updateTrackersWithColorPosition(inputEmulator, v_trackers,position);
             //Draw
             kinect.drawKinectData(renderWindow);
         }
