@@ -171,6 +171,20 @@ void KinectV2Handler::updateColorData()
     }
     if (colorFrame) colorFrame->Release();
 }
+template <typename T>
+void updateBufferWithSmoothedMat(cv::Mat &in, cv::Mat &out, std::vector<T> &buffer) {
+    int filterIntensity = 5; //MUST be odd
+    cv::medianBlur(in, out, filterIntensity);
+
+    if (out.isContinuous()) {
+        buffer.assign((T*)out.datastart, (T*)out.dataend);
+    }
+    else {
+        for (int i = 0; i < out.rows; ++i) {
+            buffer.insert(buffer.end(), out.ptr<T>(i), out.ptr<T>(i) + out.cols);
+        }
+    }
+}
 void KinectV2Handler::updateDepthData()
 {
     // Retrieve Depth Frame
@@ -184,7 +198,9 @@ void KinectV2Handler::updateDepthData()
     depthFrame->CopyFrameDataToArray(static_cast<UINT>(depthBuffer.size()), &depthBuffer[0]);
 
     // Create cv::Mat from Depth Buffer
-    depthMat = cv::Mat(depthHeight, depthWidth, CV_16UC1, &depthBuffer[0]);
+    auto unsmoothedDepthMat = cv::Mat(depthHeight, depthWidth, CV_16U, &depthBuffer[0]);
+    updateBufferWithSmoothedMat(unsmoothedDepthMat, depthMat, depthBuffer);
+    
     if (depthFrame) depthFrame->Release();
 }
 void KinectV2Handler::drawKinectData(sf::RenderWindow &win) {
@@ -361,15 +377,18 @@ void KinectV2Handler::updateTrackersWithColorPosition(vrinputemulator::VRInputEm
     //Convert colour to position
     //std::unique_ptr<CameraSpacePoint[]> resultArray;
     //resultArray = std::make_unique<CameraSpacePoint[]>(1920 * 1080);
-    CameraSpacePoint *resultArray = new CameraSpacePoint[1920 * 1080];
-    HRESULT hr = coordMapper->MapColorFrameToCameraSpace(512 * 424, &depthBuffer[0], colorBuffer.size(), resultArray);
-    if (hr) {
+    std::vector<CameraSpacePoint> resultPoints(colorWidth * colorHeight);
+    HRESULT hr = coordMapper->MapColorFrameToCameraSpace(depthBuffer.size(), &depthBuffer[0], resultPoints.size(), &resultPoints[0]);
+    if (SUCCEEDED(hr)) {
         int colorX = static_cast<int>(pos.x + 0.5f);
         int colorY = static_cast<int>(pos.y + 0.5f);
         long colorIndex = (long)(colorY * 1920 + colorX);
-        CameraSpacePoint worldCoordinate = resultArray[colorIndex];
+        CameraSpacePoint worldCoordinate = resultPoints[colorIndex];
         //auto worldCoordinate = resultArray[pos.y * 1920 + pos.x];
-        std::cerr << "Tracked Point: " << worldCoordinate.X << ", " << worldCoordinate.Y << ", " << worldCoordinate.Z << '\n';
+        std::cerr << "World Point: " << worldCoordinate.X << ", " << worldCoordinate.Y << ", " << worldCoordinate.Z << '\n';
+        if (isnan(worldCoordinate.X)) {
+            return;
+        }
         for (KVR::KinectTrackedDevice device : trackers) {
             if (device.isSensor()) {
                 device.update(KinectSettings::kinectRepPosition, { 0,0,0 }, KinectSettings::kinectRepRotation);
@@ -386,7 +405,7 @@ void KinectV2Handler::updateTrackersWithColorPosition(vrinputemulator::VRInputEm
             }
         }
     }
-    delete[] resultArray;
+    std::cout << "HR: " << hr << '\n';
 }
 bool KinectV2Handler::getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdVector3_t& position, vr::HmdQuaternion_t &rotation) {
     sf::Vector3f filteredPos = filter.GetFilteredJoints()[convertJoint(device.joint0)];
@@ -448,8 +467,8 @@ bool KinectV2Handler::initKinect() {
 void KinectV2Handler::getKinectData() {
     //if (SUCCEEDED(frameReader->AcquireLatestFrame(&multiFrame))) {
         //getRGBImageData(multiFrame);
-        updateColorData();
         updateDepthData();
+        updateColorData();
         updateSkeletalData();
     //}
     //if (multiFrame) multiFrame->Release();

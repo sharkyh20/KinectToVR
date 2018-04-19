@@ -2,6 +2,7 @@
 #include <opencv2\opencv.hpp>
 #include <string>
 #include <vector>
+
 using namespace cv;
 
 void on_trackbar(int, void*)
@@ -44,9 +45,9 @@ public:
     void update(Mat imageFeed, Mat depthFeed) {
         cv::setNumThreads(0);
         //convert frame from BGR to HSV colorspace
-        //Mat RGB;
+        resize(imageFeed, imageFeed, Size(FRAME_WIDTH, FRAME_HEIGHT));
         cvtColor(imageFeed, imageHSV, COLOR_BGR2HSV);
-        //cvtColor(RGB, imageHSV, COLOR_RGB2HSV);
+        
         //filter HSV image between values and store filtered image to
         //threshold matrix
         HSVFilter& f = filters[currentFilterIndex];
@@ -77,11 +78,11 @@ public:
     }
     void addBlueFilter() {
         HSVFilter f;
-        f.H_MIN = 95;
-        f.H_MAX = 207;
-        f.S_MIN = 74;
+        f.H_MIN = 104;
+        f.H_MAX = 184;
+        f.S_MIN = 133;
         f.S_MAX = 256;
-        f.V_MIN = 174;
+        f.V_MIN = 87;
         f.V_MAX = 256;
         filters.push_back(f);
     }
@@ -99,8 +100,9 @@ private:
     std::vector<HSVFilter> filters;
     int currentFilterIndex = 0;
     const int MaxTrackedObjects = 50;
-    int FRAME_HEIGHT = 1080;
     int FRAME_WIDTH = 1920;
+    int FRAME_HEIGHT = 1080;
+    
     int MinimumObjectArea = 20 * 20;
     int MaximumObjectArea = FRAME_HEIGHT * FRAME_WIDTH / 1.5; // Needs to change for Xbone
 
@@ -198,7 +200,7 @@ private:
         std::vector< std::vector<Point> > contours;
         std::vector<Vec4i> hierarchy;
         //find contours of filtered image using openCV findContours function
-        findContours(temp, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE);
+        findContours(temp, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE);
         //use moments method to find our filtered object
         double refArea = 0;
         bool objectFound = false;
