@@ -128,6 +128,20 @@ void KinectV2Handler::update()
         }
     }
 }
+template <typename T>
+void updateBufferWithSmoothedMat(cv::Mat &in, cv::Mat &out, std::vector<T> &buffer) {
+    int filterIntensity = 5; //MUST be odd
+    cv::medianBlur(in, out, filterIntensity);
+
+    if (out.isContinuous()) {
+        buffer.assign((T*)out.datastart, (T*)out.dataend);
+    }
+    else {
+        for (int i = 0; i < out.rows; ++i) {
+            buffer.insert(buffer.end(), out.ptr<T>(i), out.ptr<T>(i) + out.cols);
+        }
+    }
+}
 void KinectV2Handler::updateColorData()
 {
     IColorFrame* colorFrame;
@@ -169,22 +183,10 @@ void KinectV2Handler::updateColorData()
         // Create cv::Mat from Color Buffer
         colorMat = cv::Mat(colorHeight, colorWidth, CV_8UC4, &colorBuffer[0]);
     }
+    updateBufferWithSmoothedMat(colorMat, colorMat, colorBuffer);
     if (colorFrame) colorFrame->Release();
 }
-template <typename T>
-void updateBufferWithSmoothedMat(cv::Mat &in, cv::Mat &out, std::vector<T> &buffer) {
-    int filterIntensity = 5; //MUST be odd
-    cv::medianBlur(in, out, filterIntensity);
 
-    if (out.isContinuous()) {
-        buffer.assign((T*)out.datastart, (T*)out.dataend);
-    }
-    else {
-        for (int i = 0; i < out.rows; ++i) {
-            buffer.insert(buffer.end(), out.ptr<T>(i), out.ptr<T>(i) + out.cols);
-        }
-    }
-}
 void KinectV2Handler::updateDepthData()
 {
     // Retrieve Depth Frame
@@ -373,6 +375,8 @@ void KinectV2Handler::updateTrackersWithSkeletonPosition(vrinputemulator::VRInpu
 }
 void KinectV2Handler::updateTrackersWithColorPosition(vrinputemulator::VRInputEmulator & emulator, std::vector<KVR::KinectTrackedDevice> trackers, sf::Vector2i pos)
 {
+    //pos.x = std::min(pos.x, colorWidth - 1);
+    //pos.y = std::min(pos.y, colorHeight - 1);
     std::cerr << "Tracked Point: " << pos.x << ", " << pos.y << '\n';
     //Convert colour to position
     //std::unique_ptr<CameraSpacePoint[]> resultArray;

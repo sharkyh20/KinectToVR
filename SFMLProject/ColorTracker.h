@@ -25,14 +25,15 @@ public:
         addBlueFilter();
         createTrackbars();
 
-        namedWindow(windowName, WINDOW_NORMAL);
-        namedWindow(windowName1, WINDOW_NORMAL);
-        namedWindow(windowName2, WINDOW_NORMAL);
+        namedWindow(colorFeedWindow, WINDOW_NORMAL);
+        namedWindow(hsvWindow, WINDOW_NORMAL);
+        namedWindow(thresholdWindow, WINDOW_NORMAL);
         namedWindow(depthWindow, WINDOW_NORMAL);
-        resizeWindow(windowName, 640, 360);
-        resizeWindow(windowName1, 640, 360);
-        resizeWindow(windowName2, 640, 360);
+        resizeWindow(colorFeedWindow, 640, 360);
+        resizeWindow(hsvWindow, 640, 360);
+        resizeWindow(thresholdWindow, 640, 360);
         resizeWindow(depthWindow, 640, 360);
+
     }
     ~ColorTracker() {
 
@@ -43,9 +44,18 @@ public:
         return points;
     }
     void update(Mat imageFeed, Mat depthFeed) {
-        cv::setNumThreads(0);
+
+        //cv::setNumThreads(0);
+
         //convert frame from BGR to HSV colorspace
-        resize(imageFeed, imageFeed, Size(FRAME_WIDTH, FRAME_HEIGHT));
+        
+        int scaleReductionFactor = 3;
+        if (scaleImageForProcessing) {
+            int convertedWidth = FRAME_WIDTH / scaleReductionFactor;
+            int convertedHeight = FRAME_HEIGHT / scaleReductionFactor;
+            resize(imageFeed, imageFeed, Size( convertedHeight, convertedWidth), 0.5, 0.5 , INTER_AREA); // For some reason, height and width need to be swapped around, as otherwise PositionX is really PositionY
+        }
+        
         cvtColor(imageFeed, imageHSV, COLOR_BGR2HSV);
         
         //filter HSV image between values and store filtered image to
@@ -59,15 +69,20 @@ public:
         //pass in thresholded frame to our object tracking function
         //this function will return the x and y coordinates of the
         //filtered object
-        if (trackObjects)
-            trackFilteredObject(trackedPositionX, trackedPositionY, imageThresholded, imageFeed);
-
+        if (trackObjects) {
+            bool objectTracked = trackFilteredObject(trackedPositionX, trackedPositionY, imageThresholded, imageFeed);
+            if (objectTracked && scaleImageForProcessing) {
+                trackedPositionX *= scaleReductionFactor;
+                trackedPositionY *= scaleReductionFactor;
+            }
+        }
+        
         //show frames 
-        imshow(windowName2, imageThresholded);
-        imshow(windowName, imageFeed);
-        imshow(windowName1, imageHSV);
+        imshow(thresholdWindow, imageThresholded);
+        imshow(colorFeedWindow, imageFeed);
+        imshow(hsvWindow, imageHSV);
         imshow(depthWindow, depthFeed);
-
+        
         //delay 30ms so that screen can refresh.
         //image will not appear without this waitKey() command
         waitKey(1);
@@ -78,11 +93,11 @@ public:
     }
     void addBlueFilter() {
         HSVFilter f;
-        f.H_MIN = 104;
-        f.H_MAX = 184;
-        f.S_MIN = 133;
-        f.S_MAX = 256;
-        f.V_MIN = 87;
+        f.H_MIN = 44;
+        f.H_MAX = 126;
+        f.S_MIN = 160;
+        f.S_MAX = 251;
+        f.V_MIN = 88;
         f.V_MAX = 256;
         filters.push_back(f);
     }
@@ -90,6 +105,9 @@ public:
 private:
     bool useMorphOps = true;
     bool trackObjects = true;
+    bool scaleImageForProcessing = false;
+
+    uchar lastPickedHSV {};
 
     Mat imageHSV;
     Mat imageThresholded;
@@ -103,14 +121,14 @@ private:
     int FRAME_WIDTH = 1920;
     int FRAME_HEIGHT = 1080;
     
-    int MinimumObjectArea = 20 * 20;
+    int MinimumObjectArea = 5 * 5;
     int MaximumObjectArea = FRAME_HEIGHT * FRAME_WIDTH / 1.5; // Needs to change for Xbone
 
     //names that will appear at the top of each window
-    const std::string windowName = "Original Image";
+    const std::string colorFeedWindow = "Original Image";
     const std::string depthWindow = "Depth Image";
-    const std::string windowName1 = "HSV Image";
-    const std::string windowName2 = "Thresholded Image";
+    const std::string hsvWindow = "HSV Image";
+    const std::string thresholdWindow = "Thresholded Image";
     const std::string windowName3 = "After Morphological Operations";
     const std::string trackbarWindowName = "Trackbars";
         
@@ -192,7 +210,7 @@ private:
 
 
     }
-    void trackFilteredObject(int &x, int &y, Mat threshold, Mat &cameraFeed) {
+    bool trackFilteredObject(int &x, int &y, Mat threshold, Mat &cameraFeed) {
 
         Mat temp;
         threshold.copyTo(temp);
@@ -200,7 +218,7 @@ private:
         std::vector< std::vector<Point> > contours;
         std::vector<Vec4i> hierarchy;
         //find contours of filtered image using openCV findContours function
-        findContours(temp, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE);
+        findContours(temp, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE);
         //use moments method to find our filtered object
         double refArea = 0;
         bool objectFound = false;
@@ -225,7 +243,6 @@ private:
                     }
                     else objectFound = false;
 
-
                 }
                 //let user know you found an object
                 if (objectFound == true) {
@@ -237,6 +254,7 @@ private:
             }
             else putText(cameraFeed, "TOO MUCH NOISE! ADJUST FILTER", Point(0, 50), 1, 2, Scalar(0, 0, 255), 2);
         }
+        return objectFound;
     }
 };
 
