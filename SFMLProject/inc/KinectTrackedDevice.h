@@ -33,14 +33,18 @@ namespace KVR {
         "Count"
     };
 
-    enum class JointRotationOption {
+    enum class JointRotationFilterOption {
         Filtered,
         Unfiltered,
         HeadLook
     };
-    enum class JointPositionOption {
+    enum class JointPositionFilterOption {
         Filtered,
         Unfiltered
+    };
+    enum class JointPositionTrackingOption {
+        Skeleton,
+        Color
     };
 
     class KinectTrackedDevice {
@@ -80,7 +84,7 @@ namespace KVR {
             rotatedPos.v[2] += KinectSettings::kinectRepPosition.v[2];
 
             if (!isSensor()) {
-                if (rotationOption == JointRotationOption::HeadLook) {}
+                if (rotationFilterOption == JointRotationFilterOption::HeadLook) {}
                 else 
                     jointRotation = KinectSettings::kinectRepRotation * jointRotation;
             }
@@ -119,8 +123,9 @@ namespace KVR {
         vr::HmdVector3_t trackedPositionVROffset;
         vr::HmdVector3_t lastRawPos{ 0,0,0 };
 
-        JointRotationOption rotationOption = JointRotationOption::Filtered;
-        JointPositionOption positionOption = JointPositionOption::Filtered;
+        JointRotationFilterOption rotationFilterOption = JointRotationFilterOption::Filtered;
+        JointPositionFilterOption positionFilterOption = JointPositionFilterOption::Filtered;
+        JointPositionTrackingOption positionTrackingOption = JointPositionTrackingOption::Skeleton;
 
         KinectDeviceRole role;
     private:

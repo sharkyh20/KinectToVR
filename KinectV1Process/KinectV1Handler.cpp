@@ -217,14 +217,14 @@ bool KinectV1Handler::getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdV
 
                 //Rotation - Need to seperate into function
                 Vector4 kRotation = { 0,0,0,0 };
-                switch (device.rotationOption) {
-                case KVR::JointRotationOption::Unfiltered:
+                switch (device.rotationFilterOption) {
+                case KVR::JointRotationFilterOption::Unfiltered:
                     kRotation = boneOrientations[convertJoint(device.joint1)].absoluteRotation.rotationQuaternion;
                     break;
-                case KVR::JointRotationOption::Filtered:
+                case KVR::JointRotationFilterOption::Filtered:
                     kRotation = rotFilter.GetFilteredJoints()[convertJoint(device.joint0)];
                     break;
-                case KVR::JointRotationOption::HeadLook: {        // Ew
+                case KVR::JointRotationFilterOption::HeadLook: {        // Ew
                     auto q = KinectSettings::hmdRotation;
                     //Isolate Yaw
                     float yaw = atan2(2 * q.w*q.y + 2 * q.x*q.z, +q.w*q.w + q.x*q.x - q.z*q.z - q.y*q.y);

@@ -22,7 +22,8 @@ public:
     ColorTracker(int frameWidth, int frameHeight) : FRAME_HEIGHT(frameHeight), FRAME_WIDTH(frameWidth) {
         cv::setUseOptimized(true);
         MaximumObjectArea = FRAME_HEIGHT * FRAME_WIDTH / 1.5;
-        addBlueFilter();
+        //addBlueFilter();
+        addFilter();
         createTrackbars();
 
         namedWindow(colorFeedWindow, WINDOW_NORMAL);
@@ -44,45 +45,48 @@ public:
         return points;
     }
     void update(Mat imageFeed, Mat depthFeed) {
+        if (imageFeed.empty() || depthFeed.empty())
+            return;
 
-        //cv::setNumThreads(0);
-
-        //convert frame from BGR to HSV colorspace
-        
         int scaleReductionFactor = 3;
+        int convertedWidth = FRAME_WIDTH;
+        int convertedHeight = FRAME_HEIGHT;
         if (scaleImageForProcessing) {
             int convertedWidth = FRAME_WIDTH / scaleReductionFactor;
             int convertedHeight = FRAME_HEIGHT / scaleReductionFactor;
             resize(imageFeed, imageFeed, Size( convertedHeight, convertedWidth), 0.5, 0.5 , INTER_AREA); // For some reason, height and width need to be swapped around, as otherwise PositionX is really PositionY
         }
-        
+        //convert frame from BGR to HSV colorspace
         cvtColor(imageFeed, imageHSV, COLOR_BGR2HSV);
         
-        //filter HSV image between values and store filtered image to
-        //threshold matrix
-        HSVFilter& f = filters[currentFilterIndex];
-        inRange(imageHSV, Scalar(f.H_MIN, f.S_MIN, f.V_MIN), Scalar(f.H_MAX, f.S_MAX, f.V_MAX), imageThresholded);
-        //perform morphological operations on thresholded image to eliminate noise
-        //and emphasize the filtered object(s)
-        if (useMorphOps)
-            morphOps(imageThresholded);
-        //pass in thresholded frame to our object tracking function
-        //this function will return the x and y coordinates of the
-        //filtered object
-        if (trackObjects) {
-            bool objectTracked = trackFilteredObject(trackedPositionX, trackedPositionY, imageThresholded, imageFeed);
-            if (objectTracked && scaleImageForProcessing) {
-                trackedPositionX *= scaleReductionFactor;
-                trackedPositionY *= scaleReductionFactor;
+        for (int i = 0; i < filters.size(); i++) {
+            //filter HSV image between values and store filtered image to
+            //threshold matrix
+            HSVFilter& f = filters[currentFilterIndex];
+            inRange(imageHSV, Scalar(f.H_MIN, f.S_MIN, f.V_MIN), Scalar(f.H_MAX, f.S_MAX, f.V_MAX), imageThresholded);
+            //perform morphological operations on thresholded image to eliminate noise
+            //and emphasize the filtered object(s)
+            if (useMorphOps)
+                morphOps(imageThresholded);
+            //pass in thresholded frame to our object tracking function
+            //this function will return the x and y coordinates of the
+            //filtered object
+            if (trackObjects) {
+                bool objectTracked = trackFilteredObject(trackedPositionX, trackedPositionY, imageThresholded, imageFeed);
+                if (objectTracked && scaleImageForProcessing) {
+                    trackedPositionX *= scaleReductionFactor;
+                    trackedPositionY *= scaleReductionFactor;
+                }
             }
+
+            drawPicker(convertedHeight /2, convertedWidth / 2, imageFeed); // For some weird reason using FRAME width/height constants causes drawing glitches
+
+            //show frames 
+            imshow(thresholdWindow, imageThresholded);
+            imshow(colorFeedWindow, imageFeed);
+            imshow(hsvWindow, imageHSV);
+            imshow(depthWindow, depthFeed);
         }
-        
-        //show frames 
-        imshow(thresholdWindow, imageThresholded);
-        imshow(colorFeedWindow, imageFeed);
-        imshow(hsvWindow, imageHSV);
-        imshow(depthWindow, depthFeed);
-        
         //delay 30ms so that screen can refresh.
         //image will not appear without this waitKey() command
         waitKey(1);
@@ -138,32 +142,16 @@ private:
         return ss.str();
     }
     void createTrackbars() {
-        //create window for trackbars
         cv::namedWindow(trackbarWindowName, WINDOW_NORMAL);
-        //create memory to store trackbar name on window
-        /*
-        char TrackbarName[50];
-        printf(TrackbarName, "H_MIN", H_MIN);
-        printf(TrackbarName, "H_MAX", H_MAX);
-        printf(TrackbarName, "S_MIN", S_MIN);
-        printf(TrackbarName, "S_MAX", S_MAX);
-        printf(TrackbarName, "V_MIN", V_MIN);
-        printf(TrackbarName, "V_MAX", V_MAX);
-        */
-        //create trackbars and insert them into window
-        //3 parameters are: the address of the variable that is changing when the trackbar is moved(eg.H_LOW),
-        //the max value the trackbar can move (eg. H_HIGH), 
-        //and the function that is called whenever the trackbar is moved(eg. on_trackbar)
-        //                                  ---->    ---->     ---->    
+
         HSVFilter& f = filters[currentFilterIndex];
+        createTrackbar("INDEX", trackbarWindowName, &currentFilterIndex, 10);
         createTrackbar("H_MIN", trackbarWindowName, &f.H_MIN, f.H_MAX, on_trackbar);
         cv::createTrackbar("H_MAX", trackbarWindowName, &f.H_MAX, f.H_MAX, on_trackbar);
         cv::createTrackbar("S_MIN", trackbarWindowName, &f.S_MIN, f.S_MAX, on_trackbar);
         cv::createTrackbar("S_MAX", trackbarWindowName, &f.S_MAX, f.S_MAX, on_trackbar);
         cv::createTrackbar("V_MIN", trackbarWindowName, &f.V_MIN, f.V_MAX, on_trackbar);
         cv::createTrackbar("V_MAX", trackbarWindowName, &f.V_MAX, f.V_MAX, on_trackbar);
-
-
     }
     void drawObject(int x, int y, Mat &frame) {
 
@@ -190,6 +178,11 @@ private:
 
         putText(frame, intToString(x) + "," + intToString(y), Point(x, y + 30), 1, 1, Scalar(0, 255, 0), 2);
 
+    }
+    void drawPicker(int x, int y, Mat & frame) {
+        auto RED = Scalar(0, 0, 255);
+        line(frame, Point(x - 25, y), Point(x + 25, y), RED, 3);
+        line(frame, Point(x , y-25), Point(x, y+25), RED, 3);
     }
     void morphOps(Mat &thresh) {
 

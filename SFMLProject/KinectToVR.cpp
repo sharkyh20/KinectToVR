@@ -58,12 +58,6 @@ void processKeyEvents(sf::Event event) {
     case sf::Keyboard::A:
         toggle(KinectSettings::isKinectDrawn);
         break;
-    case sf::Keyboard::S:
-        toggle(KinectSettings::isSkeletonDrawn);
-        break;
-    case sf::Keyboard::Q:
-        KinectSettings::userChangingZero = true;
-        break;
     default:
         break;
     }
@@ -236,6 +230,27 @@ void processLoop(KinectHandlerBase& kinect) {
                 renderWindow.close();
             if (event.type == sf::Event::KeyPressed) {
                 processKeyEvents(event);
+                //Debug Commands for testing
+                if (event.key.code == sf::Keyboard::Q) {
+                    kinect.initialiseColor();
+                }
+                if (event.key.code == sf::Keyboard::W) {
+                    kinect.terminateColor();
+                }
+
+                if (event.key.code == sf::Keyboard::S) {
+                    kinect.initialiseDepth();
+                }
+                if (event.key.code == sf::Keyboard::D) {
+                    kinect.terminateDepth();
+                }
+
+                if (event.key.code == sf::Keyboard::X) {
+                    kinect.initialiseSkeleton();
+                }
+                if (event.key.code == sf::Keyboard::C) {
+                    kinect.terminateSkeleton();
+                }
             }
         }
 
@@ -271,7 +286,7 @@ void processLoop(KinectHandlerBase& kinect) {
                 || KinectSettings::adjustingKinectRepresentationRot)
                 ManualCalibrator::Calibrate(deltaT, leftController, rightController, guiRef);
 
-            //kinect.updateTrackersWithSkeletonPosition(inputEmulator, v_trackers);
+            kinect.updateTrackersWithSkeletonPosition(inputEmulator, v_trackers);
             mainColorTracker.update(kinect.colorMat, kinect.depthMat);
             sf::Vector2i position = mainColorTracker.getTrackedPoints()[0];
             kinect.updateTrackersWithColorPosition(inputEmulator, v_trackers,position);

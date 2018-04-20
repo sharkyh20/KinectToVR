@@ -27,6 +27,14 @@ public:
     virtual void initOpenGL() {};
     virtual void initialise() {};
 
+    virtual void initialiseSkeleton() {};
+    virtual void initialiseColor() {};
+    virtual void initialiseDepth() {};
+
+    virtual void terminateSkeleton() {};
+    virtual void terminateColor() {};
+    virtual void terminateDepth() {};
+
     virtual HRESULT getStatusResult() { return E_NOTIMPL; }
     virtual std::string statusResultString(HRESULT stat) { return "statusResultString behaviour not defined"; };
 

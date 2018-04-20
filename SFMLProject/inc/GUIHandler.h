@@ -290,7 +290,7 @@ void setTrackerButtonSignals(vrinputemulator::VRInputEmulator &inputE, std::vect
         for (KVR::KinectTrackedDevice &d : v_trackers) {
             if (d.isSensor()){}
             else {
-                d.rotationOption = KVR::JointRotationOption::Unfiltered;
+                d.rotationFilterOption = KVR::JointRotationFilterOption::Unfiltered;
             }
         }
     });
@@ -298,7 +298,7 @@ void setTrackerButtonSignals(vrinputemulator::VRInputEmulator &inputE, std::vect
         for (KVR::KinectTrackedDevice &d : v_trackers) {
             if (d.isSensor()) {}
             else {
-                d.rotationOption = KVR::JointRotationOption::Filtered;
+                d.rotationFilterOption = KVR::JointRotationFilterOption::Filtered;
             }
         }
     });
@@ -306,7 +306,7 @@ void setTrackerButtonSignals(vrinputemulator::VRInputEmulator &inputE, std::vect
         for (KVR::KinectTrackedDevice &d : v_trackers) {
             if (d.isSensor()) {}
             else {
-                d.rotationOption = KVR::JointRotationOption::HeadLook;
+                d.rotationFilterOption = KVR::JointRotationFilterOption::HeadLook;
             }
         }
     });

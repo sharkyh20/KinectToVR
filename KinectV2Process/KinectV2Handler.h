@@ -42,9 +42,15 @@ public:
     virtual std::string statusResultString(HRESULT stat);
 
     virtual void initialise();
-    void initialiseSkeleton();
-    void initialiseColor();
-    void initialiseDepth();
+
+    virtual void initialiseSkeleton();
+    virtual void initialiseColor();
+    virtual void initialiseDepth();
+
+    virtual void terminateSkeleton();
+    virtual void terminateColor();
+    virtual void terminateDepth();
+
     virtual void initOpenGL();
     virtual void update();
     void updateColorData();
@@ -53,6 +59,8 @@ public:
     virtual void drawKinectData(sf::RenderWindow &win);
     virtual void drawKinectImageData(sf::RenderWindow &win);
     virtual void drawTrackedSkeletons(sf::RenderWindow &win);
+
+    
 
     bool convertColorToDepthResolution = false;
     /*
@@ -85,8 +93,7 @@ public:
     JointType convertJoint(KVR::KinectJoint joint);
 private:
     bool initKinect();
-    void getKinectData();
-    void getRGBImageData(IMultiSourceFrame* multiFrame);
+    void updateKinectData();
 
     sf::Vector3f zeroKinectPosition(int trackedSkeletonIndex);
     void setKinectToVRMultiplier(int skeletonIndex);
