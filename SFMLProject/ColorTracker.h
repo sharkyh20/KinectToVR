@@ -17,13 +17,18 @@ struct HSVFilter {
     int V_MIN = 0;
     int V_MAX = 256;
 };
+struct TrackedColorComponent {
+    HSVFilter filter;
+    int imagePosX = 0;
+    int imagePosY = 0;
+};
 class ColorTracker {
 public:
     ColorTracker(int frameWidth, int frameHeight) : FRAME_HEIGHT(frameHeight), FRAME_WIDTH(frameWidth) {
         cv::setUseOptimized(true);
         MaximumObjectArea = FRAME_HEIGHT * FRAME_WIDTH / 1.5;
         //addBlueFilter();
-        addFilter();
+        addTrackedComponent();
         createTrackbars();
 
         namedWindow(colorFeedWindow, WINDOW_NORMAL);
@@ -39,10 +44,8 @@ public:
     ~ColorTracker() {
 
     }
-    std::vector<sf::Vector2i> getTrackedPoints() {
-        std::vector<sf::Vector2i> points;
-        points.push_back(sf::Vector2i(trackedPositionX, trackedPositionY));
-        return points;
+    std::vector<TrackedColorComponent> getTrackedPoints() {
+        return trackedComponents;
     }
     void update(Mat imageFeed, Mat depthFeed) {
         if (imageFeed.empty() || depthFeed.empty())
@@ -56,14 +59,18 @@ public:
             int convertedHeight = FRAME_HEIGHT / scaleReductionFactor;
             resize(imageFeed, imageFeed, Size( convertedHeight, convertedWidth), 0.5, 0.5 , INTER_AREA); // For some reason, height and width need to be swapped around, as otherwise PositionX is really PositionY
         }
+        MaximumObjectArea = convertedWidth * convertedHeight / 1.5;
         //convert frame from BGR to HSV colorspace
         cvtColor(imageFeed, imageHSV, COLOR_BGR2HSV);
         
-        for (int i = 0; i < filters.size(); i++) {
+        for (int i = 0; i < trackedComponents.size(); i++) {
             //filter HSV image between values and store filtered image to
             //threshold matrix
-            HSVFilter& f = filters[currentFilterIndex];
-            inRange(imageHSV, Scalar(f.H_MIN, f.S_MIN, f.V_MIN), Scalar(f.H_MAX, f.S_MAX, f.V_MAX), imageThresholded);
+            TrackedColorComponent& trackedComponent = trackedComponents[currentTrackedIndex];
+            auto &f = trackedComponent.filter;
+            inRange(imageHSV, 
+                Scalar(f.H_MIN, f.S_MIN, f.V_MIN),
+                Scalar(f.H_MAX, f.S_MAX, f.V_MAX), imageThresholded);
             //perform morphological operations on thresholded image to eliminate noise
             //and emphasize the filtered object(s)
             if (useMorphOps)
@@ -72,10 +79,10 @@ public:
             //this function will return the x and y coordinates of the
             //filtered object
             if (trackObjects) {
-                bool objectTracked = trackFilteredObject(trackedPositionX, trackedPositionY, imageThresholded, imageFeed);
+                bool objectTracked = trackFilteredObject(trackedComponent.imagePosX, trackedComponent.imagePosY, imageThresholded, imageFeed);
                 if (objectTracked && scaleImageForProcessing) {
-                    trackedPositionX *= scaleReductionFactor;
-                    trackedPositionY *= scaleReductionFactor;
+                    trackedComponent.imagePosX *= scaleReductionFactor;
+                    trackedComponent.imagePosY *= scaleReductionFactor;
                 }
             }
 
@@ -91,10 +98,11 @@ public:
         //image will not appear without this waitKey() command
         waitKey(1);
     }
-    void addFilter() {
-        HSVFilter f;
-        filters.push_back(f);
+    void addTrackedComponent() {
+        TrackedColorComponent c;
+        trackedComponents.push_back(c);
     }
+    /*
     void addBlueFilter() {
         HSVFilter f;
         f.H_MIN = 44;
@@ -105,7 +113,7 @@ public:
         f.V_MAX = 256;
         filters.push_back(f);
     }
-
+    */
 private:
     bool useMorphOps = true;
     bool trackObjects = true;
@@ -113,14 +121,14 @@ private:
 
     uchar lastPickedHSV {};
 
+    Mat lastImageFeed = Mat();
+    Mat lastDepthFeed = Mat();
+
     Mat imageHSV;
     Mat imageThresholded;
 
-    int trackedPositionX = 0;
-    int trackedPositionY = 0;
-
-    std::vector<HSVFilter> filters;
-    int currentFilterIndex = 0;
+    std::vector<TrackedColorComponent> trackedComponents;
+    int currentTrackedIndex = 0;
     const int MaxTrackedObjects = 50;
     int FRAME_WIDTH = 1920;
     int FRAME_HEIGHT = 1080;
@@ -144,8 +152,8 @@ private:
     void createTrackbars() {
         cv::namedWindow(trackbarWindowName, WINDOW_NORMAL);
 
-        HSVFilter& f = filters[currentFilterIndex];
-        createTrackbar("INDEX", trackbarWindowName, &currentFilterIndex, 10);
+        HSVFilter& f = trackedComponents[currentTrackedIndex].filter;
+        createTrackbar("INDEX", trackbarWindowName, &currentTrackedIndex, 10);
         createTrackbar("H_MIN", trackbarWindowName, &f.H_MIN, f.H_MAX, on_trackbar);
         cv::createTrackbar("H_MAX", trackbarWindowName, &f.H_MAX, f.H_MAX, on_trackbar);
         cv::createTrackbar("S_MIN", trackbarWindowName, &f.S_MIN, f.S_MAX, on_trackbar);

@@ -31,7 +31,7 @@ void KinectV2Handler::initialise() {
         initialised = initKinect();
         initialiseColor();
         initialiseDepth();
-        initialiseSkeleton();
+        //initialiseSkeleton();
         std::this_thread::sleep_for(std::chrono::seconds(2));
         if (!initialised) throw FailedKinectInitialisation;
     }
@@ -44,6 +44,7 @@ void KinectV2Handler::initialiseSkeleton()
     IBodyFrameSource* bodyFrameSource;
     kinectSensor->get_BodyFrameSource(&bodyFrameSource);
     bodyFrameSource->OpenReader(&bodyFrameReader);
+
     if (bodyFrameSource) bodyFrameSource->Release();
 }
 void KinectV2Handler::initialiseColor()
@@ -298,7 +299,6 @@ void KinectV2Handler::drawHand(HandState handState, const sf::Vector2f& handPosi
 }
 void KinectV2Handler::onBodyFrameArrived(IBodyFrameReader& sender, IBodyFrameArrivedEventArgs& eventArgs) {
     updateSkeletalData();
-    
 }
 void KinectV2Handler::updateSkeletalData() {
     if (bodyFrameReader) {
@@ -380,12 +380,8 @@ void KinectV2Handler::updateTrackersWithSkeletonPosition(vrinputemulator::VRInpu
 }
 void KinectV2Handler::updateTrackersWithColorPosition(vrinputemulator::VRInputEmulator & emulator, std::vector<KVR::KinectTrackedDevice> trackers, sf::Vector2i pos)
 {
-    //pos.x = std::min(pos.x, colorWidth - 1);
-    //pos.y = std::min(pos.y, colorHeight - 1);
     std::cerr << "Tracked Point: " << pos.x << ", " << pos.y << '\n';
-    //Convert colour to position
-    //std::unique_ptr<CameraSpacePoint[]> resultArray;
-    //resultArray = std::make_unique<CameraSpacePoint[]>(1920 * 1080);
+
     std::vector<CameraSpacePoint> resultPoints(colorWidth * colorHeight);
     HRESULT hr = coordMapper->MapColorFrameToCameraSpace(depthBuffer.size(), &depthBuffer[0], resultPoints.size(), &resultPoints[0]);
     if (SUCCEEDED(hr)) {
@@ -406,7 +402,6 @@ void KinectV2Handler::updateTrackersWithColorPosition(vrinputemulator::VRInputEm
                 else {
                     vr::HmdVector3_t jointPosition{ 0,0,0 };
                     if (worldCoordinate.X + worldCoordinate.Y + worldCoordinate.Z != 0) {
-
                         jointPosition.v[0] = worldCoordinate.X;
                         jointPosition.v[1] = worldCoordinate.Y;
                         jointPosition.v[2] = worldCoordinate.Z;
