@@ -1,5 +1,6 @@
 #pragma once
 #include "IKinectHandler.h"
+#include "KinectTrackedDevice.h"
 class KinectHandlerBase : public IKinectHandler {
 public:
     KinectHandlerBase() {
@@ -13,6 +14,7 @@ public:
 
     virtual HRESULT getStatusResult() { return E_NOTIMPL; }
     virtual std::string statusResultString(HRESULT stat) { return "statusResultString behaviour not defined"; };
+    virtual bool getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdVector3_t& position, vr::HmdQuaternion_t &rotation) { return false; };
 
     virtual void update() {};
 
@@ -25,4 +27,6 @@ public:
         vrinputemulator::VRInputEmulator &emulator,
         std::vector<KVR::KinectTrackedDevice> trackers
     ) {};
+
+
 };
