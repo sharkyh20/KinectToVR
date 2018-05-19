@@ -4,6 +4,7 @@
 //VR Tracking
 uint32_t initTracker(vrinputemulator::VRInputEmulator &inputEmulator, bool connected);
 
+
 void setTrackerDefaultProperties(vrinputemulator::VRInputEmulator &ie, uint32_t &deviceId);
 void setDeviceProperty(vrinputemulator::VRInputEmulator &ie, uint32_t deviceId, int dProp, std::string type, std::string value);
 void removeAllTrackerProperties(uint32_t &deviceId);

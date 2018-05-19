@@ -60,22 +60,25 @@
     <ClInclude Include="inc\VectorMath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GamepadController.h">
+    <ClInclude Include="inc\Calibrator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Calibrator.h">
+    <ClInclude Include="inc\ColorTracker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ManualCalibrator.h">
+    <ClInclude Include="inc\GamepadController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GenericController.h">
+    <ClInclude Include="inc\GenericController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PlayspaceMovementAdjuster.h">
+    <ClInclude Include="inc\ManualCalibrator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ColorTracker.h">
+    <ClInclude Include="inc\QuaternionMath.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\PlayspaceMovementAdjuster.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

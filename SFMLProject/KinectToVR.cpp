@@ -138,23 +138,14 @@ void processLoop(KinectHandlerBase& kinect) {
     sf::Font font;
     sf::Text debugText;
     // Global Debug Font
-#if _DEBUG
-    std::cout << "Attemping Debug Font Load: " << KVR::fileToDirPath("arial.ttf") << '\n';
-    font.loadFromFile(KVR::fileToDirPath("arial.ttf"));
-    debugText.setFont(font);
-#endif
-    debugText.setString("");
-    debugText.setCharacterSize(40);
-    debugText.setFillColor(sf::Color::Red);
-
-    debugText.setString(SFMLsettings::debugDisplayTextStream.str());
+    attemptInitialiseDebugDisplay(font, debugText);
 
     //SFGUI Handling -------------------------------------- 
     GUIHandler guiRef;
     // ----------------------------------------------------
 
     //Initialise Kinect
-    KinectSettings::kinectRepRotation = vrmath::quaternionFromYawPitchRoll(KinectSettings::kinectRadRotation.v[1], KinectSettings::kinectRadRotation.v[0], KinectSettings::kinectRadRotation.v[2]);
+    KinectSettings::kinectRepRotation = kinectQuaternionFromRads();
     kinect.update();
 
     guiRef.updateKinectStatusLabel(kinect);
@@ -164,31 +155,14 @@ void processLoop(KinectHandlerBase& kinect) {
     //Initialise InputEmu and Trackers
     std::vector<KVR::KinectTrackedDevice> v_trackers{};
     vrinputemulator::VRInputEmulator inputEmulator;
-    try {
-        inputEmulator.connect();
-    }
-    catch (vrinputemulator::vrinputemulator_connectionerror e) {
-        guiRef.updateEmuStatusLabelError(e);
-        std::cerr << "Attempted connection to Input Emulator" << std::to_string(e.errorcode) + " " + e.what() + "\n\n Is SteamVR open and InputEmulator installed?" << std::endl;   
-    }
+    attemptIEmulatorConnection(inputEmulator, guiRef);
+    updateTrackerInitGuiSignals(inputEmulator, guiRef, v_trackers);
 
-    // Tracker Initialisation Lambda
-    if (inputEmulator.isConnected()) {
-        guiRef.setTrackerButtonSignals(inputEmulator, v_trackers);
-        guiRef.updateEmuStatusLabelSuccess();
-    }
-    else {
-        guiRef.updateTrackerInitButtonLabelFail();
-    }
-
-    //v_trackers.push_back(kinectTrackerRef);
-    std::cerr << "Attempting connection to vrsystem.... " << std::endl;    // DEBUG
-                                                                           //Initialise VR System
+ 
     VRcontroller rightController(vr::TrackedControllerRole_RightHand);
     VRcontroller leftController(vr::TrackedControllerRole_LeftHand);
-    
-    //GamepadController gamepad;
 
+    std::cerr << "Attempting connection to vrsystem.... " << std::endl;    // DEBUG
     vr::EVRInitError eError = vr::VRInitError_None;
     vr::IVRSystem *m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Utility);
     if (eError == vr::VRInitError_None) {
@@ -230,7 +204,8 @@ void processLoop(KinectHandlerBase& kinect) {
                 renderWindow.close();
             if (event.type == sf::Event::KeyPressed) {
                 processKeyEvents(event);
-                //Debug Commands for testing
+                //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                //DEBUG Commands for testing
                 if (event.key.code == sf::Keyboard::Q) {
                     kinect.initialiseColor();
                 }
@@ -251,27 +226,22 @@ void processLoop(KinectHandlerBase& kinect) {
                 if (event.key.code == sf::Keyboard::C) {
                     kinect.terminateSkeleton();
                 }
+                // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             }
         }
 
         //Clear ---------------------------------------
         renderWindow.clear();
 
-
         //Process -------------------------------------
         //Update GUI
         guiRef.updateDesktop(deltaT);
         
-        //VR Controllers
+        //Update VR Components
         if (eError == vr::VRInitError_None) {
             rightController.update(deltaT);
             leftController.update(deltaT);
             updateHMDPosAndRot(m_VRSystem);
-            /*
-            if (rightController.isOutOfTrackingRange()) {
-                SFMLsettings::debugDisplayTextStream << "RIGHT CONTROLLER POSE IS INVALID!\n";
-            }
-            */
         }
         else {
             std::cerr << "Error updating controllers: Could not connect to the SteamVR system! OpenVR init error-code " << std::to_string(eError) << std::endl;
@@ -298,7 +268,7 @@ void processLoop(KinectHandlerBase& kinect) {
             vrinputemulator::VirtualDeviceInfo info = inputEmulator.getVirtualDeviceInfo(d.deviceId);
             virtualDeviceIndexes.push_back(info.openvrDeviceId); // needs to be converted into openvr's id - as inputEmulator has it's own Id's starting from zero
 
-            d.positionTrackingOption = KVR::JointPositionTrackingOption::Color; // TEMP DEBUG
+            d.positionTrackingOption = KVR::JointPositionTrackingOption::Skeleton; // TEMP DEBUG
         }
         playspaceMovementAdjuster.update(leftController, rightController, virtualDeviceIndexes);
         
@@ -328,30 +298,5 @@ void processLoop(KinectHandlerBase& kinect) {
     vr::VR_Shutdown();
 }
 
-void spawnAndConnectHandTrackers(vrinputemulator::VRInputEmulator & inputE, std::vector<KinectTrackedDevice>& v_trackers) {
-    spawnAndConnectTracker(inputE, v_trackers, KVR::KinectJointType::WristLeft, KVR::KinectJointType::HandLeft, KinectDeviceRole::LeftHand);
-    spawnAndConnectTracker(inputE, v_trackers, KVR::KinectJointType::WristRight, KVR::KinectJointType::HandRight, KinectDeviceRole::RightHand);
-}
 
-void spawnAndConnectTracker(vrinputemulator::VRInputEmulator & inputE, std::vector<KinectTrackedDevice>& v_trackers, KVR::KinectJointType mainJoint, KVR::KinectJointType secondaryJoint, KinectDeviceRole role)
-{
-    KinectTrackedDevice device(inputE, mainJoint, secondaryJoint, role);
-	device.init(inputE);
-    v_trackers.push_back(device);
-}
-
-void spawnDefaultLowerBodyTrackers(vrinputemulator::VRInputEmulator & inputE, std::vector<KinectTrackedDevice>& v_trackers)
-{
-    spawnAndConnectTracker(inputE, v_trackers, KVR::KinectJointType::AnkleLeft, KVR::KinectJointType::FootLeft, KinectDeviceRole::LeftFoot);
-    spawnAndConnectTracker(inputE, v_trackers, KVR::KinectJointType::AnkleRight, KVR::KinectJointType::FootRight, KinectDeviceRole::RightFoot);
-    spawnAndConnectTracker(inputE, v_trackers, KVR::KinectJointType::SpineBase, KVR::KinectJointType::SpineMid, KinectDeviceRole::Hip);
-}
-
-void spawnAndConnectKinectTracker(vrinputemulator::VRInputEmulator &inputE, std::vector<KinectTrackedDevice> &v_trackers)
-{
-    KinectTrackedDevice kinectTrackerRef(inputE, KVR::KinectJointType::Head, KVR::KinectJointType::Head, KinectDeviceRole::KinectSensor);
-	kinectTrackerRef.init(inputE);
-    setKinectTrackerProperties(inputE, kinectTrackerRef.deviceId);
-    v_trackers.push_back(kinectTrackerRef);
-}
 

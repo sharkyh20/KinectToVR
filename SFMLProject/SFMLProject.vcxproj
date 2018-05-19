@@ -176,10 +176,10 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Calibrator.h" />
-    <ClInclude Include="ColorTracker.h" />
-    <ClInclude Include="GamepadController.h" />
-    <ClInclude Include="GenericController.h" />
+    <ClInclude Include="inc\Calibrator.h" />
+    <ClInclude Include="inc\ColorTracker.h" />
+    <ClInclude Include="inc\GamepadController.h" />
+    <ClInclude Include="inc\GenericController.h" />
     <ClInclude Include="inc\GUIHandler.h" />
     <ClInclude Include="inc\IETracker.h" />
     <ClInclude Include="inc\IKinectHandler.h" />
@@ -188,12 +188,13 @@
     <ClInclude Include="inc\KinectSettings.h" />
     <ClInclude Include="inc\KinectToVR.h" />
     <ClInclude Include="inc\KinectTrackedDevice.h" />
+    <ClInclude Include="inc\ManualCalibrator.h" />
+    <ClInclude Include="inc\PlayspaceMovementAdjuster.h" />
+    <ClInclude Include="inc\QuaternionMath.h" />
     <ClInclude Include="inc\sfLine.h" />
     <ClInclude Include="inc\VectorMath.h" />
     <ClInclude Include="inc\VRController.h" />
     <ClInclude Include="inc\VRHelper.h" />
-    <ClInclude Include="ManualCalibrator.h" />
-    <ClInclude Include="PlayspaceMovementAdjuster.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>

@@ -1,5 +1,4 @@
 #pragma once
-#include "stdafx.h"
 
 #include "VRController.h"
 #include "KinectToVR.h"
@@ -104,7 +103,7 @@ void setDefaultSignals() {
     });
 
 	ShowSkeletonButton->GetSignal(sfg::Widget::OnLeftClick).Connect([] {
-		toggle(KinectSettings::isSkeletonDrawn);
+		KinectSettings::isSkeletonDrawn = !KinectSettings::isSkeletonDrawn;
 	});
 
     KinectRotButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
