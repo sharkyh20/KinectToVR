@@ -1,7 +1,7 @@
 #pragma once
 
 #include "VRController.h"
-#include "KinectToVR.h"
+
 #include "KinectSettings.h"
 #include "KinectHandlerBase.h"
 #include "KinectTrackedDevice.h"

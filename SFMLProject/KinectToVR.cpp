@@ -124,6 +124,41 @@ void updateFilePath() {
     std::string converted_str = converter.to_bytes(string_to_convert);
     SFMLsettings::fileDirectoryPath = converted_str;
 }
+void attemptInitialiseDebugDisplay(sf::Font font, sf::Text debugText) {
+    // Global Debug Font
+#if _DEBUG
+    auto fontFileName = "arial.ttf";
+    std::cout << "Attemping Debug Font Load: " << KVR::fileToDirPath(fontFileName) << '\n';
+    font.loadFromFile(KVR::fileToDirPath(fontFileName));
+    debugText.setFont(font);
+#endif
+    debugText.setString("");
+    debugText.setCharacterSize(40);
+    debugText.setFillColor(sf::Color::Red);
+
+    debugText.setString(SFMLsettings::debugDisplayTextStream.str());
+}
+vr::HmdQuaternion_t kinectQuaternionFromRads() {
+    return vrmath::quaternionFromYawPitchRoll(KinectSettings::kinectRadRotation.v[1], KinectSettings::kinectRadRotation.v[0], KinectSettings::kinectRadRotation.v[2]);
+}
+void attemptIEmulatorConnection(vrinputemulator::VRInputEmulator & inputEmulator, GUIHandler & guiRef) {
+    try {
+        inputEmulator.connect();
+    }
+    catch (vrinputemulator::vrinputemulator_connectionerror e) {
+        guiRef.updateEmuStatusLabelError(e);
+        std::cerr << "Attempted connection to Input Emulator" << std::to_string(e.errorcode) + " " + e.what() + "\n\n Is SteamVR open and InputEmulator installed?" << std::endl;
+    }
+}
+void updateTrackerInitGuiSignals(vrinputemulator::VRInputEmulator &inputEmulator, GUIHandler &guiRef, std::vector<KVR::KinectTrackedDevice> v_trackers) {
+    if (inputEmulator.isConnected()) {
+        guiRef.setTrackerButtonSignals(inputEmulator, v_trackers);
+        guiRef.updateEmuStatusLabelSuccess();
+    }
+    else {
+        guiRef.updateTrackerInitButtonLabelFail();
+    }
+}
 
 void processLoop(KinectHandlerBase& kinect) {
     updateFilePath();
@@ -300,3 +335,27 @@ void processLoop(KinectHandlerBase& kinect) {
 
 
 
+void spawnAndConnectTracker(vrinputemulator::VRInputEmulator & inputE, std::vector<KVR::KinectTrackedDevice>& v_trackers, KVR::KinectJointType mainJoint, KVR::KinectJointType secondaryJoint, KVR::KinectDeviceRole role)
+{
+    KVR::KinectTrackedDevice device(inputE, mainJoint, secondaryJoint, role);
+    device.init(inputE);
+    v_trackers.push_back(device);
+}
+void spawnAndConnectHandTrackers(vrinputemulator::VRInputEmulator & inputE, std::vector<KVR::KinectTrackedDevice>& v_trackers) {
+    spawnAndConnectTracker(inputE, v_trackers, KVR::KinectJointType::WristLeft, KVR::KinectJointType::HandLeft, KVR::KinectDeviceRole::LeftHand);
+    spawnAndConnectTracker(inputE, v_trackers, KVR::KinectJointType::WristRight, KVR::KinectJointType::HandRight, KVR::KinectDeviceRole::RightHand);
+}
+void spawnDefaultLowerBodyTrackers(vrinputemulator::VRInputEmulator & inputE, std::vector<KVR::KinectTrackedDevice>& v_trackers)
+{
+    spawnAndConnectTracker(inputE, v_trackers, KVR::KinectJointType::AnkleLeft, KVR::KinectJointType::FootLeft, KVR::KinectDeviceRole::LeftFoot);
+    spawnAndConnectTracker(inputE, v_trackers, KVR::KinectJointType::AnkleRight, KVR::KinectJointType::FootRight, KVR::KinectDeviceRole::RightFoot);
+    spawnAndConnectTracker(inputE, v_trackers, KVR::KinectJointType::SpineBase, KVR::KinectJointType::SpineMid, KVR::KinectDeviceRole::Hip);
+}
+
+void spawnAndConnectKinectTracker(vrinputemulator::VRInputEmulator &inputE, std::vector<KVR::KinectTrackedDevice> &v_trackers)
+{
+    KVR::KinectTrackedDevice kinectTrackerRef(inputE, KVR::KinectJointType::Head, KVR::KinectJointType::Head, KVR::KinectDeviceRole::KinectSensor);
+    kinectTrackerRef.init(inputE);
+    setKinectTrackerProperties(inputE, kinectTrackerRef.deviceId);
+    v_trackers.push_back(kinectTrackerRef);
+}

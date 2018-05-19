@@ -1,7 +1,7 @@
 #pragma once
 #include "stdafx.h"
-#include "IKinectHandler.h"
-#include "KinectHandlerBase.h"
+#include <IKinectHandler.h>
+#include <KinectHandlerBase.h>
 #include "KinectJointFilter.h"
 #include "KinectDoubleExponentialRotationFilter.h"
 
