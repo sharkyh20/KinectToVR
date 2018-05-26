@@ -6,7 +6,7 @@
 #include <fstream>
 
 namespace KinectSettings {
-    #define CFG_NAME "KinectToVR.cfg"
+    std::wstring const CFG_NAME(L"KinectToVR.cfg");
     std::string KVRversion = "a0.5.6";
 
     bool isKinectDrawn = false;
@@ -46,7 +46,7 @@ namespace KinectSettings {
 
     void serializeKinectSettings() {
         std::ifstream is(KVR::fileToDirPath(CFG_NAME));
-        std::cout << "Attempted CFG load: " << KVR::fileToDirPath(CFG_NAME) << '\n';
+        std::wcout << "Attempted CFG load: " << KVR::fileToDirPath(CFG_NAME) << '\n';
         //CHECK IF VALID
         if (is.fail()) {
             //FAIL!!!!
@@ -118,7 +118,7 @@ namespace SFMLsettings {
     int m_window_height = 600;
     float windowScale = .6f;
 
-    std::string fileDirectoryPath;
+    std::wstring fileDirectoryPath;
 
     bool usingGamepad = false;
     std::stringstream debugDisplayTextStream;
@@ -126,7 +126,7 @@ namespace SFMLsettings {
     
 }
 namespace KVR {
-    std::string fileToDirPath(std::string relativeFilePath) {
+    std::wstring fileToDirPath(std::wstring relativeFilePath) {
         return SFMLsettings::fileDirectoryPath + relativeFilePath;
     }
 }

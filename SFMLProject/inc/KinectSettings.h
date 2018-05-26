@@ -60,11 +60,11 @@ namespace SFMLsettings {
 
     extern bool usingGamepad;
 
-    extern std::string fileDirectoryPath;
+    extern std::wstring fileDirectoryPath;
 
     extern std::stringstream debugDisplayTextStream;
 }
 namespace KVR {
-    std::string fileToDirPath(std::string relativeFilePath);
+    std::wstring fileToDirPath(std::wstring relativeFilePath);
 }
 # define M_PI           3.14159265358979323846

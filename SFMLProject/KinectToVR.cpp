@@ -114,22 +114,24 @@ void updateFilePath() {
     WCHAR extension[_MAX_EXT]{};
     WCHAR directoryFilePath[MAX_PATH];
     _wmakepath_s(directoryFilePath, _MAX_PATH, drive, dir, filename, extension);
-    std::wstring string_to_convert(directoryFilePath);
+    std::wstring filePathString(directoryFilePath);
 
+    /*
     //setup converter
     using convert_type = std::codecvt_utf8<wchar_t>;
     std::wstring_convert<convert_type, wchar_t> converter;
 
     //use converter (.to_bytes: wstr->str, .from_bytes: str->wstr)
     std::string converted_str = converter.to_bytes(string_to_convert);
-    SFMLsettings::fileDirectoryPath = converted_str;
+    */
+    SFMLsettings::fileDirectoryPath = filePathString;
 }
 void attemptInitialiseDebugDisplay(sf::Font font, sf::Text debugText) {
     // Global Debug Font
 #if _DEBUG
     auto fontFileName = "arial.ttf";
-    std::cout << "Attemping Debug Font Load: " << KVR::fileToDirPath(fontFileName) << '\n';
-    font.loadFromFile(KVR::fileToDirPath(fontFileName));
+    std::cout << "Attemping Debug Font Load: " << fontFileName << '\n';
+    font.loadFromFile(fontFileName);
     debugText.setFont(font);
 #endif
     debugText.setString("");
