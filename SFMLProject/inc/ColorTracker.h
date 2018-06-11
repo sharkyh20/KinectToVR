@@ -27,6 +27,11 @@ public:
     ColorTracker(int frameWidth, int frameHeight) : FRAME_HEIGHT(frameHeight), FRAME_WIDTH(frameWidth) {
         cv::setUseOptimized(true);
         MaximumObjectArea = FRAME_HEIGHT * FRAME_WIDTH / 1.5;
+    }
+    ~ColorTracker() {
+
+    }
+    void initialise() {
         //addBlueFilter();
         addTrackedComponent();
         createTrackbars();
@@ -40,14 +45,21 @@ public:
         resizeWindow(thresholdWindow, 640, 360);
         resizeWindow(depthWindow, 640, 360);
 
-    }
-    ~ColorTracker() {
+        active = true;
 
+    }
+    void terminate() {
+        destroyAllWindows();
+        active = false;
     }
     std::vector<TrackedColorComponent> getTrackedPoints() {
         return trackedComponents;
     }
     void update(Mat imageFeed, Mat depthFeed) {
+
+        if (!active) { return; }
+
+
         if (imageFeed.empty() || depthFeed.empty())
             return;
 
@@ -115,6 +127,8 @@ public:
     }
     */
 private:
+    bool active = false;
+
     bool useMorphOps = true;
     bool trackObjects = true;
     bool scaleImageForProcessing = false;

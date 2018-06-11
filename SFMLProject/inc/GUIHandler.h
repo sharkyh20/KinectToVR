@@ -7,6 +7,7 @@
 #include "KinectTrackedDevice.h"
 #include "KinectJoint.h"
 #include "PlayspaceMovementAdjuster.h"
+#include "ColorTracker.h"
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Window/Mouse.hpp>
@@ -36,11 +37,14 @@ public:
         packElementsIntoMainBox();
         packElementsIntoAdvTrackerBox();
 		packElementsIntoPlayspaceMovementBox();
+        packElementsIntoTrackingMethodBox();
         setRequisitions();
 
         mainNotebook->AppendPage(mainGUIBox, sfg::Label::Create("KinectToVR"));
         mainNotebook->AppendPage(advancedTrackerBox, sfg::Label::Create("Adv. Trackers"));
 		mainNotebook->AppendPage(playspaceMovementBox, sfg::Label::Create("Playspace Movement"));
+        mainNotebook->AppendPage(trackingMethodBox, sfg::Label::Create("Tracking Method"));
+        
 
         guiWindow->Add(mainNotebook);
         guiDesktop.Add(guiWindow);
@@ -186,6 +190,14 @@ void setDefaultSignals() {
 void setPlayspaceResetButtonSignal(PlayspaceMovementAdjuster& adjuster) {
     ResetPlayspaceButton->GetSignal(sfg::Button::OnMouseLeftPress).Connect([this, &adjuster] {
         adjuster.resetPlayspaceAdjustments();
+    });
+}
+void setColorTrackerSignals(ColorTracker & colorTracker) {
+    InitiateColorTrackingButton->GetSignal(sfg::Button::OnMouseLeftPress).Connect([this, &colorTracker] {
+        colorTracker.initialise();
+    });
+    DestroyColorTrackingButton->GetSignal(sfg::Button::OnMouseLeftPress).Connect([this, &colorTracker] {
+        colorTracker.terminate();
     });
 }
 
@@ -393,6 +405,10 @@ void setHipScaleBox() {
     HipScaleBox->Pack(HipScale);
     mainGUIBox->Pack(HipScaleBox);
 }
+void packElementsIntoTrackingMethodBox() {
+    trackingMethodBox->Pack(InitiateColorTrackingButton);
+    trackingMethodBox->Pack(DestroyColorTrackingButton);
+}
 
 void packElementsIntoPlayspaceMovementBox() {
 	setButtonListLeftItems(ButtonListLeftHand);
@@ -530,6 +546,7 @@ private:
     sfg::Box::Ptr calibrationBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
     sfg::Box::Ptr advancedTrackerBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
 	sfg::Box::Ptr playspaceMovementBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
+    sfg::Box::Ptr trackingMethodBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
     //Statuses
     sfg::Label::Ptr KinectStatusLabel = sfg::Label::Create();
     sfg::Label::Ptr SteamVRStatusLabel = sfg::Label::Create();
@@ -605,6 +622,10 @@ private:
 
     std::vector<TempTracker> TrackersToBeInitialised;
 
+
+    //Tracking Method Box
+    sfg::Button::Ptr InitiateColorTrackingButton = sfg::Button::Create("Start Color Tracker");
+    sfg::Button::Ptr DestroyColorTrackingButton = sfg::Button::Create("Destroy Color Tracker");
 
     void updateKinectStatusLabelDisconnected() {
         KinectStatusLabel->SetText("Kinect Status: ERROR KINECT NOT DETECTED");
