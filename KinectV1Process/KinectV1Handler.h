@@ -44,10 +44,9 @@ public:
     //Consider moving this tracking stuff into a seperate class
     virtual void zeroAllTracking(vr::IVRSystem* &m_sys);
     virtual void updateTrackersWithSkeletonPosition(
-        vrinputemulator::VRInputEmulator &emulator,
         std::vector<KVR::KinectTrackedDevice> trackers);
 
-    bool getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdVector3_t& position, vr::HmdQuaternion_t &rotation);
+    virtual bool getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdVector3_t& position, vr::HmdQuaternion_t &rotation);
     NUI_SKELETON_POSITION_INDEX convertJoint(KVR::KinectJoint joint);
 private:
     bool initKinect();

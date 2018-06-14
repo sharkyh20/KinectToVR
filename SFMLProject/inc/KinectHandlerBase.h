@@ -45,11 +45,12 @@ public:
     virtual void drawKinectImageData(sf::RenderWindow &win) {};
     virtual void drawTrackedSkeletons(sf::RenderWindow &win) {};
 
+    virtual bool getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdVector3_t& position, vr::HmdQuaternion_t &rotation) { return false; };
+
     virtual void zeroAllTracking(vr::IVRSystem* &m_sys) {};
     virtual void updateTrackersWithSkeletonPosition(
-        vrinputemulator::VRInputEmulator &emulator,
         std::vector<KVR::KinectTrackedDevice> trackers
     ) {};
-    virtual void updateTrackersWithColorPosition(vrinputemulator::VRInputEmulator &emulator,
+    virtual void updateTrackersWithColorPosition(
         std::vector<KVR::KinectTrackedDevice> trackers, sf::Vector2i pos) {}
 };

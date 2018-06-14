@@ -193,6 +193,8 @@
     <ClInclude Include="inc\PlayspaceMovementAdjuster.h" />
     <ClInclude Include="inc\QuaternionMath.h" />
     <ClInclude Include="inc\sfLine.h" />
+    <ClInclude Include="inc\SkeletonTracker.h" />
+    <ClInclude Include="inc\TrackingMethod.h" />
     <ClInclude Include="inc\VectorMath.h" />
     <ClInclude Include="inc\VRController.h" />
     <ClInclude Include="inc\VRHelper.h" />

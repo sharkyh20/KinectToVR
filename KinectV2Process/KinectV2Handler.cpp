@@ -360,7 +360,11 @@ void KinectV2Handler::setKinectToVRMultiplier(int skeletonIndex) {
     std::cerr << "foot pos: " << joints[JointType_AnkleLeft].Position.Y << '\n';
     */
 }
-void KinectV2Handler::updateTrackersWithSkeletonPosition(vrinputemulator::VRInputEmulator & emulator, std::vector<KVR::KinectTrackedDevice> trackers)
+
+// THIS IS BEING DEPRECATED INTO A SIMPLE RETURN OF THE JOINTS.
+// FROM NOW ON, EACH TRACKING-METHOD WILL HANDLE PROCESSING OF
+// THIS DATA, AND THEN UPDATE THE TRACKERS IN ANOTHER METHOD
+void KinectV2Handler::updateTrackersWithSkeletonPosition( std::vector<KVR::KinectTrackedDevice> trackers)
 {
     for (KVR::KinectTrackedDevice device : trackers) {
         if (device.positionTrackingOption == KVR::JointPositionTrackingOption::Skeleton) {
@@ -378,7 +382,7 @@ void KinectV2Handler::updateTrackersWithSkeletonPosition(vrinputemulator::VRInpu
         }
     }
 }
-void KinectV2Handler::updateTrackersWithColorPosition(vrinputemulator::VRInputEmulator & emulator, std::vector<KVR::KinectTrackedDevice> trackers, sf::Vector2i pos)
+void KinectV2Handler::updateTrackersWithColorPosition( std::vector<KVR::KinectTrackedDevice> trackers, sf::Vector2i pos)
 {
     std::cerr << "Tracked Point: " << pos.x << ", " << pos.y << '\n';
 

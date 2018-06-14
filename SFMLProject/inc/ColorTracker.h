@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include "TrackingMethod.h"
+
 using namespace cv;
 
 void on_trackbar(int, void*)
@@ -22,7 +24,7 @@ struct TrackedColorComponent {
     int imagePosX = 0;
     int imagePosY = 0;
 };
-class ColorTracker {
+class ColorTracker : public TrackingMethod {
 public:
     ColorTracker(int frameWidth, int frameHeight) : FRAME_HEIGHT(frameHeight), FRAME_WIDTH(frameWidth) {
         cv::setUseOptimized(true);
@@ -55,8 +57,10 @@ public:
     std::vector<TrackedColorComponent> getTrackedPoints() {
         return trackedComponents;
     }
-    void update(Mat imageFeed, Mat depthFeed) {
-
+    void update(KinectHandlerBase& kinect,
+        std::vector<KVR::KinectTrackedDevice> & v_trackers) {
+        Mat imageFeed = kinect.colorMat;
+        Mat depthFeed = kinect.depthMat;
         if (!active) { return; }
 
 
@@ -109,6 +113,12 @@ public:
         //delay 30ms so that screen can refresh.
         //image will not appear without this waitKey() command
         waitKey(1);
+
+    }
+    void updateTrackers(KinectHandlerBase& kinect, std::vector<KVR::KinectTrackedDevice> & v_trackers) {
+        //Temporary, need to seperate kinect calculations and the updating of the trackers
+        sf::Vector2i colorCoords = { getTrackedPoints()[0].imagePosX, getTrackedPoints()[0].imagePosY };
+        kinect.updateTrackersWithColorPosition(v_trackers, colorCoords);
     }
     void addTrackedComponent() {
         TrackedColorComponent c;
@@ -127,8 +137,6 @@ public:
     }
     */
 private:
-    bool active = false;
-
     bool useMorphOps = true;
     bool trackObjects = true;
     bool scaleImageForProcessing = false;

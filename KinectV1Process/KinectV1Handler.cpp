@@ -171,7 +171,6 @@
 }
 
  void KinectV1Handler::updateTrackersWithSkeletonPosition(
-    vrinputemulator::VRInputEmulator &emulator,
     std::vector<KVR::KinectTrackedDevice> trackers)
 {
     for (KVR::KinectTrackedDevice device : trackers) {

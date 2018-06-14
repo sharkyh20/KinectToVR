@@ -12,7 +12,9 @@
 #include "GUIHandler.h"
 #include "ManualCalibrator.h"
 #include "PlayspaceMovementAdjuster.h"
+#include "TrackingMethod.h"
 #include "ColorTracker.h"
+#include "SkeletonTracker.h"
 
 #include <SFML\Audio.hpp>
 
@@ -218,8 +220,15 @@ void processLoop(KinectHandlerBase& kinect) {
     PlayspaceMovementAdjuster playspaceMovementAdjuster(&inputEmulator);
     guiRef.setPlayspaceResetButtonSignal(playspaceMovementAdjuster);
 
-    ColorTracker mainColorTracker(KinectSettings::kinectV2Width, KinectSettings::kinectV2Height);
+    std::vector<TrackingMethod> v_trackingMethods;
+    
+    SkeletonTracker mainSkeletalTracker;
+    v_trackingMethods.push_back(mainSkeletalTracker);
 
+    /*
+    ColorTracker mainColorTracker(KinectSettings::kinectV2Width, KinectSettings::kinectV2Height);
+    v_trackingMethods.push_back(mainColorTracker);
+    */
 
     while (renderWindow.isOpen())
     {
@@ -294,12 +303,18 @@ void processLoop(KinectHandlerBase& kinect) {
             if (KinectSettings::adjustingKinectRepresentationPos
                 || KinectSettings::adjustingKinectRepresentationRot)
                 ManualCalibrator::Calibrate(deltaT, leftController, rightController, guiRef);
-
+            /*
             kinect.updateTrackersWithSkeletonPosition(inputEmulator, v_trackers);
             mainColorTracker.update(kinect.colorMat, kinect.depthMat);
             std::vector<TrackedColorComponent> position = mainColorTracker.getTrackedPoints();
-            kinect.updateTrackersWithColorPosition(inputEmulator, v_trackers, sf::Vector2i(position[0].imagePosX, position[0].imagePosY));
+            kinect.updateTrackersWithColorPosition( v_trackers, sf::Vector2i(position[0].imagePosX, position[0].imagePosY));
             //Draw
+            kinect.drawKinectData(renderWindow);
+            */
+            for (TrackingMethod method : v_trackingMethods) {
+                method.update(kinect, v_trackers);
+                method.updateTrackers(kinect, v_trackers);
+            }
             kinect.drawKinectData(renderWindow);
         }
         std::vector<uint32_t> virtualDeviceIndexes;
@@ -307,7 +322,7 @@ void processLoop(KinectHandlerBase& kinect) {
             vrinputemulator::VirtualDeviceInfo info = inputEmulator.getVirtualDeviceInfo(d.deviceId);
             virtualDeviceIndexes.push_back(info.openvrDeviceId); // needs to be converted into openvr's id - as inputEmulator has it's own Id's starting from zero
 
-            d.positionTrackingOption = KVR::JointPositionTrackingOption::Skeleton; // TEMP DEBUG
+            //d.positionTrackingOption = KVR::JointPositionTrackingOption::Skeleton; // TEMP DEBUG
         }
         playspaceMovementAdjuster.update(leftController, rightController, virtualDeviceIndexes);
         
