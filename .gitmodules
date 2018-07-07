@@ -1,0 +1,6 @@
+[submodule "cereal"]
+	path = external/cereal
+	url = https://github.com/USCiLab/cereal
+[submodule "OpenVR-InputEmulator"]
+	path = external/inputemulator
+	url = https://github.com/matzman666/OpenVR-InputEmulator

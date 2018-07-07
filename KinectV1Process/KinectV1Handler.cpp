@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "KinectV1Handler.h"
 
-#include "glew.h"
+#include "GL/glew.h"
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <KinectSettings.h>

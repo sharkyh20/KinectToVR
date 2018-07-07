@@ -89,7 +89,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)Includes\opencv\build\include;$(ProjectDir)/inc;$(SolutionDir)Includes\Glew;$(SolutionDir)Includes\InputEmulator;$(SolutionDir)Includes\openvr\headers;$(SolutionDir)Includes\SFML-2.4.2\include;$(SolutionDir)Includes\sfgui;$(SolutionDir)Includes\boost_1_63_0;$(SolutionDir)SFMLProject\inc\;$(SolutionDir)Includes\Kinect2\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)inc;$(SolutionDir)SFMLProject\inc\;$(SolutionDir)external\inputemulator\third-party\boost_1_63_0;$(SolutionDir)external\inputemulator\openvr\headers;$(SolutionDir)external\inputEmulator\lib_vrinputemulator\include;$(SolutionDir)external\glew\include;$(SolutionDir)external\sfml\include;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\build\include;$(SolutionDir)external\kinect2</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -137,7 +137,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)Includes\opencv\build\include;$(ProjectDir)/inc;$(SolutionDir)Includes\Glew;$(SolutionDir)Includes\InputEmulator;$(SolutionDir)Includes\openvr\headers;$(SolutionDir)Includes\SFML-2.4.2\include;$(SolutionDir)Includes\sfgui;$(SolutionDir)Includes\boost_1_63_0;$(SolutionDir)SFMLProject\;$(SolutionDir)SFMLProject\inc\;$(SolutionDir)Includes\Kinect2\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)inc;$(SolutionDir)SFMLProject\inc\;$(SolutionDir)external\inputemulator\third-party\boost_1_63_0;$(SolutionDir)external\inputemulator\openvr\headers;$(SolutionDir)external\inputEmulator\lib_vrinputemulator\include;$(SolutionDir)external\glew\include;$(SolutionDir)external\sfml\include;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\build\include;$(SolutionDir)external\kinect2</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

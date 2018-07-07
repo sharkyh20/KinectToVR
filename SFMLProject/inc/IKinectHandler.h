@@ -8,7 +8,7 @@
 #include <vector>
 #include <vrinputemulator.h>
 #include <SFML/Graphics/RenderWindow.hpp>
-#include <glew.h>
+#include <GL/glew.h>
 
 #include <opencv2\opencv.hpp>
 

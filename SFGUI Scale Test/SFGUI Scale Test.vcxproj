@@ -90,13 +90,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\git_workspace\KinectToVR\Includes\SFML-2.4.2\include;D:\git_workspace\KinectToVR\Includes\sfGui\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)inc;$(SolutionDir)SFMLProject\inc\;$(SolutionDir)external\glew\include;$(SolutionDir)external\sfml\include;$(SolutionDir)external\sfgui\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)\Includes\SFML-2.4.2\lib; $(SolutionDir)\Includes\sfGui</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Debug\sfml-audio-d.lib;Debug\sfml-graphics-d.lib;Debug\sfml-window-d.lib;Debug\sfml-system-d.lib;sfgui-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)external\glew\lib\Release\x64;$(SolutionDir)external\sfml\lib;$(SolutionDir)external\sfgui\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>OpenGL32.lib;glew32.lib;sfml-audio-d.lib;sfml-graphics-d.lib;sfml-window-d.lib;sfml-system-d.lib;sfgui-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -141,13 +141,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\git_workspace\KinectToVR\Includes\SFML-2.4.2\include;D:\git_workspace\KinectToVR\Includes\sfGui\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)inc;$(SolutionDir)SFMLProject\inc\;$(SolutionDir)external\glew\include;$(SolutionDir)external\sfml\include;$(SolutionDir)external\sfgui\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)external\sfml\lib;$(SolutionDir)external\sfgui\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
