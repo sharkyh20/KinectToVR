@@ -154,7 +154,7 @@ void attemptIEmulatorConnection(vrinputemulator::VRInputEmulator & inputEmulator
         std::cerr << "Attempted connection to Input Emulator" << std::to_string(e.errorcode) + " " + e.what() + "\n\n Is SteamVR open and InputEmulator installed?" << std::endl;
     }
 }
-void updateTrackerInitGuiSignals(vrinputemulator::VRInputEmulator &inputEmulator, GUIHandler &guiRef, std::vector<KVR::KinectTrackedDevice> v_trackers) {
+void updateTrackerInitGuiSignals(vrinputemulator::VRInputEmulator &inputEmulator, GUIHandler &guiRef, std::vector<KVR::KinectTrackedDevice> & v_trackers) {
     if (inputEmulator.isConnected()) {
         guiRef.setTrackerButtonSignals(inputEmulator, v_trackers);
         guiRef.updateEmuStatusLabelSuccess();
@@ -220,10 +220,11 @@ void processLoop(KinectHandlerBase& kinect) {
     PlayspaceMovementAdjuster playspaceMovementAdjuster(&inputEmulator);
     guiRef.setPlayspaceResetButtonSignal(playspaceMovementAdjuster);
 
-    std::vector<TrackingMethod> v_trackingMethods;
-    
+    //Default tracking methods
+    std::vector<std::unique_ptr<TrackingMethod>> v_trackingMethods;
     SkeletonTracker mainSkeletalTracker;
-    v_trackingMethods.push_back(mainSkeletalTracker);
+    kinect.initialiseSkeleton();
+    v_trackingMethods.push_back(std::make_unique<SkeletonTracker>(mainSkeletalTracker));
 
     /*
     ColorTracker mainColorTracker(KinectSettings::kinectV2Width, KinectSettings::kinectV2Height);
@@ -311,9 +312,9 @@ void processLoop(KinectHandlerBase& kinect) {
             //Draw
             kinect.drawKinectData(renderWindow);
             */
-            for (TrackingMethod method : v_trackingMethods) {
-                method.update(kinect, v_trackers);
-                method.updateTrackers(kinect, v_trackers);
+            for (auto & method_ptr : v_trackingMethods) {
+                method_ptr->update(kinect, v_trackers);
+                method_ptr->updateTrackers(kinect, v_trackers);
             }
             kinect.drawKinectData(renderWindow);
         }
@@ -351,9 +352,6 @@ void processLoop(KinectHandlerBase& kinect) {
 
     vr::VR_Shutdown();
 }
-
-
-
 void spawnAndConnectTracker(vrinputemulator::VRInputEmulator & inputE, std::vector<KVR::KinectTrackedDevice>& v_trackers, KVR::KinectJointType mainJoint, KVR::KinectJointType secondaryJoint, KVR::KinectDeviceRole role)
 {
     KVR::KinectTrackedDevice device(inputE, mainJoint, secondaryJoint, role);

@@ -10,20 +10,20 @@
 class TrackingMethod {
 public:
     TrackingMethod() {}
-    ~TrackingMethod() {}
+    virtual ~TrackingMethod() {}
 
-    void initialise() {}
+    virtual void initialise() {}
 
-    void activate() {}
+    virtual void activate() {}
 
-    void terminate() {}
+    virtual void terminate() {}
 
-    void update(
+    virtual void update(
         KinectHandlerBase& kinect,
         std::vector<KVR::KinectTrackedDevice> & v_trackers
     ) {}
 
-    void updateTrackers(
+    virtual void updateTrackers(
         KinectHandlerBase& kinect, 
         std::vector<KVR::KinectTrackedDevice> & v_trackers
     ) {}
