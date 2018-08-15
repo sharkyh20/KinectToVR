@@ -15,6 +15,7 @@
 #include "TrackingMethod.h"
 #include "ColorTracker.h"
 #include "SkeletonTracker.h"
+#include "PSMoveHandler.h"
 
 #include <SFML\Audio.hpp>
 
@@ -231,6 +232,9 @@ void processLoop(KinectHandlerBase& kinect) {
     v_trackingMethods.push_back(mainColorTracker);
     */
 
+    //For now, in current impl. status, PSMoveService will be initialised here
+    PSMoveHandler psMoveHandler;
+
     while (renderWindow.isOpen())
     {
         //Clear the debug text display
@@ -296,7 +300,8 @@ void processLoop(KinectHandlerBase& kinect) {
             std::cerr << "Error updating controllers: Could not connect to the SteamVR system! OpenVR init error-code " << std::to_string(eError) << std::endl;
         }
 
-        
+        psMoveHandler.run();
+
         // Update Kinect Status
         guiRef.updateKinectStatusLabel(kinect);
         if (kinect.isInitialised()) {
