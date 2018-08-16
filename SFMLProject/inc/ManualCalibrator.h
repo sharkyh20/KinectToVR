@@ -59,6 +59,7 @@ private:
             KinectSettings::adjustingKinectRepresentationPos = false;
             guiRef.togglePosButton();
             controller.setHapticPulse(.15, 1000, 0);
+            KinectSettings::writeKinectSettings(); // This prevents most people's issues with configs not saving due to program crash or steamVR force closing
         }
     }
 
@@ -79,6 +80,7 @@ private:
             KinectSettings::adjustingKinectRepresentationRot = false;
             guiRef.toggleRotButton();
             controller.setHapticPulse(.15, 1000, 0);
+            KinectSettings::writeKinectSettings(); // This prevents most people's issues with configs not saving due to program crash or steamVR force closing
         }
     }
     static void updateKinectQuaternion() {

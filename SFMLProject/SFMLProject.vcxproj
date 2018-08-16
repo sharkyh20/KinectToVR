@@ -108,7 +108,7 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(IncludePath);$(ProjectDir)inc;$(SolutionDir)external\cereal\include;$(SolutionDir)external\inputemulator\lib_vrinputemulator\include;$(SolutionDir)external\inputemulator\openvr\headers;$(SolutionDir)external\inputemulator\third-party\boost_1_63_0;$(SolutionDir)external\sfml\include;$(SolutionDir)external\glew\include;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(IncludePath);$(ProjectDir)inc;$(SolutionDir)external\cereal\include;$(SolutionDir)external\inputemulator\lib_vrinputemulator\include;$(SolutionDir)external\inputemulator\openvr\headers;$(SolutionDir)external\inputemulator\third-party\boost_1_63_0;$(SolutionDir)external\sfml\include;$(SolutionDir)external\glew\include;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\build\include;$(SolutionDir)external\PSMoveService\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ShowIncludes>true</ShowIncludes>
     </ClCompile>
     <Link>
@@ -154,7 +154,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(IncludePath);$(ProjectDir)inc;$(SolutionDir)external\cereal\include;$(SolutionDir)external\inputemulator\lib_vrinputemulator\include;$(SolutionDir)external\inputemulator\openvr\headers;$(SolutionDir)external\inputemulator\third-party\boost_1_63_0;$(SolutionDir)external\sfml\include;$(SolutionDir)external\glew\include;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(IncludePath);$(ProjectDir)inc;$(SolutionDir)external\cereal\include;$(SolutionDir)external\inputemulator\lib_vrinputemulator\include;$(SolutionDir)external\inputemulator\openvr\headers;$(SolutionDir)external\inputemulator\third-party\boost_1_63_0;$(SolutionDir)external\sfml\include;$(SolutionDir)external\glew\include;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\build\include;$(SolutionDir)external\PSMoveService\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ForcedIncludeFiles>stdafx.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
@@ -192,6 +192,7 @@
     <ClInclude Include="inc\KinectTrackedDevice.h" />
     <ClInclude Include="inc\ManualCalibrator.h" />
     <ClInclude Include="inc\PlayspaceMovementAdjuster.h" />
+    <ClInclude Include="inc\PSMoveHandler.h" />
     <ClInclude Include="inc\QuaternionMath.h" />
     <ClInclude Include="inc\sfLine.h" />
     <ClInclude Include="inc\SkeletonTracker.h" />

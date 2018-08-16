@@ -276,6 +276,7 @@ void setTrackerButtonSignals(vrinputemulator::VRInputEmulator &inputE, std::vect
         TrackerInitButton->SetLabel("Trackers Initialised");
         if (TrackersToBeInitialised.empty()) {
             spawnDefaultLowerBodyTrackers(inputE, v_trackers);
+            //spawnAndConnectKinectTracker(inputE, v_trackers);
         }
         else {
             for (TempTracker tracker : TrackersToBeInitialised) {
