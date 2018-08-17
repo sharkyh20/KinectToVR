@@ -178,12 +178,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc\Calibrator.h" />
+    <ClInclude Include="inc\ColorPositionMethod.h" />
     <ClInclude Include="inc\ColorTracker.h" />
     <ClInclude Include="inc\GamepadController.h" />
     <ClInclude Include="inc\GenericController.h" />
     <ClInclude Include="inc\GUIHandler.h" />
     <ClInclude Include="inc\IETracker.h" />
     <ClInclude Include="inc\IKinectHandler.h" />
+    <ClInclude Include="inc\IMU_PositionMethod.h" />
+    <ClInclude Include="inc\IMU_RotationMethod.h" />
     <ClInclude Include="inc\KinectHandlerBase.h" />
     <ClInclude Include="inc\KinectJoint.h" />
     <ClInclude Include="inc\KinectSettings.h" />
@@ -194,6 +197,8 @@
     <ClInclude Include="inc\PSMoveHandler.h" />
     <ClInclude Include="inc\QuaternionMath.h" />
     <ClInclude Include="inc\sfLine.h" />
+    <ClInclude Include="inc\SkeletonPositionMethod.h" />
+    <ClInclude Include="inc\SkeletonRotationMethod.h" />
     <ClInclude Include="inc\SkeletonTracker.h" />
     <ClInclude Include="inc\TrackingMethod.h" />
     <ClInclude Include="inc\VectorMath.h" />
