@@ -40,6 +40,7 @@ namespace KinectSettings {
 
     extern vr::HmdVector3_t hmdPosition; 
     extern vr::HmdQuaternion_t hmdRotation;
+    extern vr::HmdMatrix34_t hmdAbsoluteTracking;
 
 
     extern vr::HmdQuaternion_t kinectRepRotation;

@@ -16,6 +16,7 @@ vr::HmdVector3_t updateHMDPosAndRot(vr::IVRSystem* &m_system) {
     if (devicePose[HMD_INDEX].bPoseIsValid) {
         if (vr::VRSystem()->GetTrackedDeviceClass(HMD_INDEX) == vr::TrackedDeviceClass_HMD) {
             hmdPose = devicePose[HMD_INDEX];
+            KinectSettings::hmdAbsoluteTracking = hmdPose.mDeviceToAbsoluteTracking;
             position = GetVRPositionFromMatrix(hmdPose.mDeviceToAbsoluteTracking);
             vr::HmdQuaternion_t quaternion = GetVRRotationFromMatrix(hmdPose.mDeviceToAbsoluteTracking);
             KinectSettings::hmdPosition = position;
