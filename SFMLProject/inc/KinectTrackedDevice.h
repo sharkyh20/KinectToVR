@@ -47,6 +47,19 @@ namespace KVR {
         Skeleton,
         Color
     };
+    enum class JointRotationTrackingOption {
+        Skeleton,
+        IMU,
+        Headlook
+    };
+
+    struct TrackedDeviceInputData {
+        // Used by tracking methods to say what the desired position/rotation for this device should be
+        uint32_t deviceId;
+        vr::HmdQuaternion_t rotation;
+        vr::HmdVector3d_t position;
+        vr::DriverPose_t pose;
+    };
 
     class KinectTrackedDevice {
     public:
@@ -67,17 +80,43 @@ namespace KVR {
         void init(vrinputemulator::VRInputEmulator& inputEmulator) {
             deviceId = initTracker(inputEmulator, true);
         }
-        void update(vr::HmdVector3_t additionalOffset, vr::HmdVector3_t rawJointPos, vr::HmdQuaternion_t rawJointRotation) {
+        void update(vr::DriverPose_t pose) {
+            inputEmulatorRef.setVirtualDevicePose(deviceId, pose);
+        }
+        void update(vr::HmdVector3_t additionalOffset, vr::HmdVector3d_t rawJointPos, vr::HmdQuaternion_t rawJointRotation) {
             auto pose = inputEmulatorRef.getVirtualDevicePose(deviceId);
             vr::HmdQuaternion_t jointRotation = rawJointRotation;
+            vr::HmdVector3d_t jointPosition = rawJointPos;
+
+
+            // JUST FOR PSMOVE TESTING
+            usingKinectCalibrationModel = false;
+            // ---------------------
+
+            if (usingKinectCalibrationModel) {
+                applyKinectArrowCalibrationToTracker(jointRotation, jointPosition);
+            }
+            pose.qRotation = jointRotation;
+
+            //Final Position Adjustment
+            updateDevicePosePosition(pose, jointPosition);
+
+            pose.poseIsValid = true;
+
+            pose.result = vr::TrackingResult_Running_OK;
+            inputEmulatorRef.setVirtualDevicePose(deviceId, pose);
+        }
+        void applyKinectArrowCalibrationToTracker(vr::HmdQuaternion_t &rotation, vr::HmdVector3d_t &position) {
+            // If using the kinect, then the position/rot of the tracker has to be adjusted
+            // according to the arrow, to transform it into the proper OpenVR coords
+
             //Rotate the position around the kinect rep's rot
             if (isSensor()) {
                 //Rotate arrow by 180
-                jointRotation = jointRotation * vrmath::quaternionFromRotationY(PI);
+                rotation = rotation * vrmath::quaternionFromRotationY(PI);
             }
 
-            vr::HmdVector3d_t dPos = { rawJointPos.v[0], rawJointPos.v[1], rawJointPos.v[2]};
-            vr::HmdVector3d_t rotatedPos = vrmath::quaternionRotateVector(KinectSettings::kinectRepRotation, dPos, false);
+            vr::HmdVector3d_t rotatedPos = vrmath::quaternionRotateVector(KinectSettings::kinectRepRotation, position, false);
 
             //Adjust this position by the Kinect's VR pos offset
             rotatedPos.v[0] += KinectSettings::kinectRepPosition.v[0];
@@ -86,18 +125,10 @@ namespace KVR {
 
             if (!isSensor()) {
                 if (rotationFilterOption == JointRotationFilterOption::HeadLook) {}
-                else 
-                    jointRotation = KinectSettings::kinectRepRotation * jointRotation;
+                else
+                    rotation = KinectSettings::kinectRepRotation * rotation;
+                position = rotatedPos;
             }
-            pose.qRotation = jointRotation;
-
-            //Final Position Adjustment
-            updateDevicePosePosition(pose, rotatedPos);
-
-            pose.poseIsValid = true;
-
-            pose.result = vr::TrackingResult_Running_OK;
-            inputEmulatorRef.setVirtualDevicePose(deviceId, pose);
         }
 
         bool isSensor() {
@@ -121,12 +152,15 @@ namespace KVR {
 
         bool invisible = false;
 
+        bool usingKinectCalibrationModel = true;
+
         vr::HmdVector3_t trackedPositionVROffset;
         vr::HmdVector3_t lastRawPos{ 0,0,0 };
 
         JointRotationFilterOption rotationFilterOption = JointRotationFilterOption::Filtered;
         JointPositionFilterOption positionFilterOption = JointPositionFilterOption::Filtered;
         JointPositionTrackingOption positionTrackingOption = JointPositionTrackingOption::Skeleton;
+        JointRotationTrackingOption rotationTrackingOption = JointRotationTrackingOption::Skeleton;
 
         KinectDeviceRole role;
     private:

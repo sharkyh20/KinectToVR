@@ -372,7 +372,7 @@ void KinectV2Handler::updateTrackersWithSkeletonPosition( std::vector<KVR::Kinec
                 device.update(KinectSettings::kinectRepPosition, { 0,0,0 }, KinectSettings::kinectRepRotation);
             }
             else {
-                vr::HmdVector3_t jointPosition{ 0,0,0 };
+                vr::HmdVector3d_t jointPosition{ 0,0,0 };
                 vr::HmdQuaternion_t jointRotation{ 0,0,0,0 };
                 if (getFilteredJoint(device, jointPosition, jointRotation)) {
 
@@ -404,7 +404,7 @@ void KinectV2Handler::updateTrackersWithColorPosition( std::vector<KVR::KinectTr
                     device.update(KinectSettings::kinectRepPosition, { 0,0,0 }, KinectSettings::kinectRepRotation);
                 }
                 else {
-                    vr::HmdVector3_t jointPosition{ 0,0,0 };
+                    vr::HmdVector3d_t jointPosition{ 0,0,0 };
                     if (worldCoordinate.X + worldCoordinate.Y + worldCoordinate.Z != 0) {
                         jointPosition.v[0] = worldCoordinate.X;
                         jointPosition.v[1] = worldCoordinate.Y;
@@ -417,12 +417,12 @@ void KinectV2Handler::updateTrackersWithColorPosition( std::vector<KVR::KinectTr
     }
     std::cout << "HR: " << hr << '\n';
 }
-bool KinectV2Handler::getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdVector3_t& position, vr::HmdQuaternion_t &rotation) {
+bool KinectV2Handler::getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdVector3d_t& position, vr::HmdQuaternion_t &rotation) {
     sf::Vector3f filteredPos = filter.GetFilteredJoints()[convertJoint(device.joint0)];
     float jointX = filteredPos.x;
     float jointY = filteredPos.y;
     float jointZ = filteredPos.z;
-    position = vr::HmdVector3_t{ jointX,jointY,jointZ };
+    position = vr::HmdVector3d_t{ jointX,jointY,jointZ };
 
     //Rotation - need to seperate into function
     Vector4 kRotation;

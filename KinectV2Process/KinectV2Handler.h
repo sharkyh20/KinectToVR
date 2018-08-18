@@ -60,7 +60,7 @@ public:
     virtual void drawKinectImageData(sf::RenderWindow &win);
     virtual void drawTrackedSkeletons(sf::RenderWindow &win);
 
-    virtual bool getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdVector3_t& position, vr::HmdQuaternion_t &rotation);
+    virtual bool getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdVector3d_t& position, vr::HmdQuaternion_t &rotation);
 
     
 

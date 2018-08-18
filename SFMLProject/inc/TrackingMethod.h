@@ -25,7 +25,8 @@ public:
 
     virtual void updateTrackers(
         KinectHandlerBase& kinect, 
-        std::vector<KVR::KinectTrackedDevice> & v_trackers
+        std::vector<KVR::KinectTrackedDevice> & v_trackers,
+        std::vector<KVR::TrackedDeviceInputData> inputs
     ) {}
 
 
