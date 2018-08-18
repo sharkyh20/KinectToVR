@@ -18,6 +18,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SFGUI Scale Test", "SFGUI Scale Test\SFGUI Scale Test.vcxproj", "{7D1AE0DE-7859-428C-A80F-8CE6BDFCDA41}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KinectlessProcess", "KinectlessProcess\KinectlessProcess.vcxproj", "{94958977-BDCC-4799-9B7E-D43D3C8AB51B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9E612475-CF0A-4384-969A-3C01C9543935} = {9E612475-CF0A-4384-969A-3C01C9543935}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
