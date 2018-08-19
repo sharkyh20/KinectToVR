@@ -13,6 +13,21 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\Calibrators">
+      <UniqueIdentifier>{c1031505-84bb-4dfd-ba34-51ab8d1fe93b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\DeviceHandlers">
+      <UniqueIdentifier>{f9f748a9-ed8e-45da-925e-959c89cd2f10}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\TrackingMethods">
+      <UniqueIdentifier>{30da05ba-4492-4350-9cd5-2031daaf387d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\TrackingMethods\Position">
+      <UniqueIdentifier>{1908e621-0fc8-4491-88dc-ffb1b4a61532}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\TrackingMethods\Rotation">
+      <UniqueIdentifier>{deeec89c-86e2-4fa8-aea2-f7a32b1e7cfc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -57,19 +72,10 @@
     <ClInclude Include="inc\VectorMath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\Calibrator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\ColorTracker.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="inc\GamepadController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\GenericController.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\ManualCalibrator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\QuaternionMath.h">
@@ -81,14 +87,38 @@
     <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Calibrator.h">
+      <Filter>Header Files\Calibrators</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\ManualCalibrator.h">
+      <Filter>Header Files\Calibrators</Filter>
+    </ClInclude>
     <ClInclude Include="inc\TrackingMethod.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\TrackingMethods</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\ColorTracker.h">
+      <Filter>Header Files\TrackingMethods</Filter>
     </ClInclude>
     <ClInclude Include="inc\SkeletonTracker.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\TrackingMethods</Filter>
     </ClInclude>
     <ClInclude Include="inc\PSMoveHandler.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\DeviceHandlers</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\ColorPositionMethod.h">
+      <Filter>Header Files\TrackingMethods\Position</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\IMU_PositionMethod.h">
+      <Filter>Header Files\TrackingMethods\Position</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\SkeletonRotationMethod.h">
+      <Filter>Header Files\TrackingMethods\Rotation</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\SkeletonPositionMethod.h">
+      <Filter>Header Files\TrackingMethods\Position</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\IMU_RotationMethod.h">
+      <Filter>Header Files\TrackingMethods\Rotation</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

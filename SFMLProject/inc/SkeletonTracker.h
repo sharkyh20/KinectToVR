@@ -28,7 +28,8 @@ public:
 
     void updateTrackers(
         KinectHandlerBase& kinect,
-        std::vector<KVR::KinectTrackedDevice> & v_trackers
+        std::vector<KVR::KinectTrackedDevice> & v_trackers,
+        std::vector<KVR::TrackedDeviceInputData> inputs
     ) {
         for (KVR::KinectTrackedDevice device : v_trackers) {
             if (device.positionTrackingOption == KVR::JointPositionTrackingOption::Skeleton) {
@@ -36,7 +37,7 @@ public:
                     device.update(KinectSettings::kinectRepPosition, { 0,0,0 }, KinectSettings::kinectRepRotation);
                 }
                 else {
-                    vr::HmdVector3_t jointPosition{ 0,0,0 };
+                    vr::HmdVector3d_t jointPosition{ 0,0,0 };
                     vr::HmdQuaternion_t jointRotation{ 0,0,0,0 };
                     if (kinect.getFilteredJoint(device, jointPosition, jointRotation)) {
 

@@ -178,7 +178,7 @@
             device.update(KinectSettings::kinectRepPosition, { 0,0,0 }, KinectSettings::kinectRepRotation);
         }
         else {
-            vr::HmdVector3_t jointPosition{ 0,0,0 };
+            vr::HmdVector3d_t jointPosition{ 0,0,0 };
             vr::HmdQuaternion_t jointRotation{ 0,0,0,0 };
             if (getFilteredJoint(device, jointPosition, jointRotation)) {
                 
@@ -190,7 +190,7 @@
 }
  
 
-bool KinectV1Handler::getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdVector3_t& position, vr::HmdQuaternion_t &rotation) {
+bool KinectV1Handler::getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdVector3d_t& position, vr::HmdQuaternion_t &rotation) {
     for (int i = 0; i < NUI_SKELETON_COUNT; ++i) {
         NUI_SKELETON_TRACKING_STATE trackingState = skeletonFrame.SkeletonData[i].eTrackingState;
 
@@ -212,7 +212,7 @@ bool KinectV1Handler::getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdV
                 float jointX = jointPositions[convertJoint(device.joint0)].x;
                 float jointY = jointPositions[convertJoint(device.joint0)].y;
                 float jointZ = jointPositions[convertJoint(device.joint0)].z;
-                position = vr::HmdVector3_t{ jointX,jointY,jointZ };
+                position = vr::HmdVector3d_t{ jointX,jointY,jointZ };
 
                 //Rotation - Need to seperate into function
                 Vector4 kRotation = { 0,0,0,0 };

@@ -37,6 +37,7 @@ namespace KinectSettings {
 
     vr::HmdVector3_t hmdPosition = { 0,0,0 };
     vr::HmdQuaternion_t hmdRotation = { 0,0,0,0 };
+    vr::HmdMatrix34_t hmdAbsoluteTracking = {};
 
     vr::HmdQuaternion_t kinectRepRotation{0,0,0,0};  //TEMP
     vr::HmdVector3_t kinectRadRotation{0,0,0};
