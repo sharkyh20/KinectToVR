@@ -183,6 +183,7 @@
     <ClInclude Include="inc\GamepadController.h" />
     <ClInclude Include="inc\GenericController.h" />
     <ClInclude Include="inc\GUIHandler.h" />
+    <ClInclude Include="inc\HeadAndHandsAutoCalibrator.h" />
     <ClInclude Include="inc\IETracker.h" />
     <ClInclude Include="inc\IKinectHandler.h" />
     <ClInclude Include="inc\IMU_PositionMethod.h" />

@@ -120,6 +120,9 @@
     <ClInclude Include="inc\IMU_RotationMethod.h">
       <Filter>Header Files\TrackingMethods\Rotation</Filter>
     </ClInclude>
+    <ClInclude Include="inc\HeadAndHandsAutoCalibrator.h">
+      <Filter>Header Files\Calibrators</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
