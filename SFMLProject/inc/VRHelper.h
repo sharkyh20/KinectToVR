@@ -4,12 +4,12 @@
 #include <SFML/System/Vector3.hpp>
 #include <vrinputemulator.h>
 
-vr::HmdVector3_t updateHMDPosAndRot(vr::IVRSystem* &m_sys);
+vr::HmdVector3d_t updateHMDPosAndRot(vr::IVRSystem* &m_sys);
 
 // Get the quaternion representing the rotation
 vr::HmdQuaternion_t GetVRRotationFromMatrix(vr::HmdMatrix34_t matrix);
 // Get the vector representing the position
-vr::HmdVector3_t GetVRPositionFromMatrix(vr::HmdMatrix34_t matrix);
+vr::HmdVector3d_t GetVRPositionFromMatrix(vr::HmdMatrix34_t matrix);
 void translateAllDevicesWorldFromDriver(vrinputemulator::VRInputEmulator& inputEmulator, vr::HmdVector3d_t vec);
 bool deviceIsVirtual(uint32_t deviceIndex, std::vector<uint32_t> virtualDeviceIndexes);
 void translateRealDevicesWorldFromDriver(vrinputemulator::VRInputEmulator& inputEmulator, vr::HmdVector3d_t vec, std::vector<uint32_t> virtualDeviceIndexes);

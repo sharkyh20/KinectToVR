@@ -6,6 +6,6 @@
 #include "GUIHandler.h"
 
 class Calibrator {
-    static void Calibrate(double deltaT, VRcontroller leftController, VRcontroller rightController, GUIHandler &guiRef) {}
+    static void Calibrate(double deltaT, KinectHandlerBase kinect, VRcontroller leftController, VRcontroller rightController, GUIHandler &guiRef) {}
     static void Calibrate(double deltaT, GamepadController gamepad, GUIHandler &guiRef) {}
 };

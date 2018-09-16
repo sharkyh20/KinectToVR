@@ -43,7 +43,7 @@ public:
     std::unique_ptr<GLubyte[]> kinectImageData; // array containing the texture data
     
     bool zeroed = false;
-    vr::HmdVector3_t trackedPositionVROffset = { 0,0,0 };
+    vr::HmdVector3d_t trackedPositionVROffset = { 0,0,0 };
 protected:
     bool initialised= false;
 

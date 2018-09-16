@@ -10,7 +10,7 @@ double deltaScaled(double valuePerSecond, double delta) {
 }
 class ManualCalibrator : Calibrator {
 public:
-    static void Calibrate(double deltaT, VRcontroller leftController, VRcontroller rightController, GUIHandler &guiRef) {
+    static void Calibrate(double deltaT, KinectHandlerBase& kinect, VRcontroller leftController, VRcontroller rightController, GUIHandler &guiRef) {
         if (KinectSettings::adjustingKinectRepresentationPos) {
             adjustHorizontalPosition(deltaT, leftController);
             adjustVerticalPosition(deltaT, rightController);

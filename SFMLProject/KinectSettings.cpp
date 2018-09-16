@@ -35,13 +35,13 @@ namespace KinectSettings {
     double kinectToVRScale = 1;
     double hipRoleHeightAdjust = 0.0;   // in metres up - applied post-scale
 
-    vr::HmdVector3_t hmdPosition = { 0,0,0 };
+    vr::HmdVector3d_t hmdPosition = { 0,0,0 };
     vr::HmdQuaternion_t hmdRotation = { 0,0,0,0 };
     vr::HmdMatrix34_t hmdAbsoluteTracking = {};
 
     vr::HmdQuaternion_t kinectRepRotation{0,0,0,0};  //TEMP
-    vr::HmdVector3_t kinectRadRotation{0,0,0};
-    vr::HmdVector3_t kinectRepPosition{0,0,0};
+    vr::HmdVector3d_t kinectRadRotation{0,0,0};
+    vr::HmdVector3d_t kinectRepPosition{0,0,0};
     bool adjustingKinectRepresentationRot = false;
     bool adjustingKinectRepresentationPos = false;
 
@@ -97,10 +97,10 @@ namespace KinectSettings {
         }
         else {
             using namespace KinectSettings;
-            vr::HmdVector3_t rot = kinectRadRotation;
+            vr::HmdVector3d_t rot = kinectRadRotation;
             float kRotation[3] = { rot.v[0], rot.v[1] , rot.v[2] };
 
-            vr::HmdVector3_t pos = kinectRepPosition;
+            vr::HmdVector3d_t pos = kinectRepPosition;
             float kPosition[3] = { pos.v[0], pos.v[1] , pos.v[2] };
             archive(
                 CEREAL_NVP(kRotation),

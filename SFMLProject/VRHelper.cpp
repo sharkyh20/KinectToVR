@@ -4,10 +4,10 @@
 #include <openvr_math.h>
 #include "KinectSettings.h"
 
-vr::HmdVector3_t updateHMDPosAndRot(vr::IVRSystem* &m_system) {
+vr::HmdVector3d_t updateHMDPosAndRot(vr::IVRSystem* &m_system) {
     //Gets the HMD location for relative position setting
     // Use the head joint for the zero location!
-    vr::HmdVector3_t position{};
+    vr::HmdVector3d_t position{};
     const int HMD_INDEX = 0;
 
     vr::TrackedDevicePose_t hmdPose;
@@ -40,9 +40,9 @@ vr::HmdQuaternion_t GetVRRotationFromMatrix(vr::HmdMatrix34_t matrix) {
     return q;
 }
 // Get the vector representing the position
-vr::HmdVector3_t GetVRPositionFromMatrix(vr::HmdMatrix34_t matrix) {
+vr::HmdVector3d_t GetVRPositionFromMatrix(vr::HmdMatrix34_t matrix) {
     // Credit to Omnifinity https://github.com/Omnifinity/OpenVR-Tracking-Example/
-    vr::HmdVector3_t vector;
+    vr::HmdVector3d_t vector;
 
     vector.v[0] = matrix.m[0][3];
     vector.v[1] = matrix.m[1][3];
