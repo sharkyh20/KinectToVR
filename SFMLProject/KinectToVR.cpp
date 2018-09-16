@@ -3,7 +3,7 @@
 #include "VRHelper.h"
 
 #include "wtypes.h"
-#include "Windows.h"
+#include <Windows.h>
 
 #include "KinectSettings.h"
 #include "VRController.h"
@@ -11,10 +11,12 @@
 #include "GamepadController.h"
 #include "GUIHandler.h"
 #include "ManualCalibrator.h"
+#include "HeadAndHandsAutoCalibrator.h"
 #include "PlayspaceMovementAdjuster.h"
 #include "TrackingMethod.h"
 #include "ColorTracker.h"
 #include "SkeletonTracker.h"
+#include "IMU_PositionMethod.h"
 #include "PSMoveHandler.h"
 
 #include <SFML\Audio.hpp>
@@ -105,7 +107,7 @@ void updateFilePath() {
     GetModuleFileNameW(module, exeFilePath, MAX_PATH);
      
     //Get rid of exe from name
-    WCHAR directory[_MAX_PATH];
+    WCHAR directory[MAX_PATH];
     WCHAR drive[_MAX_DRIVE];
     WCHAR dir[_MAX_DIR];
     WCHAR fname[_MAX_FNAME];
@@ -169,7 +171,7 @@ void processLoop(KinectHandlerBase& kinect) {
     updateFilePath();
     sf::RenderWindow renderWindow(getScaledWindowResolution(), "KinectToVR: " + KinectSettings::KVRversion, sf::Style::Titlebar | sf::Style::Close);
     updateKinectWindowRes(renderWindow);
-    renderWindow.setFramerateLimit(30);   //Prevents ridiculous overupdating and high CPU usage - plus 90Hz is the recommended refresh rate for most VR panels 
+    renderWindow.setFramerateLimit(90);   //Prevents ridiculous overupdating and high CPU usage - plus 90Hz is the recommended refresh rate for most VR panels 
 
     sf::Clock clock;
 
@@ -223,10 +225,12 @@ void processLoop(KinectHandlerBase& kinect) {
 
     //Default tracking methods
     std::vector<std::unique_ptr<TrackingMethod>> v_trackingMethods;
-    SkeletonTracker mainSkeletalTracker;
-    kinect.initialiseSkeleton();
-    v_trackingMethods.push_back(std::make_unique<SkeletonTracker>(mainSkeletalTracker));
+    //SkeletonTracker mainSkeletalTracker;
+    //kinect.initialiseSkeleton();
+    //v_trackingMethods.push_back(std::make_unique<SkeletonTracker>(mainSkeletalTracker));
 
+    IMU_PositionMethod posMethod;
+    v_trackingMethods.push_back(std::make_unique<IMU_PositionMethod>(posMethod));
     /*
     ColorTracker mainColorTracker(KinectSettings::kinectV2Width, KinectSettings::kinectV2Height);
     v_trackingMethods.push_back(mainColorTracker);
@@ -308,18 +312,39 @@ void processLoop(KinectHandlerBase& kinect) {
             kinect.update();
             if (KinectSettings::adjustingKinectRepresentationPos
                 || KinectSettings::adjustingKinectRepresentationRot)
-                ManualCalibrator::Calibrate(deltaT, leftController, rightController, guiRef);
+                ManualCalibrator::Calibrate(deltaT, kinect, leftController, rightController, guiRef);
+            
+            //kinect.updateTrackersWithSkeletonPosition(inputEmulator, v_trackers);
             /*
-            kinect.updateTrackersWithSkeletonPosition(inputEmulator, v_trackers);
             mainColorTracker.update(kinect.colorMat, kinect.depthMat);
             std::vector<TrackedColorComponent> position = mainColorTracker.getTrackedPoints();
             kinect.updateTrackersWithColorPosition( v_trackers, sf::Vector2i(position[0].imagePosX, position[0].imagePosY));
             //Draw
             kinect.drawKinectData(renderWindow);
             */
+            auto psmove0Pose = psMoveHandler.getPSMoveDriverPose(0);
+            auto psmove1Pose = psMoveHandler.getPSMoveDriverPose(1);
+            auto psmove2Pose = psMoveHandler.getPSMoveDriverPose(2);
+            std::vector<KVR::TrackedDeviceInputData> v_inputData;
+            KVR::TrackedDeviceInputData inputData0;
+            inputData0.deviceId = 0;
+            inputData0.pose = psmove0Pose;
+
+            KVR::TrackedDeviceInputData inputData1;
+            inputData1.deviceId = 1;
+            inputData1.pose = psmove1Pose;
+
+            KVR::TrackedDeviceInputData inputData2;
+            inputData2.deviceId = 2;
+            inputData2.pose = psmove2Pose;
+
+            v_inputData.push_back(inputData0);
+            v_inputData.push_back(inputData1);
+            v_inputData.push_back(inputData2);
+
             for (auto & method_ptr : v_trackingMethods) {
                 method_ptr->update(kinect, v_trackers);
-                method_ptr->updateTrackers(kinect, v_trackers);
+                method_ptr->updateTrackers(kinect, v_trackers, v_inputData);
             }
             kinect.drawKinectData(renderWindow);
         }

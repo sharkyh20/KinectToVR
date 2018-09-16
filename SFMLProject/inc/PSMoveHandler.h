@@ -306,7 +306,7 @@ public:
 
         // TODO, ACTUALLY MAKE THIS UPDATE THE CONTROLLERS WITH THEIR NEW POSITION
         // Can't do driver stuff, because that would offset everything.
-        
+        v_controllers[0]->ControllerState.PSMoveState.Pose = driver_pose_to_world_pose;
     }
 
     vr::DriverPose_t getPSMoveDriverPose(int controllerId) {
@@ -389,8 +389,8 @@ public:
 
         // Set the physics state of the controller
         {
-            float m_fLinearVelocityMultiplier;
-            float m_fLinearVelocityExponent;
+            static float m_fLinearVelocityMultiplier = 1.f;
+            static float m_fLinearVelocityExponent = 0.f;
 
             const PSMPhysicsData &physicsData = view.PhysicsData;
 
@@ -453,12 +453,16 @@ private:
                 PSMControllerDataStreamFlags::PSMStreamFlags_includeRawTrackerData;
 
             if (controllerList.count > 0) {
-                if (PSM_AllocateControllerListener(controllerList.controller_id[0]) != PSMResult_Success) {
-                    success = false;
+                for (int i = 0; i < controllerList.count; ++i) { 
+                    // In order for the controllers to report more than their IMU stuff, and turn on the light, they all have to go through this
+                    if (PSM_AllocateControllerListener(controllerList.controller_id[i]) != PSMResult_Success) {
+                        success = false;
+                    }
+                    if (PSM_StartControllerDataStream(controllerList.controller_id[i], data_stream_flags, PSM_DEFAULT_TIMEOUT) != PSMResult_Success) {
+                        success = false;
+                    }
                 }
-                if (PSM_StartControllerDataStream(controllerList.controller_id[0], data_stream_flags, PSM_DEFAULT_TIMEOUT) != PSMResult_Success) {
-                    success = false;
-                }
+                
             }
             else {
                 std::cout << "PSMoveConsoleClient::startup() - No controllers found." << std::endl;
@@ -486,36 +490,23 @@ private:
             v_controllers.push_back(PSM_GetController(controllerList.controller_id[1]));
             v_controllers.push_back(PSM_GetController(controllerList.controller_id[2]));
 
-            PSMQuatf orientation = v_controllers[0]->ControllerState.PSMoveState.Pose.Orientation;
-            /*
-            std::cout << "Controller 0 (AGMXYZ):  ";
+            processKeyInputs();
+        }
+    }
+    void processKeyInputs() {
+        auto firstController = v_controllers[0]->ControllerState.PSMoveState;
+        bool bStartRealignHMDTriggered =
+            (firstController.StartButton == PSMButtonState_PRESSED && firstController.SelectButton == PSMButtonState_PRESSED) ||
+            (firstController.StartButton == PSMButtonState_PRESSED && firstController.SelectButton == PSMButtonState_DOWN) ||
+            (firstController.StartButton == PSMButtonState_DOWN && firstController.SelectButton == PSMButtonState_PRESSED);
+        if (bStartRealignHMDTriggered) {
+            PSMVector3f controllerBallPointedUpEuler = { (float)M_PI_2, 0.0f, 0.0f };
 
-            std::cout << std::setw(12) << std::right << std::setprecision(6) << calibsens.Accelerometer.x;
-            std::cout << std::setw(12) << std::right << std::setprecision(6) << calibsens.Accelerometer.y;
-            std::cout << std::setw(12) << std::right << std::setprecision(6) << calibsens.Accelerometer.z;
+            PSMQuatf controllerBallPointedUpQuat = PSM_QuatfCreateFromAngles(&controllerBallPointedUpEuler);
 
-            std::cout << std::setw(12) << std::right << std::setprecision(6) << calibsens.Gyroscope.x;
-            std::cout << std::setw(12) << std::right << std::setprecision(6) << calibsens.Gyroscope.y;
-            std::cout << std::setw(12) << std::right << std::setprecision(6) << calibsens.Gyroscope.z;
+            PSM_ResetControllerOrientationAsync(v_controllers[0]->ControllerID, &controllerBallPointedUpQuat, nullptr);
 
-            std::cout << std::setw(12) << std::right << std::setprecision(6) << calibsens.Magnetometer.x;
-            std::cout << std::setw(12) << std::right << std::setprecision(6) << calibsens.Magnetometer.y;
-            std::cout << std::setw(12) << std::right << std::setprecision(6) << calibsens.Magnetometer.z;
-
-            PSMVector3f position = controller0->ControllerState.PSMoveState.RawTrackerData.RelativePositionCm;
-            std::cout << std::setw(12) << std::right << std::setprecision(6) << position.x;
-            std::cout << std::setw(12) << std::right << std::setprecision(6) << position.y;
-            std::cout << std::setw(12) << std::right << std::setprecision(6) << position.z;
-
-            std::cout << std::endl;
-            */
-
-            // Don't need it to shutdown when button is pressed
-            //if (v_controllers[0]->ControllerState.PSMoveState.CrossButton != PSMButtonState_UP)
-            //{
-            //    m_keepRunning = false;
-            //}
-            
+            alignPSMoveAndHMDTrackingSpace();
         }
     }
     void rebuildPSMoveLists() {
@@ -602,7 +593,7 @@ private:
     void rebuildTrackerList()
     {
         memset(&trackerList, 0, sizeof(PSMTrackerList));
-        PSM_GetTrackerList(&trackerList, PSM_DEFAULT_TIMEOUT);
+        PSM_GetTrackerList(&trackerList, 2000);
 
         std::cout << "Found " << trackerList.count << " trackers." << std::endl;
 
