@@ -83,20 +83,25 @@ namespace KVR {
         void update(vr::DriverPose_t pose) {
             inputEmulatorRef.setVirtualDevicePose(deviceId, pose);
         }
-        void update(vr::HmdVector3_t additionalOffset, vr::HmdVector3d_t rawJointPos, vr::HmdQuaternion_t rawJointRotation) {
-            auto pose = inputEmulatorRef.getVirtualDevicePose(deviceId);
+        void update(vr::HmdVector3d_t additionalOffset, vr::HmdVector3d_t rawJointPos, vr::HmdQuaternion_t rawJointRotation) {
+            //auto pose = inputEmulatorRef.getVirtualDevicePose(deviceId);
+            vr::DriverPose_t pose{};
             vr::HmdQuaternion_t jointRotation = rawJointRotation;
             vr::HmdVector3d_t jointPosition = rawJointPos;
 
 
             // JUST FOR PSMOVE TESTING
-            usingKinectCalibrationModel = false;
+            usingKinectCalibrationModel = true;
             // ---------------------
 
             if (usingKinectCalibrationModel) {
                 applyKinectArrowCalibrationToTracker(jointRotation, jointPosition);
             }
+            pose.deviceIsConnected = true;
             pose.qRotation = jointRotation;
+
+            pose.qWorldFromDriverRotation = { 1,0,0,0 }; // need these two or else nothing rotates visually
+            pose.qDriverFromHeadRotation = { 1,0,0,0 };
 
             //Final Position Adjustment
             updateDevicePosePosition(pose, jointPosition);
