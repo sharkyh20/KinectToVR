@@ -55,6 +55,24 @@ public:
 
         PSM_Shutdown();
     }
+    std::vector<KVR::TrackedDeviceInputData> extractVRTrackingPoses() {
+        // Used to get the pose for each controller connected, and convert this
+        // into the format used by the tracking methods - such as IMU Position
+        // in order to update the FBT trackers.
+        std::vector<KVR::TrackedDeviceInputData> v_inputData;
+        for (int i = 0; i < v_controllers.size(); ++i) {
+            KVR::TrackedDeviceInputData inputData;
+            inputData.deviceId = i;
+            inputData.pose = getPSMoveDriverPose(i);
+            v_inputData.push_back(inputData);
+        }
+        return v_inputData;
+    }
+
+
+    int controllersConnected() {
+        return v_controllers.size();
+    }
 
     vr::HmdQuaternion_t getMoveOrientation(int controllerId) {
         if (controllerId < v_controllers.size()) {

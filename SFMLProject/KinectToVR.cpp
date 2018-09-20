@@ -322,25 +322,7 @@ void processLoop(KinectHandlerBase& kinect) {
             //Draw
             kinect.drawKinectData(renderWindow);
             */
-            auto psmove0Pose = psMoveHandler.getPSMoveDriverPose(0);
-            auto psmove1Pose = psMoveHandler.getPSMoveDriverPose(1);
-            auto psmove2Pose = psMoveHandler.getPSMoveDriverPose(2);
-            std::vector<KVR::TrackedDeviceInputData> v_inputData;
-            KVR::TrackedDeviceInputData inputData0;
-            inputData0.deviceId = 0;
-            inputData0.pose = psmove0Pose;
-
-            KVR::TrackedDeviceInputData inputData1;
-            inputData1.deviceId = 1;
-            inputData1.pose = psmove1Pose;
-
-            KVR::TrackedDeviceInputData inputData2;
-            inputData2.deviceId = 2;
-            inputData2.pose = psmove2Pose;
-
-            v_inputData.push_back(inputData0);
-            v_inputData.push_back(inputData1);
-            v_inputData.push_back(inputData2);
+            std::vector<KVR::TrackedDeviceInputData> v_inputData = psMoveHandler.extractVRTrackingPoses();
 
             for (auto & method_ptr : v_trackingMethods) {
                 method_ptr->update(kinect, v_trackers);
@@ -352,8 +334,6 @@ void processLoop(KinectHandlerBase& kinect) {
         for (KinectTrackedDevice & d : v_trackers) {
             vrinputemulator::VirtualDeviceInfo info = inputEmulator.getVirtualDeviceInfo(d.deviceId);
             virtualDeviceIndexes.push_back(info.openvrDeviceId); // needs to be converted into openvr's id - as inputEmulator has it's own Id's starting from zero
-
-            //d.positionTrackingOption = KVR::JointPositionTrackingOption::Skeleton; // TEMP DEBUG
         }
         playspaceMovementAdjuster.update(leftController, rightController, virtualDeviceIndexes);
         
