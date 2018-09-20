@@ -483,13 +483,15 @@ private:
     {
         rebuildPSMoveLists();
 
-        // Get the controller data for the first controller
+        // Get the controller data for each controller
         if (m_keepRunning)
         {
-            v_controllers.push_back(PSM_GetController(controllerList.controller_id[0]));
-            v_controllers.push_back(PSM_GetController(controllerList.controller_id[1]));
-            v_controllers.push_back(PSM_GetController(controllerList.controller_id[2]));
-
+            for (int i = 0; i < controllerList.count; ++i) {
+                auto controller = PSM_GetController(controllerList.controller_id[i]);
+                // Check that it's actually a Psmove, as there could be dualshock's connected
+                if (controller->ControllerType == PSMController_Move)
+                    v_controllers.push_back(controller);
+            }
             processKeyInputs();
         }
     }
@@ -529,15 +531,20 @@ private:
                 PSMControllerDataStreamFlags::PSMStreamFlags_includeRawTrackerData;
 
             // Stop all controller streams
-            PSM_StopControllerDataStream(controllerList.controller_id[0], PSM_DEFAULT_TIMEOUT);
+            for (int i = 0; i < controllerList.count; ++i) {
+                PSM_StopControllerDataStream(controllerList.controller_id[i], PSM_DEFAULT_TIMEOUT);
+            }
 
             // Get the current controller list
             rebuildControllerList();
 
             // Restart the controller streams
             if (controllerList.count > 0) {
-                if (PSM_StartControllerDataStream(controllerList.controller_id[0], data_stream_flags, PSM_DEFAULT_TIMEOUT) != PSMResult_Success) {
-                    m_keepRunning = false;
+                for (int i = 0; i < controllerList.count; ++i) {
+                    if (PSM_StartControllerDataStream(controllerList.controller_id[i], data_stream_flags, PSM_DEFAULT_TIMEOUT) != PSMResult_Success) {
+                        m_keepRunning = false;
+                        printf("Controller stream %i failed to start!", i);
+                    }
                 }
             }
             else {
