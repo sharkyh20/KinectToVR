@@ -91,7 +91,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)Includes\PSMoveService;$(SolutionDir)Includes\opencv\build\include;$(ProjectDir)/inc;$(SolutionDir)Includes\Glew;$(SolutionDir)Includes\InputEmulator;$(SolutionDir)Includes\openvr\headers;$(SolutionDir)Includes\SFML-2.4.2\include;$(SolutionDir)Includes\sfgui;$(SolutionDir)Includes\boost_1_63_0;$(SolutionDir)SFMLProject\inc\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\PSMoveService;$(SolutionDir)external\opencv\include;$(ProjectDir)/inc;$(SolutionDir)external\Glew;$(SolutionDir)external\InputEmulator\;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\SFML\include;$(SolutionDir)external\sfgui;$(SolutionDir)external\boost_1_63_0;$(SolutionDir)SFMLProject\inc\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
@@ -99,9 +99,13 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Includes\opencv\build\x64\vc15\lib;$(SolutionDir)\Includes\boost_1_63_0\lib64-msvc-14.0;$(SolutionDir)\Includes\SFML-2.4.2\lib;$(SolutionDir)\Includes\Glew;$(SolutionDir)\Includes\InputEmulator;$(SolutionDir)\Includes\openvr;$(SolutionDir)\Includes\sfGui;$(SolutionDir)\Includes\PSMoveService;$(SolutionDir)\Includes\KVRlib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>OpenGL32.lib;glew32.lib;openvr_api.lib;Release\sfml-audio.lib;Release\sfml-graphics.lib;Release\sfml-window.lib;Release\sfml-system.lib;libvrinputemulator.lib;sfgui.lib;release/KinectToVR.lib;opencv_world341.lib;release/PSMoveClient_CAPI.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)external\opencv\lib;$(SolutionDir)\external\boost_1_63_0\lib64-msvc-14.0;$(SolutionDir)\external\SFML\lib;$(SolutionDir)\external\Glew;$(SolutionDir)\external\InputEmulator;$(SolutionDir)\external\openvr\lib\win64\;$(SolutionDir)\external\sfGui;$(SolutionDir)\external\PSMoveService\lib;$(SolutionDir)\external\KVRlib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>OpenGL32.lib;glew32.lib;openvr_api.lib;Release\sfml-audio.lib;Release\sfml-graphics.lib;Release\sfml-window.lib;Release\sfml-system.lib;libvrinputemulator.lib;sfgui.lib;KinectToVR.lib;opencv_world341.lib;PSMoveClient_CAPI.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(SolutionDir)external\dlls\*.dll" "$(TargetDir)"  /Y
+xcopy "$(SolutionDir)external\dlls\release\*.dll" "$(TargetDir)"  /Y</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -124,15 +128,19 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)Includes\PSMoveService;$(SolutionDir)Includes\opencv\build\include;$(ProjectDir)/inc;$(SolutionDir)Includes\Glew;$(SolutionDir)Includes\InputEmulator;$(SolutionDir)Includes\openvr\headers;$(SolutionDir)Includes\SFML-2.4.2\include;$(SolutionDir)Includes\sfgui;$(SolutionDir)Includes\boost_1_63_0;$(SolutionDir)SFMLProject\inc\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\PSMoveService;$(SolutionDir)external\opencv\include;$(ProjectDir)/inc;$(SolutionDir)external\Glew;$(SolutionDir)external\InputEmulator\;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\SFML\include;$(SolutionDir)external\sfgui;$(SolutionDir)external\boost_1_63_0;$(SolutionDir)SFMLProject\inc\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Includes\opencv\build\x64\vc15\lib;$(SolutionDir)\Includes\boost_1_63_0\lib64-msvc-14.0;$(SolutionDir)\Includes\SFML-2.4.2\lib;$(SolutionDir)\Includes\Glew;$(SolutionDir)\Includes\InputEmulator;$(SolutionDir)\Includes\openvr;$(SolutionDir)\Includes\sfGui;$(SolutionDir)\Includes\PSMoveService;$(SolutionDir)\Includes\KVRlib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>OpenGL32.lib;glew32.lib;openvr_api.lib;Debug\sfml-audio-d.lib;Debug\sfml-graphics-d.lib;Debug\sfml-window-d.lib;Debug\sfml-system-d.lib;libvrinputemulator_d.lib;sfgui-d.lib;debug/KinectToVR.lib;opencv_world341d.lib;debug/PSMoveClient_CAPI.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)external\opencv\lib;$(SolutionDir)\external\boost_1_63_0\lib64-msvc-14.0;$(SolutionDir)\external\SFML\lib;$(SolutionDir)\external\Glew;$(SolutionDir)\external\InputEmulator;$(SolutionDir)\external\openvr\lib\win64\;$(SolutionDir)\external\sfGui;$(SolutionDir)\external\PSMoveService\lib;$(SolutionDir)\external\KVRlib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>OpenGL32.lib;glew32.lib;openvr_api.lib;Debug\sfml-audio-d.lib;Debug\sfml-graphics-d.lib;Debug\sfml-window-d.lib;Debug\sfml-system-d.lib;libvrinputemulator_d.lib;sfgui-d.lib;KinectToVR-d.lib;opencv_world341d.lib;PSMoveClient_CAPI.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(SolutionDir)external\dlls\*.dll" "$(TargetDir)"  /Y
+xcopy "$(SolutionDir)external\dlls\debug\*.dll" "$(TargetDir)"  /Y</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>

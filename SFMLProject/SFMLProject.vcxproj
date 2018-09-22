@@ -108,7 +108,7 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(IncludePath);$(ProjectDir)inc;$(SolutionDir)external\cereal\include;$(SolutionDir)external\inputemulator\lib_vrinputemulator\include;$(SolutionDir)external\inputemulator\openvr\headers;$(SolutionDir)external\inputemulator\third-party\boost_1_63_0;$(SolutionDir)external\sfml\include;$(SolutionDir)external\glew\include;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\build\include;$(SolutionDir)external\PSMoveService\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(IncludePath);$(ProjectDir)inc;$(SolutionDir)external\cereal\include;$(SolutionDir)external\inputemulator\;$(SolutionDir)external\openvr\headers\;$(SolutionDir)external\inputemulator\third-party\boost_1_63_0;$(SolutionDir)external\SFML\include\;$(SolutionDir)external\glew\;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\boost_1_63_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ShowIncludes>true</ShowIncludes>
     </ClCompile>
     <Link>
@@ -117,7 +117,7 @@
       <AdditionalDependencies>Debug\sfml-audio-d.lib;Debug\sfml-graphics-d.lib;Debug\sfml-window-d.lib;Debug\sfml-system-d.lib;libvrinputemulator_d.lib;openvr_api64.lib;Kinect10.lib;OpenGL32.lib;glew32.lib;sfgui-d.lib;Kinect20.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(TargetPath)" "$(SolutionDir)\lib\" /I /Y</Command>
+      <Command>xcopy "$(TargetPath)" "$(SolutionDir)external\KVRlib" /I /Y</Command>
     </PostBuildEvent>
     <CustomBuildStep>
       <Command>
@@ -154,7 +154,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(IncludePath);$(ProjectDir)inc;$(SolutionDir)external\cereal\include;$(SolutionDir)external\inputemulator\lib_vrinputemulator\include;$(SolutionDir)external\inputemulator\openvr\headers;$(SolutionDir)external\inputemulator\third-party\boost_1_63_0;$(SolutionDir)external\sfml\include;$(SolutionDir)external\glew\include;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\build\include;$(SolutionDir)external\PSMoveService\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(IncludePath);$(ProjectDir)inc;$(SolutionDir)external\cereal\include;$(SolutionDir)external\inputemulator\;$(SolutionDir)external\openvr\headers\;$(SolutionDir)external\inputemulator\third-party\boost_1_63_0;$(SolutionDir)external\SFML\include\;$(SolutionDir)external\glew\;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\boost_1_63_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ForcedIncludeFiles>stdafx.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
@@ -167,7 +167,7 @@
       <AdditionalDependencies>glew32.lib;Kinect20.lib;sfgui.lib;Kinect10.lib;OpenGL32.lib;libvrinputemulator.lib;openvr_api64.lib;Release\sfml-audio.lib;Release\sfml-graphics.lib;Release\sfml-window.lib;Release\sfml-system.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(TargetPath)" "$(SolutionDir)\lib\" /I /Y</Command>
+      <Command>xcopy "$(TargetPath)" "$(SolutionDir)external\KVRlib" /I /Y</Command>
     </PostBuildEvent>
     <CustomBuildStep>
       <Command>
