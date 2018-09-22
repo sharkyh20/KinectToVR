@@ -117,34 +117,19 @@ Restart SteamVR, as far as I know I can't remove them from the panel, only disab
 
 If you wish to compile the project yourself, then you'll need:
 
-### Cereal
-[Cereal v1.2.2](https://uscilab.github.io/cereal/)
-
-### SFML
-
-[SFML v2.4.2](https://www.sfml-dev.org/download/sfml/2.4.2/)
-
-### SFGUI
-
-[SFGUI v0.3.2](https://github.com/TankOs/SFGUI/releases)
-
-### OpenVR
-
-[OpenVR v1.0.12](https://github.com/ValveSoftware/openvr)
-
-### Kinect Runtime  
-
-[The Kinect Runtime v1.8](https://www.microsoft.com/en-au/download/details.aspx?id=40277)
-
 ### InputEmulator
 
 [The OpenVR InputEmulator .exe - (Latest tested version 1.3)](https://github.com/matzman666/OpenVR-InputEmulator/releases)
 
-[The OpenVR InputEmulator source - (Tested v1.3)](https://github.com/matzman666/OpenVR-InputEmulator)
+### OpenCV (For the color tracking stuff)
 
-### Kinect SDK:
+[OpenCV 3.4.1](https://sourceforge.net/projects/opencvlibrary/files/opencv-win/3.4.1/opencv-3.4.1-vc14_vc15.exe/)
+
+### Kinect SDK's:
 
 [Kinect SDK v1.8](https://www.microsoft.com/en-us/download/details.aspx?id=40278)
+
+[The Kinect SDK v2.0](https://www.microsoft.com/en-au/download/details.aspx?id=44561)
 
 The InputEmulator requires the boost library to use their library, so boost is also required.
 
@@ -158,55 +143,11 @@ The InputEmulator requires the boost library to use their library, so boost is a
 
 The project was compiled in Visual Studio 2017.
 
-To get the required headers for the InputEmulator, build the 'lib_vrinputemulator' project in 64-bit mode, and transfer the headers and .lib from:
-
-```
-(FILEPATH)OpenVR-InputEmulator-1.3\Release\lib\x64 -- Copy the contents
-(FILEPATH)OpenVR-InputEmulator-1.3\Debug\lib\x64 -- Copy the contents
-
-(FILEPATH)OpenVR-InputEmulator-1.3\lib_vrinputemulator\include\ -- Copy the contents
-```
-
-To here:
-
-```
-(FILEPATH)\SFMLProject\SFMLProject\InputEmulator
-```
-#### NOTE: The debug library will need to be renamed in the new folder to 'libvrinputemulator_d.lib'
-
-
-
-The OpenVR libraries and headers also need to be copied from their folder:
-
-```
-(FILEPATH)\openvr-master\bin\win64\Debug\ -- Copy the contents
-
-(FILEPATH)\openvr-master\headers -- Copy the folder
-```
-And then pasted into the project folder:
-
-```
-(FILEPATH)\SFMLProject\SFMLProject\openvr\ -- paste the lib files and 'headers' folder here
-```
-
-The final contents of these two folders should look like this:
-
-![Image](readmeimg/iefolder.PNG?raw=true)
-![Image](readmeimg/ovrfolder.PNG?raw=true)
-
 Boost also needs to be added to the directory
 ```
-Copy boost_1_63_0\ to (PROJECTDIR)\SFMLProject\
+Copy boost_1_63_0\ to (PROJECTDIR)\external\
 ```
 
-SFML and sfGUI need to be in this project folder too:
-```
-	SFML-2.4.2 -> (PROJECTDIR)\SFMLProject\SFML-2.4.2\
-	and
-	Copy libs from sfgui-0.3.2-vs2017-64\lib
-	AND the include folder from sfgui-0.3.2-vs2017-64
-	to (PROJECTDIR)\SFMLProject\sfGui
-```
 ## Building
 
 The project is meant to be built for 64bit computers only, so if you're using Visual Studio to compile, then near the top left of the screen change the mode to 'Release' or 'Debug', and set the 'solution platforms' to 'x64'.
@@ -217,24 +158,16 @@ The project is meant to be built for 64bit computers only, so if you're using Vi
 
 The compiled .exe will need to have the dll's for the dependencies included in it's output folder for it to work.
 
-These include:
+Most are included in the dll's folder, and copied to the build directory automatically after building.
+
+The large ones will have to be copied over into `external/dlls/`, in their respective `Debug` or `Release` folder depending on what the dll is intended for, these include:
 
 ```
-openal32.dll -- found at \SFML-2.4.2\extlibs\bin\x64
+The opencv dll's:
 
-openvr_api64.dll -- found at \openvr-master\bin\win64\
+opencv_world341.dll
 
-sfgui.dll
-
--- All below found in \SFML-2.4.2\lib\Release\
-
-sfml-audio-2.dll
-
-sfml-graphics-2.dll
-
-sfml-system-2.dll
-
-sfml-window-2.dll
+opencv_ffmpeg341_64.dll
 
 ```
 
@@ -245,6 +178,9 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 ## Authors
 
 * **sharkyh20** - *Initial work* - [sharkyh20](https://github.com/sharkyh20/)
+
+* **naelstrof** - *Playspace Movement, General Improvements* - [naelstrof](https://github.com/naelstrof/)
+* **DJ Lukis.LT** - *Color Tracking Help, Project Management* - [lukis101](https://github.com/lukis101)
 
 ## License
 
