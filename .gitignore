@@ -1,13 +1,6 @@
+
 # Created by https://www.gitignore.io/api/c++,windows,visualstudio
 
-# Dependencies
-Includes/*
-
-#Qt build stuff
-QtGUI/build-KinectToVRQtGUI-Desktop_Qt_5_10_0_MSVC2017_64bit-Debug/*
-#Temporary while I set up Qt
-QtGUI/*
-QtGUI/KinectToVRQtGui/*
 ### C++ ###
 # Prerequisites
 *.d
@@ -358,6 +351,25 @@ __pycache__/
 # should be stored in the .pubxml.user file.
 
 # End of https://www.gitignore.io/api/c++,windows,visualstudio
+
+
+# Third-party dependencies
+external/glew
+external/sfml
+external/sfgui
+external/opencv
+external/PSMoveService
+external/boost_1_63_0
+
+# Until all files moved into external, this has to be ignored
+Includes/*
+
+#Qt build stuff
+QtGUI/build-KinectToVRQtGUI-Desktop_Qt_5_10_0_MSVC2017_64bit-Debug/*
+#Temporary while I set up Qt
+QtGUI/*
+QtGUI/KinectToVRQtGui/*
+
 CppcheckPlugin.vsix
 SFMLProject/sounds/jalastramConfirmPos.wav
 *.dll
