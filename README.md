@@ -143,6 +143,12 @@ The InputEmulator requires the boost library to use their library, so boost is a
 
 The project was compiled in Visual Studio 2017.
 
+First off, the git commands:
+
+`git clone -b master https://github.com/sharkyh20/KinectToVR/`
+
+`git submodule update --init --recursive --progress`
+
 Boost also needs to be added to the directory
 ```
 Copy boost_1_63_0\ to (PROJECTDIR)\external\
@@ -163,7 +169,7 @@ Most are included in the dll's folder, and copied to the build directory automat
 The large ones will have to be copied over into `external/dlls/`, in their respective `Debug` or `Release` folder depending on what the dll is intended for, these include:
 
 ```
-The opencv dll's:
+// The opencv dll's:
 
 opencv_world341.dll
 
