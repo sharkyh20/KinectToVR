@@ -139,7 +139,7 @@ The InputEmulator requires the boost library to use their library, so boost is a
 1. Download Boost 1.63 Binaries (boost_1_63_0-msvc-14.0-64.exe)
 1. Boost also needs to be added to the directory
 ```
-Copy boost_1_63_0\ to (PROJECTDIR)\external\
+Copy the whole boost_1_63_0\ to (PROJECTDIR)\external\boost_1_63_0\
 ```
 ### Installing for the environment
 
