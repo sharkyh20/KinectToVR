@@ -137,8 +137,10 @@ The InputEmulator requires the boost library to use their library, so boost is a
 ### Boost(From the IE page)
 1. Goto https://sourceforge.net/projects/boost/files/boost-binaries/1.63.0/
 1. Download Boost 1.63 Binaries (boost_1_63_0-msvc-14.0-64.exe)
-1. Install Boost into `OpenVR-InputEmulator/third-party/boost_1_63_0`
- 
+1. Boost also needs to be added to the directory
+```
+Copy boost_1_63_0\ to (PROJECTDIR)\external\
+```
 ### Installing for the environment
 
 The project was compiled in Visual Studio 2017.
@@ -149,10 +151,7 @@ First off, the git commands:
 
 `git submodule update --init --recursive --progress`
 
-Boost also needs to be added to the directory
-```
-Copy boost_1_63_0\ to (PROJECTDIR)\external\
-```
+
 
 ## Building
 
