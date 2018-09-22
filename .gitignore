@@ -355,7 +355,7 @@ __pycache__/
 
 # Third-party dependencies
 # external/glew
-external/sfml
+# external/sfml
 external/sfgui
 external/opencv
 external/PSMoveService
