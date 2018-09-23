@@ -81,9 +81,6 @@
     <ClInclude Include="inc\QuaternionMath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\PlayspaceMovementAdjuster.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>

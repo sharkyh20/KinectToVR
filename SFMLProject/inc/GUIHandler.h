@@ -6,7 +6,6 @@
 #include "KinectHandlerBase.h"
 #include "KinectTrackedDevice.h"
 #include "KinectJoint.h"
-#include "PlayspaceMovementAdjuster.h"
 #include "ColorTracker.h"
 
 #include <SFML/Graphics.hpp>
@@ -166,31 +165,6 @@ void setDefaultSignals() {
         KinectSettings::hipRoleHeightAdjust = HipScale->GetValue();
     }
     );
-
-	// Playspace Movement Bindings
- 
-	ButtonListLeftHand->GetSignal(sfg::ComboBox::OnSelect).Connect([this] {
-		KinectSettings::leftHandPlayspaceMovementButton = ButtonListLeftHand->GetSelectedItem();
-	}
-	);
-	ButtonListRightHand->GetSignal(sfg::ComboBox::OnSelect).Connect([this] {
-		KinectSettings::rightHandPlayspaceMovementButton = ButtonListRightHand->GetSelectedItem();
-	}
-	);
-	ButtonListLeftFoot->GetSignal(sfg::ComboBox::OnSelect).Connect([this] {
-		KinectSettings::leftFootPlayspaceMovementButton = ButtonListLeftFoot->GetSelectedItem();
-	}
-	);
-	ButtonListRightFoot->GetSignal(sfg::ComboBox::OnSelect).Connect([this] {
-		KinectSettings::rightFootPlayspaceMovementButton = ButtonListRightFoot->GetSelectedItem();
-	}
-	);
-
-}
-void setPlayspaceResetButtonSignal(PlayspaceMovementAdjuster& adjuster) {
-    ResetPlayspaceButton->GetSignal(sfg::Button::OnMouseLeftPress).Connect([this, &adjuster] {
-        adjuster.resetPlayspaceAdjustments();
-    });
 }
 void setColorTrackerSignals(ColorTracker & colorTracker) {
     InitiateColorTrackingButton->GetSignal(sfg::Button::OnMouseLeftPress).Connect([this, &colorTracker] {

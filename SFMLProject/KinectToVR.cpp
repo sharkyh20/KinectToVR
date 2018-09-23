@@ -12,7 +12,6 @@
 #include "GUIHandler.h"
 #include "ManualCalibrator.h"
 #include "HeadAndHandsAutoCalibrator.h"
-#include "PlayspaceMovementAdjuster.h"
 #include "TrackingMethod.h"
 #include "ColorTracker.h"
 #include "SkeletonTracker.h"
@@ -121,14 +120,6 @@ void updateFilePath() {
     _wmakepath_s(directoryFilePath, _MAX_PATH, drive, dir, filename, extension);
     std::wstring filePathString(directoryFilePath);
 
-    /*
-    //setup converter
-    using convert_type = std::codecvt_utf8<wchar_t>;
-    std::wstring_convert<convert_type, wchar_t> converter;
-
-    //use converter (.to_bytes: wstr->str, .from_bytes: str->wstr)
-    std::string converted_str = converter.to_bytes(string_to_convert);
-    */
     SFMLsettings::fileDirectoryPath = filePathString;
 }
 void attemptInitialiseDebugDisplay(sf::Font font, sf::Text debugText) {
@@ -199,7 +190,6 @@ void processLoop(KinectHandlerBase& kinect) {
     vrinputemulator::VRInputEmulator inputEmulator;
     attemptIEmulatorConnection(inputEmulator, guiRef);
     updateTrackerInitGuiSignals(inputEmulator, guiRef, v_trackers);
-
  
     VRcontroller rightController(vr::TrackedControllerRole_RightHand);
     VRcontroller leftController(vr::TrackedControllerRole_LeftHand);
@@ -219,9 +209,6 @@ void processLoop(KinectHandlerBase& kinect) {
     guiRef.setReconnectControllerButtonSignal(leftController, rightController, m_VRSystem);
 
     KinectSettings::userChangingZero = true;
-
-    PlayspaceMovementAdjuster playspaceMovementAdjuster(&inputEmulator);
-    guiRef.setPlayspaceResetButtonSignal(playspaceMovementAdjuster);
 
     //Default tracking methods
     std::vector<std::unique_ptr<TrackingMethod>> v_trackingMethods;
@@ -335,7 +322,6 @@ void processLoop(KinectHandlerBase& kinect) {
             vrinputemulator::VirtualDeviceInfo info = inputEmulator.getVirtualDeviceInfo(d.deviceId);
             virtualDeviceIndexes.push_back(info.openvrDeviceId); // needs to be converted into openvr's id - as inputEmulator has it's own Id's starting from zero
         }
-        playspaceMovementAdjuster.update(leftController, rightController, virtualDeviceIndexes);
         
         renderWindow.pushGLStates();
 
@@ -358,7 +344,6 @@ void processLoop(KinectHandlerBase& kinect) {
     }
     KinectSettings::writeKinectSettings();
 
-    playspaceMovementAdjuster.resetPlayspaceAdjustments();
 
     vr::VR_Shutdown();
 }

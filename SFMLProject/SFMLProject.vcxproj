@@ -199,7 +199,6 @@ xcopy "$(SolutionDir)external\dlls\release\*.dll" "$(TargetDir)"  /Y</Command>
     <ClInclude Include="inc\KinectToVR.h" />
     <ClInclude Include="inc\KinectTrackedDevice.h" />
     <ClInclude Include="inc\ManualCalibrator.h" />
-    <ClInclude Include="inc\PlayspaceMovementAdjuster.h" />
     <ClInclude Include="inc\PSMoveHandler.h" />
     <ClInclude Include="inc\QuaternionMath.h" />
     <ClInclude Include="inc\sfLine.h" />
