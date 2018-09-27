@@ -185,6 +185,7 @@ xcopy "$(SolutionDir)external\dlls\release\*.dll" "$(TargetDir)"  /Y</Command>
     <ClInclude Include="inc\Calibrator.h" />
     <ClInclude Include="inc\ColorPositionMethod.h" />
     <ClInclude Include="inc\ColorTracker.h" />
+    <ClInclude Include="inc\DeviceHandler.h" />
     <ClInclude Include="inc\GamepadController.h" />
     <ClInclude Include="inc\GenericController.h" />
     <ClInclude Include="inc\GUIHandler.h" />
@@ -206,6 +207,7 @@ xcopy "$(SolutionDir)external\dlls\release\*.dll" "$(TargetDir)"  /Y</Command>
     <ClInclude Include="inc\SkeletonRotationMethod.h" />
     <ClInclude Include="inc\SkeletonTracker.h" />
     <ClInclude Include="inc\TrackingMethod.h" />
+    <ClInclude Include="inc\TrackingPoolManager.h" />
     <ClInclude Include="inc\VectorMath.h" />
     <ClInclude Include="inc\VRController.h" />
     <ClInclude Include="inc\VRHelper.h" />
@@ -223,6 +225,7 @@ xcopy "$(SolutionDir)external\dlls\release\*.dll" "$(TargetDir)"  /Y</Command>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="TrackingPoolManager.cpp" />
     <ClCompile Include="VectorMath.cpp" />
     <ClCompile Include="VRHelper.cpp" />
   </ItemGroup>

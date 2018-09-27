@@ -11,9 +11,12 @@
 
 #include <openvr.h>
 
+#include "DeviceHandler.h"
+#include "TrackingPoolManager.h"
+
 #define M_PI_2 1.57079632679
 
-class PSMoveHandler {
+class PSMoveHandler : public DeviceHandler{
     // Heavily based off of the example template program
     // test_console_CAPI.cpp in the MoveService project
 public:
@@ -47,8 +50,10 @@ public:
     {
         if (controllerList.count > 0)
         {
-            PSM_StopControllerDataStream(controllerList.controller_id[0], PSM_DEFAULT_TIMEOUT);
-            PSM_FreeControllerListener(controllerList.controller_id[0]);
+            for (int i = 0; i < controllerList.count; ++i) {
+                PSM_StopControllerDataStream(controllerList.controller_id[i], PSM_DEFAULT_TIMEOUT);
+                PSM_FreeControllerListener(controllerList.controller_id[i]);
+            }
         }
         // No tracker data streams started
         // No HMD data streams started
@@ -74,9 +79,9 @@ public:
         return v_controllers.size();
     }
 
-    vr::HmdQuaternion_t getMoveOrientation(int controllerId) {
-        if (controllerId < v_controllers.size()) {
-            auto controllerState = v_controllers[controllerId]->ControllerState.PSMoveState;
+    vr::HmdQuaternion_t getMoveOrientation(int localControllerId) {
+        if (localControllerId < v_controllers.size()) {
+            auto controllerState = v_controllers[localControllerId].controller->ControllerState.PSMoveState;
             if (controllerState.bIsOrientationValid) {
                 vr::HmdQuaternion_t q;
                 PSMQuatf PSq = controllerState.Pose.Orientation;
@@ -91,9 +96,9 @@ public:
         }
         return { 1,0,0,0 }; // Identity quaternion, means something is afoot
     }
-    vr::HmdVector3d_t getMovePosition(int controllerId) {
-        if (controllerId < v_controllers.size()) {
-            auto controllerState = v_controllers[controllerId]->ControllerState.PSMoveState;
+    vr::HmdVector3d_t getMovePosition(int localControllerId) {
+        if (localControllerId < v_controllers.size()) {
+            auto controllerState = v_controllers[localControllerId].controller->ControllerState.PSMoveState;
             if (controllerState.bIsPositionValid) {
                 vr::HmdVector3d_t pos;
                 PSMVector3f pspos = controllerState.Pose.Position;
@@ -234,7 +239,7 @@ public:
 
         return yaw_quaternion;
     }
-
+    
     void alignPSMoveAndHMDTrackingSpace() {
         if (m_bDisableHMDAlignmentGesture)
         {
@@ -249,7 +254,7 @@ public:
         // Make the HMD orientation only contain a yaw
         hmd_pose_meters.Orientation = ExtractHMDYawQuaternion(hmd_pose_meters.Orientation);
 
-        auto m_PSMControllerType = v_controllers[0]->ControllerType;
+        auto m_PSMControllerType = v_controllers[0].controller->ControllerType;
         // We have the transform of the HMD in world space. 
         // However the HMD and the controller aren't quite aligned depending on the controller type:
         PSMQuatf controllerOrientationInHmdSpaceQuat = *k_psm_quaternion_identity;
@@ -291,7 +296,7 @@ public:
         // value because the user may have triggered a pose reset, in which case the driver's
         // cached pose might not yet be up to date by the time this callback is triggered.
         PSMPosef controller_pose_meters = *k_psm_pose_identity;
-        PSM_GetControllerPose(v_controllers[0]->ControllerID, &controller_pose_meters);
+        PSM_GetControllerPose(v_controllers[0].controller->ControllerID, &controller_pose_meters);
 
         // PSMove Position is in cm, but OpenVR stores position in meters
         controller_pose_meters.Position = PSM_Vector3fScale(&controller_pose_meters.Position, k_fScalePSMoveAPIToMeters);
@@ -324,18 +329,18 @@ public:
 
         // TODO, ACTUALLY MAKE THIS UPDATE THE CONTROLLERS WITH THEIR NEW POSITION
         // Can't do driver stuff, because that would offset everything.
-        v_controllers[0]->ControllerState.PSMoveState.Pose = driver_pose_to_world_pose;
+        v_controllers[0].controller->ControllerState.PSMoveState.Pose = driver_pose_to_world_pose;
     }
 
     vr::DriverPose_t getPSMoveDriverPose(int controllerId) {
         // Taken from driver_psmoveservice.cpp line 3313, credit to HipsterSloth
-        const PSMPSMove &view = v_controllers[controllerId]->ControllerState.PSMoveState;
+        const PSMPSMove &view = v_controllers[controllerId].controller->ControllerState.PSMoveState;
 
         vr::DriverPose_t m_Pose;
 
         m_Pose.result = vr::TrackingResult_Running_OK;
 
-        m_Pose.deviceIsConnected = v_controllers[controllerId]->IsConnected;
+        m_Pose.deviceIsConnected = v_controllers[controllerId].controller->IsConnected;
 
         // These should always be false from any modern driver.  These are for Oculus DK1-like
         // rotation-only tracking.  Support for that has likely rotted in vrserver.
@@ -436,8 +441,8 @@ public:
         }
 
         m_Pose.poseIsValid =
-            v_controllers[controllerId]->ControllerState.PSMoveState.bIsPositionValid &&
-            v_controllers[controllerId]->ControllerState.PSMoveState.bIsOrientationValid;
+            v_controllers[controllerId].controller->ControllerState.PSMoveState.bIsPositionValid &&
+            v_controllers[controllerId].controller->ControllerState.PSMoveState.bIsOrientationValid;
 
         return m_Pose;
     }
@@ -480,6 +485,7 @@ private:
                         success = false;
                     }
                 }
+                rebuildPSMovesForPool();
                 
             }
             else {
@@ -504,17 +510,11 @@ private:
         // Get the controller data for each controller
         if (m_keepRunning)
         {
-            for (int i = 0; i < controllerList.count; ++i) {
-                auto controller = PSM_GetController(controllerList.controller_id[i]);
-                // Check that it's actually a Psmove, as there could be dualshock's connected
-                if (controller->ControllerType == PSMController_Move)
-                    v_controllers.push_back(controller);
-            }
             processKeyInputs();
         }
     }
     void processKeyInputs() {
-        auto firstController = v_controllers[0]->ControllerState.PSMoveState;
+        auto firstController = v_controllers[0].controller->ControllerState.PSMoveState;
         bool bStartRealignHMDTriggered =
             (firstController.StartButton == PSMButtonState_PRESSED && firstController.SelectButton == PSMButtonState_PRESSED) ||
             (firstController.StartButton == PSMButtonState_PRESSED && firstController.SelectButton == PSMButtonState_DOWN) ||
@@ -524,9 +524,36 @@ private:
 
             PSMQuatf controllerBallPointedUpQuat = PSM_QuatfCreateFromAngles(&controllerBallPointedUpEuler);
 
-            PSM_ResetControllerOrientationAsync(v_controllers[0]->ControllerID, &controllerBallPointedUpQuat, nullptr);
+            PSM_ResetControllerOrientationAsync(v_controllers[0].controller->ControllerID, &controllerBallPointedUpQuat, nullptr);
 
             alignPSMoveAndHMDTrackingSpace();
+        }
+    }
+    void rebuildPSMovesForPool() {
+        for (int i = 0; i < v_controllers.size(); ++i) {
+            TrackingPoolManager::clearDeviceInPool(v_controllers[i].id.globalID);
+        } // Clear last controllers in pool
+
+        v_controllers.clear(); // All old controllers must be gone
+        for (int i = 0; i < controllerList.count; ++i) {
+            auto controller = PSM_GetController(controllerList.controller_id[i]);
+            // Check that it's actually a Psmove, as there could be dualshock's connected
+            if (controller->ControllerType == PSMController_Move) {
+                TrackerWrapper_PSM wrapper;
+                wrapper.controller = controller;
+                v_controllers.push_back(wrapper);
+            }
+        }
+
+        for (int i = 0; i < v_controllers.size(); ++i) {
+            // Redo the loop over the successfully excised trackers (PS Move's only)
+            // But this time edit the wrapper with the tracking pool id's
+            v_controllers[i].id.internalID = i;
+            KVR::TrackedDeviceInputData data;
+            data.deviceName = "PSMOVE " + std::to_string(i);
+            uint32_t gID = k_invalidTrackerID;
+            TrackingPoolManager::addDeviceToPool(data, gID);
+            v_controllers[i].id.globalID = gID;
         }
     }
     void rebuildPSMoveLists() {
@@ -564,6 +591,8 @@ private:
                         printf("Controller stream %i failed to start!", i);
                     }
                 }
+                // Rebuild K2VR Controller List for Trackers
+                rebuildPSMovesForPool(); // Here, because of timing issue, where controllers will report as 'None' occasionally when uninitialised properly
             }
             else {
                 std::cout << "PSMoveConsoleClient::startup() - No controllers found." << std::endl;
@@ -663,7 +692,12 @@ private:
     }
 
     std::chrono::milliseconds last_report_fps_timestamp;
-    std::vector<PSMController*> v_controllers;
+
+    struct TrackerWrapper_PSM {
+        PSMController* controller = nullptr;
+        TrackerIDs id;
+    };
+    std::vector<TrackerWrapper_PSM> v_controllers;
     PSMControllerList controllerList;
     PSMTrackerList trackerList;
     PSMHmdList hmdList;

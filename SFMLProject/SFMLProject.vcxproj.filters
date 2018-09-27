@@ -120,6 +120,12 @@
     <ClInclude Include="inc\HeadAndHandsAutoCalibrator.h">
       <Filter>Header Files\Calibrators</Filter>
     </ClInclude>
+    <ClInclude Include="inc\DeviceHandler.h">
+      <Filter>Header Files\DeviceHandlers</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\TrackingPoolManager.h">
+      <Filter>Header Files\DeviceHandlers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -142,6 +148,9 @@
     </ClCompile>
     <ClCompile Include="KinectJoint.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TrackingPoolManager.cpp">
+      <Filter>Header Files\DeviceHandlers</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

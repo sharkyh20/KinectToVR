@@ -17,6 +17,8 @@
 #include "SkeletonTracker.h"
 #include "IMU_PositionMethod.h"
 #include "PSMoveHandler.h"
+#include "DeviceHandler.h"
+#include "TrackingPoolManager.h"
 
 #include <SFML\Audio.hpp>
 
@@ -191,6 +193,17 @@ void processLoop(KinectHandlerBase& kinect) {
     attemptIEmulatorConnection(inputEmulator, guiRef);
     updateTrackerInitGuiSignals(inputEmulator, guiRef, v_trackers);
  
+    // Function pointer for the currently selected calibration method, which can be swapped out for the others
+    // Only one calibration method can be active at a time
+    std::function<void
+        (double deltaT,
+        KinectHandlerBase &kinect,
+        VRcontroller leftController,
+        VRcontroller rightController,
+        GUIHandler &guiRef)>
+        currentCalibrationMethod = ManualCalibrator::Calibrate;
+
+
     VRcontroller rightController(vr::TrackedControllerRole_RightHand);
     VRcontroller leftController(vr::TrackedControllerRole_LeftHand);
 
@@ -223,8 +236,14 @@ void processLoop(KinectHandlerBase& kinect) {
     v_trackingMethods.push_back(mainColorTracker);
     */
 
+    // Physical Device Handlers
+    // Ideally, nothing should be spawned in code, and everything done by user input
+    // This means that these Handlers are spawned in the GuiHandler, and each updated in the vector automatically
+    std::vector<std::unique_ptr<DeviceHandler>> v_deviceHandlers;
+
     //For now, in current impl. status, PSMoveService will be initialised here
     PSMoveHandler psMoveHandler;
+    v_deviceHandlers.push_back(std::make_unique<PSMoveHandler>(psMoveHandler));
 
     while (renderWindow.isOpen())
     {
@@ -291,7 +310,9 @@ void processLoop(KinectHandlerBase& kinect) {
             std::cerr << "Error updating controllers: Could not connect to the SteamVR system! OpenVR init error-code " << std::to_string(eError) << std::endl;
         }
 
-        psMoveHandler.run();
+        for (auto & device_ptr : v_deviceHandlers) {
+            device_ptr->run();
+        }
 
         // Update Kinect Status
         guiRef.updateKinectStatusLabel(kinect);
@@ -299,7 +320,7 @@ void processLoop(KinectHandlerBase& kinect) {
             kinect.update();
             if (KinectSettings::adjustingKinectRepresentationPos
                 || KinectSettings::adjustingKinectRepresentationRot)
-                ManualCalibrator::Calibrate(deltaT, kinect, leftController, rightController, guiRef);
+                currentCalibrationMethod(deltaT, kinect, leftController, rightController, guiRef);
             
             //kinect.updateTrackersWithSkeletonPosition(inputEmulator, v_trackers);
             /*
@@ -338,6 +359,9 @@ void processLoop(KinectHandlerBase& kinect) {
         //End Frame
         renderWindow.display();
 
+    }
+    for (auto & device_ptr : v_deviceHandlers) {
+        device_ptr->shutdown();
     }
     for (KinectTrackedDevice d : v_trackers) {
         d.destroy();
