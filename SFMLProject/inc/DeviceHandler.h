@@ -25,6 +25,9 @@ public:
     virtual int initialise() { return 13; } // Return 13 if unimplemented
     virtual int run() { return 13; }
     virtual void shutdown() {  }
+    virtual void identify(int controllerId) { } // Shows the user which device is being referred to, i.e. flashing light, rumble for a short while
+
+    bool active = false; // By default, device trackers should be off, and spawned into the vector, but disabled - initialising them flips the bool, and allows them to be updated
 
     virtual std::vector<KVR::TrackedDeviceInputData> extractVRTrackingPoses() { return {}; }
 };

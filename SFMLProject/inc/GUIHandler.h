@@ -8,6 +8,11 @@
 #include "KinectJoint.h"
 #include "ColorTracker.h"
 
+
+#include "TrackingMethod.h"
+#include "DeviceHandler.h"
+#include "PSMoveHandler.h"
+
 #include <SFML/Graphics.hpp>
 #include <SFML/Window/Mouse.hpp>
 #include <SFML/OpenGL.hpp>
@@ -35,13 +40,11 @@ public:
         setLineWrapping();
         packElementsIntoMainBox();
         packElementsIntoAdvTrackerBox();
-		packElementsIntoPlayspaceMovementBox();
         packElementsIntoTrackingMethodBox();
         setRequisitions();
 
         mainNotebook->AppendPage(mainGUIBox, sfg::Label::Create("KinectToVR"));
         mainNotebook->AppendPage(advancedTrackerBox, sfg::Label::Create("Adv. Trackers"));
-		mainNotebook->AppendPage(playspaceMovementBox, sfg::Label::Create("Playspace Movement"));
         mainNotebook->AppendPage(trackingMethodBox, sfg::Label::Create("Tracking Method"));
         
 
@@ -165,6 +168,22 @@ void setDefaultSignals() {
         KinectSettings::hipRoleHeightAdjust = HipScale->GetValue();
     }
     );
+
+    StartPSMoveHandler->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
+        if (psMoveHandler.active)
+            return;
+        psMoveHandler.initialise();
+        static bool addedToVector = false;
+        if (!addedToVector) {
+            v_deviceHandlersRef->push_back(std::make_unique<PSMoveHandler>(psMoveHandler));
+            addedToVector = true;
+        }
+        PSMoveHandlerLabel->SetText("Status: Connected!");
+    });
+    StopPSMoveHandler->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
+        psMoveHandler.shutdown();
+        PSMoveHandlerLabel->SetText("Status: Disconnected!");
+    });
 }
 void setColorTrackerSignals(ColorTracker & colorTracker) {
     InitiateColorTrackingButton->GetSignal(sfg::Button::OnMouseLeftPress).Connect([this, &colorTracker] {
@@ -381,37 +400,19 @@ void setHipScaleBox() {
     mainGUIBox->Pack(HipScaleBox);
 }
 void packElementsIntoTrackingMethodBox() {
-    trackingMethodBox->Pack(InitiateColorTrackingButton);
-    trackingMethodBox->Pack(DestroyColorTrackingButton);
+    //trackingMethodBox->Pack(InitiateColorTrackingButton);
+    //trackingMethodBox->Pack(DestroyColorTrackingButton);
+
+    trackingMethodBox->Pack(TrackingMethodLabel);
+
+    sfg::Box::Ptr horizontalPSMBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
+    horizontalPSMBox->Pack(StartPSMoveHandler);
+    horizontalPSMBox->Pack(StopPSMoveHandler);
+    horizontalPSMBox->Pack(PSMoveHandlerLabel);
+
+    trackingMethodBox->Pack(horizontalPSMBox);
 }
 
-void packElementsIntoPlayspaceMovementBox() {
-	setButtonListLeftItems(ButtonListLeftHand);
-	setButtonListRightItems(ButtonListRightHand);
-	setButtonListRightItems(ButtonListRightFoot);
-	setButtonListLeftItems(ButtonListLeftFoot);
-
-	ButtonListRightHand->SelectItem(KinectSettings::rightHandPlayspaceMovementButton);
-	ButtonListLeftHand->SelectItem(KinectSettings::leftHandPlayspaceMovementButton);
-	ButtonListLeftFoot->SelectItem(KinectSettings::leftFootPlayspaceMovementButton);
-	ButtonListRightFoot->SelectItem(KinectSettings::rightFootPlayspaceMovementButton);
-
-	ButtonListRightHand->SelectItem(KinectSettings::rightHandPlayspaceMovementButton);
-	ButtonListLeftHand->SelectItem(KinectSettings::leftHandPlayspaceMovementButton);
-	ButtonListRightFoot->SelectItem(KinectSettings::rightFootPlayspaceMovementButton);
-	ButtonListLeftFoot->SelectItem(KinectSettings::leftFootPlayspaceMovementButton);
-
-    playspaceMovementBox->Pack(ResetPlayspaceButton);
-	playspaceMovementBox->Pack(LeftHandPlayspaceMovementEnabled);
-	playspaceMovementBox->Pack(ButtonListLeftHand);
-	playspaceMovementBox->Pack(RightHandPlayspaceMovementEnabled);
-	playspaceMovementBox->Pack(ButtonListRightHand);
-	playspaceMovementBox->Pack(LeftFootPlayspaceMovementEnabled);
-	playspaceMovementBox->Pack(ButtonListLeftFoot);
-	playspaceMovementBox->Pack(RightFootPlayspaceMovementEnabled);
-	playspaceMovementBox->Pack(ButtonListRightFoot);
-
-}
 
 void packElementsIntoAdvTrackerBox() {
     advancedTrackerBox->Pack(AddHandControllersToList);
@@ -509,18 +510,31 @@ void updateVRStatusLabel(vr::EVRInitError eError) {
         SteamVRStatusLabel->SetText("VR Status: ERROR " + std::to_string(eError));
 }
 
+void setTrackingMethodsReference(std::vector<std::unique_ptr<TrackingMethod>> & ref) {
+    v_trackingMethodsRef = &ref;
+}
+void setDeviceHandlersReference(std::vector<std::unique_ptr<DeviceHandler>> & ref) {
+    v_deviceHandlersRef = &ref;
+}
+
 private:
     sf::Font mainGUIFont;
     sfg::SFGUI sfguiRef;
     sfg::Window::Ptr guiWindow = sfg::Window::Create();
     sfg::Notebook::Ptr mainNotebook = sfg::Notebook::Create();
 
+
+    std::vector<std::unique_ptr<DeviceHandler>> * v_deviceHandlersRef;
+    std::vector<std::unique_ptr<TrackingMethod>> * v_trackingMethodsRef;
+
+    // All the device handlers
+    PSMoveHandler psMoveHandler;
+
     sfg::Desktop guiDesktop;
 
     sfg::Box::Ptr mainGUIBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
     sfg::Box::Ptr calibrationBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
     sfg::Box::Ptr advancedTrackerBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
-	sfg::Box::Ptr playspaceMovementBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
     sfg::Box::Ptr trackingMethodBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
     //Statuses
     sfg::Label::Ptr KinectStatusLabel = sfg::Label::Create();
@@ -567,17 +581,6 @@ private:
 
     sfg::Button::Ptr CalibrationSetButton = sfg::Button::Create();
 
-	// Playspace Movement
-    sfg::Button::Ptr ResetPlayspaceButton = sfg::Button::Create("Reset Adjustments");
-	sfg::Label::Ptr LeftHandPlayspaceMovementEnabled = sfg::Label::Create("Left Hand Playspace Movement");
-	sfg::Label::Ptr RightHandPlayspaceMovementEnabled = sfg::Label::Create("Right Hand Playspace Movement");
-	sfg::Label::Ptr RightFootPlayspaceMovementEnabled = sfg::Label::Create("Right Foot Playspace Movement");
-	sfg::Label::Ptr LeftFootPlayspaceMovementEnabled = sfg::Label::Create("Left Foot Playspace Movement");
-	sfg::ComboBox::Ptr ButtonListLeftHand = sfg::ComboBox::Create();
-	sfg::ComboBox::Ptr ButtonListRightHand = sfg::ComboBox::Create();
-	sfg::ComboBox::Ptr ButtonListRightFoot = sfg::ComboBox::Create();
-	sfg::ComboBox::Ptr ButtonListLeftFoot = sfg::ComboBox::Create();
-
     //Adv Trackers
     sfg::Button::Ptr AddHandControllersToList = sfg::Button::Create("Add Hand Controllers");
     sfg::Button::Ptr AddLowerTrackersToList = sfg::Button::Create("Add Lower Body Trackers");
@@ -601,6 +604,11 @@ private:
     //Tracking Method Box
     sfg::Button::Ptr InitiateColorTrackingButton = sfg::Button::Create("Start Color Tracker");
     sfg::Button::Ptr DestroyColorTrackingButton = sfg::Button::Create("Destroy Color Tracker");
+    sfg::Label::Ptr TrackingMethodLabel = sfg::Label::Create("Click the corresponding button for the devices you wish to use, and K2VR will try its best to connect to them. (Go to the 'Adv. Trackers' tab once these are connected.");
+
+    sfg::Button::Ptr StartPSMoveHandler = sfg::Button::Create("Run PS Move Handler");
+    sfg::Button::Ptr StopPSMoveHandler = sfg::Button::Create("Stop PS Move Handler");
+    sfg::Label::Ptr PSMoveHandlerLabel = sfg::Label::Create("Status: Off");
 
     void updateKinectStatusLabelDisconnected() {
         KinectStatusLabel->SetText("Kinect Status: ERROR KINECT NOT DETECTED");

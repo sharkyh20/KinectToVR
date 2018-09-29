@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <chrono>
 #include <cstring>
+#include <thread>
 
 #include <PSMoveClient_CAPI.h>
 #include <ClientConstants.h>
@@ -22,11 +23,15 @@ class PSMoveHandler : public DeviceHandler{
 public:
     PSMoveHandler() 
         : m_started(false),
-        m_keepRunning(true)
-    {
+        m_keepRunning(true) {
+
+    }
+    ~PSMoveHandler() {}
+    int initialise() {
         try {
             if (startup()) {
-
+                active = true;
+                return 0;
             }
             else {
                 std::cerr << "Failed to startup the PSMoveClient!!!" << std::endl;
@@ -35,13 +40,27 @@ public:
         catch (std::exception& e) {
             std::cerr << e.what() << std::endl;
         }
+        return 1;
     }
+    void flashControllerBulb(int controllerId, bool on) {
+        char r = 255;
+        char g = 0;
+        char b = 0;
 
+        r = (r) % 255;
+        g = (g + 0) % 255;
+        b = (b + 0) % 255;
+        
+        if (!on) {
+            r = 0;
+        }
+
+        PSM_SetControllerLEDOverrideColor(controllerId, r, g, b);
+    }
     // Attempt to start and run the client
     int run() {
         if (m_keepRunning) {
             update();
-
             //_PAUSE(1); // Maybe uneccessary with all the other processing?
         }
         return 0;
@@ -57,6 +76,8 @@ public:
         }
         // No tracker data streams started
         // No HMD data streams started
+
+        active = false;
 
         PSM_Shutdown();
     }
@@ -514,21 +535,24 @@ private:
         }
     }
     void processKeyInputs() {
-        auto firstController = v_controllers[0].controller->ControllerState.PSMoveState;
-        bool bStartRealignHMDTriggered =
-            (firstController.StartButton == PSMButtonState_PRESSED && firstController.SelectButton == PSMButtonState_PRESSED) ||
-            (firstController.StartButton == PSMButtonState_PRESSED && firstController.SelectButton == PSMButtonState_DOWN) ||
-            (firstController.StartButton == PSMButtonState_DOWN && firstController.SelectButton == PSMButtonState_PRESSED);
-        if (bStartRealignHMDTriggered) {
-            PSMVector3f controllerBallPointedUpEuler = { (float)M_PI_2, 0.0f, 0.0f };
+        if (controllerList.count > 0) {
+            auto firstController = v_controllers[0].controller->ControllerState.PSMoveState;
+            bool bStartRealignHMDTriggered =
+                (firstController.StartButton == PSMButtonState_PRESSED && firstController.SelectButton == PSMButtonState_PRESSED) ||
+                (firstController.StartButton == PSMButtonState_PRESSED && firstController.SelectButton == PSMButtonState_DOWN) ||
+                (firstController.StartButton == PSMButtonState_DOWN && firstController.SelectButton == PSMButtonState_PRESSED);
+            if (bStartRealignHMDTriggered) {
+                PSMVector3f controllerBallPointedUpEuler = { (float)M_PI_2, 0.0f, 0.0f };
 
-            PSMQuatf controllerBallPointedUpQuat = PSM_QuatfCreateFromAngles(&controllerBallPointedUpEuler);
+                PSMQuatf controllerBallPointedUpQuat = PSM_QuatfCreateFromAngles(&controllerBallPointedUpEuler);
 
-            PSM_ResetControllerOrientationAsync(v_controllers[0].controller->ControllerID, &controllerBallPointedUpQuat, nullptr);
+                PSM_ResetControllerOrientationAsync(v_controllers[0].controller->ControllerID, &controllerBallPointedUpQuat, nullptr);
 
-            alignPSMoveAndHMDTrackingSpace();
+                alignPSMoveAndHMDTrackingSpace();
+            }
         }
     }
+    
     void rebuildPSMovesForPool() {
         for (int i = 0; i < v_controllers.size(); ++i) {
             TrackingPoolManager::clearDeviceInPool(v_controllers[i].id.globalID);

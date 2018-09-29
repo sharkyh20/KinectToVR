@@ -225,6 +225,7 @@ void processLoop(KinectHandlerBase& kinect) {
 
     //Default tracking methods
     std::vector<std::unique_ptr<TrackingMethod>> v_trackingMethods;
+    guiRef.setTrackingMethodsReference(v_trackingMethods);
     //SkeletonTracker mainSkeletalTracker;
     //kinect.initialiseSkeleton();
     //v_trackingMethods.push_back(std::make_unique<SkeletonTracker>(mainSkeletalTracker));
@@ -240,10 +241,7 @@ void processLoop(KinectHandlerBase& kinect) {
     // Ideally, nothing should be spawned in code, and everything done by user input
     // This means that these Handlers are spawned in the GuiHandler, and each updated in the vector automatically
     std::vector<std::unique_ptr<DeviceHandler>> v_deviceHandlers;
-
-    //For now, in current impl. status, PSMoveService will be initialised here
-    PSMoveHandler psMoveHandler;
-    v_deviceHandlers.push_back(std::make_unique<PSMoveHandler>(psMoveHandler));
+    guiRef.setDeviceHandlersReference(v_deviceHandlers);
 
     while (renderWindow.isOpen())
     {
@@ -311,7 +309,7 @@ void processLoop(KinectHandlerBase& kinect) {
         }
 
         for (auto & device_ptr : v_deviceHandlers) {
-            device_ptr->run();
+            if (device_ptr->active) device_ptr->run();
         }
 
         // Update Kinect Status
@@ -330,7 +328,8 @@ void processLoop(KinectHandlerBase& kinect) {
             //Draw
             kinect.drawKinectData(renderWindow);
             */
-            std::vector<KVR::TrackedDeviceInputData> v_inputData = psMoveHandler.extractVRTrackingPoses();
+            //std::vector<KVR::TrackedDeviceInputData> v_inputData = psMoveHandler.extractVRTrackingPoses();
+            std::vector<KVR::TrackedDeviceInputData> v_inputData{}; // DEBUG
 
             for (auto & method_ptr : v_trackingMethods) {
                 method_ptr->update(kinect, v_trackers);
