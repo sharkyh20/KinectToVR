@@ -14,6 +14,7 @@
 
 #include "DeviceHandler.h"
 #include "TrackingPoolManager.h"
+#include "TrackedDeviceInputData.h"
 
 #define M_PI_2 1.57079632679
 
@@ -41,6 +42,14 @@ public:
             std::cerr << e.what() << std::endl;
         }
         return 1;
+    }
+    void identify(int controllerId, bool on) {
+        flashControllerBulb(controllerId, on);
+        float rumbleIntensity = 0;
+        if (on)
+            rumbleIntensity = .9f;
+
+        PSM_SetControllerRumble(controllerId, PSMControllerRumbleChannel_All, rumbleIntensity);
     }
     void flashControllerBulb(int controllerId, bool on) {
         char r = 255;
@@ -574,6 +583,7 @@ private:
             // But this time edit the wrapper with the tracking pool id's
             v_controllers[i].id.internalID = i;
             KVR::TrackedDeviceInputData data;
+            data.parentHandler = dynamic_cast<DeviceHandler*>(this);
             data.deviceName = "PSMOVE " + std::to_string(i);
             uint32_t gID = k_invalidTrackerID;
             TrackingPoolManager::addDeviceToPool(data, gID);

@@ -335,6 +335,9 @@ void processLoop(KinectHandlerBase& kinect) {
                 method_ptr->update(kinect, v_trackers);
                 method_ptr->updateTrackers(kinect, v_trackers, v_inputData);
             }
+            for (auto & tracker : v_trackers) {
+                tracker.update();
+            }
             kinect.drawKinectData(renderWindow);
         }
         std::vector<uint32_t> virtualDeviceIndexes;
@@ -370,12 +373,21 @@ void processLoop(KinectHandlerBase& kinect) {
 
     vr::VR_Shutdown();
 }
+
+void spawnAndConnectTracker(vrinputemulator::VRInputEmulator & inputE, std::vector<KVR::KinectTrackedDevice>& v_trackers, uint32_t posDevice_gId,
+    uint32_t rotDevice_gId, KVR::KinectDeviceRole role)
+{
+    KVR::KinectTrackedDevice device(inputE, posDevice_gId, rotDevice_gId, role);
+    device.init(inputE);
+    v_trackers.push_back(device);
+}
 void spawnAndConnectTracker(vrinputemulator::VRInputEmulator & inputE, std::vector<KVR::KinectTrackedDevice>& v_trackers, KVR::KinectJointType mainJoint, KVR::KinectJointType secondaryJoint, KVR::KinectDeviceRole role)
 {
     KVR::KinectTrackedDevice device(inputE, mainJoint, secondaryJoint, role);
     device.init(inputE);
     v_trackers.push_back(device);
 }
+
 void spawnAndConnectHandTrackers(vrinputemulator::VRInputEmulator & inputE, std::vector<KVR::KinectTrackedDevice>& v_trackers) {
     spawnAndConnectTracker(inputE, v_trackers, KVR::KinectJointType::WristLeft, KVR::KinectJointType::HandLeft, KVR::KinectDeviceRole::LeftHand);
     spawnAndConnectTracker(inputE, v_trackers, KVR::KinectJointType::WristRight, KVR::KinectJointType::HandRight, KVR::KinectDeviceRole::RightHand);

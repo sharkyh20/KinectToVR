@@ -6,6 +6,7 @@
 
 #include "KinectHandlerBase.h"
 #include "KinectTrackedDevice.h"
+#include "TrackedDeviceInputData.h"
 
 class TrackingMethod {
 public:

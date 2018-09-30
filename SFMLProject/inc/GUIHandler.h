@@ -26,9 +26,14 @@ private:
 struct TempTracker {
         sfg::RadioButton::Ptr radioButton;
         int GUID = 404;
-		KVR::KinectJointType joint0 = KVR::KinectJointType::Head;
-		KVR::KinectJointType joint1 = KVR::KinectJointType::Head;
-		KVR::KinectDeviceRole role= KVR::KinectDeviceRole::Unassigned;
+
+        TrackingInputCategory positionDeviceCategory = TrackingInputCategory::KinectBone;
+        uint32_t positionGlobalDeviceId = 0;
+
+        TrackingInputCategory rotationDeviceCategory = TrackingInputCategory::KinectBone;
+        uint32_t rotationGlobalDeviceId = 0;
+
+		KVR::KinectDeviceRole role = KVR::KinectDeviceRole::Unassigned;
         bool isController = false;
     };
 public:
@@ -136,7 +141,19 @@ void setDefaultSignals() {
     });
     
 
-
+    refreshDeviceListButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
+        updateDeviceLists();
+    });
+    identifyPosDeviceButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
+        auto index = PositionDeviceList->GetSelectedItem();
+        auto d = TrackingPoolManager::getDeviceData(index);
+        d.parentHandler->identify(index, identifyPosDeviceButton->IsActive());
+    });
+    identifyRotDeviceButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
+        auto index = RotationDeviceList->GetSelectedItem();
+        auto d = TrackingPoolManager::getDeviceData(index);
+        d.parentHandler->identify(index, identifyRotDeviceButton->IsActive());
+    });
     AddHandControllersToList->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
         //Add a left and right hand tracker as a controller
         addTrackerToList(KVR::KinectJointType::HandLeft, KVR::KinectDeviceRole::LeftHand, true);
@@ -198,8 +215,10 @@ void addUserTrackerToList() {
     TempTracker temp;
     temp.GUID = TrackersToBeInitialised.size();
     temp.isController = IsControllerButton->IsActive();
-    temp.joint0 = KVR::KinectJointType(BonesList->GetSelectedItem());
-	temp.joint1 = temp.joint0;	//TEMP BEFORE SELECTION IMPLEMENTED
+    temp.positionGlobalDeviceId = PositionDeviceList->GetSelectedItem();
+    temp.rotationGlobalDeviceId = RotationDeviceList->GetSelectedItem();
+    //temp.joint0 = KVR::KinectJointType(BonesList->GetSelectedItem());
+	//temp.joint1 = temp.joint0;	//TEMP BEFORE SELECTION IMPLEMENTED
     temp.role = KVR::KinectDeviceRole(RolesList->GetSelectedItem());
     updateTrackerLists(temp);
 }
@@ -207,8 +226,8 @@ void addTrackerToList(KVR::KinectJointType joint, KVR::KinectDeviceRole role, bo
 	TempTracker temp;
     temp.GUID = TrackersToBeInitialised.size();
     temp.isController = isController;
-    temp.joint0 = joint;
-	temp.joint1 = temp.joint0; //TEMP BEFORE SELECTION IMPLEMENTED
+    //temp.joint0 = joint;
+	//temp.joint1 = temp.joint0; //TEMP BEFORE SELECTION IMPLEMENTED
     temp.role = role;
 
     updateTrackerLists(temp);
@@ -223,7 +242,9 @@ void updateTrackerLists(TempTracker &temp) {
     else
         ss << " (Tracker) ";
     ss << "(Role: " << KVR::KinectDeviceRoleName[int(temp.role)] << ") ";
-    temp.radioButton = sfg::RadioButton::Create(KVR::KinectJointName[int(temp.joint0)] + ss.str());
+    std::string posName = TrackingPoolManager::deviceGuiString(temp.positionGlobalDeviceId);
+    std::string rotName = TrackingPoolManager::deviceGuiString(temp.rotationGlobalDeviceId);
+    temp.radioButton = sfg::RadioButton::Create("Pos: " + posName + " Rot: " + rotName + ss.str());
     if (TrackersToBeInitialised.size()) {
         auto group = TrackersToBeInitialised.back().radioButton->GetGroup();
         temp.radioButton->SetGroup(group);
@@ -273,14 +294,14 @@ void setTrackerButtonSignals(vrinputemulator::VRInputEmulator &inputE, std::vect
         }
         else {
             for (TempTracker tracker : TrackersToBeInitialised) {
-                spawnAndConnectTracker(inputE, v_trackers, tracker.joint0, tracker.joint1, tracker.role);
+                spawnAndConnectTracker(inputE, v_trackers, tracker.positionGlobalDeviceId, tracker.rotationGlobalDeviceId, tracker.role);
                 if (tracker.isController) {
-                    setDeviceProperty(inputE, v_trackers.back().deviceId, 1029, "int32", "2"); // Device Class: Controller
+                    setDeviceProperty(inputE, v_trackers.back().deviceId, vr::Prop_DeviceClass_Int32, "int32", "2"); // Device Class: Controller
                     if (tracker.role == KVR::KinectDeviceRole::LeftHand) {
-                        setDeviceProperty(inputE, v_trackers.back().deviceId, 3007, "int32", "1"); // ControllerRole Left
+                        setDeviceProperty(inputE, v_trackers.back().deviceId, vr::Prop_ControllerRoleHint_Int32, "int32", "1"); // ControllerRole Left
                     }
                     else if (tracker.role == KVR::KinectDeviceRole::RightHand) {
-                        setDeviceProperty(inputE, v_trackers.back().deviceId, 3007, "int32", "2"); // ControllerRole Right
+                        setDeviceProperty(inputE, v_trackers.back().deviceId, vr::Prop_ControllerRoleHint_Int32, "int32", "2"); // ControllerRole Right
                     }
                 }
             }
@@ -378,17 +399,6 @@ void packElementsIntoMainBox() {
     mainGUIBox->Pack(InferredLabel);
     mainGUIBox->Pack(IgnoreInferredCheckButton);
     
-
-    //mainGUIBox->Pack(CalibrationSettingsLabel); //Calibration left out of main UI because it is not currently implemented
-    calibrationBox->Pack(CalibrationSetButton);
-    calibrationBox->Pack(CalibrationEntryPosX);
-    calibrationBox->Pack(CalibrationEntryPosY);
-    calibrationBox->Pack(CalibrationEntryPosZ);
-    calibrationBox->Pack(CalibrationEntryRotX);
-    calibrationBox->Pack(CalibrationEntryRotY);
-    calibrationBox->Pack(CalibrationEntryRotZ);
-
-    //mainGUIBox->Pack(calibrationBox); //Calibration left out of main UI because it is not currently implemented
 }
 
 void setHipScaleBox() {
@@ -413,6 +423,10 @@ void packElementsIntoTrackingMethodBox() {
     trackingMethodBox->Pack(horizontalPSMBox);
 }
 
+void updateDeviceLists() {
+    setDeviceListItems(PositionDeviceList);
+    setDeviceListItems(RotationDeviceList);
+}
 
 void packElementsIntoAdvTrackerBox() {
     advancedTrackerBox->Pack(AddHandControllersToList);
@@ -426,9 +440,15 @@ void packElementsIntoAdvTrackerBox() {
     TrackerList->Pack(TrackerListLabel);
 
     setBonesListItems();
+    updateDeviceLists();
     setRolesListItems(RolesList);
 
+    TrackerListOptionsBox->Pack(refreshDeviceListButton);
     TrackerListOptionsBox->Pack(BonesList);
+    TrackerListOptionsBox->Pack(PositionDeviceList);
+    TrackerListOptionsBox->Pack(identifyPosDeviceButton);
+    TrackerListOptionsBox->Pack(RotationDeviceList);
+    TrackerListOptionsBox->Pack(identifyRotDeviceButton);
     TrackerListOptionsBox->Pack(RolesList);
     TrackerListOptionsBox->Pack(IsControllerButton);
     TrackerListOptionsBox->Pack(AddTrackerToListButton);
@@ -447,35 +467,20 @@ void setBonesListItems() {
     BonesList->SelectItem(0);
 }
 
+void setDeviceListItems(sfg::ComboBox::Ptr comboBox) {
+    comboBox->Clear();
+    for (int i = 0; i < TrackingPoolManager::count(); ++i) {
+        comboBox->AppendItem(TrackingPoolManager::deviceGuiString(i));
+    }
+    // Set as default - to prevent garbage additions 
+    comboBox->SelectItem(0);
+}
+
 void setRolesListItems(sfg::ComboBox::Ptr comboBox) {
     for (int i = 0; i < (int)KVR::KinectDeviceRole::Count; ++i) {
 		comboBox->AppendItem(KVR::KinectDeviceRoleName[i]);
     }
     // Set as default - to prevent garbage additions 
-	comboBox->SelectItem(0);
-}
-
-void setButtonListRightItems(sfg::ComboBox::Ptr comboBox) {
-	// FIXME: Actually do button/controller detection stuff
-	comboBox->AppendItem("Disabled");
-	for (int i = 0; i < 16; i++) {
-		std::stringstream ss;
-		ss << "Right Controller: Button ";
-		ss << i;
-		comboBox->AppendItem(ss.str());
-	}
-	comboBox->SelectItem(0);
-}
-
-void setButtonListLeftItems(sfg::ComboBox::Ptr comboBox) {
-	// FIXME: Actually do button/controller detection stuff
-	comboBox->AppendItem("Disabled");
-	for (int i = 0; i < 16; i++) {
-		std::stringstream ss;
-		ss << "Left Controller: Button ";
-		ss << i;
-		comboBox->AppendItem(ss.str());
-	}
 	comboBox->SelectItem(0);
 }
 
@@ -592,7 +597,13 @@ private:
     sfg::SpinButton::Ptr HipScale = sfg::SpinButton::Create(sfg::Adjustment::Create(KinectSettings::hipRoleHeightAdjust, -1.f, 1.f, .01f));
     sfg::Box::Ptr HipScaleBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
 
+
+    sfg::Button::Ptr refreshDeviceListButton = sfg::Button::Create("Refresh Devices");
     sfg::ComboBox::Ptr BonesList = sfg::ComboBox::Create();
+    sfg::ComboBox::Ptr PositionDeviceList = sfg::ComboBox::Create();
+    sfg::CheckButton::Ptr identifyPosDeviceButton = sfg::CheckButton::Create("Boop");
+    sfg::ComboBox::Ptr RotationDeviceList = sfg::ComboBox::Create();
+    sfg::CheckButton::Ptr identifyRotDeviceButton = sfg::CheckButton::Create("Beep");
     sfg::ComboBox::Ptr RolesList = sfg::ComboBox::Create();
     sfg::CheckButton::Ptr IsControllerButton = sfg::CheckButton::Create("Controller");
     sfg::Button::Ptr AddTrackerToListButton = sfg::Button::Create("Add");

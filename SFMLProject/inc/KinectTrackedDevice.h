@@ -11,6 +11,7 @@
 #include <SFML/System/Vector3.hpp>
 #include <openvr_math.h>
 #include "VectorMath.h"
+
 namespace KVR {
 
     enum class KinectDeviceRole {
@@ -45,6 +46,7 @@ namespace KVR {
     };
     enum class JointPositionTrackingOption {
         Skeleton,
+        IMU,
         Color
     };
     enum class JointRotationTrackingOption {
@@ -53,21 +55,24 @@ namespace KVR {
         Headlook
     };
 
-    struct TrackedDeviceInputData {
-        // Used by tracking methods to say what the desired position/rotation for this device should be
-        // All data should be converted to VR coords within the device handler
-        // Only data ready for tracking use is put into these structs
-        bool clearedForReinit = false; // Flag for devices that like to clear themselves once a new one is added
-        std::string deviceName = "UNSET_DEVICE_DATA";
-        uint32_t deviceId = 0;
-        vr::HmdQuaternion_t rotation = { 1, 0, 0, 0 };
-        vr::HmdVector3d_t position = { 0, 0, 0 };
-        // Pose left invalid if not in use
-        vr::DriverPose_t pose;
-    };
+    
 
     class KinectTrackedDevice {
     public:
+        KinectTrackedDevice(
+            vrinputemulator::VRInputEmulator& inputEmulator,
+            uint32_t posDevice_gId,
+            uint32_t rotDevice_gId,
+            KinectDeviceRole r)
+            :
+            inputEmulatorRef(inputEmulator),
+            positionDevice_gId(posDevice_gId),
+            rotationDevice_gId(rotDevice_gId),
+            trackedPositionVROffset({ 0,0,0 }),
+            role(r)
+        {
+
+        }
         KinectTrackedDevice(
             vrinputemulator::VRInputEmulator& inputEmulator,
             KVR::KinectJointType j0,
@@ -85,10 +90,52 @@ namespace KVR {
         void init(vrinputemulator::VRInputEmulator& inputEmulator) {
             deviceId = initTracker(inputEmulator, true);
         }
+
+        void setRotationForNextUpdate(vr::HmdQuaternion_t rotation) {
+            nextUpdateRotation = rotation;
+        }
+        void setPositionForNextUpdate(vr::HmdVector3d_t position) {
+            nextUpdatePosition = position;
+        }
+        void update() {
+            // Send through the positions for the next update of the controller
+            // - called for each controller at the end of the TrackingMethod iteration
+            vr::DriverPose_t pose{};
+
+            usingKinectCalibrationModel = true;
+            if (usingKinectCalibrationModel) {
+                applyKinectArrowCalibrationToTracker(nextUpdateRotation, nextUpdatePosition);
+            }
+            pose.deviceIsConnected = true;
+            pose.qRotation = nextUpdateRotation;
+
+            pose.qWorldFromDriverRotation = { 1,0,0,0 }; // need these else nothing rotates/moves visually
+            pose.vecWorldFromDriverTranslation[0] = 0;
+            pose.vecWorldFromDriverTranslation[1] = 0;
+            pose.vecWorldFromDriverTranslation[2] = 0;
+
+            pose.qDriverFromHeadRotation = { 1,0,0,0 };
+            pose.vecDriverFromHeadTranslation[0] = 0;
+            pose.vecDriverFromHeadTranslation[1] = 0;
+            pose.vecDriverFromHeadTranslation[2] = 0;
+            
+            //Final Position Adjustment
+            updateDevicePosePosition(pose, nextUpdatePosition);
+
+            pose.poseIsValid = true;
+
+            pose.result = vr::TrackingResult_Running_OK;
+            inputEmulatorRef.setVirtualDevicePose(deviceId, pose);
+        }
+
         void update(vr::DriverPose_t pose) {
+            // Pose already completely handled by Tracking Method
             inputEmulatorRef.setVirtualDevicePose(deviceId, pose);
         }
         void update(vr::HmdVector3d_t additionalOffset, vr::HmdVector3d_t rawJointPos, vr::HmdQuaternion_t rawJointRotation) {
+            // Old, and soon to be deprecated method of updating tracker
+            // Done all at once, with little modularity
+
             //auto pose = inputEmulatorRef.getVirtualDevicePose(deviceId);
             vr::DriverPose_t pose{};
             vr::HmdQuaternion_t jointRotation = rawJointRotation;
@@ -155,8 +202,8 @@ namespace KVR {
         vrinputemulator::VRInputEmulator &inputEmulatorRef;
         uint32_t deviceId;
 
-        KVR::KinectJoint joint0;
-        KVR::KinectJoint joint1;
+        KVR::KinectJoint joint0 = KVR::KinectJointType::Head;
+        KVR::KinectJoint joint1 = KVR::KinectJointType::Head;
 
         std::string defaultModelName{ "vr_controller_vive_1_5" };
 
@@ -166,11 +213,18 @@ namespace KVR {
 
         vr::HmdVector3_t trackedPositionVROffset;
         vr::HmdVector3_t lastRawPos{ 0,0,0 };
+        vr::DriverPose_t nextUpdatePose;
+        vr::HmdQuaternion_t nextUpdateRotation{ 1,0,0,0 };
+        vr::HmdVector3d_t nextUpdatePosition{0,0,0};
 
         JointRotationFilterOption rotationFilterOption = JointRotationFilterOption::Filtered;
         JointPositionFilterOption positionFilterOption = JointPositionFilterOption::Filtered;
         JointPositionTrackingOption positionTrackingOption = JointPositionTrackingOption::Skeleton;
         JointRotationTrackingOption rotationTrackingOption = JointRotationTrackingOption::Skeleton;
+
+        uint32_t positionDevice_gId = 404;
+        uint32_t rotationDevice_gId = 404;
+
 
         KinectDeviceRole role;
     private:
