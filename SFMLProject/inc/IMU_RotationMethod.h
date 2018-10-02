@@ -29,7 +29,7 @@ public:
         std::vector<KVR::TrackedDeviceInputData> inputs
     ) {
         for (int i = 0; i < v_trackers.size(); ++i) {
-            auto device = v_trackers[i];
+            auto & device = v_trackers[i];
             if (device.rotationTrackingOption != KVR::JointRotationTrackingOption::IMU) {
                 continue;
             }

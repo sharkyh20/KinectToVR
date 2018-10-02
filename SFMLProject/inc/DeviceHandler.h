@@ -11,12 +11,6 @@ struct TrackerIDs {
     uint32_t globalID = k_invalidTrackerID; // Relative to the Pool
 };
 
-
-enum class TrackingInputCategory {
-    KinectBone, // Left foot bone...
-    PhysicalDevice, // PSMove, Joycon...
-    VR_Device // Head, left/right controller...
-};
 class DeviceHandler {
     // Physical Devices are based off of this class
     // I.e. PSmove controllers, JoyCons, etc

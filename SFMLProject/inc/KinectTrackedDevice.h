@@ -102,7 +102,7 @@ namespace KVR {
             // - called for each controller at the end of the TrackingMethod iteration
             vr::DriverPose_t pose{};
 
-            usingKinectCalibrationModel = true;
+            usingKinectCalibrationModel = false;
             if (usingKinectCalibrationModel) {
                 applyKinectArrowCalibrationToTracker(nextUpdateRotation, nextUpdatePosition);
             }

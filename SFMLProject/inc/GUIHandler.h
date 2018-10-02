@@ -27,10 +27,10 @@ struct TempTracker {
         sfg::RadioButton::Ptr radioButton;
         int GUID = 404;
 
-        TrackingInputCategory positionDeviceCategory = TrackingInputCategory::KinectBone;
+        KVR::JointPositionTrackingOption positionTrackingOption = KVR::JointPositionTrackingOption::Skeleton;
         uint32_t positionGlobalDeviceId = 0;
 
-        TrackingInputCategory rotationDeviceCategory = TrackingInputCategory::KinectBone;
+        KVR::JointRotationTrackingOption rotationTrackingOption = KVR::JointRotationTrackingOption::Skeleton;
         uint32_t rotationGlobalDeviceId = 0;
 
 		KVR::KinectDeviceRole role = KVR::KinectDeviceRole::Unassigned;
@@ -195,10 +195,12 @@ void setDefaultSignals() {
             v_deviceHandlersRef->push_back(std::make_unique<PSMoveHandler>(psMoveHandler));
             addedToVector = true;
         }
+        updateDeviceLists();
         PSMoveHandlerLabel->SetText("Status: Connected!");
     });
     StopPSMoveHandler->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
         psMoveHandler.shutdown();
+        updateDeviceLists();
         PSMoveHandlerLabel->SetText("Status: Disconnected!");
     });
 }
@@ -215,8 +217,19 @@ void addUserTrackerToList() {
     TempTracker temp;
     temp.GUID = TrackersToBeInitialised.size();
     temp.isController = IsControllerButton->IsActive();
-    temp.positionGlobalDeviceId = PositionDeviceList->GetSelectedItem();
-    temp.rotationGlobalDeviceId = RotationDeviceList->GetSelectedItem();
+
+    int posIndex = PositionDeviceList->GetSelectedItem();
+    KVR::TrackedDeviceInputData posData = TrackingPoolManager::getDeviceData(posIndex);
+
+    temp.positionGlobalDeviceId = posIndex;
+    temp.positionTrackingOption = posData.positionTrackingOption;
+
+    int rotIndex = PositionDeviceList->GetSelectedItem();
+    KVR::TrackedDeviceInputData rotData = TrackingPoolManager::getDeviceData(rotIndex);
+
+    temp.rotationGlobalDeviceId = rotIndex;
+    temp.rotationTrackingOption = rotData.rotationTrackingOption;
+
     //temp.joint0 = KVR::KinectJointType(BonesList->GetSelectedItem());
 	//temp.joint1 = temp.joint0;	//TEMP BEFORE SELECTION IMPLEMENTED
     temp.role = KVR::KinectDeviceRole(RolesList->GetSelectedItem());
@@ -285,16 +298,24 @@ void setKinectButtonSignal(KinectHandlerBase& kinect) {
         kinect.initialise();
     });
 }
+void spawnAndConnectTracker(vrinputemulator::VRInputEmulator & inputE, std::vector<KVR::KinectTrackedDevice>& v_trackers, TempTracker t_tracker)
+{
+    KVR::KinectTrackedDevice device(inputE, t_tracker.positionGlobalDeviceId, t_tracker.rotationGlobalDeviceId, t_tracker.role);
+    device.positionTrackingOption = t_tracker.positionTrackingOption;
+    device.rotationTrackingOption = t_tracker.rotationTrackingOption;
+    device.init(inputE);
+    v_trackers.push_back(device);
+}
 void setTrackerButtonSignals(vrinputemulator::VRInputEmulator &inputE, std::vector<KVR::KinectTrackedDevice> &v_trackers) {
     TrackerInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers, &inputE] {
         TrackerInitButton->SetLabel("Trackers Initialised");
         if (TrackersToBeInitialised.empty()) {
             spawnDefaultLowerBodyTrackers(inputE, v_trackers);
-            //spawnAndConnectKinectTracker(inputE, v_trackers);
+            spawnAndConnectKinectTracker(inputE, v_trackers);
         }
         else {
             for (TempTracker tracker : TrackersToBeInitialised) {
-                spawnAndConnectTracker(inputE, v_trackers, tracker.positionGlobalDeviceId, tracker.rotationGlobalDeviceId, tracker.role);
+                spawnAndConnectTracker(inputE, v_trackers, tracker);
                 if (tracker.isController) {
                     setDeviceProperty(inputE, v_trackers.back().deviceId, vr::Prop_DeviceClass_Int32, "int32", "2"); // Device Class: Controller
                     if (tracker.role == KVR::KinectDeviceRole::LeftHand) {
@@ -306,7 +327,6 @@ void setTrackerButtonSignals(vrinputemulator::VRInputEmulator &inputE, std::vect
                 }
             }
         }
-        spawnAndConnectKinectTracker(inputE, v_trackers);
 
         showPostTrackerInitUI();
 

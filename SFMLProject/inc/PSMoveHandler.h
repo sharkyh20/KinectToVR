@@ -361,7 +361,38 @@ public:
         // Can't do driver stuff, because that would offset everything.
         v_controllers[0].controller->ControllerState.PSMoveState.Pose = driver_pose_to_world_pose;
     }
+    vr::HmdVector3d_t getPSMovePosition(int controllerId) {
+        const PSMPSMove &view = v_controllers[controllerId].controller->ControllerState.PSMoveState;
+        // Set position
+        vr::HmdVector3d_t raw_position{};
+        
+        {
+            const PSMVector3f &position = view.Pose.Position;
 
+            raw_position.v[0] = position.x * k_fScalePSMoveAPIToMeters;
+            raw_position.v[1] = position.y * k_fScalePSMoveAPIToMeters;
+            raw_position.v[2] = position.z * k_fScalePSMoveAPIToMeters;
+        }
+        return raw_position;
+    }
+    vr::HmdQuaternion_t getPSMoveRotation(int controllerId) {
+        const PSMPSMove &view = v_controllers[controllerId].controller->ControllerState.PSMoveState;
+
+        vr::HmdQuaternion_t qRotation{};
+
+        // Set rotational coordinates
+        bool m_fVirtuallyRotateController = false;
+        {
+            const PSMQuatf &orientation = view.Pose.Orientation;
+
+            qRotation.w = m_fVirtuallyRotateController ? -orientation.w : orientation.w;
+            qRotation.x = orientation.x;
+            qRotation.y = orientation.y;
+            qRotation.z = m_fVirtuallyRotateController ? -orientation.z : orientation.z;
+        }
+        return qRotation;
+    }
+    
     vr::DriverPose_t getPSMoveDriverPose(int controllerId) {
         // Taken from driver_psmoveservice.cpp line 3313, credit to HipsterSloth
         const PSMPSMove &view = v_controllers[controllerId].controller->ControllerState.PSMoveState;
@@ -541,6 +572,18 @@ private:
         if (m_keepRunning)
         {
             processKeyInputs();
+            for (int i = 0; i < v_controllers.size(); ++i) {
+                KVR::TrackedDeviceInputData data = defaultDeviceData(i);
+                data.pose = getPSMoveDriverPose(i);
+                // Reuse, instead of recalling for PSMoveState
+                data.position = { 
+                    data.pose.vecPosition[0],
+                    data.pose.vecPosition[1],
+                    data.pose.vecPosition[2] }; // Pose stores as array
+                data.rotation = data.pose.qRotation;
+                
+                TrackingPoolManager::updatePoolWithDevice(data, data.deviceId);
+            }
         }
     }
     void processKeyInputs() {
@@ -561,7 +604,13 @@ private:
             }
         }
     }
-    
+    KVR::TrackedDeviceInputData defaultDeviceData(uint32_t localID) {
+        KVR::TrackedDeviceInputData data;
+        data.parentHandler = dynamic_cast<DeviceHandler*>(this);
+        data.deviceName = "PSMOVE " + std::to_string(localID);
+        data.deviceId = v_controllers[localID].id.globalID;
+        return data;
+    }
     void rebuildPSMovesForPool() {
         for (int i = 0; i < v_controllers.size(); ++i) {
             TrackingPoolManager::clearDeviceInPool(v_controllers[i].id.globalID);
@@ -582,9 +631,7 @@ private:
             // Redo the loop over the successfully excised trackers (PS Move's only)
             // But this time edit the wrapper with the tracking pool id's
             v_controllers[i].id.internalID = i;
-            KVR::TrackedDeviceInputData data;
-            data.parentHandler = dynamic_cast<DeviceHandler*>(this);
-            data.deviceName = "PSMOVE " + std::to_string(i);
+            KVR::TrackedDeviceInputData data = defaultDeviceData(i);
             uint32_t gID = k_invalidTrackerID;
             TrackingPoolManager::addDeviceToPool(data, gID);
             v_controllers[i].id.globalID = gID;

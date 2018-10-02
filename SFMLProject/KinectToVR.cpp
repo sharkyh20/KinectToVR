@@ -16,6 +16,7 @@
 #include "ColorTracker.h"
 #include "SkeletonTracker.h"
 #include "IMU_PositionMethod.h"
+#include "IMU_RotationMethod.h"
 #include "PSMoveHandler.h"
 #include "DeviceHandler.h"
 #include "TrackingPoolManager.h"
@@ -232,6 +233,9 @@ void processLoop(KinectHandlerBase& kinect) {
 
     IMU_PositionMethod posMethod;
     v_trackingMethods.push_back(std::make_unique<IMU_PositionMethod>(posMethod));
+
+    IMU_RotationMethod rotMethod;
+    v_trackingMethods.push_back(std::make_unique<IMU_RotationMethod>(rotMethod));
     /*
     ColorTracker mainColorTracker(KinectSettings::kinectV2Width, KinectSettings::kinectV2Height);
     v_trackingMethods.push_back(mainColorTracker);

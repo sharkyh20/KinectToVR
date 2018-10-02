@@ -12,8 +12,13 @@ namespace KVR {
         bool clearedForReinit = false; // Flag for devices that like to clear themselves once a new one is added
         std::string deviceName = "UNSET_DEVICE_DATA";
         uint32_t deviceId = 0;
+
         vr::HmdQuaternion_t rotation = { 1, 0, 0, 0 };
+        KVR::JointRotationTrackingOption rotationTrackingOption = KVR::JointRotationTrackingOption::IMU;
+
         vr::HmdVector3d_t position = { 0, 0, 0 };
+        KVR::JointPositionTrackingOption positionTrackingOption = KVR::JointPositionTrackingOption::IMU;
+
         // Pose left invalid if not in use
         vr::DriverPose_t pose;
 
