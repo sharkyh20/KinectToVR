@@ -206,6 +206,7 @@ xcopy "$(SolutionDir)external\dlls\release\*.dll" "$(TargetDir)"  /Y</Command>
     <ClInclude Include="inc\SkeletonPositionMethod.h" />
     <ClInclude Include="inc\SkeletonRotationMethod.h" />
     <ClInclude Include="inc\SkeletonTracker.h" />
+    <ClInclude Include="inc\TrackedDeviceInputData.h" />
     <ClInclude Include="inc\TrackingMethod.h" />
     <ClInclude Include="inc\TrackingPoolManager.h" />
     <ClInclude Include="inc\VectorMath.h" />
@@ -213,7 +214,6 @@ xcopy "$(SolutionDir)external\dlls\release\*.dll" "$(TargetDir)"  /Y</Command>
     <ClInclude Include="inc\VRHelper.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="TrackedDeviceInputData.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IETracker.cpp" />
