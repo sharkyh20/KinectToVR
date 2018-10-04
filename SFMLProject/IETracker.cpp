@@ -18,34 +18,34 @@ uint32_t initTracker(vrinputemulator::VRInputEmulator &inputEmulator, bool conne
 }
 
 void setTrackerDefaultProperties(vrinputemulator::VRInputEmulator &ie, uint32_t &deviceId) {
-    setDeviceProperty(ie, deviceId, 1000, "string", "lighthouse");
-    setDeviceProperty(ie, deviceId, 1001, "string", "Vive Controller MV");
-    setDeviceProperty(ie, deviceId, 1003, "string", "vr_controller_vive_1_5");
-    setDeviceProperty(ie, deviceId, 1004, "bool", "0");
-    setDeviceProperty(ie, deviceId, 1005, "string", "HTC");
-    setDeviceProperty(ie, deviceId, 1006, "string", "1465809478 htcvrsoftware@firmware-win32 2016-06-13 FPGA 1.6/0/0 VRC 1465809477 Radio 1466630404");
-    setDeviceProperty(ie, deviceId, 1007, "string", "product 129 rev 1.5.0 lot 2000/0/0 0");
-    setDeviceProperty(ie, deviceId, 1010, "bool", "1");
-    setDeviceProperty(ie, deviceId, 1017, "uint64", "2164327680");
-    setDeviceProperty(ie, deviceId, 1018, "uint64", "1465809478");
-    setDeviceProperty(ie, deviceId, 1029, "int32", "3");
-    setDeviceProperty(ie, deviceId, 3001, "uint64", "12884901895");
-    setDeviceProperty(ie, deviceId, 3002, "int32", "1");
-    setDeviceProperty(ie, deviceId, 3003, "int32", "3");
-    setDeviceProperty(ie, deviceId, 3004, "int32", "0");
-    setDeviceProperty(ie, deviceId, 3005, "int32", "0");
-    setDeviceProperty(ie, deviceId, 3006, "int32", "0");
-    setDeviceProperty(ie, deviceId, 3007, "int32", "0");
-    setDeviceProperty(ie, deviceId, 5000, "string", "icons");
-    setDeviceProperty(ie, deviceId, 5001, "string", "{htc}controller_status_off.png");
-    setDeviceProperty(ie, deviceId, 5002, "string", "{htc}controller_status_searching.gif");
-    setDeviceProperty(ie, deviceId, 5003, "string", "{htc}controller_status_searching_alert.gif");
-    setDeviceProperty(ie, deviceId, 5004, "string", "{htc}controller_status_ready.png");
-    setDeviceProperty(ie, deviceId, 5005, "string", "{htc}controller_status_ready_alert.png");
-    setDeviceProperty(ie, deviceId, 5006, "string", "{htc}controller_status_error.png");
-    setDeviceProperty(ie, deviceId, 5007, "string", "{htc}controller_status_standby.png");
-    setDeviceProperty(ie, deviceId, 5008, "string", "{htc}controller_status_ready_low.png");
     using namespace vr;
+    setDeviceProperty(ie, deviceId, Prop_TrackingSystemName_String, "string", "lighthouse");
+    setDeviceProperty(ie, deviceId, Prop_ModelNumber_String, "string", "Vive Controller MV");
+    setDeviceProperty(ie, deviceId, Prop_RenderModelName_String, "string", "vr_controller_vive_1_5");
+    setDeviceProperty(ie, deviceId, Prop_WillDriftInYaw_Bool, "bool", "0");
+    setDeviceProperty(ie, deviceId, Prop_ManufacturerName_String, "string", "HTC");
+    setDeviceProperty(ie, deviceId, Prop_TrackingFirmwareVersion_String, "string", "1465809478 htcvrsoftware@firmware-win32 2016-06-13 FPGA 1.6/0/0 VRC 1465809477 Radio 1466630404");
+    setDeviceProperty(ie, deviceId, Prop_HardwareRevision_String, "string", "product 129 rev 1.5.0 lot 2000/0/0 0");
+    setDeviceProperty(ie, deviceId, Prop_DeviceIsWireless_Bool, "bool", "1");
+    setDeviceProperty(ie, deviceId, Prop_HardwareRevision_Uint64, "uint64", "2164327680");
+    setDeviceProperty(ie, deviceId, Prop_FirmwareVersion_Uint64, "uint64", "1465809478");
+    setDeviceProperty(ie, deviceId, Prop_DeviceClass_Int32, "int32", "2");
+    setDeviceProperty(ie, deviceId, Prop_SupportedButtons_Uint64, "uint64", "12884901895");
+    setDeviceProperty(ie, deviceId, Prop_Axis0Type_Int32, "int32", "1");
+    setDeviceProperty(ie, deviceId, Prop_Axis1Type_Int32, "int32", "3");
+    setDeviceProperty(ie, deviceId, Prop_Axis2Type_Int32, "int32", "0");
+    setDeviceProperty(ie, deviceId, Prop_Axis3Type_Int32, "int32", "0");
+    setDeviceProperty(ie, deviceId, Prop_Axis4Type_Int32, "int32", "0");
+    setDeviceProperty(ie, deviceId, Prop_ControllerRoleHint_Int32, "int32", "3");
+    setDeviceProperty(ie, deviceId, Prop_IconPathName_String, "string", "icons");
+    setDeviceProperty(ie, deviceId, Prop_NamedIconPathDeviceOff_String, "string", "{htc}controller_status_off.png");
+    setDeviceProperty(ie, deviceId, Prop_NamedIconPathDeviceSearching_String, "string", "{htc}controller_status_searching.gif");
+    setDeviceProperty(ie, deviceId, Prop_NamedIconPathDeviceSearchingAlert_String, "string", "{htc}controller_status_searching_alert.gif");
+    setDeviceProperty(ie, deviceId, Prop_NamedIconPathDeviceReady_String, "string", "{htc}controller_status_ready.png");
+    setDeviceProperty(ie, deviceId, Prop_NamedIconPathDeviceReadyAlert_String, "string", "{htc}controller_status_ready_alert.png");
+    setDeviceProperty(ie, deviceId, Prop_NamedIconPathDeviceNotReady_String, "string", "{htc}controller_status_error.png");
+    setDeviceProperty(ie, deviceId, Prop_NamedIconPathDeviceStandby_String, "string", "{htc}controller_status_standby.png");
+    setDeviceProperty(ie, deviceId, Prop_NamedIconPathDeviceAlertLow_String, "string", "{htc}controller_status_ready_low.png");
     setDeviceProperty(ie, deviceId, Prop_ControllerType_String, "string", "kinectDevice");
 }
 void setDeviceProperty(vrinputemulator::VRInputEmulator &ie, uint32_t deviceId, int dProp, std::string type, std::string value) {
