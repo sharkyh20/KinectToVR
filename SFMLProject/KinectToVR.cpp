@@ -300,52 +300,14 @@ void processLoop(KinectHandlerBase& kinect) {
             //Draw
             kinect.drawKinectData(renderWindow);
         }
-        std::vector<uint32_t> virtualDeviceIndexes;
-        for (KinectTrackedDevice d : v_trackers) {
-            vrinputemulator::VirtualDeviceInfo info = inputEmulator.getVirtualDeviceInfo(d.deviceId);
-            virtualDeviceIndexes.push_back(info.openvrDeviceId); // needs to be converted into openvr's id - as inputEmulator has it's own Id's starting from zero
-        }
-        //leftController.isOutOfTrackingRange()
-        if (true) {
-            auto id = leftController.GetID();
-            auto oldPose = leftController.GetPose();
-            vr::DriverPose_t newPose;
-            newPose.deviceIsConnected = true;
-            newPose.poseIsValid = true;
-            newPose.result = vr::ETrackingResult::TrackingResult_Running_OK;
-            newPose.poseTimeOffset = 0;         //May have to investigate
-            newPose.qRotation = GetVRRotationFromMatrix(oldPose.mDeviceToAbsoluteTracking);
+        //std::vector<uint32_t> virtualDeviceIndexes;
+        //for (KinectTrackedDevice d : v_trackers) {
+        //    vrinputemulator::VirtualDeviceInfo info = inputEmulator.getVirtualDeviceInfo(d.deviceId);
+        //    virtualDeviceIndexes.push_back(info.openvrDeviceId); // needs to be converted into openvr's id - as inputEmulator has it's own Id's starting from zero
+        //}
+        
 
-            newPose.vecAngularVelocity[0] = oldPose.vAngularVelocity.v[0];
-            newPose.vecAngularVelocity[1] = oldPose.vAngularVelocity.v[1];
-            newPose.vecAngularVelocity[2] = oldPose.vAngularVelocity.v[2];
-            newPose.vecVelocity[0] = oldPose.vVelocity.v[0];
-            newPose.vecVelocity[1] = oldPose.vVelocity.v[1];
-            newPose.vecVelocity[2] = oldPose.vVelocity.v[2];
-
-            //Temporary device until I implement a function which doesn't require this
-            KinectTrackedDevice unusedDevice(inputEmulator, KVR::KinectJointType::WristLeft, KVR::KinectJointType::WristLeft, KVR::KinectDeviceRole::LeftHand);
-            vr::HmdVector3_t rawJointPos = {};
-            vr::HmdQuaternion_t unusedQuaternion = {};
-            kinect.getFilteredJoint(unusedDevice, rawJointPos, unusedQuaternion);
-            //std::cerr << rawJointPos.v[0] << ", " << rawJointPos.v[2] << ", " << rawJointPos.v[2] << "\n "; // This works
-            vr::HmdVector3d_t dPos = { rawJointPos.v[0], rawJointPos.v[1], rawJointPos.v[2] };
-            vr::HmdVector3d_t rotatedPos = vrmath::quaternionRotateVector(KinectSettings::kinectRepRotation, dPos, false);
-
-            //Adjust this position by the Kinect's VR pos offset
-            rotatedPos.v[0] += KinectSettings::kinectRepPosition.v[0];
-            rotatedPos.v[1] += KinectSettings::kinectRepPosition.v[1];
-            rotatedPos.v[2] += KinectSettings::kinectRepPosition.v[2];
-
-            newPose.vecPosition[0] = rotatedPos.v[0];
-            newPose.vecPosition[1] = rotatedPos.v[1];
-            newPose.vecPosition[2] = rotatedPos.v[2];
-
-            
-            inputEmulator.openvrUpdatePose(id, newPose);
-        }
-
-        playspaceMovementAdjuster.update(leftController, rightController, virtualDeviceIndexes);
+        //playspaceMovementAdjuster.update(leftController, rightController, virtualDeviceIndexes);
         
         renderWindow.pushGLStates();
 

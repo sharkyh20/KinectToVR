@@ -45,6 +45,8 @@ void setTrackerDefaultProperties(vrinputemulator::VRInputEmulator &ie, uint32_t 
     setDeviceProperty(ie, deviceId, 5006, "string", "{htc}controller_status_error.png");
     setDeviceProperty(ie, deviceId, 5007, "string", "{htc}controller_status_standby.png");
     setDeviceProperty(ie, deviceId, 5008, "string", "{htc}controller_status_ready_low.png");
+    using namespace vr;
+    setDeviceProperty(ie, deviceId, Prop_ControllerType_String, "string", "kinectDevice");
 }
 void setDeviceProperty(vrinputemulator::VRInputEmulator &ie, uint32_t deviceId, int dProp, std::string type, std::string value) {
     vr::ETrackedDeviceProperty deviceProperty = (vr::ETrackedDeviceProperty)dProp;
@@ -68,33 +70,35 @@ void setDeviceProperty(vrinputemulator::VRInputEmulator &ie, uint32_t deviceId, 
     }
 }
 void removeAllTrackerProperties(uint32_t &deviceId) {
-    removeDeviceProperty(deviceId, 1000, "string", "lighthouse");
-    removeDeviceProperty(deviceId, 1001, "string", "Vive Controller MV");
-    removeDeviceProperty(deviceId, 1003, "string", "vr_controller_vive_1_5");
-    removeDeviceProperty(deviceId, 1004, "bool", "0");
-    removeDeviceProperty(deviceId, 1005, "string", "HTC");
-    removeDeviceProperty(deviceId, 1006, "string", "1465809478 htcvrsoftware@firmware-win32 2016-06-13 FPGA 1.6/0/0 VRC 1465809477 Radio 1466630404");
-    removeDeviceProperty(deviceId, 1007, "string", "product 129 rev 1.5.0 lot 2000/0/0 0");
-    removeDeviceProperty(deviceId, 1010, "bool", "1");
-    removeDeviceProperty(deviceId, 1017, "uint64", "2164327680");
-    removeDeviceProperty(deviceId, 1018, "uint64", "1465809478");
-    removeDeviceProperty(deviceId, 1029, "int32", "3");
-    removeDeviceProperty(deviceId, 3001, "uint64", "12884901895");
-    removeDeviceProperty(deviceId, 3002, "int32", "1");
-    removeDeviceProperty(deviceId, 3003, "int32", "3");
-    removeDeviceProperty(deviceId, 3004, "int32", "0");
-    removeDeviceProperty(deviceId, 3005, "int32", "0");
-    removeDeviceProperty(deviceId, 3006, "int32", "0");
-    removeDeviceProperty(deviceId, 3007, "int32", "0");
-    removeDeviceProperty(deviceId, 5000, "string", "icons");
-    removeDeviceProperty(deviceId, 5001, "string", "{htc}controller_status_off.png");
-    removeDeviceProperty(deviceId, 5002, "string", "{htc}controller_status_searching.gif");
-    removeDeviceProperty(deviceId, 5003, "string", "{htc}controller_status_searching_alert.gif");
-    removeDeviceProperty(deviceId, 5004, "string", "{htc}controller_status_ready.png");
-    removeDeviceProperty(deviceId, 5005, "string", "{htc}controller_status_ready_alert.png");
-    removeDeviceProperty(deviceId, 5006, "string", "{htc}controller_status_error.png");
-    removeDeviceProperty(deviceId, 5007, "string", "{htc}controller_status_standby.png");
-    removeDeviceProperty(deviceId, 5008, "string", "{htc}controller_status_ready_low.png");
+    using namespace vr;
+    removeDeviceProperty(deviceId, Prop_TrackingSystemName_String, "string", "lighthouse");
+    removeDeviceProperty(deviceId, Prop_ModelNumber_String, "string", "Vive Controller MV");
+    removeDeviceProperty(deviceId, Prop_RenderModelName_String, "string", "vr_controller_vive_1_5");
+    removeDeviceProperty(deviceId, Prop_WillDriftInYaw_Bool, "bool", "0");
+    removeDeviceProperty(deviceId, Prop_ManufacturerName_String, "string", "HTC");
+    removeDeviceProperty(deviceId, Prop_TrackingFirmwareVersion_String, "string", "1465809478 htcvrsoftware@firmware-win32 2016-06-13 FPGA 1.6/0/0 VRC 1465809477 Radio 1466630404");
+    removeDeviceProperty(deviceId, Prop_HardwareRevision_String, "string", "product 129 rev 1.5.0 lot 2000/0/0 0");
+    removeDeviceProperty(deviceId, Prop_DeviceIsWireless_Bool, "bool", "1");
+    removeDeviceProperty(deviceId, Prop_HardwareRevision_Uint64, "uint64", "2164327680");
+    removeDeviceProperty(deviceId, Prop_FirmwareVersion_Uint64, "uint64", "1465809478");
+    removeDeviceProperty(deviceId, Prop_DeviceClass_Int32, "int32", "3");
+    removeDeviceProperty(deviceId, Prop_SupportedButtons_Uint64, "uint64", "12884901895");
+    removeDeviceProperty(deviceId, Prop_Axis0Type_Int32, "int32", "1");
+    removeDeviceProperty(deviceId, Prop_Axis1Type_Int32, "int32", "3");
+    removeDeviceProperty(deviceId, Prop_Axis2Type_Int32, "int32", "0");
+    removeDeviceProperty(deviceId, Prop_Axis3Type_Int32, "int32", "0");
+    removeDeviceProperty(deviceId, Prop_Axis4Type_Int32, "int32", "0");
+    removeDeviceProperty(deviceId, Prop_ControllerRoleHint_Int32, "int32", "3");
+    removeDeviceProperty(deviceId, Prop_IconPathName_String, "string", "icons");
+    removeDeviceProperty(deviceId, Prop_NamedIconPathDeviceOff_String, "string", "{htc}controller_status_off.png");
+    removeDeviceProperty(deviceId, Prop_NamedIconPathDeviceSearching_String, "string", "{htc}controller_status_searching.gif");
+    removeDeviceProperty(deviceId, Prop_NamedIconPathDeviceSearchingAlert_String, "string", "{htc}controller_status_searching_alert.gif");
+    removeDeviceProperty(deviceId, Prop_NamedIconPathDeviceReady_String, "string", "{htc}controller_status_ready.png");
+    removeDeviceProperty(deviceId, Prop_NamedIconPathDeviceReadyAlert_String, "string", "{htc}controller_status_ready_alert.png");
+    removeDeviceProperty(deviceId, Prop_NamedIconPathDeviceNotReady_String, "string", "{htc}controller_status_error.png");
+    removeDeviceProperty(deviceId, Prop_NamedIconPathDeviceStandby_String, "string", "{htc}controller_status_standby.png");
+    removeDeviceProperty(deviceId, Prop_NamedIconPathDeviceAlertLow_String, "string", "{htc}controller_status_ready_low.png");
+    removeDeviceProperty(deviceId, Prop_ControllerType_String, "string", "kinectDevice");
 }
 void removeDeviceProperty(uint32_t deviceId, int dProp, std::string type, std::string value) {
     vr::ETrackedDeviceProperty deviceProperty = (vr::ETrackedDeviceProperty)dProp;
@@ -131,4 +135,6 @@ void destroyTracker(vrinputemulator::VRInputEmulator& inputEmulator, uint32_t ID
 void setKinectTrackerProperties(vrinputemulator::VRInputEmulator &ie, uint32_t deviceId) {
     setDeviceProperty(ie, deviceId, 1003, "string", "arrow");
     setDeviceProperty(ie, deviceId, 1029, "int32", "4");
+    setDeviceProperty(ie, deviceId, vr::Prop_ControllerRoleHint_Int32, "int32", "0");
+    removeDeviceProperty(deviceId, vr::Prop_ControllerType_String, "string", "kinectDevice");
 }
