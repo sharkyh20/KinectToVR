@@ -12,11 +12,6 @@ namespace KinectSettings {
     bool isKinectDrawn = false;
     bool isSkeletonDrawn = false;
 
-	int leftHandPlayspaceMovementButton = 0;
-	int rightHandPlayspaceMovementButton = 0;
-	int leftFootPlayspaceMovementButton = 0;
-	int rightFootPlayspaceMovementButton = 0;
-
     bool ignoreInferredPositions = false;
     bool ignoreRotationSmoothing = false;
 
@@ -59,19 +54,11 @@ namespace KinectSettings {
             using namespace KinectSettings;
             float rot[3] = { 0,0,0 };
             float pos[3] = { 0,0,0 };
-			int leftHandPlayspaceMovementButtonRead = 0;
-			int rightHandPlayspaceMovementButtonRead = 0;
-			int leftFootPlayspaceMovementButtonRead = 0;
-			int rightFootPlayspaceMovementButtonRead = 0;
             double hipHeight = 0;
             try {
                 archive(rot);
                 archive(pos);
                 archive(hipHeight);
-				archive(leftHandPlayspaceMovementButtonRead);
-				archive(rightHandPlayspaceMovementButtonRead);
-				archive(leftFootPlayspaceMovementButtonRead);
-				archive(rightFootPlayspaceMovementButtonRead);
             }
             catch(cereal::RapidJSONException e){
                 std::cerr << "CONFIG FILE LOAD ERROR: " << e.what() << '\n';
@@ -79,11 +66,8 @@ namespace KinectSettings {
             kinectRadRotation = { rot[0], rot[1], rot[2] };
             kinectRepPosition = { pos[0], pos[1], pos[2] };
             hipRoleHeightAdjust = hipHeight;
-			leftHandPlayspaceMovementButton = leftHandPlayspaceMovementButtonRead;
-			rightHandPlayspaceMovementButton = rightHandPlayspaceMovementButtonRead;
-			leftFootPlayspaceMovementButton = leftFootPlayspaceMovementButtonRead;
-			rightFootPlayspaceMovementButton = rightFootPlayspaceMovementButtonRead;
         }
+        is.close();
     }
 
     void writeKinectSettings() {
@@ -104,13 +88,10 @@ namespace KinectSettings {
             archive(
                 CEREAL_NVP(kRotation),
                 CEREAL_NVP(kPosition),
-                CEREAL_NVP(hipRoleHeightAdjust),
-				CEREAL_NVP(leftHandPlayspaceMovementButton),
-				CEREAL_NVP(rightHandPlayspaceMovementButton),
-				CEREAL_NVP(leftFootPlayspaceMovementButton),
-				CEREAL_NVP(rightFootPlayspaceMovementButton)
+                CEREAL_NVP(hipRoleHeightAdjust)
             );
         }
+        os.close();
     }
 }
 namespace SFMLsettings {

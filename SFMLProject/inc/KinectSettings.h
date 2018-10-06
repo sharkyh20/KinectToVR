@@ -17,11 +17,6 @@ namespace KinectSettings {
     extern bool ignoreInferredPositions;
     extern bool ignoreRotationSmoothing;
 
-	extern int leftHandPlayspaceMovementButton;
-	extern int rightHandPlayspaceMovementButton;
-	extern int leftFootPlayspaceMovementButton;
-	extern int rightFootPlayspaceMovementButton;
-
     extern bool userChangingZero;
 
     extern float g_TrackedBoneThickness;
