@@ -350,7 +350,7 @@ void processLoop(KinectHandlerBase& kinect) {
     }
     KinectSettings::writeKinectSettings();
 
-    playspaceMovementAdjuster.resetPlayspaceAdjustments();
+    //playspaceMovementAdjuster.resetPlayspaceAdjustments();
 
     vr::VR_Shutdown();
 }

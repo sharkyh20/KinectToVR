@@ -54,13 +54,15 @@ namespace KinectSettings {
             writeKinectSettings();
         }
         else {
-            std::cout << "CFG Loaded successfully!\n";
-            cereal::JSONInputArchive archive(is);
+            std::cout << "CFG Loaded Attempted!\n";
+            
             using namespace KinectSettings;
             float rot[3] = { 0,0,0 };
             float pos[3] = { 0,0,0 };
             double hipHeight = 0;
+            
             try {
+                cereal::JSONInputArchive archive(is);
                 archive(rot);
                 archive(pos);
                 archive(hipHeight);
@@ -72,13 +74,10 @@ namespace KinectSettings {
             kinectRepPosition = { pos[0], pos[1], pos[2] };
             hipRoleHeightAdjust = hipHeight;
         }
-        is.close();
     }
 
     void writeKinectSettings() {
         std::ofstream os(KVR::fileToDirPath(CFG_NAME));
-        cereal::JSONOutputArchive archive(os);
-
         if (os.fail()) {
             //FAIL!!!
             std::cerr << "ERROR: COULD NOT WRITE TO CONFIG FILE\n";
@@ -90,13 +89,13 @@ namespace KinectSettings {
 
             vr::HmdVector3_t pos = kinectRepPosition;
             float kPosition[3] = { pos.v[0], pos.v[1] , pos.v[2] };
+            cereal::JSONOutputArchive archive(os);
             archive(
                 CEREAL_NVP(kRotation),
                 CEREAL_NVP(kPosition),
                 CEREAL_NVP(hipRoleHeightAdjust)
             );
         }
-        os.close();
     }
 }
 namespace SFMLsettings {
