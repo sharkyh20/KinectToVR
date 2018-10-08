@@ -227,8 +227,9 @@ void processLoop(KinectHandlerBase& kinect) {
     //Default tracking methods
     std::vector<std::unique_ptr<TrackingMethod>> v_trackingMethods;
     guiRef.setTrackingMethodsReference(v_trackingMethods);
+    
     //SkeletonTracker mainSkeletalTracker;
-    //kinect.initialiseSkeleton();
+    kinect.initialiseSkeleton();
     //v_trackingMethods.push_back(std::make_unique<SkeletonTracker>(mainSkeletalTracker));
 
     IMU_PositionMethod posMethod;
@@ -324,17 +325,10 @@ void processLoop(KinectHandlerBase& kinect) {
                 || KinectSettings::adjustingKinectRepresentationRot)
                 currentCalibrationMethod(deltaT, kinect, leftController, rightController, guiRef);
             
-            //kinect.updateTrackersWithSkeletonPosition(inputEmulator, v_trackers);
-            /*
-            mainColorTracker.update(kinect.colorMat, kinect.depthMat);
-            std::vector<TrackedColorComponent> position = mainColorTracker.getTrackedPoints();
-            kinect.updateTrackersWithColorPosition( v_trackers, sf::Vector2i(position[0].imagePosX, position[0].imagePosY));
-            //Draw
-            kinect.drawKinectData(renderWindow);
-            */
+            kinect.updateTrackersWithSkeletonPosition( v_trackers);
             //std::vector<KVR::TrackedDeviceInputData> v_inputData = psMoveHandler.extractVRTrackingPoses();
+            /*
             std::vector<KVR::TrackedDeviceInputData> v_inputData{}; // DEBUG
-
             for (auto & method_ptr : v_trackingMethods) {
                 method_ptr->update(kinect, v_trackers);
                 method_ptr->updateTrackers(kinect, v_trackers, v_inputData);
@@ -342,6 +336,7 @@ void processLoop(KinectHandlerBase& kinect) {
             for (auto & tracker : v_trackers) {
                 tracker.update();
             }
+            */
             kinect.drawKinectData(renderWindow);
         }
         std::vector<uint32_t> virtualDeviceIndexes;

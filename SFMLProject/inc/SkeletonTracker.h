@@ -31,6 +31,7 @@ public:
         KinectHandlerBase& kinect,
         std::vector<KVR::KinectTrackedDevice> & v_trackers
     ) {
+        // TODO
         for (int i = 0; i < KVR::KinectJointCount; ++i) {
             KVR::TrackedDeviceInputData data;
             //data.parentHandler = dynamic_cast<DeviceHandler*>(this);
@@ -39,7 +40,7 @@ public:
 
             vr::HmdVector3d_t jointPosition{ 0,0,0 };
             vr::HmdQuaternion_t jointRotation{ 0,0,0,0 };
-            kinect.getFilteredJoint(, jointPosition, jointRotation)
+            //kinect.getFilteredJoint(, jointPosition, jointRotation)
                 TrackingPoolManager::updatePoolWithDevice(data, i);
             //v_controllers[i].id.globalID = gID;
         }
