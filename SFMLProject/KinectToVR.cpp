@@ -34,9 +34,21 @@
 //OpenCV
 #include <opencv2\opencv.hpp>
 
-
-
 using namespace KVR;
+
+std::string log_get_timestamp_prefix()
+{
+    // From PSMoveService ServerLog.cpp
+    auto now = std::chrono::system_clock::now();
+    auto seconds = std::chrono::time_point_cast<std::chrono::seconds>(now);
+    auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - seconds);
+    time_t in_time_t = std::chrono::system_clock::to_time_t(now);
+
+    std::stringstream ss;
+    ss << "[" << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %H:%M:%S") << "." << milliseconds.count() << "]: ";
+
+    return ss.str();
+}
 
 void toEulerAngle(vr::HmdQuaternion_t q, double& roll, double& pitch, double& yaw)
 {
@@ -216,6 +228,26 @@ void processLoop(KinectHandlerBase& kinect) {
         leftController.Connect(m_VRSystem);
         rightController.Connect(m_VRSystem);
         std::cerr << "Attempted connection to controllers! " << std::endl;    // DEBUG
+        
+        // Todo: implement binding system
+        /*
+        const char* manifestPath;
+        
+        std::string manifestPathStr = SFMLsettings::fileDirectoryPath + "/input/action-manifest.json";
+        manifestPath = manifestPathStr.c_str();
+        
+        vr::EVRInputError iError = vr::VRInput()->SetActionManifestPath(manifestPath);
+        
+        vr::VRActionHandle_t moveHorizontallyHandle;
+        vr::VRActionHandle_t moveVerticallyHandle;
+        vr::VRActionHandle_t confirmPositionHandle;
+        iError = vr::VRInput()->GetActionHandle("/actions/Calibration/in/MoveHorizontally", &moveHorizontallyHandle);
+        iError = vr::VRInput()->GetActionHandle("/actions/Calibration/in/MoveVertically", &moveVerticallyHandle);
+        iError = vr::VRInput()->GetActionHandle("/actions/Calibration/in/ConfirmCalibration", &confirmPositionHandle);
+
+        vr::VRActionSetHandle_t calibrationSetHandle;
+        iError = vr::VRInput()->GetActionSetHandle("/actions/Calibration", &calibrationSetHandle);
+        */
     }
     guiRef.updateVRStatusLabel(eError);
     std::cerr << "Attempted connection to vrsystem! " << eError << std::endl;    // DEBUG
@@ -339,11 +371,14 @@ void processLoop(KinectHandlerBase& kinect) {
             */
             kinect.drawKinectData(renderWindow);
         }
-        std::vector<uint32_t> virtualDeviceIndexes;
-        for (KinectTrackedDevice & d : v_trackers) {
-            vrinputemulator::VirtualDeviceInfo info = inputEmulator.getVirtualDeviceInfo(d.deviceId);
-            virtualDeviceIndexes.push_back(info.openvrDeviceId); // needs to be converted into openvr's id - as inputEmulator has it's own Id's starting from zero
-        }
+        //std::vector<uint32_t> virtualDeviceIndexes;
+        //for (KinectTrackedDevice d : v_trackers) {
+        //    vrinputemulator::VirtualDeviceInfo info = inputEmulator.getVirtualDeviceInfo(d.deviceId);
+        //    virtualDeviceIndexes.push_back(info.openvrDeviceId); // needs to be converted into openvr's id - as inputEmulator has it's own Id's starting from zero
+        //}
+        
+
+        //playspaceMovementAdjuster.update(leftController, rightController, virtualDeviceIndexes);
         
         renderWindow.pushGLStates();
 
@@ -369,6 +404,7 @@ void processLoop(KinectHandlerBase& kinect) {
     }
     KinectSettings::writeKinectSettings();
 
+    //playspaceMovementAdjuster.resetPlayspaceAdjustments();
 
     vr::VR_Shutdown();
 }

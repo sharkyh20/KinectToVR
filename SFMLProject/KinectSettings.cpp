@@ -12,11 +12,6 @@ namespace KinectSettings {
     bool isKinectDrawn = false;
     bool isSkeletonDrawn = false;
 
-	int leftHandPlayspaceMovementButton = 0;
-	int rightHandPlayspaceMovementButton = 0;
-	int leftFootPlayspaceMovementButton = 0;
-	int rightFootPlayspaceMovementButton = 0;
-
     bool ignoreInferredPositions = false;
     bool ignoreRotationSmoothing = false;
 
@@ -34,6 +29,11 @@ namespace KinectSettings {
 
     double kinectToVRScale = 1;
     double hipRoleHeightAdjust = 0.0;   // in metres up - applied post-scale
+                                        //Need to delete later (Merge should sort it)
+    int leftHandPlayspaceMovementButton = 0;
+    int rightHandPlayspaceMovementButton = 0;
+    int leftFootPlayspaceMovementButton = 0;
+    int rightFootPlayspaceMovementButton = 0;
 
     vr::HmdVector3d_t hmdPosition = { 0,0,0 };
     vr::HmdQuaternion_t hmdRotation = { 0,0,0,0 };
@@ -55,24 +55,18 @@ namespace KinectSettings {
             writeKinectSettings();
         }
         else {
-            std::cout << "CFG Loaded successfully!\n";
-            cereal::JSONInputArchive archive(is);
+            std::cout << "CFG Loaded Attempted!\n";
+            
             using namespace KinectSettings;
             float rot[3] = { 0,0,0 };
             float pos[3] = { 0,0,0 };
-			int leftHandPlayspaceMovementButtonRead = 0;
-			int rightHandPlayspaceMovementButtonRead = 0;
-			int leftFootPlayspaceMovementButtonRead = 0;
-			int rightFootPlayspaceMovementButtonRead = 0;
             double hipHeight = 0;
+            
             try {
+                cereal::JSONInputArchive archive(is);
                 archive(rot);
                 archive(pos);
                 archive(hipHeight);
-				archive(leftHandPlayspaceMovementButtonRead);
-				archive(rightHandPlayspaceMovementButtonRead);
-				archive(leftFootPlayspaceMovementButtonRead);
-				archive(rightFootPlayspaceMovementButtonRead);
             }
             catch(cereal::RapidJSONException e){
                 std::cerr << "CONFIG FILE LOAD ERROR: " << e.what() << '\n';
@@ -80,17 +74,11 @@ namespace KinectSettings {
             kinectRadRotation = { rot[0], rot[1], rot[2] };
             kinectRepPosition = { pos[0], pos[1], pos[2] };
             hipRoleHeightAdjust = hipHeight;
-			leftHandPlayspaceMovementButton = leftHandPlayspaceMovementButtonRead;
-			rightHandPlayspaceMovementButton = rightHandPlayspaceMovementButtonRead;
-			leftFootPlayspaceMovementButton = leftFootPlayspaceMovementButtonRead;
-			rightFootPlayspaceMovementButton = rightFootPlayspaceMovementButtonRead;
         }
     }
 
     void writeKinectSettings() {
         std::ofstream os(KVR::fileToDirPath(CFG_NAME));
-        cereal::JSONOutputArchive archive(os);
-
         if (os.fail()) {
             //FAIL!!!
             std::cerr << "ERROR: COULD NOT WRITE TO CONFIG FILE\n";
@@ -102,14 +90,11 @@ namespace KinectSettings {
 
             vr::HmdVector3d_t pos = kinectRepPosition;
             float kPosition[3] = { pos.v[0], pos.v[1] , pos.v[2] };
+            cereal::JSONOutputArchive archive(os);
             archive(
                 CEREAL_NVP(kRotation),
                 CEREAL_NVP(kPosition),
-                CEREAL_NVP(hipRoleHeightAdjust),
-				CEREAL_NVP(leftHandPlayspaceMovementButton),
-				CEREAL_NVP(rightHandPlayspaceMovementButton),
-				CEREAL_NVP(leftFootPlayspaceMovementButton),
-				CEREAL_NVP(rightFootPlayspaceMovementButton)
+                CEREAL_NVP(hipRoleHeightAdjust)
             );
         }
     }

@@ -17,11 +17,6 @@ namespace KinectSettings {
     extern bool ignoreInferredPositions;
     extern bool ignoreRotationSmoothing;
 
-	extern int leftHandPlayspaceMovementButton;
-	extern int rightHandPlayspaceMovementButton;
-	extern int leftFootPlayspaceMovementButton;
-	extern int rightFootPlayspaceMovementButton;
-
     extern bool userChangingZero;
 
     extern float g_TrackedBoneThickness;
@@ -38,7 +33,14 @@ namespace KinectSettings {
 
     extern double hipRoleHeightAdjust;
 
-    extern vr::HmdVector3d_t hmdPosition; 
+
+    //Need to delete later (Merge should sort it)
+    extern int leftHandPlayspaceMovementButton;
+    extern int rightHandPlayspaceMovementButton;
+    extern int leftFootPlayspaceMovementButton;
+    extern int rightFootPlayspaceMovementButton;
+
+    extern vr::HmdVector3_t hmdPosition; 
     extern vr::HmdQuaternion_t hmdRotation;
     extern vr::HmdMatrix34_t hmdAbsoluteTracking;
 

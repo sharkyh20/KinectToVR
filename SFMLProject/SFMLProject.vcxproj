@@ -119,7 +119,8 @@
     <PostBuildEvent>
       <Command>xcopy "$(TargetPath)" "$(SolutionDir)external\KVRlib" /I /Y
 xcopy "$(SolutionDir)external\dlls\*.dll" "$(TargetDir)"  /Y
-xcopy "$(SolutionDir)external\dlls\debug\*.dll" "$(TargetDir)"  /Y</Command>
+xcopy "$(SolutionDir)external\dlls\debug\*.dll" "$(TargetDir)"  /Y
+xcopy /s /y /i /e "$(SolutionDir)/Input" "$(TargetDir)/Input"</Command>
     </PostBuildEvent>
     <CustomBuildStep>
       <Command>
@@ -171,7 +172,8 @@ xcopy "$(SolutionDir)external\dlls\debug\*.dll" "$(TargetDir)"  /Y</Command>
     <PostBuildEvent>
       <Command>xcopy "$(TargetPath)" "$(SolutionDir)external\KVRlib" /I /Y
 xcopy "$(SolutionDir)external\dlls\*.dll" "$(TargetDir)"  /Y
-xcopy "$(SolutionDir)external\dlls\release\*.dll" "$(TargetDir)"  /Y</Command>
+xcopy "$(SolutionDir)external\dlls\release\*.dll" "$(TargetDir)"  /Y
+xcopy /s /y /i /e "$(SolutionDir)/Input" "$(TargetDir)/Input"</Command>
     </PostBuildEvent>
     <CustomBuildStep>
       <Command>
