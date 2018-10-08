@@ -230,6 +230,26 @@ void processLoop(KinectHandlerBase& kinect) {
         leftController.Connect(m_VRSystem);
         rightController.Connect(m_VRSystem);
         std::cerr << "Attempted connection to controllers! " << std::endl;    // DEBUG
+        
+        // Todo: implement binding system
+        /*
+        const char* manifestPath;
+        
+        std::string manifestPathStr = SFMLsettings::fileDirectoryPath + "/input/action-manifest.json";
+        manifestPath = manifestPathStr.c_str();
+        
+        vr::EVRInputError iError = vr::VRInput()->SetActionManifestPath(manifestPath);
+        
+        vr::VRActionHandle_t moveHorizontallyHandle;
+        vr::VRActionHandle_t moveVerticallyHandle;
+        vr::VRActionHandle_t confirmPositionHandle;
+        iError = vr::VRInput()->GetActionHandle("/actions/Calibration/in/MoveHorizontally", &moveHorizontallyHandle);
+        iError = vr::VRInput()->GetActionHandle("/actions/Calibration/in/MoveVertically", &moveVerticallyHandle);
+        iError = vr::VRInput()->GetActionHandle("/actions/Calibration/in/ConfirmCalibration", &confirmPositionHandle);
+
+        vr::VRActionSetHandle_t calibrationSetHandle;
+        iError = vr::VRInput()->GetActionSetHandle("/actions/Calibration", &calibrationSetHandle);
+        */
     }
     guiRef.updateVRStatusLabel(eError);
     std::cerr << "Attempted connection to vrsystem! " << eError << std::endl;    // DEBUG

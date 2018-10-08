@@ -29,6 +29,11 @@ namespace KinectSettings {
 
     double kinectToVRScale = 1;
     double hipRoleHeightAdjust = 0.0;   // in metres up - applied post-scale
+                                        //Need to delete later (Merge should sort it)
+    int leftHandPlayspaceMovementButton = 0;
+    int rightHandPlayspaceMovementButton = 0;
+    int leftFootPlayspaceMovementButton = 0;
+    int rightFootPlayspaceMovementButton = 0;
 
     vr::HmdVector3_t hmdPosition = { 0,0,0 };
     vr::HmdQuaternion_t hmdRotation = { 0,0,0,0 };
