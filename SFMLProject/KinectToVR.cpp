@@ -58,6 +58,19 @@ void updateKinectTracker(vrinputemulator::VRInputEmulator &emulator, KinectTrack
     emulator.setVirtualDevicePose(device.deviceId, pose);
 }
 */
+std::string log_get_timestamp_prefix()
+{
+    // From PSMoveService ServerLog.cpp
+    auto now = std::chrono::system_clock::now();
+    auto seconds = std::chrono::time_point_cast<std::chrono::seconds>(now);
+    auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - seconds);
+    time_t in_time_t = std::chrono::system_clock::to_time_t(now);
+
+    std::stringstream ss;
+    ss << "[" << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %H:%M:%S") << "." << milliseconds.count() << "]: ";
+
+    return ss.str();
+}
 
 void toEulerAngle(vr::HmdQuaternion_t q, double& roll, double& pitch, double& yaw)
 {
