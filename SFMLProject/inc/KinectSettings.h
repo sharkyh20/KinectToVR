@@ -40,7 +40,7 @@ namespace KinectSettings {
     extern int leftFootPlayspaceMovementButton;
     extern int rightFootPlayspaceMovementButton;
 
-    extern vr::HmdVector3_t hmdPosition; 
+    extern vr::HmdVector3d_t hmdPosition; 
     extern vr::HmdQuaternion_t hmdRotation;
     extern vr::HmdMatrix34_t hmdAbsoluteTracking;
 
