@@ -140,7 +140,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)/inc;$(SolutionDir)SFMLProject\inc\;$(SolutionDir)Includes\boost_1_63_0;$(SolutionDir)\Includes\SFML-2.4.2\include;$(SolutionDir)\Includes\sfgui;$(SolutionDir)\Includes\openvr\headers;$(SolutionDir)\Includes\InputEmulator;$(KINECTSDK10_DIR)\inc;$(SolutionDir)\Includes\Glew;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
