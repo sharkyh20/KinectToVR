@@ -115,7 +115,32 @@ void updateKinectWindowRes(const sf::RenderWindow& window) {
     //std::cerr << "w: " << SFMLsettings::m_window_width << " h: " << SFMLsettings::m_window_height << "\n";
 }
 
+bool filePathIsNonASCII(const std::wstring& filePath) {
+    for (auto c : filePath) {
+        if (static_cast<unsigned char>(c) > 127) {
+            return true;
+        }
+    }
+    return false;
+}
+void verifyDefaultFilePath() {
+    // Warn about non-english file path, as openvr can only take ASCII chars
+    // If this isn't checked, unfortunately, most of the bindings won't load
+    // Unless OpenVR's C API adds support for non-english filepaths, K2VR can't either
+    if (filePathIsNonASCII(SFMLsettings::fileDirectoryPath)) {
+        auto message = L"WARNING: NON-ENGLISH FILEPATH DETECTED: "
+            + SFMLsettings::fileDirectoryPath
+            + L"\n It's possible that OpenVR bindings won't work correctly"
+            + L"\n Please move the K2VR directory to a location with ASCII only"
+            + L"\n e.g. C:/KinectToVR will be fine";
+        auto result = MessageBox(NULL, message.c_str(), L"WARNING!!!", MB_ABORTRETRYIGNORE + MB_ICONWARNING);
+        if (result = IDABORT) {
+            SFMLsettings::keepRunning = false;
+        }
+    }
+}
 void updateFilePath() {
+    
     HMODULE module = GetModuleHandleW(NULL);
     WCHAR exeFilePath[MAX_PATH];
     GetModuleFileNameW(module, exeFilePath, MAX_PATH);
@@ -134,7 +159,6 @@ void updateFilePath() {
     WCHAR directoryFilePath[MAX_PATH];
     _wmakepath_s(directoryFilePath, _MAX_PATH, drive, dir, filename, extension);
     std::wstring filePathString(directoryFilePath);
-
     SFMLsettings::fileDirectoryPath = filePathString;
 }
 void attemptInitialiseDebugDisplay(sf::Font font, sf::Text debugText) {
@@ -223,6 +247,42 @@ void processLoop(KinectHandlerBase& kinect) {
     std::cerr << "Attempting connection to vrsystem.... " << std::endl;    // DEBUG
     vr::EVRInitError eError = vr::VRInitError_None;
     vr::IVRSystem *m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Utility);
+
+    // INPUT BINDING TEMPORARY --------------------------------
+    // Warn about non-english file path, as openvr can only take ASCII chars
+    verifyDefaultFilePath();
+    
+    const char* manifestPath;
+
+    std::string manifestPathStr = ToUTF8(SFMLsettings::fileDirectoryPath) + "Input\\action-manifest.json";
+    manifestPath = manifestPathStr.c_str();
+
+    std::cout << "MANIFEST PATH: "<< manifestPath << '\n';
+
+    vr::EVRInputError iError = vr::VRInput()->SetActionManifestPath(manifestPath);
+
+    vr::VRActionHandle_t moveHorizontallyHandle;
+    vr::VRActionHandle_t moveVerticallyHandle;
+    vr::VRActionHandle_t confirmPositionHandle;
+    iError = vr::VRInput()->GetActionHandle("/actions/Calibration/in/MoveHorizontally", &moveHorizontallyHandle);
+    iError = vr::VRInput()->GetActionHandle("/actions/Calibration/in/MoveVertically", &moveVerticallyHandle);
+    iError = vr::VRInput()->GetActionHandle("/actions/Calibration/in/ConfirmCalibration", &confirmPositionHandle);
+
+    vr::VRActionSetHandle_t calibrationSetHandle;
+    iError = vr::VRInput()->GetActionSetHandle("/actions/Calibration", &calibrationSetHandle);
+
+    vr::VRActiveActionSet_t activeActionSet;
+    activeActionSet.ulActionSet = calibrationSetHandle;
+    activeActionSet.ulRestrictedToDevice = vr::k_ulInvalidInputValueHandle;
+    activeActionSet.unPadding;
+    activeActionSet.nPriority;
+    iError = vr::VRInput()->UpdateActionState(&activeActionSet, sizeof(activeActionSet), 1);
+    // --------------------------------------------------------
+
+
+
+
+
     if (eError == vr::VRInitError_None) {
         std::cerr << "Attempting connection to controllers.... " << std::endl;    // DEBUG
         leftController.Connect(m_VRSystem);
@@ -230,24 +290,7 @@ void processLoop(KinectHandlerBase& kinect) {
         std::cerr << "Attempted connection to controllers! " << std::endl;    // DEBUG
         
         // Todo: implement binding system
-        /*
-        const char* manifestPath;
         
-        std::string manifestPathStr = SFMLsettings::fileDirectoryPath + "/input/action-manifest.json";
-        manifestPath = manifestPathStr.c_str();
-        
-        vr::EVRInputError iError = vr::VRInput()->SetActionManifestPath(manifestPath);
-        
-        vr::VRActionHandle_t moveHorizontallyHandle;
-        vr::VRActionHandle_t moveVerticallyHandle;
-        vr::VRActionHandle_t confirmPositionHandle;
-        iError = vr::VRInput()->GetActionHandle("/actions/Calibration/in/MoveHorizontally", &moveHorizontallyHandle);
-        iError = vr::VRInput()->GetActionHandle("/actions/Calibration/in/MoveVertically", &moveVerticallyHandle);
-        iError = vr::VRInput()->GetActionHandle("/actions/Calibration/in/ConfirmCalibration", &confirmPositionHandle);
-
-        vr::VRActionSetHandle_t calibrationSetHandle;
-        iError = vr::VRInput()->GetActionSetHandle("/actions/Calibration", &calibrationSetHandle);
-        */
     }
     guiRef.updateVRStatusLabel(eError);
     std::cerr << "Attempted connection to vrsystem! " << eError << std::endl;    // DEBUG
@@ -280,7 +323,7 @@ void processLoop(KinectHandlerBase& kinect) {
     std::vector<std::unique_ptr<DeviceHandler>> v_deviceHandlers;
     guiRef.setDeviceHandlersReference(v_deviceHandlers);
 
-    while (renderWindow.isOpen())
+    while (renderWindow.isOpen() && SFMLsettings::keepRunning)
     {
         //Clear the debug text display
         SFMLsettings::debugDisplayTextStream.str(std::string());
@@ -337,6 +380,7 @@ void processLoop(KinectHandlerBase& kinect) {
         
         //Update VR Components
         if (eError == vr::VRInitError_None) {
+            //vr::VRInput()->UpdateActionState();
             rightController.update(deltaT);
             leftController.update(deltaT);
             updateHMDPosAndRot(m_VRSystem);

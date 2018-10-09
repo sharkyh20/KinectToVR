@@ -31,7 +31,7 @@ void KinectV2Handler::initialise() {
         initialised = initKinect();
         initialiseColor();
         initialiseDepth();
-        //initialiseSkeleton();
+        initialiseSkeleton();
         std::this_thread::sleep_for(std::chrono::seconds(2));
         if (!initialised) throw FailedKinectInitialisation;
     }

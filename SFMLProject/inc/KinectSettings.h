@@ -60,6 +60,7 @@ namespace SFMLsettings {
     extern int m_window_width;
     extern int m_window_height;
     extern float windowScale;
+    extern bool keepRunning;
 
     extern bool usingGamepad;
 
