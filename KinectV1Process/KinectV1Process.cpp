@@ -8,9 +8,10 @@
 #include <Windows.h>
 int main()
 {
+#ifndef _DEBUG 
     HWND hWnd = GetConsoleWindow();
     ShowWindow(hWnd, SW_HIDE);
-
+#endif 
     KinectV1Handler kinect;
     
     processLoop(kinect);
