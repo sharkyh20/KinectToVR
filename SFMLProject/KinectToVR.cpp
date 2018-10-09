@@ -123,6 +123,15 @@ bool filePathIsNonASCII(const std::wstring& filePath) {
     }
     return false;
 }
+std::wstring ToUTF16(const std::string &data)
+{
+    return std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(data);
+}
+
+std::string ToUTF8(const std::wstring &data)
+{
+    return std::wstring_convert<std::codecvt_utf8<wchar_t>>().to_bytes(data);
+}
 void verifyDefaultFilePath() {
     // Warn about non-english file path, as openvr can only take ASCII chars
     // If this isn't checked, unfortunately, most of the bindings won't load
