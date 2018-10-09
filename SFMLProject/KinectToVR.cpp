@@ -270,8 +270,7 @@ void processLoop(KinectHandlerBase& kinect) {
     guiRef.setReconnectControllerButtonSignal(leftController, rightController, m_VRSystem);
 
     KinectSettings::userChangingZero = true;
-    PlayspaceMovementAdjuster playspaceMovementAdjuster(&inputEmulator);
-    guiRef.setPlayspaceResetButtonSignal(playspaceMovementAdjuster);
+
     while (renderWindow.isOpen())
     {
         //Clear the debug text display
