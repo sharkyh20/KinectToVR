@@ -1,0 +1,51 @@
+{
+	"bindings" : {
+		"/actions/calibration" : {
+			"sources" : [
+				{
+				   "inputs" : {
+					  "click" : {
+						 "output" : "/actions/calibration/in/ConfirmCalibration"
+					  }
+				   },
+				   "mode" : "button",
+				   "path" : "/user/hand/left/input/trigger"
+				},
+				{
+					"inputs" : {
+					   "position" : {
+						  "output" : "/actions/calibration/in/MoveHorizontally"
+					   }
+					},
+					"mode" : "joystick",
+					"path" : "/user/hand/left/input/joystick"
+				},
+				{
+					"inputs" : {
+					   "position" : {
+						  "output" : "/actions/calibration/in/MoveVertically"
+					   }
+					},
+					"mode" : "joystick",
+					"path" : "/user/hand/right/input/joystick"
+				}
+			]
+			
+		}
+	},
+	"controller_type": "oculus_touch",
+	"action_binds": [ 
+	{
+		"action": "/actions/calibration/in/MoveHorizontally",
+		"source": [ "/user/hand/left/input/joystick/x", "/user/hand/left/input/joystick/y" ]
+	},
+	{
+		"action": "/actions/calibration/in/MoveVertically",
+		"source": [ "/user/hand/right/input/joystick/x", "/user/hand/right/input/joystick/y" ]
+	},
+	{
+		"action": "/actions/calibration/in/ConfirmCalibration",
+		"source": "/user/hand/left/input/trigger/click"
+	}
+	]
+}

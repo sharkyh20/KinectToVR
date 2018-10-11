@@ -1,29 +1,29 @@
 {
     "default_bindings": [
-        {
-            
-        }
     ], 
     "actions": [
       {
-        "name": "/actions/Calibration/in/MoveHorizontally",
+        "name": "/actions/calibration/in/MoveHorizontally",
         "requirement": "mandatory",
-        "type": "vector2"
+        "type": "vector2",
+        "scope": "application"
       },
       {
-        "name": "/actions/Calibration/in/MoveVertically",
+        "name": "/actions/calibration/in/MoveVertically",
         "requirement": "mandatory",
-        "type": "vector2"
+        "type": "vector2",
+        "scope": "application"
       },
       {
-        "name": "/actions/Calibration/in/ConfirmCalibration",
+        "name": "/actions/calibration/in/ConfirmCalibration",
         "requirement": "mandatory",
-        "type": "boolean"
+        "type": "boolean",
+        "scope": "application"
       }
     ],
     "action_sets": [
       {
-        "name": "/actions/Calibration",
+        "name": "/actions/calibration",
         "usage": "leftright"
       }
     ],

@@ -255,7 +255,7 @@ void processLoop(KinectHandlerBase& kinect) {
 
     std::cerr << "Attempting connection to vrsystem.... " << std::endl;    // DEBUG
     vr::EVRInitError eError = vr::VRInitError_None;
-    vr::IVRSystem *m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Background);
+    vr::IVRSystem *m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Scene);
 
     // INPUT BINDING TEMPORARY --------------------------------
     // Warn about non-english file path, as openvr can only take ASCII chars
@@ -272,20 +272,27 @@ void processLoop(KinectHandlerBase& kinect) {
 
     vr::VRActionHandle_t moveHorizontallyHandle;
     vr::VRActionHandle_t moveVerticallyHandle;
-    vr::VRActionHandle_t confirmPositionHandle;
-    iError = vr::VRInput()->GetActionHandle("/actions/Calibration/in/MoveHorizontally", &moveHorizontallyHandle);
-    iError = vr::VRInput()->GetActionHandle("/actions/Calibration/in/MoveVertically", &moveVerticallyHandle);
-    iError = vr::VRInput()->GetActionHandle("/actions/Calibration/in/ConfirmCalibration", &confirmPositionHandle);
+    vr::VRActionHandle_t confirmCalibrationHandle;
+    iError = vr::VRInput()->GetActionHandle("/actions/calibration/in/MoveHorizontally", &moveHorizontallyHandle);
+    iError = vr::VRInput()->GetActionHandle("/actions/calibration/in/MoveVertically", &moveVerticallyHandle);
+    iError = vr::VRInput()->GetActionHandle("/actions/calibration/in/ConfirmCalibration", &confirmCalibrationHandle);
 
     vr::VRActionSetHandle_t calibrationSetHandle;
-    iError = vr::VRInput()->GetActionSetHandle("/actions/Calibration", &calibrationSetHandle);
+    iError = vr::VRInput()->GetActionSetHandle("/actions/calibration", &calibrationSetHandle);
 
     vr::VRActiveActionSet_t activeActionSet;
     activeActionSet.ulActionSet = calibrationSetHandle;
     activeActionSet.ulRestrictedToDevice = vr::k_ulInvalidInputValueHandle;
     activeActionSet.unPadding;
-    activeActionSet.nPriority;
+    activeActionSet.nPriority= 0;
     iError = vr::VRInput()->UpdateActionState(&activeActionSet, sizeof(activeActionSet), 1);
+
+    vr::InputDigitalActionData_t confirmCalibrationData{};
+    iError = vr::VRInput()->GetDigitalActionData(confirmCalibrationHandle, &confirmCalibrationData, sizeof(confirmCalibrationData), activeActionSet.ulRestrictedToDevice);
+    vr::InputAnalogActionData_t moveHorizontallyData{};
+    iError = vr::VRInput()->GetAnalogActionData(moveHorizontallyHandle, &moveHorizontallyData, sizeof(moveHorizontallyData), activeActionSet.ulRestrictedToDevice);
+    vr::InputAnalogActionData_t moveVerticallyData{};
+    vr::VRInput()->GetAnalogActionData(moveVerticallyHandle, &moveVerticallyData, sizeof(moveVerticallyData), activeActionSet.ulRestrictedToDevice);
     // --------------------------------------------------------
 
 
@@ -394,6 +401,19 @@ void processLoop(KinectHandlerBase& kinect) {
             rightController.update(deltaT);
             leftController.update(deltaT);
             updateHMDPosAndRot(m_VRSystem);
+
+            // UPDATE INPUT PER FRAME
+            iError = vr::VRInput()->UpdateActionState(&activeActionSet, sizeof(activeActionSet), 1);
+            std::cout << "ERRORE STATUS : " << iError << std::endl;
+            //vr::InputDigitalActionData_t confirmCalibrationData{};
+            iError = vr::VRInput()->GetDigitalActionData(confirmCalibrationHandle, &confirmCalibrationData, sizeof(confirmCalibrationData), vr::k_ulInvalidInputValueHandle);
+            std::cout << "TRIGGEREERED: " << confirmCalibrationData.bState << std::endl;
+            //vr::InputAnalogActionData_t moveHorizontallyData{};
+            iError = vr::VRInput()->GetAnalogActionData(moveHorizontallyHandle, &moveHorizontallyData, sizeof(moveHorizontallyData), vr::k_ulInvalidInputValueHandle);
+
+            std::cout << moveHorizontallyData.x << ", " << moveHorizontallyData.y << ", " << moveHorizontallyData.z << std::endl;
+            //vr::InputAnalogActionData_t moveVerticallyData{};
+            vr::VRInput()->GetAnalogActionData(moveVerticallyHandle, &moveVerticallyData, sizeof(moveVerticallyData), vr::k_ulInvalidInputValueHandle);
         }
         else {
             std::cerr << "Error updating controllers: Could not connect to the SteamVR system! OpenVR init error-code " << std::to_string(eError) << std::endl;
