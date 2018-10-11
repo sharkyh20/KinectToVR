@@ -172,39 +172,42 @@ void KinectV2Handler::onBodyFrameArrived(IBodyFrameReader& sender, IBodyFrameArr
 }
 void KinectV2Handler::updateSkeletalData() {
     IBodyFrame* bodyFrame = nullptr;
-    //IBodyFrameReference* frameRef = nullptr;
     IBodyFrameSource *frameSource = nullptr;
     IBodyFrameReader* bodyReader = nullptr;
-        kinectSensor->get_BodyFrameSource(&frameSource);
-        frameSource->OpenReader(&bodyReader);
-    //multiFrame->get_BodyFrameReference(&frameRef);
-    //frameRef->AcquireFrame(&bodyFrame);
+
+    kinectSensor->get_BodyFrameSource(&frameSource);
+    frameSource->OpenReader(&bodyReader);
+
     bodyReader->AcquireLatestFrame(&bodyFrame);
-    //if (frameRef) frameRef->Release();
 
-    if (!bodyFrame) return;
-
-    
-    bodyFrame->GetAndRefreshBodyData(BODY_COUNT, kinectBodies);
-    for (int i = 0; i < BODY_COUNT; i++) {
-        kinectBodies[i]->get_IsTracked(&isTracking);
-        if (isTracking) {
-            kinectBodies[i]->GetJoints(JointType_Count, joints);
-            kinectBodies[i]->GetJointOrientations(JointType_Count, jointOrientations);
+    if (bodyFrame) {
+        bodyFrame->GetAndRefreshBodyData(BODY_COUNT, kinectBodies);
+        for (int i = 0; i < BODY_COUNT; i++) {
+            kinectBodies[i]->get_IsTracked(&isTracking);
+            if (isTracking) {
+                kinectBodies[i]->GetJoints(JointType_Count, joints);
+                kinectBodies[i]->GetJointOrientations(JointType_Count, jointOrientations);
 
 
-            for (int i = 0; i < JointType_Count; i++) {
-                Vector4 orientation = jointOrientations[i].Orientation;
-                //std::cerr << "Joint " << i << ": " << orientation.w << ", " << orientation.x << ", " << orientation.y << ", " << orientation.z << '\n';
+                for (int i = 0; i < JointType_Count; i++) {
+                    Vector4 orientation = jointOrientations[i].Orientation;
+                    //std::cerr << "Joint " << i << ": " << orientation.w << ", " << orientation.x << ", " << orientation.y << ", " << orientation.z << '\n';
+                }
+
+                //Smooth
+                filter.update(joints);
+                rotationFilter.UpdateFilter(kinectBodies[i], jointOrientations);
+                break;
             }
-
-            //Smooth
-            filter.update(joints);
-            rotationFilter.UpdateFilter(kinectBodies[i], jointOrientations);
-            break;
         }
     }
-    if (bodyFrame) bodyFrame->Release();
+    
+    if (bodyFrame) 
+        bodyFrame->Release();
+    if (bodyReader)
+        bodyReader->Release();
+    if (frameSource)
+        frameSource->Release();
 }
 sf::Vector3f KinectV2Handler::zeroKinectPosition(int trackedSkeletonIndex) {
     return sf::Vector3f(
