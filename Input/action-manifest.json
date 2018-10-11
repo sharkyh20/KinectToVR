@@ -1,5 +1,9 @@
 {
-    "default_bindings": [
+    "default_bindings": [ 
+      {
+      "controller_type" : "oculus_touch",
+      "binding_url": "K2VR_Bindings_Oculus_Touch.json"
+      }
     ], 
     "actions": [
       {

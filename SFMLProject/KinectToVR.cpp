@@ -407,7 +407,7 @@ void processLoop(KinectHandlerBase& kinect) {
             std::cout << "ERRORE STATUS : " << iError << std::endl;
             //vr::InputDigitalActionData_t confirmCalibrationData{};
             iError = vr::VRInput()->GetDigitalActionData(confirmCalibrationHandle, &confirmCalibrationData, sizeof(confirmCalibrationData), vr::k_ulInvalidInputValueHandle);
-            std::cout << "TRIGGEREERED: " << confirmCalibrationData.bState << std::endl;
+            std::cout << "TRIGGERERED: " << confirmCalibrationData.bState << std::endl;
             //vr::InputAnalogActionData_t moveHorizontallyData{};
             iError = vr::VRInput()->GetAnalogActionData(moveHorizontallyHandle, &moveHorizontallyData, sizeof(moveHorizontallyData), vr::k_ulInvalidInputValueHandle);
 

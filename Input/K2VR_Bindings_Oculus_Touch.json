@@ -1,51 +1,50 @@
 {
+	"app_key" : "system.generated.kinectv2process.exe",
 	"bindings" : {
-		"/actions/calibration" : {
-			"sources" : [
-				{
-				   "inputs" : {
-					  "click" : {
-						 "output" : "/actions/calibration/in/ConfirmCalibration"
-					  }
-				   },
-				   "mode" : "button",
-				   "path" : "/user/hand/left/input/trigger"
+	   "/actions/Calibration" : {
+		  "sources" : [
+			 {
+				"inputs" : {},
+				"mode" : "trigger",
+				"path" : "/user/hand/left/input/trigger"
+			 }
+		  ]
+	   },
+	   "/actions/calibration" : {
+		  "chords" : [ {} ],
+		  "sources" : [
+			 {
+				"inputs" : {
+				   "position" : {
+					  "output" : "/actions/calibration/in/movehorizontally"
+				   }
 				},
-				{
-					"inputs" : {
-					   "position" : {
-						  "output" : "/actions/calibration/in/MoveHorizontally"
-					   }
-					},
-					"mode" : "joystick",
-					"path" : "/user/hand/left/input/joystick"
+				"mode" : "joystick",
+				"path" : "/user/hand/left/input/joystick"
+			 },
+			 {
+				"inputs" : {
+				   "position" : {
+					  "output" : "/actions/calibration/in/movevertically"
+				   }
 				},
-				{
-					"inputs" : {
-					   "position" : {
-						  "output" : "/actions/calibration/in/MoveVertically"
-					   }
-					},
-					"mode" : "joystick",
-					"path" : "/user/hand/right/input/joystick"
-				}
-			]
-			
-		}
+				"mode" : "joystick",
+				"path" : "/user/hand/right/input/joystick"
+			 },
+			 {
+				"inputs" : {
+				   "click" : {
+					  "output" : "/actions/calibration/in/confirmcalibration"
+				   }
+				},
+				"mode" : "trigger",
+				"path" : "/user/hand/right/input/trigger"
+			 }
+		  ]
+	   }
 	},
-	"controller_type": "oculus_touch",
-	"action_binds": [ 
-	{
-		"action": "/actions/calibration/in/MoveHorizontally",
-		"source": [ "/user/hand/left/input/joystick/x", "/user/hand/left/input/joystick/y" ]
-	},
-	{
-		"action": "/actions/calibration/in/MoveVertically",
-		"source": [ "/user/hand/right/input/joystick/x", "/user/hand/right/input/joystick/y" ]
-	},
-	{
-		"action": "/actions/calibration/in/ConfirmCalibration",
-		"source": "/user/hand/left/input/trigger/click"
-	}
-	]
-}
+	"controller_type" : "oculus_touch",
+	"description" : "",
+	"name" : "K2VR Config for Oculus Touch"
+ }
+ 
