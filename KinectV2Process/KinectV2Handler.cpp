@@ -41,6 +41,8 @@ void KinectV2Handler::initialise() {
 }
 void KinectV2Handler::initialiseSkeleton()
 {
+    if (bodyFrameReader)
+        bodyFrameReader->Release();
     IBodyFrameSource* bodyFrameSource;
     kinectSensor->get_BodyFrameSource(&bodyFrameSource);
     bodyFrameSource->OpenReader(&bodyFrameReader);
@@ -50,6 +52,8 @@ void KinectV2Handler::initialiseSkeleton()
 void KinectV2Handler::initialiseColor()
 {
 https://github.com/UnaNancyOwen/Kinect2Sample/blob/master/sample/CoordinateMapper/app.h
+    if (colorFrameReader)
+        colorFrameReader->Release();
     // Open Color Reader
     IColorFrameSource* colorFrameSource;
     kinectSensor->get_ColorFrameSource(&colorFrameSource);
@@ -65,10 +69,12 @@ https://github.com/UnaNancyOwen/Kinect2Sample/blob/master/sample/CoordinateMappe
                                                                                 // Allocation Color Buffer
     colorBuffer.resize(colorWidth * colorHeight * colorBytesPerPixel);
     if (colorFrameSource) colorFrameSource->Release();
+    if (colorFrameDescription) colorFrameDescription->Release();
 }
 void KinectV2Handler::initialiseDepth()
 {
 https://github.com/UnaNancyOwen/Kinect2Sample/blob/master/sample/CoordinateMapper/app.h
+    if (depthFrameReader) depthFrameReader->Release();
 
     // Open Depth Reader
     IDepthFrameSource* depthFrameSource;
@@ -85,6 +91,7 @@ https://github.com/UnaNancyOwen/Kinect2Sample/blob/master/sample/CoordinateMappe
     depthBuffer.resize(depthWidth * depthHeight);
 
     if (depthFrameSource) depthFrameSource->Release();
+    if (depthFrameDescription) depthFrameDescription->Release();
 }
 void KinectV2Handler::terminateSkeleton()
 {
