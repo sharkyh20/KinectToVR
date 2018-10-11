@@ -39,12 +39,6 @@ public:
 
     void update(float delta) {
         deltaTime = delta;
-        if (m_HMDSystem != nullptr) {
-            lastStateValid = m_HMDSystem->GetControllerStateWithPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, controllerID, &state_, sizeof(state_), &controllerPose);
-            if (lastStateValid) {
-                prevState_ = state_;
-            }
-        }
         if (m_HMDSystem != nullptr)
         {
             if (controllerID == vr::k_unTrackedDeviceIndexInvalid) {

@@ -237,7 +237,7 @@ void processLoop(KinectHandlerBase& kinect) {
     //GamepadController gamepad;
 
     vr::EVRInitError eError = vr::VRInitError_None;
-    vr::IVRSystem *m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Utility);
+    vr::IVRSystem *m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Background);
     if (eError == vr::VRInitError_None) {
         std::cerr << "Attempting connection to controllers.... " << std::endl;    // DEBUG
         leftController.Connect(m_VRSystem);
