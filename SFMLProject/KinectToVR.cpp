@@ -313,9 +313,9 @@ void processLoop(KinectHandlerBase& kinect) {
     std::vector<std::unique_ptr<TrackingMethod>> v_trackingMethods;
     guiRef.setTrackingMethodsReference(v_trackingMethods);
     
-    //SkeletonTracker mainSkeletalTracker;
+    SkeletonTracker mainSkeletalTracker;
     kinect.initialiseSkeleton();
-    //v_trackingMethods.push_back(std::make_unique<SkeletonTracker>(mainSkeletalTracker));
+    v_trackingMethods.push_back(std::make_unique<SkeletonTracker>(mainSkeletalTracker));
 
     IMU_PositionMethod posMethod;
     v_trackingMethods.push_back(std::make_unique<IMU_PositionMethod>(posMethod));

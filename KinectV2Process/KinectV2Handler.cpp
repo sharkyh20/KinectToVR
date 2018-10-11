@@ -29,8 +29,10 @@ void KinectV2Handler::initialise() {
         kVersion = KinectVersion::Version2;
         kinectImageData = std::make_unique<GLubyte[]>(KinectSettings::kinectV2Width * KinectSettings::kinectV2Height * 4);  //RGBA
         initialised = initKinect();
-        initialiseColor();
-        initialiseDepth();
+        // initialiseColor(); 
+        // Commented both image frames out, as most people use the kinect for skeletal data
+        // Updating all of the arrays uses a shit ton of CPU, but then again, it's still WIP
+        // initialiseDepth();
         initialiseSkeleton();
         std::this_thread::sleep_for(std::chrono::seconds(2));
         if (!initialised) throw FailedKinectInitialisation;
