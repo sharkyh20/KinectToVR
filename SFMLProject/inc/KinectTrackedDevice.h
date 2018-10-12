@@ -179,13 +179,11 @@ namespace KVR {
             rotatedPos.v[0] += KinectSettings::kinectRepPosition.v[0];
             rotatedPos.v[1] += KinectSettings::kinectRepPosition.v[1];
             rotatedPos.v[2] += KinectSettings::kinectRepPosition.v[2];
-
-            if (!isSensor()) {
-                if (rotationFilterOption == JointRotationFilterOption::HeadLook) {}
-                else
-                    rotation = KinectSettings::kinectRepRotation * rotation;
-                position = rotatedPos;
-            }
+            
+            if (rotationFilterOption == JointRotationFilterOption::HeadLook) {}
+            else
+                rotation = KinectSettings::kinectRepRotation * rotation;
+            position = rotatedPos;
         }
 
         bool isSensor() {

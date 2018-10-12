@@ -244,8 +244,9 @@ void processLoop(KinectHandlerBase& kinect) {
     std::function<void
         (double deltaT,
         KinectHandlerBase &kinect,
-        VRcontroller leftController,
-        VRcontroller rightController,
+        vr::VRActionHandle_t &h_horizontalPos,
+        vr::VRActionHandle_t &h_verticalPos,
+        vr::VRActionHandle_t &h_confirmPos,
         GUIHandler &guiRef)>
         currentCalibrationMethod = ManualCalibrator::Calibrate;
 
@@ -402,18 +403,9 @@ void processLoop(KinectHandlerBase& kinect) {
             leftController.update(deltaT);
             updateHMDPosAndRot(m_VRSystem);
 
-            // UPDATE INPUT PER FRAME
+            // UPDATE INPUT PER FRAME ----------------------
             iError = vr::VRInput()->UpdateActionState(&activeActionSet, sizeof(activeActionSet), 1);
-            std::cout << "ERRORE STATUS : " << iError << std::endl;
-            //vr::InputDigitalActionData_t confirmCalibrationData{};
-            iError = vr::VRInput()->GetDigitalActionData(confirmCalibrationHandle, &confirmCalibrationData, sizeof(confirmCalibrationData), vr::k_ulInvalidInputValueHandle);
-            std::cout << "TRIGGERERED: " << confirmCalibrationData.bState << std::endl;
-            //vr::InputAnalogActionData_t moveHorizontallyData{};
-            iError = vr::VRInput()->GetAnalogActionData(moveHorizontallyHandle, &moveHorizontallyData, sizeof(moveHorizontallyData), vr::k_ulInvalidInputValueHandle);
-
-            std::cout << moveHorizontallyData.x << ", " << moveHorizontallyData.y << ", " << moveHorizontallyData.z << std::endl;
-            //vr::InputAnalogActionData_t moveVerticallyData{};
-            vr::VRInput()->GetAnalogActionData(moveVerticallyHandle, &moveVerticallyData, sizeof(moveVerticallyData), vr::k_ulInvalidInputValueHandle);
+            // ----------------------------------------------
         }
         else {
             std::cerr << "Error updating controllers: Could not connect to the SteamVR system! OpenVR init error-code " << std::to_string(eError) << std::endl;
@@ -429,7 +421,13 @@ void processLoop(KinectHandlerBase& kinect) {
             kinect.update();
             if (KinectSettings::adjustingKinectRepresentationPos
                 || KinectSettings::adjustingKinectRepresentationRot)
-                currentCalibrationMethod(deltaT, kinect, leftController, rightController, guiRef);
+                currentCalibrationMethod(
+                    deltaT,
+                    kinect,
+                    moveHorizontallyHandle,
+                    moveVerticallyHandle,
+                    confirmCalibrationHandle,
+                    guiRef);
             
             kinect.updateTrackersWithSkeletonPosition( v_trackers);
             //std::vector<KVR::TrackedDeviceInputData> v_inputData = psMoveHandler.extractVRTrackingPoses();

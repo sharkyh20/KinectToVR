@@ -104,24 +104,9 @@ void removeDeviceProperty(uint32_t deviceId, int dProp, std::string type, std::s
     vr::ETrackedDeviceProperty deviceProperty = (vr::ETrackedDeviceProperty)dProp;
     vrinputemulator::VRInputEmulator inputEmulator;
     inputEmulator.connect();
-    if (std::strcmp(type.c_str(), "int32") == 0) {
-        inputEmulator.removeVirtualDeviceProperty(deviceId, deviceProperty);
-    }
-    else if (std::strcmp(type.c_str(), "uint64") == 0) {
-        inputEmulator.removeVirtualDeviceProperty(deviceId, deviceProperty);
-    }
-    else if (std::strcmp(type.c_str(), "float") == 0) {
-        inputEmulator.removeVirtualDeviceProperty(deviceId, deviceProperty);
-    }
-    else if (std::strcmp(type.c_str(), "bool") == 0) {
-        inputEmulator.removeVirtualDeviceProperty(deviceId, deviceProperty);
-    }
-    else if (std::strcmp(type.c_str(), "string") == 0) {
-        inputEmulator.removeVirtualDeviceProperty(deviceId, deviceProperty);
-    }
-    else {
-        throw std::runtime_error("Unknown value type.");
-    }
+
+    inputEmulator.removeVirtualDeviceProperty(deviceId, deviceProperty);
+    
 }
 void destroyTracker(vrinputemulator::VRInputEmulator& inputEmulator, uint32_t ID) {
     std::cerr << "DESTROYING TRACKER " << ID << "!!!\n";
