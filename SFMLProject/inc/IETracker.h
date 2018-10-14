@@ -7,7 +7,7 @@ uint32_t initTracker(vrinputemulator::VRInputEmulator &inputEmulator, bool conne
 
 void setTrackerDefaultProperties(vrinputemulator::VRInputEmulator &ie, uint32_t &deviceId);
 void setDeviceProperty(vrinputemulator::VRInputEmulator &ie, uint32_t deviceId, int dProp, std::string type, std::string value);
-void removeAllTrackerProperties(uint32_t &deviceId);
-void removeDeviceProperty(uint32_t deviceId, int dProp, std::string type, std::string value);
+void removeAllTrackerProperties(vrinputemulator::VRInputEmulator &ie, uint32_t &deviceId);
+void removeDeviceProperty(vrinputemulator::VRInputEmulator &ie, uint32_t deviceId, int dProp);
 void destroyTracker(vrinputemulator::VRInputEmulator& inputEmulator, uint32_t ID);
 void setKinectTrackerProperties(vrinputemulator::VRInputEmulator &ie, uint32_t deviceId);

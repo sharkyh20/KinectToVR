@@ -5,6 +5,12 @@
 #include <iostream>
 #include <fstream>
 
+#include "wtypes.h"
+#include <Windows.h>
+#include <codecvt>
+
+#include <openvr_math.h>
+
 namespace KinectSettings {
     std::wstring const CFG_NAME(L"KinectToVR.cfg");
     std::string KVRversion = "a0.5.6";
@@ -42,8 +48,13 @@ namespace KinectSettings {
     vr::HmdQuaternion_t kinectRepRotation{0,0,0,0};  //TEMP
     vr::HmdVector3d_t kinectRadRotation{0,0,0};
     vr::HmdVector3d_t kinectRepPosition{0,0,0};
+    bool sensorConfigChanged = false;
+
     bool adjustingKinectRepresentationRot = false;
     bool adjustingKinectRepresentationPos = false;
+    void updateKinectQuaternion() {
+        KinectSettings::kinectRepRotation = vrmath::quaternionFromYawPitchRoll(KinectSettings::kinectRadRotation.v[1], KinectSettings::kinectRadRotation.v[0], KinectSettings::kinectRadRotation.v[2]);
+    }
 
     void serializeKinectSettings() {
         std::ifstream is(KVR::fileToDirPath(CFG_NAME));
@@ -74,6 +85,7 @@ namespace KinectSettings {
             kinectRadRotation = { rot[0], rot[1], rot[2] };
             kinectRepPosition = { pos[0], pos[1], pos[2] };
             hipRoleHeightAdjust = hipHeight;
+            KinectSettings::sensorConfigChanged = true;
         }
     }
 
@@ -111,10 +123,30 @@ namespace SFMLsettings {
     std::stringstream debugDisplayTextStream;
 
     
+    
+    
 }
 namespace KVR {
     std::wstring fileToDirPath(std::wstring relativeFilePath) {
         return SFMLsettings::fileDirectoryPath + relativeFilePath;
+    }
+    std::wstring ToUTF16(const std::string &data)
+    {
+        return std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(data);
+    }
+
+    std::string ToUTF8(const std::wstring &data)
+    {
+        return std::wstring_convert<std::codecvt_utf8<wchar_t>>().to_bytes(data);
+    }
+    const char* inputDirForOpenVR(std::string file) {
+        const char* path;
+
+        std::string pathStr = ToUTF8(SFMLsettings::fileDirectoryPath) + "Input\\" + file;
+        path = pathStr.c_str();
+
+        std::cout << file << " PATH: " << path << '\n';
+        return path;
     }
 }
 # define M_PI           3.14159265358979323846

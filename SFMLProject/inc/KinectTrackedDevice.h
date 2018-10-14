@@ -132,9 +132,30 @@ namespace KVR {
             // Pose already completely handled by Tracking Method
             inputEmulatorRef.setVirtualDevicePose(deviceId, pose);
         }
+        bool sensorShouldSkipUpdate() {
+            // The sensor doesn't actually need to be updated more often than not,
+            // and by only updating it after the config changes, there's a pretty large
+            // perf/responsiveness benefit to the trackers
+            if (isSensor()) {
+                using namespace KinectSettings;
+                if (sensorConfigChanged) { // Sensor manually updated
+                    sensorConfigChanged = false;
+                    return false;
+                }
+                if (adjustingKinectRepresentationPos
+                    || adjustingKinectRepresentationRot) // Still adjusting the sensor
+                    return false;
+
+                return true;
+            }
+            return false;
+        }
         void update(vr::HmdVector3d_t additionalOffset, vr::HmdVector3d_t rawJointPos, vr::HmdQuaternion_t rawJointRotation) {
             // Old, and soon to be deprecated method of updating tracker
             // Done all at once, with little modularity
+            if (sensorShouldSkipUpdate()) {
+                return;
+            }
 
             //auto pose = inputEmulatorRef.getVirtualDevicePose(deviceId);
             vr::DriverPose_t pose{};

@@ -48,8 +48,11 @@ namespace KinectSettings {
     extern vr::HmdQuaternion_t kinectRepRotation;
     extern vr::HmdVector3d_t kinectRadRotation;
     extern vr::HmdVector3d_t kinectRepPosition;
+    extern bool sensorConfigChanged;
+
     extern bool adjustingKinectRepresentationRot;
     extern bool adjustingKinectRepresentationPos;
+    void updateKinectQuaternion();
 
     extern std::string KVRversion;
 
@@ -70,5 +73,9 @@ namespace SFMLsettings {
 }
 namespace KVR {
     std::wstring fileToDirPath(std::wstring relativeFilePath);
+    extern std::wstring ToUTF16(const std::string &data);
+
+    extern std::string ToUTF8(const std::wstring &data);
+    extern const char* inputDirForOpenVR(std::string file);
 }
 # define M_PI           3.14159265358979323846

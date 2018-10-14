@@ -377,8 +377,10 @@ void KinectV2Handler::updateTrackersWithSkeletonPosition( std::vector<KVR::Kinec
 {
     for (KVR::KinectTrackedDevice device : trackers) {
         if (device.positionTrackingOption == KVR::JointPositionTrackingOption::Skeleton) {
-            if (device.isSensor()) {
+            if (device.isSensor() ) {
                 device.update(KinectSettings::kinectRepPosition, { 0,0,0 }, KinectSettings::kinectRepRotation);
+                // Only update after the calibration value has been changed
+                // e.g. on boot, calibration box change
             }
             else {
                 vr::HmdVector3d_t jointPosition{ 0,0,0 };

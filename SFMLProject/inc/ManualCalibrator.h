@@ -23,7 +23,7 @@ public:
             confirmPosition(h_confirmPos, guiRef);
         }
         else if (KinectSettings::adjustingKinectRepresentationRot) { //TEMP FOR TESTING IMPLMENTATION
-            updateKinectQuaternion();
+            KinectSettings::updateKinectQuaternion();
             adjustYawRotation(deltaT, h_horizontalPos);
             adjustPitchRotation(deltaT, h_verticalPos);
             confirmRotation(h_confirmPos, guiRef);
@@ -88,6 +88,7 @@ private:
 
         if (confirmPosData.bState) {
             KinectSettings::adjustingKinectRepresentationPos = false;
+            KinectSettings::sensorConfigChanged = true;
             guiRef.togglePosButton();
             //controller.setHapticPulse(.15, 1000, 0); // Still need to figure out how to send rumbles
             // This prevents most people's issues with configs not saving due to program crash or steamVR force closing
@@ -134,13 +135,12 @@ private:
 
         if (confirmRotData.bState) {
             KinectSettings::adjustingKinectRepresentationRot = false;
+            KinectSettings::sensorConfigChanged = true;
             guiRef.toggleRotButton();
             //controller.setHapticPulse(.15, 1000, 0); // Still need to figure out how to send rumbles
             // This prevents most people's issues with configs not saving due to program crash or steamVR force closing
             KinectSettings::writeKinectSettings();
         }
     }
-    static void updateKinectQuaternion() {
-        KinectSettings::kinectRepRotation = vrmath::quaternionFromYawPitchRoll(KinectSettings::kinectRadRotation.v[1], KinectSettings::kinectRadRotation.v[0], KinectSettings::kinectRadRotation.v[2]);
-    }
+    
 };

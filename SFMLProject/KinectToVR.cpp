@@ -123,15 +123,7 @@ bool filePathIsNonASCII(const std::wstring& filePath) {
     }
     return false;
 }
-std::wstring ToUTF16(const std::string &data)
-{
-    return std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(data);
-}
 
-std::string ToUTF8(const std::wstring &data)
-{
-    return std::wstring_convert<std::codecvt_utf8<wchar_t>>().to_bytes(data);
-}
 void verifyDefaultFilePath() {
     // Warn about non-english file path, as openvr can only take ASCII chars
     // If this isn't checked, unfortunately, most of the bindings won't load
@@ -256,20 +248,15 @@ void processLoop(KinectHandlerBase& kinect) {
 
     std::cerr << "Attempting connection to vrsystem.... " << std::endl;    // DEBUG
     vr::EVRInitError eError = vr::VRInitError_None;
-    vr::IVRSystem *m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Scene);
+    vr::IVRSystem *m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Background);
 
     // INPUT BINDING TEMPORARY --------------------------------
     // Warn about non-english file path, as openvr can only take ASCII chars
     verifyDefaultFilePath();
     
-    const char* manifestPath;
+    
 
-    std::string manifestPathStr = ToUTF8(SFMLsettings::fileDirectoryPath) + "Input\\action-manifest.json";
-    manifestPath = manifestPathStr.c_str();
-
-    std::cout << "MANIFEST PATH: "<< manifestPath << '\n';
-
-    vr::EVRInputError iError = vr::VRInput()->SetActionManifestPath(manifestPath);
+    vr::EVRInputError iError = vr::VRInput()->SetActionManifestPath(KVR::inputDirForOpenVR("action-manifest.json"));
 
     vr::VRActionHandle_t moveHorizontallyHandle;
     vr::VRActionHandle_t moveVerticallyHandle;

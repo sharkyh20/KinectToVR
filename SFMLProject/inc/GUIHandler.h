@@ -46,11 +46,14 @@ public:
         packElementsIntoMainBox();
         packElementsIntoAdvTrackerBox();
         packElementsIntoTrackingMethodBox();
+        packElementsIntoCalibrationBox();
         setRequisitions();
 
         mainNotebook->AppendPage(mainGUIBox, sfg::Label::Create("KinectToVR"));
         mainNotebook->AppendPage(advancedTrackerBox, sfg::Label::Create("Adv. Trackers"));
+        mainNotebook->AppendPage(calibrationBox, sfg::Label::Create("Calibration"));
         mainNotebook->AppendPage(trackingMethodBox, sfg::Label::Create("Tracking Method"));
+        
         
 
         guiWindow->Add(mainNotebook);
@@ -140,6 +143,8 @@ void setDefaultSignals() {
         }
     });
     
+    
+
 
     refreshDeviceListButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
         updateDeviceLists();
@@ -185,6 +190,7 @@ void setDefaultSignals() {
         KinectSettings::hipRoleHeightAdjust = HipScale->GetValue();
     }
     );
+    setCalibrationSignal();
 
     StartPSMoveHandler->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
         if (psMoveHandler.active)
@@ -268,30 +274,45 @@ void updateTrackerLists(TempTracker &temp) {
     TrackersToBeInitialised.push_back(temp);
 }
 void setCalibrationSignal() {
-    CalibrationSetButton->GetSignal(sfg::Widget::OnLeftClick).Connect(
-        [this] {
-        //NEED TO VALIDATE THESE INPUTS
-        std::stringstream ss;
-        ss << CalibrationEntryPosX->GetText().toAnsiString();
-        KinectSettings::kinectRepPosition.v[0] = std::stof(ss.str());
-        ss.clear();
-        ss << CalibrationEntryPosY->GetText().toAnsiString();
-        KinectSettings::kinectRepPosition.v[1] = std::stof(ss.str());
-        ss.clear();
-        ss << CalibrationEntryPosZ->GetText().toAnsiString();
-        KinectSettings::kinectRepPosition.v[2] = std::stof(ss.str());
-        ss.clear();
+    CalibrationEntryPosX->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
+        KinectSettings::kinectRepPosition.v[0] = CalibrationEntryPosX->GetValue();
+        KinectSettings::sensorConfigChanged = true;
+    }
+    );
+    CalibrationEntryPosY->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
+        KinectSettings::kinectRepPosition.v[1] = CalibrationEntryPosY->GetValue();
+        KinectSettings::sensorConfigChanged = true;
+    }
+    );
+    CalibrationEntryPosZ->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
+        KinectSettings::kinectRepPosition.v[2] = CalibrationEntryPosZ->GetValue();
+        KinectSettings::sensorConfigChanged = true;
+    }
+    );
 
-        ss << CalibrationEntryRotX->GetText().toAnsiString();
-        KinectSettings::kinectRadRotation.v[0] = std::stof(ss.str());
-        ss.clear();
-        ss << CalibrationEntryRotY->GetText().toAnsiString();
-        KinectSettings::kinectRadRotation.v[1] = std::stof(ss.str());
-        ss.clear();
-        ss << CalibrationEntryRotZ->GetText().toAnsiString();
-        KinectSettings::kinectRadRotation.v[2] = std::stof(ss.str());
-        ss.clear();
-    });
+    CalibrationEntryRotX->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
+        KinectSettings::kinectRadRotation.v[0] = CalibrationEntryRotX->GetValue();
+        KinectSettings::updateKinectQuaternion();
+        KinectSettings::sensorConfigChanged = true;
+    }
+    );
+    CalibrationEntryRotY->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
+        KinectSettings::kinectRadRotation.v[1] = CalibrationEntryRotY->GetValue();
+        KinectSettings::updateKinectQuaternion();
+        KinectSettings::sensorConfigChanged = true;
+    }
+    );
+    CalibrationEntryRotZ->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
+        KinectSettings::kinectRadRotation.v[2] = CalibrationEntryRotZ->GetValue();
+        KinectSettings::updateKinectQuaternion();
+        KinectSettings::sensorConfigChanged = true;
+    }
+    );
+    CalibrationSaveButton->GetSignal(sfg::Button::OnLeftClick).Connect([this] {
+        KinectSettings::updateKinectQuaternion();
+        KinectSettings::writeKinectSettings();
+    }
+    );
 }
 void setKinectButtonSignal(KinectHandlerBase& kinect) {
     reconKinectButton->GetSignal(sfg::Widget::OnLeftClick).Connect([&kinect] {
@@ -477,7 +498,33 @@ void packElementsIntoAdvTrackerBox() {
 
     advancedTrackerBox->Pack(TrackerListOptionsBox);
 }
+void packElementsIntoCalibrationBox() {
+    sfg::Box::Ptr verticalBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
 
+    verticalBox->Pack(CalibrationSettingsLabel);
+
+    auto horizontalPosBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
+    horizontalPosBox->Pack(CalibrationPosLabel);
+    CalibrationEntryPosX->SetDigits(4);
+    horizontalPosBox->Pack(CalibrationEntryPosX);
+    CalibrationEntryPosY->SetDigits(4);
+    horizontalPosBox->Pack(CalibrationEntryPosY);
+    CalibrationEntryPosZ->SetDigits(4);
+    horizontalPosBox->Pack(CalibrationEntryPosZ);
+    verticalBox->Pack(horizontalPosBox);
+
+    auto horizontalRotBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
+    horizontalRotBox->Pack(CalibrationRotLabel);
+    CalibrationEntryRotX->SetDigits(4);
+    horizontalRotBox->Pack(CalibrationEntryRotX);
+    CalibrationEntryRotY->SetDigits(4);
+    horizontalRotBox->Pack(CalibrationEntryRotY);
+    CalibrationEntryRotZ->SetDigits(4);
+    horizontalRotBox->Pack(CalibrationEntryRotZ);
+    verticalBox->Pack(horizontalRotBox);
+    verticalBox->Pack(CalibrationSaveButton);
+    calibrationBox->Pack(verticalBox);
+}
 void setBonesListItems() {
     using namespace KVR;
     for (int i = 0; i < KinectJointCount; ++i) {
@@ -595,16 +642,18 @@ private:
 
     sfg::Label::Ptr InstructionsLabel = sfg::Label::Create("Stand in front of the Kinect sensor.\n If the trackers don't update, then try crouching slightly until they move.\n\n Calibration: The arrow represents the position and rotation of the Kinect - match it as closely to real life as possible for the trackers to line up.\n\n The arrow pos/rot is set with the thumbsticks on the controllers, and confirmed with the trigger.");    //Blegh - There has to be a better way than this, maybe serialization?
 
-    sfg::Label::Ptr CalibrationSettingsLabel = sfg::Label::Create("These settings are here for manual entry, and saving until a proper configuration system is implemented, you can use this to quickly calibrate if your Kinect is in the same place. (Rotation is in radians, and Pos should be in meters roughly)");
-    sfg::Entry::Ptr CalibrationEntryPosX = sfg::Entry::Create("");
-    sfg::Entry::Ptr CalibrationEntryPosY = sfg::Entry::Create("");
-    sfg::Entry::Ptr CalibrationEntryPosZ = sfg::Entry::Create("");
+    sfg::Label::Ptr CalibrationSettingsLabel = sfg::Label::Create("These settings are here for manual entry, and saving until a proper configuration system is implemented.\nYou can use this to quickly calibrate if your Kinect is in the same place. \n(Rotation is in radians, and Pos should be in meters roughly)");
+    sfg::Label::Ptr CalibrationPosLabel = sfg::Label::Create("Position x, y, z");
+    sfg::SpinButton::Ptr CalibrationEntryPosX = sfg::SpinButton::Create(sfg::Adjustment::Create(KinectSettings::kinectRepPosition.v[0], -10.f, 10.f, .01f, .2f));
+    sfg::SpinButton::Ptr CalibrationEntryPosY = sfg::SpinButton::Create(sfg::Adjustment::Create(KinectSettings::kinectRepPosition.v[1], -10.f, 10.f, .01f, .2f));
+    sfg::SpinButton::Ptr CalibrationEntryPosZ = sfg::SpinButton::Create(sfg::Adjustment::Create(KinectSettings::kinectRepPosition.v[2], -10.f, 10.f, .01f, .2f));
 
-    sfg::Entry::Ptr CalibrationEntryRotX = sfg::Entry::Create("");
-    sfg::Entry::Ptr CalibrationEntryRotY = sfg::Entry::Create("");
-    sfg::Entry::Ptr CalibrationEntryRotZ = sfg::Entry::Create("");
+    sfg::Label::Ptr CalibrationRotLabel = sfg::Label::Create("Rotation x, y, z");
+    sfg::SpinButton::Ptr CalibrationEntryRotX = sfg::SpinButton::Create(sfg::Adjustment::Create(KinectSettings::kinectRadRotation.v[0], -10.f, 10.f, .01f, .2f));
+    sfg::SpinButton::Ptr CalibrationEntryRotY = sfg::SpinButton::Create(sfg::Adjustment::Create(KinectSettings::kinectRadRotation.v[1], -10.f, 10.f, .01f, .2f));
+    sfg::SpinButton::Ptr CalibrationEntryRotZ = sfg::SpinButton::Create(sfg::Adjustment::Create(KinectSettings::kinectRadRotation.v[2], -10.f, 10.f, .01f, .2f));
 
-    sfg::Button::Ptr CalibrationSetButton = sfg::Button::Create();
+    sfg::Button::Ptr CalibrationSaveButton = sfg::Button::Create("Save Calibration Values");
 
     //Adv Trackers
     sfg::Button::Ptr AddHandControllersToList = sfg::Button::Create("Add Hand Controllers");
@@ -660,7 +709,7 @@ private:
         SetAllJointsRotHead->Show(show);
         SetAllJointsRotFiltered->Show(show);
 
-        calibrationBox->Show(show);
+        //calibrationBox->Show(show);
     }
     void hidePostTrackerInitUI() {
         showPostTrackerInitUI(false);
