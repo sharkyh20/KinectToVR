@@ -195,16 +195,25 @@ void setDefaultSignals() {
     StartPSMoveHandler->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
         if (psMoveHandler.active)
             return;
-        psMoveHandler.initialise();
-        static bool addedToVector = false;
-        if (!addedToVector) {
-            v_deviceHandlersRef->push_back(std::make_unique<PSMoveHandler>(psMoveHandler));
-            addedToVector = true;
+
+        auto errorCode = psMoveHandler.initialise();
+
+        if (psMoveHandler.active) {
+            static bool addedToVector = false;
+            if (!addedToVector) {
+                v_deviceHandlersRef->push_back(std::make_unique<PSMoveHandler>(psMoveHandler));
+                addedToVector = true;
+            }
+            updateDeviceLists();
+            PSMoveHandlerLabel->SetText("Status: Connected!");
         }
-        updateDeviceLists();
-        PSMoveHandlerLabel->SetText("Status: Connected!");
+        else {
+            PSMoveHandlerLabel->SetText(psMoveHandler.connectionMessages[errorCode]);
+        }
     });
     StopPSMoveHandler->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
+        if (!psMoveHandler.active)
+            return;
         psMoveHandler.shutdown();
         updateDeviceLists();
         PSMoveHandlerLabel->SetText("Status: Disconnected!");

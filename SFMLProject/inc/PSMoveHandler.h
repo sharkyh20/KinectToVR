@@ -28,6 +28,12 @@ public:
 
     }
     ~PSMoveHandler() {}
+
+    std::vector<std::string> connectionMessages{
+        "Connected!",
+        "Failed to startup the PSMoveClient. Check if PSMoveService is running...",
+    };
+
     int initialise() {
         try {
             if (startup()) {
@@ -35,7 +41,7 @@ public:
                 return 0;
             }
             else {
-                std::cerr << "Failed to startup the PSMoveClient!!!" << std::endl;
+                std::cerr << "Failed to startup the PSMoveClient. Check if PSMoveService is running..." << std::endl;
             }
         }
         catch (std::exception& e) {
@@ -76,6 +82,9 @@ public:
     }
     void shutdown()
     {
+        if (!PSM_GetIsConnected()) {
+            return;
+        }
         if (controllerList.count > 0)
         {
             for (int i = 0; i < controllerList.count; ++i) {

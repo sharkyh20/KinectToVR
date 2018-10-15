@@ -82,7 +82,6 @@ int main() {
     HWND hWnd = GetConsoleWindow();
     ShowWindow(hWnd, SW_HIDE);
 #endif 
-    ShowWindow(hWnd, SW_SHOW);
     KinectV2Handler kinect;
     processLoop(kinect);
     return 0;
