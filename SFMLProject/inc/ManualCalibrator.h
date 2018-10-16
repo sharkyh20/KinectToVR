@@ -21,12 +21,14 @@ public:
             adjustHorizontalPosition(deltaT, h_horizontalPos);
             adjustVerticalPosition(deltaT, h_verticalPos);
             confirmPosition(h_confirmPos, guiRef);
+            guiRef.refreshCalibrationMenuValues();
         }
         else if (KinectSettings::adjustingKinectRepresentationRot) { //TEMP FOR TESTING IMPLMENTATION
             KinectSettings::updateKinectQuaternion();
             adjustYawRotation(deltaT, h_horizontalPos);
             adjustPitchRotation(deltaT, h_verticalPos);
             confirmRotation(h_confirmPos, guiRef);
+            guiRef.refreshCalibrationMenuValues();
         }
     }
     /*  //Disabled for now until I integrate emulation of controllers as VR wands

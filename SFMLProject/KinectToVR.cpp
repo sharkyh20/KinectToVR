@@ -249,6 +249,7 @@ void processLoop(KinectHandlerBase& kinect) {
     std::cerr << "Attempting connection to vrsystem.... " << std::endl;    // DEBUG
     vr::EVRInitError eError = vr::VRInitError_None;
     vr::IVRSystem *m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Background);
+    guiRef.setVRSceneChangeButtonSignal(m_VRSystem);
 
     // INPUT BINDING TEMPORARY --------------------------------
     // Warn about non-english file path, as openvr can only take ASCII chars
@@ -295,7 +296,7 @@ void processLoop(KinectHandlerBase& kinect) {
         std::cerr << "Attempted connection to controllers! " << std::endl;    // DEBUG
         
         // Todo: implement binding system
-        
+        guiRef.loadK2VRIntoBindingsMenu(m_VRSystem);
     }
     guiRef.updateVRStatusLabel(eError);
     std::cerr << "Attempted connection to vrsystem! " << eError << std::endl;    // DEBUG

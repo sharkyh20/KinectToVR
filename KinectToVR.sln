@@ -21,6 +21,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KinectlessProcess", "Kinect
 	ProjectSection(ProjectDependencies) = postProject
 		{9E612475-CF0A-4384-969A-3C01C9543935} = {9E612475-CF0A-4384-969A-3C01C9543935}
 	EndProjectSection
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Boost6005BugFixApplier", "Boost6005BugFixApplier\Boost6005BugFixApplier.vcxproj", "{37E5DD70-E1A1-46BD-A3FF-60D61A291F57}"
 EndProject
 Global

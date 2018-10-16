@@ -282,6 +282,17 @@ void updateTrackerLists(TempTracker &temp) {
 
     TrackersToBeInitialised.push_back(temp);
 }
+void refreshCalibrationMenuValues() {
+    using namespace KinectSettings;
+    CalibrationEntryPosX->SetValue(KinectSettings::kinectRepPosition.v[0]);
+    CalibrationEntryPosY->SetValue(KinectSettings::kinectRepPosition.v[1]);
+    CalibrationEntryPosZ->SetValue(KinectSettings::kinectRepPosition.v[2]);
+
+    CalibrationEntryRotX->SetValue(KinectSettings::kinectRadRotation.v[0]);
+    CalibrationEntryRotY->SetValue(KinectSettings::kinectRadRotation.v[1]);
+    CalibrationEntryRotZ->SetValue(KinectSettings::kinectRadRotation.v[2]);
+
+}
 void setCalibrationSignal() {
     CalibrationEntryPosX->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
         KinectSettings::kinectRepPosition.v[0] = CalibrationEntryPosX->GetValue();
@@ -322,6 +333,23 @@ void setCalibrationSignal() {
         KinectSettings::writeKinectSettings();
     }
     );
+}
+void loadK2VRIntoBindingsMenu(vr::IVRSystem * & m_VRSystem) {
+    // Only scene apps currently actually load into the Bindings menu
+    // So, this momentarily opens the vrsystem as a scene, and closes it
+    // Which actually allows the menu to stay open, while still functioning as normal
+    vr::EVRInitError eError = vr::VRInitError_None;
+    vr::VR_Shutdown();
+    m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Scene);
+    Sleep(100); // Necessary because of SteamVR timing occasionally being too quick to change the scenes
+    vr::VR_Shutdown();
+    m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Background);
+}
+void setVRSceneChangeButtonSignal(vr::IVRSystem * & m_VRSystem) {
+    ActivateVRSceneTypeButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &m_VRSystem] {
+        loadK2VRIntoBindingsMenu(m_VRSystem);
+    });
+
 }
 void setKinectButtonSignal(KinectHandlerBase& kinect) {
     reconKinectButton->GetSignal(sfg::Widget::OnLeftClick).Connect([&kinect] {
@@ -532,6 +560,9 @@ void packElementsIntoCalibrationBox() {
     horizontalRotBox->Pack(CalibrationEntryRotZ);
     verticalBox->Pack(horizontalRotBox);
     verticalBox->Pack(CalibrationSaveButton);
+
+    verticalBox->Pack(ActivateVRSceneTypeButton);
+
     calibrationBox->Pack(verticalBox);
 }
 void setBonesListItems() {
@@ -663,6 +694,8 @@ private:
     sfg::SpinButton::Ptr CalibrationEntryRotZ = sfg::SpinButton::Create(sfg::Adjustment::Create(KinectSettings::kinectRadRotation.v[2], -10.f, 10.f, .01f, .2f));
 
     sfg::Button::Ptr CalibrationSaveButton = sfg::Button::Create("Save Calibration Values");
+
+    sfg::Button::Ptr ActivateVRSceneTypeButton = sfg::Button::Create("Show K2VR in the VR Bindings Menu!");
 
     //Adv Trackers
     sfg::Button::Ptr AddHandControllersToList = sfg::Button::Create("Add Hand Controllers");
