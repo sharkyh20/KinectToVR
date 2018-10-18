@@ -3,6 +3,14 @@
       {
       "controller_type" : "oculus_touch",
       "binding_url": "K2VR_Bindings_Oculus_Touch.json"
+      },
+      {
+        "controller_type": "vive_controller",
+        "binding_url": "K2VR_Bindings_Vive_Controller.json"
+      },
+      {
+        "controller_type": "holographic_controller",
+        "binding_url": "K2VR_Bindings_WMR_Trackpad.json"
       }
     ], 
     "actions": [
