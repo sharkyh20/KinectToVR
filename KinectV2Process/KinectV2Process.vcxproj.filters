@@ -27,13 +27,13 @@
     <ClInclude Include="KinectV2Handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\KinectV1Process\KinectJointFilter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="KinectDoubleExponentialRotationFilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SmoothingParameters.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="KinectJointFilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

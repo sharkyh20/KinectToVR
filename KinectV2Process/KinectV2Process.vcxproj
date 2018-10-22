@@ -152,8 +152,8 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\KinectV1Process\KinectJointFilter.h" />
     <ClInclude Include="KinectDoubleExponentialRotationFilter.h" />
+    <ClInclude Include="KinectJointFilter.h" />
     <ClInclude Include="KinectV2Handler.h" />
     <ClInclude Include="SmoothingParameters.h" />
     <ClInclude Include="stdafx.h" />
