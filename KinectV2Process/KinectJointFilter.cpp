@@ -27,7 +27,7 @@ void DoubleExponentialFilter::update(IBody* const pBody)
     assert(pBody);
 
     // Check for divide by zero. Use an epsilon of a 10th of a millimeter
-    m_fJitterRadius = max(0.0001f, m_fJitterRadius);
+    m_fJitterRadius = std::max(0.0001f, m_fJitterRadius);
 
     SmoothingParameters SmoothingParams;
 
@@ -58,7 +58,7 @@ void DoubleExponentialFilter::update(IBody* const pBody)
 void DoubleExponentialFilter::update(Joint joints[])
 {
     // Check for divide by zero. Use an epsilon of a 10th of a millimeter
-    m_fJitterRadius = max(0.0001f, m_fJitterRadius);
+    m_fJitterRadius = std::max(0.0001f, m_fJitterRadius);
 
     SmoothingParameters SmoothingParams;
     for (INT i = 0; i < JointType_Count; i++)
