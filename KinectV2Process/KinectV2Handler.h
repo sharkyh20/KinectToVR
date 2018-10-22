@@ -86,6 +86,8 @@ public:
     */
     void onBodyFrameArrived(IBodyFrameReader& sender, IBodyFrameArrivedEventArgs& eventArgs);
     virtual void updateSkeletalData();
+    
+
     virtual void zeroAllTracking(vr::IVRSystem* &m_sys);
     virtual void updateTrackersWithSkeletonPosition(std::vector<KVR::KinectTrackedDevice> trackers);
     virtual void updateTrackersWithColorPosition(std::vector<KVR::KinectTrackedDevice> trackers, sf::Vector2i pos);
@@ -93,6 +95,7 @@ public:
 private:
     bool initKinect();
     void updateKinectData();
+    void updateSkeletalFilters();
 
     sf::Vector3f zeroKinectPosition(int trackedSkeletonIndex);
     void setKinectToVRMultiplier(int skeletonIndex);
@@ -117,5 +120,9 @@ private:
     void drawHand(HandState handState, const sf::Vector2f& handPosition, sf::RenderWindow &win);
     void drawBone(const Joint* pJoints, const sf::Vector2f* pJointPoints, JointType joint0, JointType joint1, sf::RenderWindow &window);
     void drawLine(sf::Vector2f start, sf::Vector2f end, sf::Color colour, float lineThickness, sf::RenderWindow &window);
+
+    WAITABLE_HANDLE h_bodyFrameEvent;
+    bool newBodyFrameArrived = false;
+
 };
 

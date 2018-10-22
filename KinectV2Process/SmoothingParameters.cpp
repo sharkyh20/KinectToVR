@@ -21,8 +21,8 @@ SmoothingParameters getAggressiveSmoothingParams() {
     SmoothingParameters params;
     params.smoothing = .25f;
     params.correction = .25f;
-    params.maxDeviationRadius = .25f;
-    params.jitterRadius = 0.4f;
+    params.maxDeviationRadius = .15f;
+    params.jitterRadius = 0.2f;
     params.prediction = .25f;
     return params;
 }

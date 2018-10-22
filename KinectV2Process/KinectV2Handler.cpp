@@ -49,6 +49,14 @@ void KinectV2Handler::initialiseSkeleton()
     kinectSensor->get_BodyFrameSource(&bodyFrameSource);
     bodyFrameSource->OpenReader(&bodyFrameReader);
 
+    // Newfangled event based frame capture
+    // https://github.com/StevenHickson/PCL_Kinect2SDK/blob/master/src/Microsoft_grabber2.cpp
+    h_bodyFrameEvent = (WAITABLE_HANDLE)CreateEvent(NULL, FALSE, FALSE, NULL);
+    HRESULT hr = bodyFrameReader->SubscribeFrameArrived(&h_bodyFrameEvent);
+    if (FAILED(hr)) {
+        throw std::exception("Couldn't subscribe frame");
+    }
+
     if (bodyFrameSource) bodyFrameSource->Release();
 }
 void KinectV2Handler::initialiseColor()
@@ -98,6 +106,13 @@ https://github.com/UnaNancyOwen/Kinect2Sample/blob/master/sample/CoordinateMappe
 void KinectV2Handler::terminateSkeleton()
 {
     if (bodyFrameReader) {
+        HRESULT hr = bodyFrameReader->UnsubscribeFrameArrived(h_bodyFrameEvent);
+        if (FAILED(hr)) {
+            throw std::exception("Couldn't unsubscribe frame!");
+        }
+        CloseHandle((HANDLE)h_bodyFrameEvent);
+        h_bodyFrameEvent = NULL;
+
         bodyFrameReader->Release();
         bodyFrameReader = nullptr;
     }
@@ -158,6 +173,45 @@ void KinectV2Handler::update()
         BOOLEAN isAvailable = false;
         HRESULT kinectStatus = kinectSensor->get_IsAvailable(&isAvailable);
         if (kinectStatus == S_OK) {
+            // NEW ARRIVED FRAMES ------------------------
+            MSG msg;
+            while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) // Unneccesary?
+            {
+                DispatchMessage(&msg);
+            }
+
+            if (h_bodyFrameEvent)
+            {
+                //printf("Kinect Event ID: %d\n" ,(int)h_bodyFrameEvent);
+
+                //now check for IR Events
+                HANDLE handles[] = { reinterpret_cast<HANDLE>(h_bodyFrameEvent) }; // , reinterpret_cast<HANDLE>(ke.hMSEvent)		};
+
+                switch (MsgWaitForMultipleObjects(_countof(handles), handles, false, 1000, QS_ALLINPUT))
+                {
+                case WAIT_OBJECT_0:
+                {
+                    IBodyFrameArrivedEventArgs* pArgs = nullptr;
+                    //printf("Body Frame Event Signaled.\n");
+
+                    if (bodyFrameReader)
+                    {
+                        HRESULT hr = bodyFrameReader->GetFrameArrivedEventData(h_bodyFrameEvent, &pArgs);
+                        //printf("Retreive Frame Arrive Event Data -HR: %d\n", hr);
+
+                        if (SUCCEEDED(hr))
+                        {
+                            //printf("Retreived Frame Arrived Event Data\n");
+                            onBodyFrameArrived(*bodyFrameReader, *pArgs);
+                            pArgs->Release();
+                            //printf("Frame Arrived Event Data Released\n");
+                        }
+                    }
+                }
+                break;
+                }
+            }
+            // ------------------------------
             updateKinectData();
         }
     }
@@ -320,21 +374,26 @@ void KinectV2Handler::updateSkeletalData() {
         //if (bodyFrameReader) bodyFrameReader->Release();
         if (!bodyFrame) return;
 
-
         bodyFrame->GetAndRefreshBodyData(BODY_COUNT, kinectBodies);
-        for (int i = 0; i < BODY_COUNT; i++) {
-            kinectBodies[i]->get_IsTracked(&isTracking);
-            if (isTracking) {
-                kinectBodies[i]->GetJoints(JointType_Count, joints);
-                kinectBodies[i]->GetJointOrientations(JointType_Count, jointOrientations);
-
-                //Smooth
-                filter.update(joints);
-                rotationFilter.UpdateFilter(kinectBodies[i], jointOrientations);
-                break;
-            }
-        }
+        newBodyFrameArrived = true;
         if (bodyFrame) bodyFrame->Release();
+    }
+}
+void KinectV2Handler::updateSkeletalFilters() {
+    for (int i = 0; i < BODY_COUNT; i++) {
+        kinectBodies[i]->get_IsTracked(&isTracking);
+        if (isTracking) {
+            kinectBodies[i]->GetJoints(JointType_Count, joints);
+            kinectBodies[i]->GetJointOrientations(JointType_Count, jointOrientations);
+
+            //Smooth
+            filter.update(joints, newBodyFrameArrived);
+            rotationFilter.UpdateFilter(kinectBodies[i], jointOrientations);
+
+            newBodyFrameArrived = false;
+
+            break;
+        }
     }
 }
 sf::Vector3f KinectV2Handler::zeroKinectPosition(int trackedSkeletonIndex) {
@@ -488,7 +547,7 @@ bool KinectV2Handler::initKinect() {
 void KinectV2Handler::updateKinectData() {
     updateDepthData();
     updateColorData();
-    updateSkeletalData();
+    updateSkeletalFilters();
 }
 
  

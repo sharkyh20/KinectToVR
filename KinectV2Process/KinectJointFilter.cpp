@@ -22,7 +22,7 @@ inline bool jointPositionIsValid(sf::Vector3f vJointPosition)
 // smooths the curve and predicts.  There is also noise jitter removal. And maximum
 // prediction bounds.  The paramaters are commented in the init function.
 //--------------------------------------------------------------------------------------
-void DoubleExponentialFilter::update(IBody* const pBody)
+void DoubleExponentialFilter::update(IBody* const pBody, bool newFrameArrived)
 {
     assert(pBody);
 
@@ -51,11 +51,11 @@ void DoubleExponentialFilter::update(IBody* const pBody)
             SmoothingParams.maxDeviationRadius *= 2.0f;
         }
 
-        update(joints, i, SmoothingParams);
+        update(joints, i, SmoothingParams, newFrameArrived);
     }
 }
 
-void DoubleExponentialFilter::update(Joint joints[])
+void DoubleExponentialFilter::update(Joint joints[], bool newFrameArrived)
 {
     // Check for divide by zero. Use an epsilon of a 10th of a millimeter
     m_fJitterRadius = std::max(0.0001f, m_fJitterRadius);
@@ -77,12 +77,12 @@ void DoubleExponentialFilter::update(Joint joints[])
             SmoothingParams.maxDeviationRadius *= 2.0f;
         }
 
-        update(joints, i, SmoothingParams);
+        update(joints, i, SmoothingParams, newFrameArrived);
     }
 
 }
 
-void DoubleExponentialFilter::update(Joint joints[], UINT JointID, SmoothingParameters smoothingParams)
+void DoubleExponentialFilter::update(Joint joints[], UINT JointID, SmoothingParameters smoothingParams, bool newFrameArrived)
 {
     sf::Vector3f vPrevRawPosition;
     sf::Vector3f vPrevFilteredPosition;
@@ -99,10 +99,22 @@ void DoubleExponentialFilter::update(Joint joints[], UINT JointID, SmoothingPara
 
     const Joint joint = joints[JointID];
 
-    vRawPosition = sf::Vector3f(joint.Position.X, joint.Position.Y, joint.Position.Z);
+    // Smoothing always run on old frames (DJ Lukis' Impl.)
+    
+    vPrevRawPosition = pointHistory[JointID].rawPosition;
+    sf::Vector3f latestRawPosition = sf::Vector3f(joint.Position.X, joint.Position.Y, joint.Position.Z);
     vPrevFilteredPosition = pointHistory[JointID].filteredPosition;
     vPrevTrend = pointHistory[JointID].trend;
-    vPrevRawPosition = pointHistory[JointID].rawPosition;
+
+    if (newFrameArrived) {
+        vRawPosition = latestRawPosition; // New frame        
+    }
+    else {
+        // Old Frame
+        vRawPosition = vPrevFilteredPosition + vPrevTrend * 0.9f /** smoothingParams.prediction*/;
+    }
+
+
     bJointIsValid = jointPositionIsValid(vRawPosition);
 
     // If joint is invalid, reset the filter

@@ -24,7 +24,7 @@ public:
 };
 class DoubleExponentialFilter {
 public:
-    DoubleExponentialFilter() { init(getAggressiveSmoothingParams()); }
+    DoubleExponentialFilter() { init(getDefaultSmoothingParams()); }
     ~DoubleExponentialFilter() { shutdown(); }
     void init(SmoothingParameters p) {
         Reset(p.smoothing, p.correction, p.prediction, p.jitterRadius, p.maxDeviationRadius);
@@ -53,8 +53,8 @@ public:
         memset(pointHistory, 0, sizeof(DoubleExponentialFilterData) * JointType_Count);
     }
 
-    void update(IBody* const pBody);
-    void update(Joint joints[]);
+    void update(IBody* const pBody, bool newFrameArrived);
+    void update(Joint joints[], bool newFrameArrived);
 
     inline const sf::Vector3f* GetFilteredJoints() const { return &filteredJointPoints[0]; }
 
@@ -67,6 +67,6 @@ private:
     float m_fJitterRadius;
     float m_fMaxDeviationRadius;
 
-    void update(Joint joints[], UINT JointID, SmoothingParameters smoothingParams);
+    void update(Joint joints[], UINT JointID, SmoothingParameters smoothingParams, bool newFrameArrived);
 };
 

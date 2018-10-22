@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
 int main() {
 #ifndef _DEBUG 
     HWND hWnd = GetConsoleWindow();
-    ShowWindow(hWnd, SW_HIDE);
+    //ShowWindow(hWnd, SW_HIDE);
 #endif 
     KinectV2Handler kinect;
     processLoop(kinect);

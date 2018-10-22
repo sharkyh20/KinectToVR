@@ -27,6 +27,7 @@
 #include <codecvt>
 #include <iostream>
 #include <string>
+#include <thread>
 //GUI
 #include <SFGUI\SFGUI.hpp>
 #include <SFGUI/Widgets.hpp>
@@ -162,7 +163,7 @@ void updateFilePath() {
     std::wstring filePathString(directoryFilePath);
     SFMLsettings::fileDirectoryPath = filePathString;
 }
-void attemptInitialiseDebugDisplay(sf::Font font, sf::Text debugText) {
+void attemptInitialiseDebugDisplay(sf::Font &font, sf::Text &debugText) {
     // Global Debug Font
 #if _DEBUG
     auto fontFileName = "arial.ttf";
@@ -198,11 +199,38 @@ void updateTrackerInitGuiSignals(vrinputemulator::VRInputEmulator &inputEmulator
     }
 }
 
+void limitVRFramerate(double &endFrameMilliseconds)
+{
+    // Framerate limiting - as SFML only has 90 FPS when window in focus X-X
+    // Strange bugs occurred before, with the render window framerate being
+    // *sometimes* tied to the VR update. With this, it fixes it at 90,
+    // and 30 for the GUI - as it should be (GUI uses a lot of CPU to update)
+    static unsigned int FPS = 90;
+
+    double deltaDeviationMilliseconds;
+    int maxMillisecondsToCompensate = 30;
+
+    deltaDeviationMilliseconds = 1000.0 / FPS - endFrameMilliseconds;
+
+    if (floor(deltaDeviationMilliseconds) > 0) // TODO: Handle -ve (slow) frames
+        Sleep(deltaDeviationMilliseconds);
+    if (deltaDeviationMilliseconds < -maxMillisecondsToCompensate) {
+        endFrameMilliseconds -= maxMillisecondsToCompensate;
+    }
+    else {
+        endFrameMilliseconds += deltaDeviationMilliseconds;
+    }
+    //SFMLsettings::debugDisplayTextStream << "deviateMilli: " << deltaDeviationMilliseconds << '\n';
+    //SFMLsettings::debugDisplayTextStream << "POST endTimeMilli: " << endFrameMilliseconds << '\n';
+    //SFMLsettings::debugDisplayTextStream << "FPS End = " << 1000.0 / endFrameMilliseconds << '\n';
+}
+
 void processLoop(KinectHandlerBase& kinect) {
     updateFilePath();
     sf::RenderWindow renderWindow(getScaledWindowResolution(), "KinectToVR: " + KinectSettings::KVRversion, sf::Style::Titlebar | sf::Style::Close);
     updateKinectWindowRes(renderWindow);
-    renderWindow.setFramerateLimit(90);   //Prevents ridiculous overupdating and high CPU usage - plus 90Hz is the recommended refresh rate for most VR panels 
+    //renderWindow.setFramerateLimit(90);   //Prevents ridiculous overupdating and high CPU usage - plus 90Hz is the recommended refresh rate for most VR panels 
+    renderWindow.setVerticalSyncEnabled(true);
 
     sf::Clock clock;
 
@@ -230,11 +258,11 @@ void processLoop(KinectHandlerBase& kinect) {
     vrinputemulator::VRInputEmulator inputEmulator;
     attemptIEmulatorConnection(inputEmulator, guiRef);
     updateTrackerInitGuiSignals(inputEmulator, guiRef, v_trackers);
- 
+
     // Function pointer for the currently selected calibration method, which can be swapped out for the others
     // Only one calibration method can be active at a time
     std::function<void
-        (double deltaT,
+    (double deltaT,
         KinectHandlerBase &kinect,
         vr::VRActionHandle_t &h_horizontalPos,
         vr::VRActionHandle_t &h_verticalPos,
@@ -254,8 +282,8 @@ void processLoop(KinectHandlerBase& kinect) {
     // INPUT BINDING TEMPORARY --------------------------------
     // Warn about non-english file path, as openvr can only take ASCII chars
     verifyDefaultFilePath();
-    
-    
+
+
 
     vr::EVRInputError iError = vr::VRInput()->SetActionManifestPath(KVR::inputDirForOpenVR("action-manifest.json"));
 
@@ -273,7 +301,7 @@ void processLoop(KinectHandlerBase& kinect) {
     activeActionSet.ulActionSet = calibrationSetHandle;
     activeActionSet.ulRestrictedToDevice = vr::k_ulInvalidInputValueHandle;
     activeActionSet.unPadding;
-    activeActionSet.nPriority= 0;
+    activeActionSet.nPriority = 0;
     iError = vr::VRInput()->UpdateActionState(&activeActionSet, sizeof(activeActionSet), 1);
 
     vr::InputDigitalActionData_t confirmCalibrationData{};
@@ -288,13 +316,13 @@ void processLoop(KinectHandlerBase& kinect) {
 
 
 
-    
+
     if (eError == vr::VRInitError_None) {
         std::cerr << "Attempting connection to controllers.... " << std::endl;    // DEBUG
         leftController.Connect(m_VRSystem);
         rightController.Connect(m_VRSystem);
         std::cerr << "Attempted connection to controllers! " << std::endl;    // DEBUG
-        
+
         // Todo: implement binding system
         guiRef.loadK2VRIntoBindingsMenu(m_VRSystem);
     }
@@ -308,7 +336,7 @@ void processLoop(KinectHandlerBase& kinect) {
     //Default tracking methods
     std::vector<std::unique_ptr<TrackingMethod>> v_trackingMethods;
     guiRef.setTrackingMethodsReference(v_trackingMethods);
-    
+
     SkeletonTracker mainSkeletalTracker;
     kinect.initialiseSkeleton();
     v_trackingMethods.push_back(std::make_unique<SkeletonTracker>(mainSkeletalTracker));
@@ -329,61 +357,68 @@ void processLoop(KinectHandlerBase& kinect) {
     std::vector<std::unique_ptr<DeviceHandler>> v_deviceHandlers;
     guiRef.setDeviceHandlersReference(v_deviceHandlers);
 
+
+    
     while (renderWindow.isOpen() && SFMLsettings::keepRunning)
     {
         //Clear the debug text display
         SFMLsettings::debugDisplayTextStream.str(std::string());
         SFMLsettings::debugDisplayTextStream.clear();
 
-        std::stringstream ss;
         double currentTime = clock.restart().asSeconds();
         double deltaT = currentTime;
-        ss << "FPS = " << 1.0 / deltaT << '\n';
+        SFMLsettings::debugDisplayTextStream << "FPS Start = " << 1.0 / deltaT << '\n';
+
+        if (1.0 / deltaT > 60) { // DEBUG FOR PERF. BUG
+            printf("Framerate rose\n");
+        }
+        
+        // ----------------------------------------------------------------------
+
 
         updateKinectWindowRes(renderWindow);
 
         sf::Event event;
+        
         while (renderWindow.pollEvent(event))
         {
             guiRef.desktopHandleEvents(event);
-
-            if (event.type == sf::Event::Closed)
+            if (event.type == sf::Event::Closed) {
+                SFMLsettings::keepRunning = false;
                 renderWindow.close();
+            }
             if (event.type == sf::Event::KeyPressed) {
                 processKeyEvents(event);
-                //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //DEBUG Commands for testing
-                if (event.key.code == sf::Keyboard::Q) {
-                    kinect.initialiseColor();
-                }
-                if (event.key.code == sf::Keyboard::W) {
-                    kinect.terminateColor();
-                }
-
-                if (event.key.code == sf::Keyboard::S) {
-                    kinect.initialiseDepth();
-                }
-                if (event.key.code == sf::Keyboard::D) {
-                    kinect.terminateDepth();
-                }
-
-                if (event.key.code == sf::Keyboard::X) {
-                    kinect.initialiseSkeleton();
-                }
-                if (event.key.code == sf::Keyboard::C) {
-                    kinect.terminateSkeleton();
-                }
-                // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             }
         }
-
+        
         //Clear ---------------------------------------
         renderWindow.clear();
 
         //Process -------------------------------------
         //Update GUI
         guiRef.updateDesktop(deltaT);
-        
+
+        /*
+        // Framerate limiting - as SFML only has 90 FPS when window in focus X-X
+        static unsigned int FPS = 90;
+
+        double deltaDeviation;
+        int maxMillisecondsToCompensate = 30;
+
+        deltaDeviation = 1.0 / FPS - deltaT;
+
+        if (floor(deltaDeviation) > 0)
+            Sleep(deltaDeviation);
+
+        if (deltaDeviation < -maxMillisecondsToCompensate) {
+            deltaT -= maxMillisecondsToCompensate;
+        }
+        else {
+            deltaT += deltaDeviation;
+        }
+        */
+
         //Update VR Components
         if (eError == vr::VRInitError_None) {
             //vr::VRInput()->UpdateActionState();
@@ -416,8 +451,8 @@ void processLoop(KinectHandlerBase& kinect) {
                     moveVerticallyHandle,
                     confirmCalibrationHandle,
                     guiRef);
-            
-            kinect.updateTrackersWithSkeletonPosition( v_trackers);
+
+            kinect.updateTrackersWithSkeletonPosition(v_trackers);
             //std::vector<KVR::TrackedDeviceInputData> v_inputData = psMoveHandler.extractVRTrackingPoses();
             /*
             std::vector<KVR::TrackedDeviceInputData> v_inputData{}; // DEBUG
@@ -436,22 +471,30 @@ void processLoop(KinectHandlerBase& kinect) {
         //    vrinputemulator::VirtualDeviceInfo info = inputEmulator.getVirtualDeviceInfo(d.deviceId);
         //    virtualDeviceIndexes.push_back(info.openvrDeviceId); // needs to be converted into openvr's id - as inputEmulator has it's own Id's starting from zero
         //}
-        
+
 
         //playspaceMovementAdjuster.update(leftController, rightController, virtualDeviceIndexes);
-        
+
         renderWindow.pushGLStates();
 
-        //Draw debug font
-        debugText.setString(SFMLsettings::debugDisplayTextStream.str());
-        renderWindow.draw(debugText);
+        
 
         // Draw GUI
         renderWindow.setActive(true);
 
         guiRef.display(renderWindow);
 
+        //Draw debug font
+        double endTimeMilliseconds = clock.getElapsedTime().asMilliseconds();
+        SFMLsettings::debugDisplayTextStream << "endTimeMilli: " << endTimeMilliseconds << '\n';
+
+        //limitVRFramerate(endTimeMilliseconds);
+        debugText.setString(SFMLsettings::debugDisplayTextStream.str());
+        renderWindow.draw(debugText);
+        
+
         renderWindow.popGLStates();
+
         //End Frame
         renderWindow.display();
 

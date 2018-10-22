@@ -13,6 +13,8 @@ void processKeyEvents(sf::Event event);
 void toggle(bool &b);
 
 
+void limitVRFramerate(double &endTimeMilliseconds, std::stringstream &ss);
+
 void processLoop(KinectHandlerBase& kinect);
 
 void updateFilePath();
