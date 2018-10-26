@@ -381,7 +381,8 @@ void KinectV2Handler::updateSkeletalData() {
 }
 void KinectV2Handler::updateSkeletalFilters() {
     for (int i = 0; i < BODY_COUNT; i++) {
-        kinectBodies[i]->get_IsTracked(&isTracking);
+        if (kinectBodies[i])
+            kinectBodies[i]->get_IsTracked(&isTracking);
         if (isTracking) {
             kinectBodies[i]->GetJoints(JointType_Count, joints);
             kinectBodies[i]->GetJointOrientations(JointType_Count, jointOrientations);
