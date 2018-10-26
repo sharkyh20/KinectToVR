@@ -283,6 +283,7 @@ void processLoop(KinectHandlerBase& kinect) {
     // Warn about non-english file path, as openvr can only take ASCII chars
     verifyDefaultFilePath();
 
+    setTrackerRolesInVRSettings();
 
 
     vr::EVRInputError iError = vr::VRInput()->SetActionManifestPath(KVR::inputDirForOpenVR("action-manifest.json"));
@@ -358,7 +359,7 @@ void processLoop(KinectHandlerBase& kinect) {
     guiRef.setDeviceHandlersReference(v_deviceHandlers);
 
 
-    
+
     while (renderWindow.isOpen() && SFMLsettings::keepRunning)
     {
         //Clear the debug text display
@@ -372,14 +373,14 @@ void processLoop(KinectHandlerBase& kinect) {
         if (1.0 / deltaT > 60) { // DEBUG FOR PERF. BUG
             printf("Framerate rose\n");
         }
-        
+
         // ----------------------------------------------------------------------
 
 
         updateKinectWindowRes(renderWindow);
 
         sf::Event event;
-        
+
         while (renderWindow.pollEvent(event))
         {
             guiRef.desktopHandleEvents(event);
@@ -391,7 +392,7 @@ void processLoop(KinectHandlerBase& kinect) {
                 processKeyEvents(event);
             }
         }
-        
+
         //Clear ---------------------------------------
         renderWindow.clear();
 
@@ -477,7 +478,7 @@ void processLoop(KinectHandlerBase& kinect) {
 
         renderWindow.pushGLStates();
 
-        
+
 
         // Draw GUI
         renderWindow.setActive(true);
@@ -491,7 +492,7 @@ void processLoop(KinectHandlerBase& kinect) {
         //limitVRFramerate(endTimeMilliseconds);
         debugText.setString(SFMLsettings::debugDisplayTextStream.str());
         renderWindow.draw(debugText);
-        
+
 
         renderWindow.popGLStates();
 
@@ -508,7 +509,7 @@ void processLoop(KinectHandlerBase& kinect) {
     KinectSettings::writeKinectSettings();
 
     //playspaceMovementAdjuster.resetPlayspaceAdjustments();
-
+    removeTrackerRolesInVRSettings();
     vr::VR_Shutdown();
 }
 

@@ -4,6 +4,43 @@
 #include <openvr_math.h>
 #include "KinectSettings.h"
 
+void setTrackerRolesInVRSettings() {
+    // Attempt to set the steamvr.vrsettings property for the trackers
+    // See openvr.h l2117 for more details
+    // k_pch_Trackers_Section = "trackers"; // Section, NOT a property
+    // Declared same style as in OpenVR
+    // Kind of assumes that K2VR is spawning this stuff first
+    // Should consider removing properties on close - or adding a button to
+    static const char* const k_pch_Trackers_IeLeftFoot = "/devices/00vrinputemulator/0";
+    static const char* const k_pch_Trackers_IeRightFoot = "/devices/00vrinputemulator/1";
+    static const char* const k_pch_Trackers_IeWaist = "/devices/00vrinputemulator/2";
+    static const char* const k_pch_Trackers_IeKinectArrow = "/devices/00vrinputemulator/3";
+
+    vr::EVRSettingsError sError = vr::VRSettingsError_None;
+    vr::VRSettings()->SetString(vr::k_pch_Trackers_Section, k_pch_Trackers_IeLeftFoot, "TrackerRole_LeftFoot", &sError);
+    vr::VRSettings()->SetString(vr::k_pch_Trackers_Section, k_pch_Trackers_IeRightFoot, "TrackerRole_RightFoot", &sError);
+    vr::VRSettings()->SetString(vr::k_pch_Trackers_Section, k_pch_Trackers_IeWaist, "TrackerRole_Waist", &sError);
+    vr::VRSettings()->SetString(vr::k_pch_Trackers_Section, k_pch_Trackers_IeKinectArrow, "TrackerRole_None", &sError);
+}
+void removeTrackerRolesInVRSettings() {
+    // Attempt to remove the steamvr.vrsettings property for the trackers
+    // See openvr.h l2117 for more details
+    // k_pch_Trackers_Section = "trackers"; // Section, NOT a property
+    // Declared same style as in OpenVR
+    // Kind of assumes that K2VR is spawning this stuff first
+    // Should consider removing properties on close - or adding a button to
+    static const char* const k_pch_Trackers_IeLeftFoot = "/devices/00vrinputemulator/0";
+    static const char* const k_pch_Trackers_IeRightFoot = "/devices/00vrinputemulator/1";
+    static const char* const k_pch_Trackers_IeWaist = "/devices/00vrinputemulator/2";
+    static const char* const k_pch_Trackers_IeKinectArrow = "/devices/00vrinputemulator/3";
+
+    vr::EVRSettingsError sError = vr::VRSettingsError_None;
+    vr::VRSettings()->RemoveKeyInSection(vr::k_pch_Trackers_Section, k_pch_Trackers_IeLeftFoot);
+    vr::VRSettings()->RemoveKeyInSection(vr::k_pch_Trackers_Section, k_pch_Trackers_IeRightFoot);
+    vr::VRSettings()->RemoveKeyInSection(vr::k_pch_Trackers_Section, k_pch_Trackers_IeWaist);
+    vr::VRSettings()->RemoveKeyInSection(vr::k_pch_Trackers_Section, k_pch_Trackers_IeKinectArrow);
+}
+
 vr::HmdVector3d_t updateHMDPosAndRot(vr::IVRSystem* &m_system) {
     //Gets the HMD location for relative position setting
     // Use the head joint for the zero location!

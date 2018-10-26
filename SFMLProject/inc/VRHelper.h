@@ -4,6 +4,9 @@
 #include <SFML/System/Vector3.hpp>
 #include <vrinputemulator.h>
 
+
+void setTrackerRolesInVRSettings();
+void removeTrackerRolesInVRSettings();
 vr::HmdVector3d_t updateHMDPosAndRot(vr::IVRSystem* &m_sys);
 
 // Get the quaternion representing the rotation
