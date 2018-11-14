@@ -13,7 +13,7 @@
 
 namespace KinectSettings {
     std::wstring const CFG_NAME(L"KinectToVR.cfg");
-    std::string KVRversion = "a0.5.9 Experimental r2";
+    std::string KVRversion = "a0.5.9 Experimental r3";
 
     bool isKinectDrawn = false;
     bool isSkeletonDrawn = false;
