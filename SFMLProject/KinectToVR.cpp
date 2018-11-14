@@ -229,10 +229,14 @@ void processLoop(KinectHandlerBase& kinect) {
     updateFilePath();
     sf::RenderWindow renderWindow(getScaledWindowResolution(), "KinectToVR: " + KinectSettings::KVRversion, sf::Style::Titlebar | sf::Style::Close);
     updateKinectWindowRes(renderWindow);
-    //renderWindow.setFramerateLimit(90);   //Prevents ridiculous overupdating and high CPU usage - plus 90Hz is the recommended refresh rate for most VR panels 
-    renderWindow.setVerticalSyncEnabled(true);
+    renderWindow.setFramerateLimit(90);   //Prevents ridiculous overupdating and high CPU usage - plus 90Hz is the recommended refresh rate for most VR panels 
+    //renderWindow.setVerticalSyncEnabled(true);
 
-    sf::Clock clock;
+    sf::Clock frameClock;
+    sf::Clock timingClock;
+
+    sf::Time time_lastKinectStatusUpdate = timingClock.getElapsedTime();
+    sf::Time time_lastGuiDesktopUpdate = timingClock.getElapsedTime();
 
     //Initialise Settings
     KinectSettings::serializeKinectSettings();
@@ -366,17 +370,10 @@ void processLoop(KinectHandlerBase& kinect) {
         SFMLsettings::debugDisplayTextStream.str(std::string());
         SFMLsettings::debugDisplayTextStream.clear();
 
-        double currentTime = clock.restart().asSeconds();
+        double currentTime = frameClock.restart().asSeconds();
         double deltaT = currentTime;
         SFMLsettings::debugDisplayTextStream << "FPS Start = " << 1.0 / deltaT << '\n';
-
-        if (1.0 / deltaT > 60) { // DEBUG FOR PERF. BUG
-            printf("Framerate rose\n");
-        }
-
-        // ----------------------------------------------------------------------
-
-
+        //std::cout << SFMLsettings::debugDisplayTextStream.str() << std::endl;
         updateKinectWindowRes(renderWindow);
 
         sf::Event event;
@@ -387,10 +384,17 @@ void processLoop(KinectHandlerBase& kinect) {
             if (event.type == sf::Event::Closed) {
                 SFMLsettings::keepRunning = false;
                 renderWindow.close();
+                break;
             }
             if (event.type == sf::Event::KeyPressed) {
                 processKeyEvents(event);
             }
+        }
+        if (!(renderWindow.isOpen() && SFMLsettings::keepRunning)) {
+            // Possible for window to be closed mid-loop, in which case, instead of using goto's
+            // this is used to avoid glErrors that crash the program, and prevent proper
+            // destruction and cleaning up
+            break;
         }
 
         //Clear ---------------------------------------
@@ -398,27 +402,10 @@ void processLoop(KinectHandlerBase& kinect) {
 
         //Process -------------------------------------
         //Update GUI
-        guiRef.updateDesktop(deltaT);
-
-        /*
-        // Framerate limiting - as SFML only has 90 FPS when window in focus X-X
-        static unsigned int FPS = 90;
-
-        double deltaDeviation;
-        int maxMillisecondsToCompensate = 30;
-
-        deltaDeviation = 1.0 / FPS - deltaT;
-
-        if (floor(deltaDeviation) > 0)
-            Sleep(deltaDeviation);
-
-        if (deltaDeviation < -maxMillisecondsToCompensate) {
-            deltaT -= maxMillisecondsToCompensate;
+        if (timingClock.getElapsedTime() > time_lastGuiDesktopUpdate + sf::milliseconds(33)) {
+            guiRef.updateDesktop(deltaT);
+            time_lastGuiDesktopUpdate = timingClock.getElapsedTime();
         }
-        else {
-            deltaT += deltaDeviation;
-        }
-        */
 
         //Update VR Components
         if (eError == vr::VRInitError_None) {
@@ -440,7 +427,12 @@ void processLoop(KinectHandlerBase& kinect) {
         }
 
         // Update Kinect Status
-        guiRef.updateKinectStatusLabel(kinect);
+        // Only needs to be updated sparingly
+        if (timingClock.getElapsedTime() > time_lastKinectStatusUpdate + sf::seconds(2.0)) {
+            guiRef.updateKinectStatusLabel(kinect);
+            time_lastKinectStatusUpdate = timingClock.getElapsedTime();
+        }
+
         if (kinect.isInitialised()) {
             kinect.update();
             if (KinectSettings::adjustingKinectRepresentationPos
@@ -486,7 +478,7 @@ void processLoop(KinectHandlerBase& kinect) {
         guiRef.display(renderWindow);
 
         //Draw debug font
-        double endTimeMilliseconds = clock.getElapsedTime().asMilliseconds();
+        double endTimeMilliseconds = frameClock.getElapsedTime().asMilliseconds();
         SFMLsettings::debugDisplayTextStream << "endTimeMilli: " << endTimeMilliseconds << '\n';
 
         //limitVRFramerate(endTimeMilliseconds);

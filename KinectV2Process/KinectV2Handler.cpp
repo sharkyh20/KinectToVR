@@ -187,7 +187,7 @@ void KinectV2Handler::update()
                 //now check for IR Events
                 HANDLE handles[] = { reinterpret_cast<HANDLE>(h_bodyFrameEvent) }; // , reinterpret_cast<HANDLE>(ke.hMSEvent)		};
 
-                switch (MsgWaitForMultipleObjects(_countof(handles), handles, false, 1000, QS_ALLINPUT))
+                switch (MsgWaitForMultipleObjects(_countof(handles), handles, false, 0, QS_ALLINPUT))
                 {
                 case WAIT_OBJECT_0:
                 {
@@ -377,6 +377,8 @@ void KinectV2Handler::updateSkeletalData() {
         bodyFrame->GetAndRefreshBodyData(BODY_COUNT, kinectBodies);
         newBodyFrameArrived = true;
         if (bodyFrame) bodyFrame->Release();
+
+        updateSkeletalFilters();
     }
 }
 void KinectV2Handler::updateSkeletalFilters() {
@@ -548,7 +550,6 @@ bool KinectV2Handler::initKinect() {
 void KinectV2Handler::updateKinectData() {
     updateDepthData();
     updateColorData();
-    updateSkeletalFilters();
 }
 
  
