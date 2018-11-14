@@ -6,6 +6,8 @@
 #include <string>
 #include <sstream>
 
+#include "KinectJoint.h"
+
 enum class KinectVersion {
     Version1 = 0,   //AKA Xbox 360/ Windows v1
     Version2,    //AKA Xbox One/ Windows v2
@@ -16,6 +18,11 @@ namespace KinectSettings {
     extern bool isSkeletonDrawn;
     extern bool ignoreInferredPositions;
     extern bool ignoreRotationSmoothing;
+
+    extern KVR::KinectJointType leftFootJointWithRotation;
+    extern KVR::KinectJointType rightFootJointWithRotation;
+    extern KVR::KinectJointType leftFootJointWithoutRotation;
+    extern KVR::KinectJointType rightFootJointWithoutRotation;
 
     extern bool userChangingZero;
 

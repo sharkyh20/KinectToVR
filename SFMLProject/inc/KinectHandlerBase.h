@@ -38,7 +38,7 @@ public:
 
     virtual HRESULT getStatusResult() { return E_NOTIMPL; }
     virtual std::string statusResultString(HRESULT stat) { return "statusResultString behaviour not defined"; };
-    virtual bool getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdVector3_t& position, vr::HmdQuaternion_t &rotation) { return false; };
+    virtual bool getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdVector3d_t& position, vr::HmdQuaternion_t &rotation) { return false; };
 
     virtual void update() {};
 
@@ -46,8 +46,6 @@ public:
     virtual void drawKinectData(sf::RenderWindow &win) {};  // Houses the below draw functions with a check
     virtual void drawKinectImageData(sf::RenderWindow &win) {};
     virtual void drawTrackedSkeletons(sf::RenderWindow &win) {};
-
-    virtual bool getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdVector3d_t& position, vr::HmdQuaternion_t &rotation) { return false; };
 
     virtual void zeroAllTracking(vr::IVRSystem* &m_sys) {};
     virtual void updateTrackersWithSkeletonPosition(

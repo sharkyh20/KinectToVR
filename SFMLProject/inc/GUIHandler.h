@@ -654,7 +654,7 @@ private:
     sfg::Label::Ptr InputEmulatorStatusLabel = sfg::Label::Create();
 
     sfg::Button::Ptr reconKinectButton = sfg::Button::Create("Reconnect Kinect");
-    sfg::Button::Ptr TrackerInitButton = sfg::Button::Create("Initialise SteamVR Kinect Trackers - HIT ME");
+    sfg::Button::Ptr TrackerInitButton = sfg::Button::Create("**Please be in VR before hitting me!** Initialise SteamVR Kinect Trackers - HIT ME");
 
     sfg::Button::Ptr ShowSkeletonButton = sfg::CheckButton::Create("Show/Hide Skeleton Tracking: MAY CAUSE LAG IN TRACKERS");
 

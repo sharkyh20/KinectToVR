@@ -533,8 +533,8 @@ void spawnAndConnectHandTrackers(vrinputemulator::VRInputEmulator & inputE, std:
 }
 void spawnDefaultLowerBodyTrackers(vrinputemulator::VRInputEmulator & inputE, std::vector<KVR::KinectTrackedDevice>& v_trackers)
 {
-    spawnAndConnectTracker(inputE, v_trackers, KVR::KinectJointType::AnkleLeft, KVR::KinectJointType::FootLeft, KVR::KinectDeviceRole::LeftFoot);
-    spawnAndConnectTracker(inputE, v_trackers, KVR::KinectJointType::AnkleRight, KVR::KinectJointType::FootRight, KVR::KinectDeviceRole::RightFoot);
+    spawnAndConnectTracker(inputE, v_trackers, KinectSettings::leftFootJointWithRotation, KinectSettings::leftFootJointWithoutRotation, KVR::KinectDeviceRole::LeftFoot);
+    spawnAndConnectTracker(inputE, v_trackers, KinectSettings::rightFootJointWithRotation, KinectSettings::rightFootJointWithoutRotation, KVR::KinectDeviceRole::RightFoot);
     spawnAndConnectTracker(inputE, v_trackers, KVR::KinectJointType::SpineBase, KVR::KinectJointType::SpineMid, KVR::KinectDeviceRole::Hip);
 }
 

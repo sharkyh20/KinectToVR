@@ -13,7 +13,10 @@ int main()
     ShowWindow(hWnd, SW_HIDE);
 #endif 
     KinectV1Handler kinect;
-    
+    KinectSettings::leftFootJointWithRotation = KVR::KinectJointType::FootLeft;
+    KinectSettings::rightFootJointWithRotation = KVR::KinectJointType::FootRight;
+    KinectSettings::leftFootJointWithoutRotation = KVR::KinectJointType::AnkleLeft;
+    KinectSettings::rightFootJointWithoutRotation = KVR::KinectJointType::AnkleRight;
     processLoop(kinect);
     
     return 0;

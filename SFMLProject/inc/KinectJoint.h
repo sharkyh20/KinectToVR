@@ -7,7 +7,9 @@ namespace KVR {
     enum class KinectJointType {
         SpineBase = 0,
         SpineMid = 1,
+
         Neck = 2,   //Not in v1
+
         Head = 3,
         ShoulderLeft = 4,
         ElbowLeft = 5,
@@ -26,10 +28,13 @@ namespace KVR {
         AnkleRight = 18,
         FootRight = 19,
         SpineShoulder = 20,
+
         HandTipLeft = 21, //Not in v1
         ThumbLeft = 22, //Not in v1
         HandTipRight = 23, //Not in v1
         ThumbRight = 24, //Not in v1
+
+        INVALID = 25, // Indicates device doesn't use Kinect joint
     };
     extern std::string KinectJointName[KinectJointCount];
 

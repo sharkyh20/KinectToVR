@@ -7,12 +7,12 @@
 #include <sstream>
 #include <string>
 #include <iostream>
-#include <Windows.h>
+//#include <Windows.h>
 
-#include <opencv2/opencv.hpp>
-#include <opencv2/highgui.hpp>
+//#include <opencv2/opencv.hpp>
+//#include <opencv2/highgui.hpp>
 
-using namespace cv;
+//using namespace cv;
 
 using namespace std;
 
@@ -83,6 +83,11 @@ int main() {
     //ShowWindow(hWnd, SW_HIDE);
 #endif 
     KinectV2Handler kinect;
+    KinectSettings::leftFootJointWithRotation = KVR::KinectJointType::AnkleLeft;
+    KinectSettings::rightFootJointWithRotation = KVR::KinectJointType::AnkleRight;
+    KinectSettings::leftFootJointWithoutRotation = KVR::KinectJointType::FootLeft;
+    KinectSettings::rightFootJointWithoutRotation = KVR::KinectJointType::FootRight;
+
     processLoop(kinect);
     return 0;
 }

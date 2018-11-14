@@ -5,7 +5,9 @@ namespace KVR {
     std::string KinectJointName[KinectJointCount]{
         "Spine Base",
         "Spine Mid",
+
         "Neck",   //Not in v1
+
         "Head",
         "Shoulder Left",
         "Elbow Left",
@@ -24,6 +26,7 @@ namespace KVR {
         "Ankle Right",
         "Foot Right",
         "Spine Shoulder",
+
         "Hand Tip Left", //Not in v1
         "Thumb Left", //Not in v1
         "Hand Tip Right", //Not in v1

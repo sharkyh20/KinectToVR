@@ -21,6 +21,14 @@ namespace KinectSettings {
     bool ignoreInferredPositions = false;
     bool ignoreRotationSmoothing = false;
 
+    // The joints which actually have rotation change based on the kinect
+    // Each kinect type should set these in their process beginning
+    // These would be the defaults for the V1
+    KVR::KinectJointType leftFootJointWithRotation = KVR::KinectJointType::FootLeft;
+    KVR::KinectJointType rightFootJointWithRotation = KVR::KinectJointType::FootRight;
+    KVR::KinectJointType leftFootJointWithoutRotation = KVR::KinectJointType::AnkleLeft;
+    KVR::KinectJointType rightFootJointWithoutRotation = KVR::KinectJointType::AnkleRight;
+
     bool userChangingZero = false;
 
     float g_TrackedBoneThickness = 6.0f;

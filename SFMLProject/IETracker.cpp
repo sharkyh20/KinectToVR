@@ -52,7 +52,7 @@ uint32_t initTracker(vrinputemulator::VRInputEmulator &inputEmulator, bool conne
 
 void setTrackerDefaultProperties(vrinputemulator::VRInputEmulator &ie, uint32_t &deviceId) {
     using namespace vr;
-    setDeviceProperty(ie, deviceId, Prop_TrackingSystemName_String, "string", "lighthouse");
+    setDeviceProperty(ie, deviceId, Prop_TrackingSystemName_String, "string", "k2vr"); // Necessary for auto calibration to only apply to these trackers
     setDeviceProperty(ie, deviceId, Prop_ModelNumber_String, "string", "Vive Controller MV");
     setDeviceProperty(ie, deviceId, Prop_RenderModelName_String, "string", "vr_controller_vive_1_5");
     setDeviceProperty(ie, deviceId, Prop_WillDriftInYaw_Bool, "bool", "0");
@@ -158,6 +158,6 @@ void setKinectTrackerProperties(vrinputemulator::VRInputEmulator &ie, uint32_t d
     setDeviceProperty(ie, deviceId, vr::Prop_RenderModelName_String, "string", "arrow");
     setDeviceProperty(ie, deviceId, vr::Prop_DeviceClass_Int32, "int32", "4");
     //setDeviceProperty(ie, deviceId, vr::Prop_ControllerRoleHint_Int32, "int32", "0");
-    removeDeviceProperty(ie, deviceId, vr::Prop_ControllerType_String);
-    removeDeviceProperty(ie, deviceId, vr::Prop_InputProfilePath_String);
+    //removeDeviceProperty(ie, deviceId, vr::Prop_ControllerType_String);
+    //removeDeviceProperty(ie, deviceId, vr::Prop_InputProfilePath_String);
 }

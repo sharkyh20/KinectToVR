@@ -221,8 +221,8 @@ namespace KVR {
         vrinputemulator::VRInputEmulator &inputEmulatorRef;
         uint32_t deviceId;
 
-        KVR::KinectJoint joint0 = KVR::KinectJointType::Head;
-        KVR::KinectJoint joint1 = KVR::KinectJointType::Head;
+        KVR::KinectJoint joint0 = KVR::KinectJointType::INVALID;
+        KVR::KinectJoint joint1 = KVR::KinectJointType::INVALID;
 
         std::string defaultModelName{ "vr_controller_vive_1_5" };
 
