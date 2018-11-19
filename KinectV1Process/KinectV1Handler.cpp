@@ -407,11 +407,20 @@ void KinectV1Handler::getKinectRGBData() {
     void KinectV1Handler::updateSkeletalData() {
         if (kinectSensor->NuiSkeletonGetNextFrame(0, &skeletonFrame) >= 0) {
             NUI_TRANSFORM_SMOOTH_PARAMETERS params;
+            /*
             params.fCorrection = .25f;
             params.fJitterRadius = .4f;
             params.fMaxDeviationRadius = .25f;
             params.fPrediction = .25f;
             params.fSmoothing = .25f;
+            //*/
+            ///*
+            params.fSmoothing = .25f;
+            params.fCorrection = .25f;
+            params.fMaxDeviationRadius = .05f;
+            params.fJitterRadius = 0.03f;
+            params.fPrediction = .25f;
+            //*/
             kinectSensor->NuiTransformSmooth(&skeletonFrame, &params);   //Smooths jittery tracking
 
             for (int i = 0; i < NUI_SKELETON_COUNT; ++i) {

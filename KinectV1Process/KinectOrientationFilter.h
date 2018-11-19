@@ -123,9 +123,6 @@ private:
     {
         const Vector4 fromTo = fromToRotation(upVRAxis(), forwardVRAxis());
         for (int i = 0; i < NUI_SKELETON_POSITION_COUNT; ++i) {
-            if (i == 14) {
-                std::cerr << "";
-            }
             Vector4 lastRotation = product(
                 joints[i].absoluteRotation.rotationQuaternion,
                 fromTo);
