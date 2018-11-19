@@ -185,6 +185,8 @@ void setDefaultSignals() {
         //updateTempTrackerButtonGroups();
     });
 
+    
+
     HipScale->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
         // Update the Global hip offset
         KinectSettings::hipRoleHeightAdjust = HipScale->GetValue();
@@ -390,6 +392,42 @@ void setTrackerButtonSignals(vrinputemulator::VRInputEmulator &inputE, std::vect
 
         TrackerInitButton->SetState(sfg::Widget::State::INSENSITIVE);
     });
+
+    SetJointsToFootRotationButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers] {
+        using namespace KinectSettings;
+        leftFootJointWithRotation = KVR::KinectJointType::FootLeft;
+        rightFootJointWithRotation = KVR::KinectJointType::FootRight;
+        leftFootJointWithoutRotation = KVR::KinectJointType::AnkleLeft;
+        rightFootJointWithoutRotation = KVR::KinectJointType::AnkleRight;
+        for (KVR::KinectTrackedDevice &d : v_trackers) {
+            if (d.role == KVR::KinectDeviceRole::LeftFoot) {
+                d.joint0 = leftFootJointWithRotation;
+                d.joint1 = leftFootJointWithoutRotation;
+            }
+            if (d.role == KVR::KinectDeviceRole::RightFoot) {
+                d.joint0 = rightFootJointWithRotation;
+                d.joint1 = rightFootJointWithoutRotation;
+            }
+        }
+    });
+    SetJointsToAnkleRotationButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers] {
+        using namespace KinectSettings;
+        leftFootJointWithRotation = KVR::KinectJointType::AnkleLeft;
+        rightFootJointWithRotation = KVR::KinectJointType::AnkleRight;
+        leftFootJointWithoutRotation = KVR::KinectJointType::FootLeft;
+        rightFootJointWithoutRotation = KVR::KinectJointType::FootRight;
+        for (KVR::KinectTrackedDevice &d : v_trackers) {
+            if (d.role == KVR::KinectDeviceRole::LeftFoot) {
+                d.joint0 = leftFootJointWithRotation;
+                d.joint1 = leftFootJointWithoutRotation;
+            }
+            if (d.role == KVR::KinectDeviceRole::RightFoot) {
+                d.joint0 = rightFootJointWithRotation;
+                d.joint1 = rightFootJointWithoutRotation;
+            }
+        }
+    });
+
     SetAllJointsRotUnfiltered->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers] {
         for (KVR::KinectTrackedDevice &d : v_trackers) {
             if (d.isSensor()){}
@@ -509,6 +547,12 @@ void updateDeviceLists() {
 void packElementsIntoAdvTrackerBox() {
     advancedTrackerBox->Pack(AddHandControllersToList);
     advancedTrackerBox->Pack(AddLowerTrackersToList);
+
+    auto jointBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
+    jointBox->Pack(SetJointsToFootRotationButton);
+    jointBox->Pack(SetJointsToAnkleRotationButton);
+    advancedTrackerBox->Pack(jointBox);
+
     advancedTrackerBox->Pack(SetAllJointsRotUnfiltered);
     advancedTrackerBox->Pack(SetAllJointsRotFiltered);
     advancedTrackerBox->Pack(SetAllJointsRotHead);
@@ -676,6 +720,10 @@ private:
 
     sfg::Label::Ptr InferredLabel = sfg::Label::Create("Checking this stops the trackers if it's not absolutely 100% sure where they are. Leaving this disabled may cause better tracking in poorly lit environments, but at the cost of slight jerks aside sometimes.");
     sfg::CheckButton::Ptr IgnoreInferredCheckButton = sfg::CheckButton::Create("Disable Raw Positional Tracking");
+
+    sfg::Button::Ptr SetJointsToFootRotationButton = sfg::Button::Create("Enable (buggy) foot rotation for 360 Kinect");
+    sfg::Button::Ptr SetJointsToAnkleRotationButton = sfg::Button::Create("Disable (buggy) foot rotation for 360 Kinect");
+
     sfg::Button::Ptr SetAllJointsRotUnfiltered = sfg::Button::Create("Disable rotation smoothing for ALL joints (Rotation smoothing is in development!!!)");
     sfg::Button::Ptr SetAllJointsRotFiltered = sfg::Button::Create("Enable rotation smoothing for ALL joints (Rotation smoothing is in development!!!)");
     sfg::Button::Ptr SetAllJointsRotHead = sfg::Button::Create("Use Head orientation for ALL joints - may fix issues with jumping trackers at cost of limited rotation");
@@ -750,6 +798,8 @@ private:
         HipScaleBox->Show(show);
         SetAllJointsRotHead->Show(show);
         SetAllJointsRotFiltered->Show(show);
+        SetJointsToAnkleRotationButton->Show(show);
+        SetJointsToFootRotationButton->Show(show);
 
         //calibrationBox->Show(show);
     }
