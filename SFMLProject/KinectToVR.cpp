@@ -227,7 +227,11 @@ void limitVRFramerate(double &endFrameMilliseconds)
 
 void processLoop(KinectHandlerBase& kinect) {
     updateFilePath();
-    sf::RenderWindow renderWindow(getScaledWindowResolution(), "KinectToVR: " + KinectSettings::KVRversion, sf::Style::Titlebar | sf::Style::Close);
+    //sf::RenderWindow renderWindow(getScaledWindowResolution(), "KinectToVR: " + KinectSettings::KVRversion, sf::Style::Titlebar | sf::Style::Close);
+    sf::RenderWindow renderWindow(sf::VideoMode(1024, 768, 32) , "KinectToVR: " + KinectSettings::KVRversion, sf::Style::Titlebar | sf::Style::Close | sf::Style::Resize);
+    auto mGUIView = sf::View(renderWindow.getDefaultView());
+    auto mGridView = sf::View(sf::FloatRect(0, 0, 1024, 768));
+
     updateKinectWindowRes(renderWindow);
     renderWindow.setFramerateLimit(90);   //Prevents ridiculous overupdating and high CPU usage - plus 90Hz is the recommended refresh rate for most VR panels 
     //renderWindow.setVerticalSyncEnabled(true);
@@ -287,7 +291,9 @@ void processLoop(KinectHandlerBase& kinect) {
     // Warn about non-english file path, as openvr can only take ASCII chars
     verifyDefaultFilePath();
 
-    setTrackerRolesInVRSettings();
+    if (eError == vr::VRInitError_None) {
+        setTrackerRolesInVRSettings();
+    }
 
 
     vr::EVRInputError iError = vr::VRInput()->SetActionManifestPath(KVR::inputDirForOpenVR("action-manifest.json"));
@@ -374,7 +380,7 @@ void processLoop(KinectHandlerBase& kinect) {
         double deltaT = currentTime;
         SFMLsettings::debugDisplayTextStream << "FPS Start = " << 1.0 / deltaT << '\n';
         //std::cout << SFMLsettings::debugDisplayTextStream.str() << std::endl;
-        updateKinectWindowRes(renderWindow);
+        
 
         sf::Event event;
 
@@ -389,6 +395,32 @@ void processLoop(KinectHandlerBase& kinect) {
             if (event.type == sf::Event::KeyPressed) {
                 processKeyEvents(event);
             }
+            if (event.type == sf::Event::Resized) {
+                std::cerr << "HELP I AM RESIZING!\n";
+                //sf::Vector2f size = static_cast<sf::Vector2f>(renderWindow.getSize());
+                sf::Vector2f size = sf::Vector2f(event.size.width, event.size.height);
+                // Minimum size
+                if (size.x < 800)
+                    size.x = 800;
+                if (size.y < 600)
+                    size.y = 600;
+
+                // Apply possible size changes
+                renderWindow.setSize(static_cast<sf::Vector2u>(size));
+
+                // Reset grid view
+                mGridView.setCenter(size / 2.f);
+                mGridView.setSize(size); // = sf::View(sf::FloatRect(mGridView.getCenter().x, mGridView.getCenter().y, mGridView.getSize().x+(mGridView.getSize().x - size.x), mGridView.getSize().y+(mGridView.getSize().y - size.y)));
+
+                                         // Reset  GUI view
+                mGUIView = sf::View(sf::FloatRect(0.f, 0.f, size.x, size.y));
+                //mGUIView.setCenter(size / 2.f);
+                renderWindow.setView(mGUIView);
+
+                // Resize widgets
+                updateKinectWindowRes(renderWindow);
+                guiRef.updateWithNewWindowSize(size);
+            }
         }
         if (!(renderWindow.isOpen() && SFMLsettings::keepRunning)) {
             // Possible for window to be closed mid-loop, in which case, instead of using goto's
@@ -399,6 +431,8 @@ void processLoop(KinectHandlerBase& kinect) {
 
         //Clear ---------------------------------------
         renderWindow.clear();
+        renderWindow.setView(mGridView);
+        renderWindow.setView(mGUIView);
 
         //Process -------------------------------------
         //Update GUI
@@ -468,13 +502,14 @@ void processLoop(KinectHandlerBase& kinect) {
 
         //playspaceMovementAdjuster.update(leftController, rightController, virtualDeviceIndexes);
 
-        renderWindow.pushGLStates();
+        ///renderWindow.pushGLStates();
 
 
 
         // Draw GUI
         renderWindow.setActive(true);
 
+        renderWindow.setView(mGUIView);
         guiRef.display(renderWindow);
 
         //Draw debug font
@@ -486,8 +521,9 @@ void processLoop(KinectHandlerBase& kinect) {
         renderWindow.draw(debugText);
 
 
-        renderWindow.popGLStates();
+        //renderWindow.popGLStates();
 
+        renderWindow.resetGLStates();
         //End Frame
         renderWindow.display();
 

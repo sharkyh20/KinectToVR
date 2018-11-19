@@ -77,15 +77,18 @@ namespace KinectSettings {
             std::cout << "CFG Loaded Attempted!\n";
             
             using namespace KinectSettings;
+            using namespace SFMLsettings;
             float rot[3] = { 0,0,0 };
             float pos[3] = { 0,0,0 };
             double hipHeight = 0;
+            float fontScale = 12.f;
             
             try {
                 cereal::JSONInputArchive archive(is);
                 archive(rot);
                 archive(pos);
                 archive(hipHeight);
+                archive(globalFontSize);
             }
             catch(cereal::RapidJSONException e){
                 std::cerr << "CONFIG FILE LOAD ERROR: " << e.what() << '\n';
@@ -105,6 +108,7 @@ namespace KinectSettings {
         }
         else {
             using namespace KinectSettings;
+            using namespace SFMLsettings;
             vr::HmdVector3d_t rot = kinectRadRotation;
             float kRotation[3] = { rot.v[0], rot.v[1] , rot.v[2] };
 
@@ -114,7 +118,8 @@ namespace KinectSettings {
             archive(
                 CEREAL_NVP(kRotation),
                 CEREAL_NVP(kPosition),
-                CEREAL_NVP(hipRoleHeightAdjust)
+                CEREAL_NVP(hipRoleHeightAdjust),
+                CEREAL_NVP(globalFontSize)
             );
         }
     }
@@ -122,8 +127,10 @@ namespace KinectSettings {
 namespace SFMLsettings {
     int m_window_width = 800;
     int m_window_height = 600;
-    float windowScale = .6f;
+    float windowScale = .4f;
     bool keepRunning = true;
+
+    float globalFontSize = 12.f;
 
     std::wstring fileDirectoryPath;
 

@@ -86,14 +86,18 @@ void setRequisitions() {
     CalibrationEntryRotZ->SetRequisition(sf::Vector2f(40.f, 0.f));
 }
 void setScale() {
-    guiWindow->SetRequisition(sf::Vector2f(.6f*SFMLsettings::m_window_width, .6f*SFMLsettings::m_window_height));
+    guiWindow->SetAllocation(sf::FloatRect(0.f, 0.f, .4f*SFMLsettings::m_window_width, .4f*SFMLsettings::m_window_height));
+    guiWindow->SetRequisition(sf::Vector2f(.2f*SFMLsettings::m_window_width, .2f*SFMLsettings::m_window_height));
     //Text scaling
     /*
     Window > * > * > Label{
         FontSize : 18;
     /*FontName: data/linden_hill.otf;*/
-    float defaultFontSize = 12.f / 1920.f; // Percentage relative to 1080p
+    /*
+    float defaultFontSize = 10.f / 1920.f; // Percentage relative to 1080p
     float scaledFontSize = defaultFontSize * (SFMLsettings::m_window_width / SFMLsettings::windowScale);
+    */
+    float scaledFontSize = SFMLsettings::globalFontSize;
     guiDesktop.SetProperty("Window Label, Box, Button, Notebook, CheckButton, ToggleButton, Label, RadioButton, ComboBox, SpinButton", "FontSize", scaledFontSize);
 }
 void toggleRotButton() {
@@ -106,7 +110,20 @@ void setDefaultSignals() {
     //Post VR Tracker Initialisation
     hidePostTrackerInitUI();
 
-    //Signals
+    {
+        // Font Size Scaling
+        FontSizeScale->SetDigits(3);
+        FontSizeScale->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
+            // This checking is required due to some weird anomaly in Sfgui.
+            // Without it, it will constantly reupdate the SpinButton event,
+            // effectively lagging this for 2-10x as long as it should
+            lastFontSizeValue = SFMLsettings::globalFontSize;
+            SFMLsettings::globalFontSize = FontSizeScale->GetValue();
+            if (lastFontSizeValue != SFMLsettings::globalFontSize) {
+                setScale();
+            }
+        });
+    }
     EnableGamepadButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
         if (EnableGamepadButton->IsActive()) {
             SFMLsettings::usingGamepad = true;
@@ -494,6 +511,11 @@ void packElementsIntoMainBox() {
     mainGUIBox->Pack(SteamVRStatusLabel);
     mainGUIBox->Pack(InputEmulatorStatusLabel);
 
+    auto fontSizeBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
+    fontSizeBox->Pack(FontSizeScaleLabel);
+    fontSizeBox->Pack(FontSizeScale);
+    mainGUIBox->Pack(fontSizeBox);
+
     mainGUIBox->Pack(reconKinectButton);
     mainGUIBox->Pack(TrackerInitButton);
     mainGUIBox->Pack(InstructionsLabel);
@@ -673,6 +695,12 @@ void setDeviceHandlersReference(std::vector<std::unique_ptr<DeviceHandler>> & re
     v_deviceHandlersRef = &ref;
 }
 
+void updateWithNewWindowSize(sf::Vector2f size) {
+    guiWindow->SetAllocation(sf::FloatRect(0.f, 0.f, .4f * size.x, .4f * size.y));
+    //setScale();
+    //guiWindow->SetAllocation(sf::FloatRect(size.x - width, 0.f, width, size.y));
+    //mGUI.SideBar->SetAllocation(sf::FloatRect(0.f, 0.f, width, size.y));
+}
 private:
     sf::Font mainGUIFont;
     sfg::SFGUI sfguiRef;
@@ -692,6 +720,13 @@ private:
     sfg::Box::Ptr calibrationBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
     sfg::Box::Ptr advancedTrackerBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
     sfg::Box::Ptr trackingMethodBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
+    
+    sfg::Adjustment::Ptr fontSizeAdjustment = sfg::Adjustment::Create();
+    sfg::Label::Ptr FontSizeScaleLabel = sfg::Label::Create("(WARNING, LAGS ON CHANGE) Font Size: ");
+    sfg::SpinButton::Ptr FontSizeScale = sfg::SpinButton::Create(sfg::Adjustment::Create(SFMLsettings::globalFontSize, 5.f, 100.f, .5f));
+    float lastFontSizeValue = SFMLsettings::globalFontSize;
+
+
     //Statuses
     sfg::Label::Ptr KinectStatusLabel = sfg::Label::Create();
     sfg::Label::Ptr SteamVRStatusLabel = sfg::Label::Create();
