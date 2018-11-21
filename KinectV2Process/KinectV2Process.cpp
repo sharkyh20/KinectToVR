@@ -14,7 +14,9 @@
 //#include <opencv2/opencv.hpp>
 //#include <opencv2/highgui.hpp>
 
+// Logging Definitions
 INITIALIZE_EASYLOGGINGPP
+#define ELPP_FEATURE_CRASH_LOG
 
 //using namespace cv;
 
@@ -81,7 +83,9 @@ int main(int argc, char* argv[])
     return 0;
 }
 */
-int main() {
+int main(int argc, char* argv[])
+{
+    START_EASYLOGGINGPP(argc, argv);
 #ifndef _DEBUG 
     HWND hWnd = GetConsoleWindow();
     //ShowWindow(hWnd, SW_HIDE);

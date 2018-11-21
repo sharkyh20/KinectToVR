@@ -11,6 +11,8 @@
 
 #include <openvr_math.h>
 
+#include <easylogging++.h>
+
 namespace KinectSettings {
     std::wstring const CFG_NAME(L"KinectToVR.cfg");
     std::string KVRversion = "a0.5.9 Experimental r4";

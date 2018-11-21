@@ -35,6 +35,8 @@
 //OpenCV
 #include <opencv2\opencv.hpp>
 
+#include <easylogging++.h>
+
 using namespace KVR;
 
 std::string log_get_timestamp_prefix()
@@ -113,6 +115,7 @@ sf::VideoMode getScaledWindowResolution() {
 void updateKinectWindowRes(const sf::RenderWindow& window) {
     SFMLsettings::m_window_width = window.getSize().x;
     SFMLsettings::m_window_height = window.getSize().y;
+    LOG(INFO) << "Stored window size: " << SFMLsettings::m_window_width << " x " << SFMLsettings::m_window_height;
     //std::cerr << "w: " << SFMLsettings::m_window_width << " h: " << SFMLsettings::m_window_height << "\n";
 }
 
@@ -162,12 +165,14 @@ void updateFilePath() {
     _wmakepath_s(directoryFilePath, _MAX_PATH, drive, dir, filename, extension);
     std::wstring filePathString(directoryFilePath);
     SFMLsettings::fileDirectoryPath = filePathString;
+    
+    LOG(INFO) << "File Directory Path Set to " << filePathString;
 }
 void attemptInitialiseDebugDisplay(sf::Font &font, sf::Text &debugText) {
     // Global Debug Font
 #if _DEBUG
     auto fontFileName = "arial.ttf";
-    std::cout << "Attemping Debug Font Load: " << fontFileName << '\n';
+    LOG(DEBUG) << "Attemping Debug Font Load: " << fontFileName << '\n';
     font.loadFromFile(fontFileName);
     debugText.setFont(font);
 #endif
@@ -186,7 +191,7 @@ void attemptIEmulatorConnection(vrinputemulator::VRInputEmulator & inputEmulator
     }
     catch (vrinputemulator::vrinputemulator_connectionerror e) {
         guiRef.updateEmuStatusLabelError(e);
-        std::cerr << "Attempted connection to Input Emulator" << std::to_string(e.errorcode) + " " + e.what() + "\n\n Is SteamVR open and InputEmulator installed?" << std::endl;
+        LOG(ERROR) << "Attempted connection to Input Emulator" << std::to_string(e.errorcode) + " " + e.what() + "\n\n Is SteamVR open and InputEmulator installed?" << std::endl;
     }
 }
 void updateTrackerInitGuiSignals(vrinputemulator::VRInputEmulator &inputEmulator, GUIHandler &guiRef, std::vector<KVR::KinectTrackedDevice> & v_trackers) {
@@ -233,7 +238,8 @@ void processLoop(KinectHandlerBase& kinect) {
     auto mGridView = sf::View(sf::FloatRect(0, 0, 1024, 768));
 
     updateKinectWindowRes(renderWindow);
-    renderWindow.setFramerateLimit(90);   //Prevents ridiculous overupdating and high CPU usage - plus 90Hz is the recommended refresh rate for most VR panels 
+    int windowFrameLimit = 90;
+    renderWindow.setFramerateLimit(windowFrameLimit);   //Prevents ridiculous overupdating and high CPU usage - plus 90Hz is the recommended refresh rate for most VR panels 
     //renderWindow.setVerticalSyncEnabled(true);
 
     sf::Clock frameClock;
@@ -282,7 +288,7 @@ void processLoop(KinectHandlerBase& kinect) {
     VRcontroller rightController(vr::TrackedControllerRole_RightHand);
     VRcontroller leftController(vr::TrackedControllerRole_LeftHand);
 
-    std::cerr << "Attempting connection to vrsystem.... " << std::endl;    // DEBUG
+    LOG(INFO) << "Attempting connection to vrsystem.... ";    // DEBUG
     vr::EVRInitError eError = vr::VRInitError_None;
     vr::IVRSystem *m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Background);
     guiRef.setVRSceneChangeButtonSignal(m_VRSystem);

@@ -23,7 +23,7 @@
     <ProjectGuid>{9E612475-CF0A-4384-969A-3C01C9543935}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>SFMLProject</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
     <ProjectName>KinectToVR</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -108,8 +108,9 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(IncludePath);$(ProjectDir)inc;$(SolutionDir)external\cereal\include;$(SolutionDir)external\inputemulator\;$(SolutionDir)external\openvr\headers\;$(SolutionDir)external\inputemulator\third-party\boost_1_63_0;$(SolutionDir)external\SFML\include\;$(SolutionDir)external\glew\;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\boost_1_63_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(IncludePath);$(ProjectDir)inc;$(SolutionDir)external\cereal\include;$(SolutionDir)external\inputemulator\;$(SolutionDir)external\openvr\headers\;$(SolutionDir)external\inputemulator\third-party\boost_1_63_0;$(SolutionDir)external\SFML\include\;$(SolutionDir)external\glew\;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\boost_1_63_0;$(SolutionDir)external\easylogging\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ShowIncludes>true</ShowIncludes>
+      <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -157,7 +158,7 @@ xcopy /s /y /i /e "$(SolutionDir)/Input" "$(TargetDir)/Input"</Command>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(IncludePath);$(ProjectDir)inc;$(SolutionDir)external\cereal\include;$(SolutionDir)external\inputemulator\;$(SolutionDir)external\openvr\headers\;$(SolutionDir)external\inputemulator\third-party\boost_1_63_0;$(SolutionDir)external\SFML\include\;$(SolutionDir)external\glew\;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\boost_1_63_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(IncludePath);$(ProjectDir)inc;$(SolutionDir)external\cereal\include;$(SolutionDir)external\inputemulator\;$(SolutionDir)external\openvr\headers\;$(SolutionDir)external\inputemulator\third-party\boost_1_63_0;$(SolutionDir)external\SFML\include\;$(SolutionDir)external\glew\;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\boost_1_63_0;$(SolutionDir)external\easylogging\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ForcedIncludeFiles>stdafx.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
@@ -218,6 +219,7 @@ xcopy /s /y /i /e "$(SolutionDir)/Input" "$(TargetDir)/Input"</Command>
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\external\easylogging\src\easylogging++.cc" />
     <ClCompile Include="IETracker.cpp" />
     <ClCompile Include="KinectJoint.cpp" />
     <ClCompile Include="KinectSettings.cpp" />

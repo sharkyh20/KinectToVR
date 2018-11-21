@@ -13,8 +13,9 @@
 INITIALIZE_EASYLOGGINGPP
 #define ELPP_FEATURE_CRASH_LOG
 
-int main()
+int main(int argc, char* argv[])
 {
+    START_EASYLOGGINGPP(argc, argv);
 #ifndef _DEBUG 
     HWND hWnd = GetConsoleWindow();
     ShowWindow(hWnd, SW_HIDE);
