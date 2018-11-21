@@ -6,6 +6,13 @@
 #include <KinectToVR.h>
 #include <openvr.h>
 #include <Windows.h>
+
+#include <easylogging++.h>
+
+// Logging Definitions
+INITIALIZE_EASYLOGGINGPP
+#define ELPP_FEATURE_CRASH_LOG
+
 int main()
 {
 #ifndef _DEBUG 

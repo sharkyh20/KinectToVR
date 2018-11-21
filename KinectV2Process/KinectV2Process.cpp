@@ -7,10 +7,14 @@
 #include <sstream>
 #include <string>
 #include <iostream>
+
+#include <easylogging++.h>
 //#include <Windows.h>
 
 //#include <opencv2/opencv.hpp>
 //#include <opencv2/highgui.hpp>
+
+INITIALIZE_EASYLOGGINGPP
 
 //using namespace cv;
 

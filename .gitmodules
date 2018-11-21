@@ -4,3 +4,6 @@
 [submodule "external/openvr"]
 	path = external/openvr
 	url = https://github.com/ValveSoftware/openvr
+[submodule "external/easylogging"]
+	path = external/easylogging
+	url = https://github.com/muflihun/easyloggingpp
