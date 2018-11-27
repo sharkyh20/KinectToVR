@@ -358,7 +358,7 @@ __pycache__/
 # external/sfml
 external/sfgui
 external/opencv
-external/PSMoveService
+# external/PSMoveService
 external/boost_1_63_0
 
 # Until all files moved into external, this has to be ignored
