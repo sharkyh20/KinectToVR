@@ -35,7 +35,6 @@
 //OpenCV
 #include <opencv2\opencv.hpp>
 
-#include <easylogging++.h>
 
 using namespace KVR;
 
@@ -132,7 +131,9 @@ void verifyDefaultFilePath() {
     // Warn about non-english file path, as openvr can only take ASCII chars
     // If this isn't checked, unfortunately, most of the bindings won't load
     // Unless OpenVR's C API adds support for non-english filepaths, K2VR can't either
-    if (filePathIsNonASCII(SFMLsettings::fileDirectoryPath)) {
+    bool filePathInvalid = filePathIsNonASCII(SFMLsettings::fileDirectoryPath);
+    if (filePathInvalid) {
+        LOG(ERROR) << "K2VR File Path NONASCII (Invalid)!";
         auto message = L"WARNING: NON-ENGLISH FILEPATH DETECTED: "
             + SFMLsettings::fileDirectoryPath
             + L"\n It's possible that OpenVR bindings won't work correctly"
@@ -143,6 +144,8 @@ void verifyDefaultFilePath() {
             SFMLsettings::keepRunning = false;
         }
     }
+    else
+        LOG(INFO) << "K2VR File Path ASCII (Valid)";
 }
 void updateFilePath() {
     
@@ -187,11 +190,13 @@ vr::HmdQuaternion_t kinectQuaternionFromRads() {
 }
 void attemptIEmulatorConnection(vrinputemulator::VRInputEmulator & inputEmulator, GUIHandler & guiRef) {
     try {
+        LOG(INFO) << "Attempting InputEmulator connection...";
         inputEmulator.connect();
+        LOG_IF(inputEmulator.isConnected(), INFO) << "InputEmulator connected successfully!";
     }
     catch (vrinputemulator::vrinputemulator_connectionerror e) {
         guiRef.updateEmuStatusLabelError(e);
-        LOG(ERROR) << "Attempted connection to Input Emulator" << std::to_string(e.errorcode) + " " + e.what() + "\n\n Is SteamVR open and InputEmulator installed?" << std::endl;
+        LOG(ERROR) << "Attempted connection to Input Emulator" << std::to_string(e.errorcode) + " " + e.what() + "\n\n Is SteamVR open and InputEmulator installed?";
     }
 }
 void updateTrackerInitGuiSignals(vrinputemulator::VRInputEmulator &inputEmulator, GUIHandler &guiRef, std::vector<KVR::KinectTrackedDevice> & v_trackers) {
@@ -231,6 +236,7 @@ void limitVRFramerate(double &endFrameMilliseconds)
 }
 
 void processLoop(KinectHandlerBase& kinect) {
+    LOG(INFO) << "Kinect version is V" << (int)kinect.kVersion;
     updateFilePath();
     //sf::RenderWindow renderWindow(getScaledWindowResolution(), "KinectToVR: " + KinectSettings::KVRversion, sf::Style::Titlebar | sf::Style::Close);
     sf::RenderWindow renderWindow(sf::VideoMode(1024, 768, 32) , "KinectToVR: " + KinectSettings::KVRversion, sf::Style::Titlebar | sf::Style::Close | sf::Style::Resize);
@@ -291,62 +297,30 @@ void processLoop(KinectHandlerBase& kinect) {
     LOG(INFO) << "Attempting connection to vrsystem.... ";    // DEBUG
     vr::EVRInitError eError = vr::VRInitError_None;
     vr::IVRSystem *m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Background);
-    guiRef.setVRSceneChangeButtonSignal(m_VRSystem);
+
+    LOG_IF(eError != vr::VRInitError_None, ERROR) << "IVRSystem could not be initialised: EVRInitError Code " << (int)eError;
+
+    
 
     // INPUT BINDING TEMPORARY --------------------------------
     // Warn about non-english file path, as openvr can only take ASCII chars
     verifyDefaultFilePath();
 
     if (eError == vr::VRInitError_None) {
+        guiRef.setVRSceneChangeButtonSignal(m_VRSystem);
         setTrackerRolesInVRSettings();
-    }
-
-
-    vr::EVRInputError iError = vr::VRInput()->SetActionManifestPath(KVR::inputDirForOpenVR("action-manifest.json"));
-
-    vr::VRActionHandle_t moveHorizontallyHandle;
-    vr::VRActionHandle_t moveVerticallyHandle;
-    vr::VRActionHandle_t confirmCalibrationHandle;
-    iError = vr::VRInput()->GetActionHandle("/actions/calibration/in/MoveHorizontally", &moveHorizontallyHandle);
-    iError = vr::VRInput()->GetActionHandle("/actions/calibration/in/MoveVertically", &moveVerticallyHandle);
-    iError = vr::VRInput()->GetActionHandle("/actions/calibration/in/ConfirmCalibration", &confirmCalibrationHandle);
-
-    vr::VRActionSetHandle_t calibrationSetHandle;
-    iError = vr::VRInput()->GetActionSetHandle("/actions/calibration", &calibrationSetHandle);
-
-    vr::VRActiveActionSet_t activeActionSet;
-    activeActionSet.ulActionSet = calibrationSetHandle;
-    activeActionSet.ulRestrictedToDevice = vr::k_ulInvalidInputValueHandle;
-    activeActionSet.unPadding;
-    activeActionSet.nPriority = 0;
-    iError = vr::VRInput()->UpdateActionState(&activeActionSet, sizeof(activeActionSet), 1);
-
-    vr::InputDigitalActionData_t confirmCalibrationData{};
-    iError = vr::VRInput()->GetDigitalActionData(confirmCalibrationHandle, &confirmCalibrationData, sizeof(confirmCalibrationData), activeActionSet.ulRestrictedToDevice);
-    vr::InputAnalogActionData_t moveHorizontallyData{};
-    iError = vr::VRInput()->GetAnalogActionData(moveHorizontallyHandle, &moveHorizontallyData, sizeof(moveHorizontallyData), activeActionSet.ulRestrictedToDevice);
-    vr::InputAnalogActionData_t moveVerticallyData{};
-    vr::VRInput()->GetAnalogActionData(moveVerticallyHandle, &moveVerticallyData, sizeof(moveVerticallyData), activeActionSet.ulRestrictedToDevice);
-    // --------------------------------------------------------
-
-
-
-
-
-
-    if (eError == vr::VRInitError_None) {
-        std::cerr << "Attempting connection to controllers.... " << std::endl;    // DEBUG
+        VRInput::initialiseVRInput();
+    
         leftController.Connect(m_VRSystem);
         rightController.Connect(m_VRSystem);
-        std::cerr << "Attempted connection to controllers! " << std::endl;    // DEBUG
+        guiRef.setReconnectControllerButtonSignal(leftController, rightController, m_VRSystem);
 
         // Todo: implement binding system
         guiRef.loadK2VRIntoBindingsMenu(m_VRSystem);
     }
     guiRef.updateVRStatusLabel(eError);
-    std::cerr << "Attempted connection to vrsystem! " << eError << std::endl;    // DEBUG
 
-    guiRef.setReconnectControllerButtonSignal(leftController, rightController, m_VRSystem);
+    
 
     KinectSettings::userChangingZero = true;
 
@@ -454,12 +428,7 @@ void processLoop(KinectHandlerBase& kinect) {
             leftController.update(deltaT);
             updateHMDPosAndRot(m_VRSystem);
 
-            // UPDATE INPUT PER FRAME ----------------------
-            iError = vr::VRInput()->UpdateActionState(&activeActionSet, sizeof(activeActionSet), 1);
-            // ----------------------------------------------
-        }
-        else {
-            std::cerr << "Error updating controllers: Could not connect to the SteamVR system! OpenVR init error-code " << std::to_string(eError) << std::endl;
+            VRInput::updateVRInput();
         }
 
         for (auto & device_ptr : v_deviceHandlers) {
@@ -480,9 +449,9 @@ void processLoop(KinectHandlerBase& kinect) {
                 currentCalibrationMethod(
                     deltaT,
                     kinect,
-                    moveHorizontallyHandle,
-                    moveVerticallyHandle,
-                    confirmCalibrationHandle,
+                    VRInput::moveHorizontallyHandle,
+                    VRInput::moveVerticallyHandle,
+                    VRInput::confirmCalibrationHandle,
                     guiRef);
 
             kinect.updateTrackersWithSkeletonPosition(v_trackers);
@@ -543,8 +512,10 @@ void processLoop(KinectHandlerBase& kinect) {
     KinectSettings::writeKinectSettings();
 
     //playspaceMovementAdjuster.resetPlayspaceAdjustments();
-    removeTrackerRolesInVRSettings();
-    vr::VR_Shutdown();
+    if (eError == vr::EVRInitError::VRInitError_None) {
+        removeTrackerRolesInVRSettings();
+        vr::VR_Shutdown();
+    }
 }
 
 void spawnAndConnectTracker(vrinputemulator::VRInputEmulator & inputE, std::vector<KVR::KinectTrackedDevice>& v_trackers, uint32_t posDevice_gId,

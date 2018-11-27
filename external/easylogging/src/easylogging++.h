@@ -14,6 +14,8 @@
 //  https://muflihun.github.io/easyloggingpp
 //  http://muflihun.com
 //
+extern const char* logFileName;
+#define ELPP_DEFAULT_LOG_FILE logFileName
 
 #ifndef EASYLOGGINGPP_H
 #define EASYLOGGINGPP_H

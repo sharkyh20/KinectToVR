@@ -107,7 +107,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>/DELPP_DEFAULT_LOG_FILE="K2VR.log";_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(IncludePath);$(ProjectDir)inc;$(SolutionDir)external\cereal\include;$(SolutionDir)external\inputemulator\;$(SolutionDir)external\openvr\headers\;$(SolutionDir)external\inputemulator\third-party\boost_1_63_0;$(SolutionDir)external\SFML\include\;$(SolutionDir)external\glew\;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\boost_1_63_0;$(SolutionDir)external\easylogging\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ShowIncludes>true</ShowIncludes>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -157,7 +157,7 @@ xcopy /s /y /i /e "$(SolutionDir)/Input" "$(TargetDir)/Input"</Command>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>/DELPP_DEFAULT_LOG_FILE="K2VR.log";NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(IncludePath);$(ProjectDir)inc;$(SolutionDir)external\cereal\include;$(SolutionDir)external\inputemulator\;$(SolutionDir)external\openvr\headers\;$(SolutionDir)external\inputemulator\third-party\boost_1_63_0;$(SolutionDir)external\SFML\include\;$(SolutionDir)external\glew\;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\boost_1_63_0;$(SolutionDir)external\easylogging\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>

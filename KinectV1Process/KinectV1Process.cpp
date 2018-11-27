@@ -7,15 +7,16 @@
 #include <openvr.h>
 #include <Windows.h>
 
-#include <easylogging++.h>
-
 // Logging Definitions
 INITIALIZE_EASYLOGGINGPP
+
 #define ELPP_FEATURE_CRASH_LOG
 
 int main(int argc, char* argv[])
 {
     START_EASYLOGGINGPP(argc, argv);
+    el::Configurations logConfig;
+    logConfig.setGlobally(el::ConfigurationType::ToFile, "true");
 #ifndef _DEBUG 
     HWND hWnd = GetConsoleWindow();
     ShowWindow(hWnd, SW_HIDE);

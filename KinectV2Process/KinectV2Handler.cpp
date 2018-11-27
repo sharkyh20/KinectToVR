@@ -38,7 +38,7 @@ void KinectV2Handler::initialise() {
         if (!initialised) throw FailedKinectInitialisation;
     }
     catch (std::exception& e) {
-        std::cerr << e.what() << std::endl;
+        LOG(ERROR) << "Failed to initialise Kinect " << e.what() << std::endl;
     }
 }
 void KinectV2Handler::initialiseSkeleton()
@@ -53,11 +53,14 @@ void KinectV2Handler::initialiseSkeleton()
     // https://github.com/StevenHickson/PCL_Kinect2SDK/blob/master/src/Microsoft_grabber2.cpp
     h_bodyFrameEvent = (WAITABLE_HANDLE)CreateEvent(NULL, FALSE, FALSE, NULL);
     HRESULT hr = bodyFrameReader->SubscribeFrameArrived(&h_bodyFrameEvent);
-    if (FAILED(hr)) {
-        throw std::exception("Couldn't subscribe frame");
-    }
-
     if (bodyFrameSource) bodyFrameSource->Release();
+    if (FAILED(hr)) {
+        //throw std::exception("Couldn't subscribe frame");
+        LOG(ERROR) << "ERROR: Could not subscribe to skeleton frame event! HRESULT " << hr;
+    }
+    else {
+        LOG(INFO) << "Kinect Skeleton Reader initialised successfully.";
+    }
 }
 void KinectV2Handler::initialiseColor()
 {
@@ -67,7 +70,7 @@ https://github.com/UnaNancyOwen/Kinect2Sample/blob/master/sample/CoordinateMappe
     // Open Color Reader
     IColorFrameSource* colorFrameSource;
     kinectSensor->get_ColorFrameSource(&colorFrameSource);
-    colorFrameSource->OpenReader(&colorFrameReader);
+    HRESULT hr = colorFrameSource->OpenReader(&colorFrameReader);
 
     // Retrieve Color Description
     IFrameDescription* colorFrameDescription;
@@ -80,6 +83,12 @@ https://github.com/UnaNancyOwen/Kinect2Sample/blob/master/sample/CoordinateMappe
     colorBuffer.resize(colorWidth * colorHeight * colorBytesPerPixel);
     if (colorFrameSource) colorFrameSource->Release();
     if (colorFrameDescription) colorFrameDescription->Release();
+
+    if (FAILED(hr)) {
+        LOG(ERROR) << "Kinect Color Reader could not be opened! HRESULT " << hr;
+    }
+    else
+        LOG(INFO) << "Kinect Color Reader initialised successfully.";
 }
 void KinectV2Handler::initialiseDepth()
 {
@@ -89,7 +98,7 @@ https://github.com/UnaNancyOwen/Kinect2Sample/blob/master/sample/CoordinateMappe
     // Open Depth Reader
     IDepthFrameSource* depthFrameSource;
     kinectSensor->get_DepthFrameSource(&depthFrameSource);
-    depthFrameSource->OpenReader(&depthFrameReader);
+    HRESULT hr = depthFrameSource->OpenReader(&depthFrameReader);
 
     // Retrieve Depth Description
     IFrameDescription* depthFrameDescription;
@@ -102,12 +111,19 @@ https://github.com/UnaNancyOwen/Kinect2Sample/blob/master/sample/CoordinateMappe
 
     if (depthFrameSource) depthFrameSource->Release();
     if (depthFrameDescription) depthFrameDescription->Release();
+
+    if (FAILED(hr)) {
+        LOG(ERROR) << "Kinect Depth Reader could not be opened! HRESULT " << hr;
+    }
+    else
+        LOG(INFO) << "Kinect Depth Reader initialised successfully.";
 }
 void KinectV2Handler::terminateSkeleton()
 {
     if (bodyFrameReader) {
         HRESULT hr = bodyFrameReader->UnsubscribeFrameArrived(h_bodyFrameEvent);
         if (FAILED(hr)) {
+            LOG(ERROR) << "Couldn't unsubscribe skeleton frame! HRESULT " << hr;
             throw std::exception("Couldn't unsubscribe frame!");
         }
         CloseHandle((HANDLE)h_bodyFrameEvent);
@@ -115,7 +131,10 @@ void KinectV2Handler::terminateSkeleton()
 
         bodyFrameReader->Release();
         bodyFrameReader = nullptr;
+        LOG(INFO) << "Skeleton Reader closed successfully";
     }
+    else
+        LOG(WARNING) << "Skeleton Reader was asked to terminate, but was already closed!";
 }
 void KinectV2Handler::terminateColor()
 {
@@ -123,7 +142,10 @@ void KinectV2Handler::terminateColor()
         colorFrameReader->Release();
         colorFrameReader = nullptr;
         colorMat.release();
+        LOG(INFO) << "Color Reader closed successfully";
     }
+    else
+        LOG(WARNING) << "Color Reader was asked to terminate, but was already closed!";
 }
 void KinectV2Handler::terminateDepth()
 {
@@ -131,11 +153,15 @@ void KinectV2Handler::terminateDepth()
         depthFrameReader->Release();
         depthFrameReader = nullptr;
         depthMat.release();
+        LOG(INFO) << "Depth Reader closed successfully";
     }
+    else
+        LOG(WARNING) << "Depth Reader was asked to terminate, but was already closed!";
 }
 
 void KinectV2Handler::initOpenGL()
 {
+    LOG(INFO) << "Attempted to initialise OpenGL";
     int width = 0, height = 0;
     if (kVersion == KinectVersion::Version1) {
         width = KinectSettings::kinectWidth;
@@ -237,14 +263,15 @@ void KinectV2Handler::updateColorData()
         IColorFrame* colorFrame;
         const HRESULT retrieveFrame = colorFrameReader->AcquireLatestFrame(&colorFrame);
         if (FAILED(retrieveFrame)) {
-            std::cerr << "FAILED TO RETRIEVE COLOR FRAME\n";
-            return;
+            LOG(ERROR) << "Could not retrieve color frame! HRESULT " << retrieveFrame;
         }
-        //Convert from YUY2 -> BGRA
-        colorFrame->CopyConvertedFrameDataToArray(static_cast<UINT>(colorBuffer.size()), &colorBuffer[0], ColorImageFormat::ColorImageFormat_Bgra);
-        colorMat = cv::Mat(colorHeight, colorWidth, CV_8UC4, &colorBuffer[0]);
-        
-        updateBufferWithSmoothedMat(colorMat, colorMat, colorBuffer);
+        else { // Necessary instead of instant return to prevent memory leak of colorFrame
+            //Convert from YUY2 -> BGRA
+            colorFrame->CopyConvertedFrameDataToArray(static_cast<UINT>(colorBuffer.size()), &colorBuffer[0], ColorImageFormat::ColorImageFormat_Bgra);
+            colorMat = cv::Mat(colorHeight, colorWidth, CV_8UC4, &colorBuffer[0]);
+
+            updateBufferWithSmoothedMat(colorMat, colorMat, colorBuffer);
+        }
         if (colorFrame) colorFrame->Release();
     }
 }
@@ -256,16 +283,16 @@ void KinectV2Handler::updateDepthData()
         IDepthFrame* depthFrame;
         const HRESULT retrieveFrame = depthFrameReader->AcquireLatestFrame(&depthFrame);
         if (FAILED(retrieveFrame)) {
-            return;
+            LOG(ERROR) << "Could not retrieve depth frame! HRESULT " << retrieveFrame;
         }
+        else {// Necessary instead of instant return to prevent memory leak of depthFrame
+            // Retrieve Depth Data
+            depthFrame->CopyFrameDataToArray(static_cast<UINT>(depthBuffer.size()), &depthBuffer[0]);
 
-        // Retrieve Depth Data
-        depthFrame->CopyFrameDataToArray(static_cast<UINT>(depthBuffer.size()), &depthBuffer[0]);
-
-        // Create cv::Mat from Depth Buffer
-        auto unsmoothedDepthMat = cv::Mat(depthHeight, depthWidth, CV_16U, &depthBuffer[0]);
-        updateBufferWithSmoothedMat(unsmoothedDepthMat, depthMat, depthBuffer);
-
+            // Create cv::Mat from Depth Buffer
+            auto unsmoothedDepthMat = cv::Mat(depthHeight, depthWidth, CV_16U, &depthBuffer[0]);
+            updateBufferWithSmoothedMat(unsmoothedDepthMat, depthMat, depthBuffer);
+        }
         if (depthFrame) depthFrame->Release();
     }
 }
@@ -366,7 +393,10 @@ void KinectV2Handler::onBodyFrameArrived(IBodyFrameReader& sender, IBodyFrameArr
 void KinectV2Handler::updateSkeletalData() {
     if (bodyFrameReader) {
         IBodyFrame* bodyFrame = nullptr;
-        bodyFrameReader->AcquireLatestFrame(&bodyFrame);
+        HRESULT frameReceived = bodyFrameReader->AcquireLatestFrame(&bodyFrame);
+        if (FAILED(frameReceived)) {
+            LOG(ERROR) << "Could not retrieve skeleton frame! HRESULT " << frameReceived;
+        }
         //IBodyFrameReference* frameRef = nullptr;
         //multiFrame->get_BodyFrameReference(&frameRef);
         //frameRef->AcquireFrame(&bodyFrame);
@@ -457,7 +487,7 @@ void KinectV2Handler::updateTrackersWithSkeletonPosition( std::vector<KVR::Kinec
 }
 void KinectV2Handler::updateTrackersWithColorPosition( std::vector<KVR::KinectTrackedDevice> trackers, sf::Vector2i pos)
 {
-    std::cerr << "Tracked Point: " << pos.x << ", " << pos.y << '\n';
+    //std::cerr << "Tracked Point: " << pos.x << ", " << pos.y << '\n';
 
     std::vector<CameraSpacePoint> resultPoints(colorWidth * colorHeight);
     HRESULT hr = coordMapper->MapColorFrameToCameraSpace(depthBuffer.size(), &depthBuffer[0], resultPoints.size(), &resultPoints[0]);
@@ -467,7 +497,7 @@ void KinectV2Handler::updateTrackersWithColorPosition( std::vector<KVR::KinectTr
         long colorIndex = (long)(colorY * 1920 + colorX);
         CameraSpacePoint worldCoordinate = resultPoints[colorIndex];
         //auto worldCoordinate = resultArray[pos.y * 1920 + pos.x];
-        std::cerr << "World Point: " << worldCoordinate.X << ", " << worldCoordinate.Y << ", " << worldCoordinate.Z << '\n';
+        //std::cerr << "World Point: " << worldCoordinate.X << ", " << worldCoordinate.Y << ", " << worldCoordinate.Z << '\n';
         if (isnan(worldCoordinate.X)) {
             return;
         }
@@ -488,7 +518,7 @@ void KinectV2Handler::updateTrackersWithColorPosition( std::vector<KVR::KinectTr
             }
         }
     }
-    std::cout << "HR: " << hr << '\n';
+    //std::cout << "HR: " << hr << '\n';
 }
 bool KinectV2Handler::getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdVector3d_t& position, vr::HmdQuaternion_t &rotation) {
     sf::Vector3f filteredPos = filter.GetFilteredJoints()[convertJoint(device.joint0)];
@@ -519,7 +549,7 @@ bool KinectV2Handler::getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdV
     }
                                              break;
     default:
-        std::cerr << "JOINT ROTATION OPTION UNDEFINED IN DEVICE " << device.deviceId << '\n';
+        LOG(ERROR) << "JOINT ROTATION OPTION UNDEFINED IN DEVICE " << device.deviceId << '\n';
         break;
     }
     rotation.w = kRotation.w;
@@ -531,6 +561,7 @@ bool KinectV2Handler::getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdV
 }
 bool KinectV2Handler::initKinect() {
     if (FAILED(GetDefaultKinectSensor(&kinectSensor))) {
+        LOG(INFO) << "Kinect sensor failed to open!";
         return false;
     }
     if (kinectSensor) {
@@ -541,6 +572,7 @@ bool KinectV2Handler::initKinect() {
          //    | FrameSourceTypes::FrameSourceTypes_Color,
          //   &frameReader);
         //return frameReader;
+        LOG(INFO) << "Kinect sensor opened successfully.";
         return true;
     }
     else {

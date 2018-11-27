@@ -660,6 +660,8 @@ void setRolesListItems(sfg::ComboBox::Ptr comboBox) {
 void updateKinectStatusLabel(KinectHandlerBase& kinect) {
     if (kinect.isInitialised()) {
         HRESULT status = kinect.getStatusResult();
+        if (status == lastKinectStatus)
+            return; // No need to waste time updating it;
         switch (status) {
         case S_OK:
             KinectStatusLabel->SetText("Kinect Status: Success!");
@@ -671,6 +673,7 @@ void updateKinectStatusLabel(KinectHandlerBase& kinect) {
     }
     else
         updateKinectStatusLabelDisconnected();
+    LOG(INFO) << "Kinect Status changed to: " << KinectStatusLabel->GetText().toAnsiString();
 }
 
 
@@ -683,9 +686,9 @@ void updateEmuStatusLabelSuccess() {
 
 void updateVRStatusLabel(vr::EVRInitError eError) {
     if (eError == vr::VRInitError_None)
-        SteamVRStatusLabel->SetText("VR Status: Success!");
+        SteamVRStatusLabel->SetText("SteamVR Status: Success!");
     else
-        SteamVRStatusLabel->SetText("VR Status: ERROR " + std::to_string(eError));
+        SteamVRStatusLabel->SetText("SteamVR Status: ERROR " + std::to_string(eError) + "\nPlease restart K2VR with SteamVR successfully running!");
 }
 
 void setTrackingMethodsReference(std::vector<std::unique_ptr<TrackingMethod>> & ref) {
@@ -713,6 +716,8 @@ private:
 
     // All the device handlers
     PSMoveHandler psMoveHandler;
+
+    HRESULT lastKinectStatus = S_OK;
 
     sfg::Desktop guiDesktop;
 

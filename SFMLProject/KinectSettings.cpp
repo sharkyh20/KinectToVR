@@ -11,7 +11,7 @@
 
 #include <openvr_math.h>
 
-#include <easylogging++.h>
+
 
 namespace KinectSettings {
     std::wstring const CFG_NAME(L"KinectToVR.cfg");
@@ -68,15 +68,15 @@ namespace KinectSettings {
 
     void serializeKinectSettings() {
         std::ifstream is(KVR::fileToDirPath(CFG_NAME));
-        std::wcout << "Attempted CFG load: " << KVR::fileToDirPath(CFG_NAME) << '\n';
+        LOG(INFO) << "Attempted CFG load: " << KVR::fileToDirPath(CFG_NAME) << '\n';
         //CHECK IF VALID
         if (is.fail()) {
             //FAIL!!!!
-            std::cerr << "ERROR: COULD NOT OPEN CONFIG FILE, GENERATING NEW ONE...";
+            LOG(ERROR) << "ERROR: COULD NOT OPEN CONFIG FILE, GENERATING NEW ONE...";
             writeKinectSettings();
         }
         else {
-            std::cout << "CFG Loaded Attempted!\n";
+            LOG(INFO) << "CFG Loaded Attempted!";
             
             using namespace KinectSettings;
             using namespace SFMLsettings;
@@ -93,7 +93,7 @@ namespace KinectSettings {
                 archive(globalFontSize);
             }
             catch(cereal::RapidJSONException e){
-                std::cerr << "CONFIG FILE LOAD ERROR: " << e.what() << '\n';
+                LOG(ERROR) << "CONFIG FILE LOAD JSON ERROR: " << e.what();
             }
             kinectRadRotation = { rot[0], rot[1], rot[2] };
             kinectRepPosition = { pos[0], pos[1], pos[2] };
@@ -106,7 +106,7 @@ namespace KinectSettings {
         std::ofstream os(KVR::fileToDirPath(CFG_NAME));
         if (os.fail()) {
             //FAIL!!!
-            std::cerr << "ERROR: COULD NOT WRITE TO CONFIG FILE\n";
+            LOG(ERROR) << "ERROR: COULD NOT WRITE TO CONFIG FILE\n";
         }
         else {
             using namespace KinectSettings;
@@ -117,12 +117,19 @@ namespace KinectSettings {
             vr::HmdVector3d_t pos = kinectRepPosition;
             float kPosition[3] = { pos.v[0], pos.v[1] , pos.v[2] };
             cereal::JSONOutputArchive archive(os);
-            archive(
-                CEREAL_NVP(kRotation),
-                CEREAL_NVP(kPosition),
-                CEREAL_NVP(hipRoleHeightAdjust),
-                CEREAL_NVP(globalFontSize)
-            );
+            LOG(INFO) << "Attempted to save config settings to file";
+            try {
+                archive(
+                    CEREAL_NVP(kRotation),
+                    CEREAL_NVP(kPosition),
+                    CEREAL_NVP(hipRoleHeightAdjust),
+                    CEREAL_NVP(globalFontSize)
+                );
+            }
+            catch (cereal::RapidJSONException e) {
+                LOG(ERROR) << "CONFIG FILE SAVE JSON ERROR: " << e.what();
+            }
+            
         }
     }
 }
@@ -168,6 +175,60 @@ namespace KVR {
 }
 # define M_PI           3.14159265358979323846
 
+namespace VRInput {
+    // Action Handles
+    vr::VRActionHandle_t moveHorizontallyHandle;
+    vr::VRActionHandle_t moveVerticallyHandle;
+    vr::VRActionHandle_t confirmCalibrationHandle;
 
+    // Calibration Sets
+    vr::VRActionSetHandle_t calibrationSetHandle;
 
+    // Action Sets
+    vr::VRActiveActionSet_t activeActionSet;
 
+    // Digital Action Data
+    vr::InputDigitalActionData_t confirmCalibrationData{};
+
+    // Analog Action Data
+    vr::InputAnalogActionData_t moveHorizontallyData{};
+    vr::InputAnalogActionData_t moveVerticallyData{};
+}
+bool VRInput::initialiseVRInput()
+{
+    vr::EVRInputError iError = vr::VRInput()->SetActionManifestPath(KVR::inputDirForOpenVR("action-manifest.json"));
+    if (iError == vr::EVRInputError::VRInputError_None) {
+        LOG(INFO) << "Action manifest path set correctly!";
+    }
+    else {
+        LOG(ERROR) << "Action manifest path Error, EVRInputError Code: " << (int)iError;
+        return false;
+    }
+    // Obtain handles
+    iError = vr::VRInput()->GetActionHandle("/actions/calibration/in/MoveHorizontally", &moveHorizontallyHandle);
+    iError = vr::VRInput()->GetActionHandle("/actions/calibration/in/MoveVertically", &moveVerticallyHandle);
+    iError = vr::VRInput()->GetActionHandle("/actions/calibration/in/ConfirmCalibration", &confirmCalibrationHandle);
+
+    iError = vr::VRInput()->GetActionSetHandle("/actions/calibration", &calibrationSetHandle);
+
+    // Set Actionset Settings
+    activeActionSet.ulActionSet = calibrationSetHandle;
+    activeActionSet.ulRestrictedToDevice = vr::k_ulInvalidInputValueHandle;
+    activeActionSet.unPadding; // Ignored
+    activeActionSet.nPriority = 0;
+
+    if (iError == vr::EVRInputError::VRInputError_None) {
+        LOG(INFO) << "Input Handles set correctly!";
+    }
+    else {
+        LOG(ERROR) << "Input Handle Error, EVRInputError Code: " << (int)iError;
+        return false;
+    }
+    return true;
+}
+
+void VRInput::updateVRInput()
+{
+    vr::EVRInputError iError = vr::VRInput()->UpdateActionState(&activeActionSet, sizeof(activeActionSet), 1);
+    LOG_IF(iError != vr::EVRInputError::VRInputError_None, ERROR) << "Error when updating input action state, EVRInputError Code: " << (int)iError;
+}

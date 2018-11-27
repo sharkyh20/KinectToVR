@@ -4,6 +4,7 @@
 #include <openvr_math.h>
 #include "KinectSettings.h"
 
+
 void setTrackerRolesInVRSettings() {
     // Attempt to set the steamvr.vrsettings property for the trackers
     // See openvr.h l2117 for more details
@@ -11,6 +12,9 @@ void setTrackerRolesInVRSettings() {
     // Declared same style as in OpenVR
     // Kind of assumes that K2VR is spawning this stuff first
     // Should consider removing properties on close - or adding a button to
+
+    LOG(INFO) << "Set Tracker Roles in steamvr.vrsettings attempted...";
+
     static const char* const k_pch_Trackers_IeLeftFoot = "/devices/00vrinputemulator/0";
     static const char* const k_pch_Trackers_IeRightFoot = "/devices/00vrinputemulator/1";
     static const char* const k_pch_Trackers_IeWaist = "/devices/00vrinputemulator/2";
@@ -21,6 +25,9 @@ void setTrackerRolesInVRSettings() {
     vr::VRSettings()->SetString(vr::k_pch_Trackers_Section, k_pch_Trackers_IeRightFoot, "TrackerRole_RightFoot", &sError);
     vr::VRSettings()->SetString(vr::k_pch_Trackers_Section, k_pch_Trackers_IeWaist, "TrackerRole_Waist", &sError);
     vr::VRSettings()->SetString(vr::k_pch_Trackers_Section, k_pch_Trackers_IeKinectArrow, "TrackerRole_None", &sError);
+    LOG_IF(sError != vr::VRSettingsError_None, ERROR) << "Error setting tracker roles: EVRSettingsError Code " << (int)sError;
+    LOG_IF(sError == vr::VRSettingsError_None, INFO) << "Successfully set tracker roles in vrsettings!";
+
 }
 void removeTrackerRolesInVRSettings() {
     // Attempt to remove the steamvr.vrsettings property for the trackers
@@ -39,6 +46,7 @@ void removeTrackerRolesInVRSettings() {
     vr::VRSettings()->RemoveKeyInSection(vr::k_pch_Trackers_Section, k_pch_Trackers_IeRightFoot);
     vr::VRSettings()->RemoveKeyInSection(vr::k_pch_Trackers_Section, k_pch_Trackers_IeWaist);
     vr::VRSettings()->RemoveKeyInSection(vr::k_pch_Trackers_Section, k_pch_Trackers_IeKinectArrow);
+    LOG_IF(sError != vr::VRSettingsError_None, ERROR) << "Error removing tracker roles: EVRSettingsError Code " << (int)sError;
 }
 
 vr::HmdVector3d_t updateHMDPosAndRot(vr::IVRSystem* &m_system) {

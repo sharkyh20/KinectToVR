@@ -10,8 +10,8 @@
 #include <iostream>
 #include <KinectJoint.h>
 
-
  void KinectV1Handler::initOpenGL() {
+    LOG(INFO) << "Attempted to initialise OpenGL";
     int width = 0, height = 0;
     if (kVersion == KinectVersion::Version1) {
         width = KinectSettings::kinectWidth;
@@ -70,10 +70,11 @@
         kinectImageData
             = std::make_unique<GLubyte[]>(KinectSettings::kinectWidth * KinectSettings::kinectHeight * 4);  // BGRA
         initialised = initKinect();
+        LOG_IF(initialised, INFO) << "Kinect initialised successfully!";
         if (!initialised) throw FailedKinectInitialisation;
     }
     catch (std::exception&  e) {
-        std::cerr << e.what() << std::endl;
+        LOG(ERROR) << "Failed to initialise Kinect " << e.what() << std::endl;
     }
 }
 
@@ -236,7 +237,7 @@ bool KinectV1Handler::getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdV
                 }
                                                          break;
                 default:
-                    std::cerr << "JOINT ROTATION OPTION UNDEFINED IN DEVICE " << device.deviceId << '\n';
+                    LOG(ERROR) << "JOINT ROTATION OPTION UNDEFINED IN DEVICE " << device.deviceId;
                     break;
                 }
                 rotation.w = kRotation.w;
@@ -320,7 +321,7 @@ NUI_SKELETON_POSITION_INDEX KinectV1Handler::convertJoint(KVR::KinectJoint joint
         return NUI_SKELETON_POSITION_HAND_RIGHT;
 
     default:
-        std::cerr << "INVALID KinectJointType!!!\n";
+        LOG(ERROR) << "INVALID KinectJointType!!!";
         return NUI_SKELETON_POSITION_WRIST_LEFT;
         break;
 

@@ -17,6 +17,8 @@
 
 #include "easylogging++.h"
 
+const char* logFileName = "K2VR.log";
+
 #if defined(AUTO_INITIALIZE_EASYLOGGINGPP)
 INITIALIZE_EASYLOGGINGPP
 #endif

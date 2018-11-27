@@ -9,9 +9,9 @@
 #include "KinectJoint.h"
 
 enum class KinectVersion {
-    Version1 = 0,   //AKA Xbox 360/ Windows v1
-    Version2,    //AKA Xbox One/ Windows v2
-    INVALID 
+    Version1 = 1,   //AKA Xbox 360/ Windows v1
+    Version2 = 2,    //AKA Xbox One/ Windows v2
+    INVALID = 404
 };
 namespace KinectSettings {
     extern bool isKinectDrawn;
@@ -87,5 +87,28 @@ namespace KVR {
 
     extern std::string ToUTF8(const std::wstring &data);
     extern const char* inputDirForOpenVR(std::string file);
+}
+
+namespace VRInput {
+    // Action Handles
+    extern vr::VRActionHandle_t moveHorizontallyHandle;
+    extern vr::VRActionHandle_t moveVerticallyHandle;
+    extern vr::VRActionHandle_t confirmCalibrationHandle;
+
+    // Calibration Sets
+    extern vr::VRActionSetHandle_t calibrationSetHandle;
+
+    // Action Sets
+    extern vr::VRActiveActionSet_t activeActionSet;
+
+    // Digital Action Data
+    extern vr::InputDigitalActionData_t confirmCalibrationData;
+
+    // Analog Action Data
+    extern vr::InputAnalogActionData_t moveHorizontallyData;
+    extern vr::InputAnalogActionData_t moveVerticallyData;
+
+    bool initialiseVRInput();
+    void updateVRInput();
 }
 # define M_PI           3.14159265358979323846

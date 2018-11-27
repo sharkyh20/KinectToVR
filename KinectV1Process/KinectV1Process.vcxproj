@@ -87,7 +87,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>/DELPP_DEFAULT_LOG_FILE="K2VR.log";_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)external\PSMoveService;$(SolutionDir)external\opencv\include;$(ProjectDir)/inc;$(SolutionDir)external\Glew;$(SolutionDir)external\InputEmulator\;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\SFML\include;$(SolutionDir)external\sfgui;$(SolutionDir)external\boost_1_63_0;$(SolutionDir)external\easylogging\src;$(SolutionDir)SFMLProject\inc\;%(AdditionalIncludeDirectories)$(ProjectDir)inc;$(SolutionDir)SFMLProject\inc\;$(SolutionDir)external\inputemulator\third-party\boost_1_63_0;$(SolutionDir)external\inputemulator\openvr\headers;$(SolutionDir)external\inputEmulator\lib_vrinputemulator\include;$(SolutionDir)external\glew\include;$(SolutionDir)external\sfml\include;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\build\include;$(KINECTSDK10_DIR)inc;$(SolutionDir)external\PSMoveService\include</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -136,7 +136,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>/DELPP_DEFAULT_LOG_FILE="K2VR.log";NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)external\PSMoveService;$(SolutionDir)external\opencv\include;$(ProjectDir)/inc;$(SolutionDir)external\Glew;$(SolutionDir)external\InputEmulator\;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\SFML\include;$(SolutionDir)external\sfgui;$(SolutionDir)external\boost_1_63_0;$(SolutionDir)external\easylogging\src;$(SolutionDir)SFMLProject\inc\;%(AdditionalIncludeDirectories);$(KINECTSDK10_DIR)inc;$(SolutionDir)external\PSMoveService\include</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>

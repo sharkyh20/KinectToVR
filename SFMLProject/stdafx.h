@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <tchar.h>
 
+#include <easylogging++.h>
 
 
 // TODO: reference additional headers your program requires here
