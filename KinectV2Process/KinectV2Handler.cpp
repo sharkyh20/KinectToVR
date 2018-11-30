@@ -38,7 +38,6 @@ void KinectV2Handler::initialise() {
         // Updating all of the arrays uses a shit ton of CPU, but then again, it's still WIP
         // initialiseDepth();
         initialiseSkeleton();
-        std::this_thread::sleep_for(std::chrono::seconds(2));
         if (!initialised) throw FailedKinectInitialisation;
     }
     catch (std::exception& e) {
@@ -576,6 +575,8 @@ bool KinectV2Handler::initKinect() {
          //    | FrameSourceTypes::FrameSourceTypes_Color,
          //   &frameReader);
         //return frameReader;
+        std::this_thread::sleep_for(std::chrono::seconds(2)); // Necessary to allow kinect to become available behind the scenes
+
         BOOLEAN available = false;
         kinectSensor->get_IsAvailable(&available);
 
