@@ -2,11 +2,14 @@
 //
 
 #include "stdafx.h"
+
 #include "KinectV2Handler.h"
 #include <KinectToVR.h>
 #include <sstream>
 #include <string>
 #include <iostream>
+
+
 
 //#include <Windows.h>
 
@@ -15,8 +18,28 @@
 
 // Logging Definitions
 INITIALIZE_EASYLOGGINGPP
-#define ELPP_FEATURE_CRASH_LOG
+const char* logConfigFileName = "logging.conf";
+const char* logConfigDefault =
+"* GLOBAL:\n"
+"	FORMAT = \"[%level] %datetime{%Y-%M-%d %H:%m:%s}: %msg\"\n"
+"	FILENAME = \"K2VR.log\"\n"
+"	ENABLED = true\n"
+"	TO_FILE = true\n"
+"	TO_STANDARD_OUTPUT = true\n"
+"	MAX_LOG_FILE_SIZE = 2097152 ## 2MB\n"
+"* TRACE:\n"
+"	ENABLED = false\n"
+"* DEBUG:\n"
+"	ENABLED = false\n";
 
+void init_logging() {
+    el::Loggers::addFlag(el::LoggingFlag::DisableApplicationAbortOnFatalLog);
+    el::Configurations conf(logConfigFileName);
+    conf.parseFromText(logConfigDefault);
+    conf.parseFromFile(logConfigFileName);
+    conf.setRemainingToDefault();
+    el::Loggers::reconfigureAllLoggers(conf);
+}
 //using namespace cv;
 
 using namespace std;
@@ -85,9 +108,11 @@ int main(int argc, char* argv[])
 int main(int argc, char* argv[])
 {
     START_EASYLOGGINGPP(argc, argv);
-#ifndef _DEBUG 
+    init_logging();
     HWND hWnd = GetConsoleWindow();
-    //ShowWindow(hWnd, SW_HIDE);
+    ShowWindow(hWnd, SW_SHOW);
+#ifndef _DEBUG 
+    ShowWindow(hWnd, SW_HIDE);
 #endif 
     KinectV2Handler kinect;
     KinectSettings::leftFootJointWithRotation = KVR::KinectJointType::AnkleLeft;

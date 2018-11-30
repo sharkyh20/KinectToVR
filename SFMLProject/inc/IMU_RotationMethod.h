@@ -25,8 +25,7 @@ public:
 
     void updateTrackers(
         KinectHandlerBase& kinect,
-        std::vector<KVR::KinectTrackedDevice> & v_trackers,
-        std::vector<KVR::TrackedDeviceInputData> inputs
+        std::vector<KVR::KinectTrackedDevice> & v_trackers
     ) {
         for (int i = 0; i < v_trackers.size(); ++i) {
             auto & device = v_trackers[i];

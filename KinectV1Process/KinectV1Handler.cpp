@@ -330,14 +330,19 @@ NUI_SKELETON_POSITION_INDEX KinectV1Handler::convertJoint(KVR::KinectJoint joint
 bool KinectV1Handler::initKinect() {
     //Get a working Kinect Sensor
     int numSensors = 0;
-    if (NuiGetSensorCount(&numSensors) < 0 || numSensors < 1)
+    if (NuiGetSensorCount(&numSensors) < 0 || numSensors < 1) {
+        LOG(ERROR) << "No Kinect Sensors found!";
         return false;
-    if (NuiCreateSensorByIndex(0, &kinectSensor) < 0)
+    }
+    if (NuiCreateSensorByIndex(0, &kinectSensor) < 0) {
+        LOG(ERROR) << "Sensor found, but could not create an instance of it!";
         return false;
+    }
     //Initialise Sensor
-    kinectSensor->NuiInitialize(NUI_INITIALIZE_FLAG_USES_DEPTH_AND_PLAYER_INDEX
+    HRESULT hr = kinectSensor->NuiInitialize(NUI_INITIALIZE_FLAG_USES_DEPTH_AND_PLAYER_INDEX
         | NUI_INITIALIZE_FLAG_USES_SKELETON);
-    
+    LOG_IF(FAILED(hr), ERROR) << "Kinect sensor failed to initialise!";
+    else LOG(INFO) << "Kinect sensor opened successfully.";
     /*
     kinectSensor->NuiImageStreamOpen(
         NUI_IMAGE_TYPE_COLOR,               //Depth Camera or RGB Camera?

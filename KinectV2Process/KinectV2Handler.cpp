@@ -12,7 +12,11 @@
 HRESULT KinectV2Handler::getStatusResult()
 {
     BOOLEAN avail;
-    return kinectSensor->get_IsAvailable(&avail);
+    kinectSensor->get_IsAvailable(&avail);
+    if (avail)
+        return S_OK;
+    else
+        return S_FALSE; // Hresult only actually determines whether the function worked, the bool is the true value....
 }
 
 std::string KinectV2Handler::statusResultString(HRESULT stat)
@@ -38,7 +42,7 @@ void KinectV2Handler::initialise() {
         if (!initialised) throw FailedKinectInitialisation;
     }
     catch (std::exception& e) {
-        LOG(ERROR) << "Failed to initialise Kinect " << e.what() << std::endl;
+        LOG(ERROR) << e.what() << std::endl;
     }
 }
 void KinectV2Handler::initialiseSkeleton()
@@ -59,7 +63,7 @@ void KinectV2Handler::initialiseSkeleton()
         LOG(ERROR) << "ERROR: Could not subscribe to skeleton frame event! HRESULT " << hr;
     }
     else {
-        LOG(INFO) << "Kinect Skeleton Reader initialised successfully.";
+        LOG(INFO) << "Kinect Skeleton Reader subscribed to event, initialised successfully.";
     }
 }
 void KinectV2Handler::initialiseColor()
@@ -561,23 +565,28 @@ bool KinectV2Handler::getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdV
 }
 bool KinectV2Handler::initKinect() {
     if (FAILED(GetDefaultKinectSensor(&kinectSensor))) {
-        LOG(INFO) << "Kinect sensor failed to open!";
+        LOG(ERROR) << "Could not get default Kinect Sensor!";
         return false;
     }
     if (kinectSensor) {
         kinectSensor->get_CoordinateMapper(&coordMapper);
 
-        kinectSensor->Open();
+        HRESULT hr_open = kinectSensor->Open();
         //kinectSensor->OpenMultiSourceFrameReader( FrameSourceTypes::FrameSourceTypes_Body| FrameSourceTypes::FrameSourceTypes_Depth
          //    | FrameSourceTypes::FrameSourceTypes_Color,
          //   &frameReader);
         //return frameReader;
-        LOG(INFO) << "Kinect sensor opened successfully.";
+        BOOLEAN available = false;
+        kinectSensor->get_IsAvailable(&available);
+
+        if (FAILED(hr_open) || !available) {
+            LOG(ERROR) << "Kinect sensor failed to open!";
+            return false;
+        }
+        else LOG(INFO) << "Kinect sensor opened successfully.";
         return true;
     }
-    else {
-        return false;
-    }
+    return false;
 }
 void KinectV2Handler::updateKinectData() {
     updateDepthData();

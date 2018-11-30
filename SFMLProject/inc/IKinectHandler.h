@@ -3,7 +3,7 @@
 
 #include "KinectTrackedDevice.h"
 
-#include <windows.h>
+
 #include <string>
 #include <vector>
 #include <vrinputemulator.h>
@@ -11,6 +11,9 @@
 #include <glew.h>
 
 #include <opencv2\opencv.hpp>
+
+
+#include <windows.h>
 
 class IKinectHandler {
     // Interface base for Kinectv1 and v2

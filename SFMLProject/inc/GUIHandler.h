@@ -717,7 +717,7 @@ private:
     // All the device handlers
     PSMoveHandler psMoveHandler;
 
-    HRESULT lastKinectStatus = S_OK;
+    HRESULT lastKinectStatus = E_FAIL;
 
     sfg::Desktop guiDesktop;
 

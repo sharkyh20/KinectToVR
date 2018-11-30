@@ -2,8 +2,7 @@
 #include "KinectToVR.h"
 #include "VRHelper.h"
 
-#include "wtypes.h"
-#include <Windows.h>
+
 
 #include "KinectSettings.h"
 #include "VRController.h"
@@ -34,6 +33,11 @@
 
 //OpenCV
 #include <opencv2\opencv.hpp>
+
+// Windows last because of the great and holy Microsoft
+// ... and their ability to cause compiler errors with macros
+#include "wtypes.h"
+#include <Windows.h>
 
 
 using namespace KVR;
@@ -236,6 +240,7 @@ void limitVRFramerate(double &endFrameMilliseconds)
 }
 
 void processLoop(KinectHandlerBase& kinect) {
+    LOG(INFO) << "~~~New logging session for main process begins here!~~~";
     LOG(INFO) << "Kinect version is V" << (int)kinect.kVersion;
     updateFilePath();
     //sf::RenderWindow renderWindow(getScaledWindowResolution(), "KinectToVR: " + KinectSettings::KVRversion, sf::Style::Titlebar | sf::Style::Close);
@@ -328,9 +333,9 @@ void processLoop(KinectHandlerBase& kinect) {
     std::vector<std::unique_ptr<TrackingMethod>> v_trackingMethods;
     guiRef.setTrackingMethodsReference(v_trackingMethods);
 
-    SkeletonTracker mainSkeletalTracker;
+    //SkeletonTracker mainSkeletalTracker;
     kinect.initialiseSkeleton();
-    v_trackingMethods.push_back(std::make_unique<SkeletonTracker>(mainSkeletalTracker));
+    //v_trackingMethods.push_back(std::make_unique<SkeletonTracker>(mainSkeletalTracker));
 
     IMU_PositionMethod posMethod;
     v_trackingMethods.push_back(std::make_unique<IMU_PositionMethod>(posMethod));
@@ -423,7 +428,6 @@ void processLoop(KinectHandlerBase& kinect) {
 
         //Update VR Components
         if (eError == vr::VRInitError_None) {
-            //vr::VRInput()->UpdateActionState();
             rightController.update(deltaT);
             leftController.update(deltaT);
             updateHMDPosAndRot(m_VRSystem);
@@ -456,16 +460,15 @@ void processLoop(KinectHandlerBase& kinect) {
 
             kinect.updateTrackersWithSkeletonPosition(v_trackers);
             //std::vector<KVR::TrackedDeviceInputData> v_inputData = psMoveHandler.extractVRTrackingPoses();
-            /*
-            std::vector<KVR::TrackedDeviceInputData> v_inputData{}; // DEBUG
+            
             for (auto & method_ptr : v_trackingMethods) {
                 method_ptr->update(kinect, v_trackers);
-                method_ptr->updateTrackers(kinect, v_trackers, v_inputData);
+                method_ptr->updateTrackers(kinect, v_trackers);
             }
             for (auto & tracker : v_trackers) {
                 tracker.update();
             }
-            */
+            
             kinect.drawKinectData(renderWindow);
         }
         //std::vector<uint32_t> virtualDeviceIndexes;

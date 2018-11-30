@@ -10,19 +10,39 @@
 // Logging Definitions
 INITIALIZE_EASYLOGGINGPP
 
-#define ELPP_FEATURE_CRASH_LOG
+const char* logConfigFileName = "logging.conf";
+const char* logConfigDefault =
+"* GLOBAL:\n"
+"	FORMAT = \"[%level] %datetime{%Y-%M-%d %H:%m:%s}: %msg\"\n"
+"	FILENAME = \"K2VR.log\"\n"
+"	ENABLED = true\n"
+"	TO_FILE = true\n"
+"	TO_STANDARD_OUTPUT = true\n"
+"	MAX_LOG_FILE_SIZE = 2097152 ## 2MB\n"
+"* TRACE:\n"
+"	ENABLED = false\n"
+"* DEBUG:\n"
+"	ENABLED = false\n";
+
+void init_logging() {
+    el::Loggers::addFlag(el::LoggingFlag::DisableApplicationAbortOnFatalLog);
+    el::Configurations conf(logConfigFileName);
+    conf.parseFromText(logConfigDefault);
+    conf.parseFromFile(logConfigFileName);
+    conf.setRemainingToDefault();
+    el::Loggers::reconfigureAllLoggers(conf);
+}
 
 int main(int argc, char* argv[])
 {
     START_EASYLOGGINGPP(argc, argv);
-    el::Configurations logConfig;
-    logConfig.setGlobally(el::ConfigurationType::ToFile, "true");
-#ifndef _DEBUG 
+    init_logging();
     HWND hWnd = GetConsoleWindow();
+    ShowWindow(hWnd, SW_SHOW);
+#ifndef _DEBUG 
     ShowWindow(hWnd, SW_HIDE);
 #endif 
     KinectV1Handler kinect;
-    // Reversed for now to investigate perf. bug
     KinectSettings::leftFootJointWithRotation = KVR::KinectJointType::AnkleLeft;
     KinectSettings::rightFootJointWithRotation = KVR::KinectJointType::AnkleRight;
     KinectSettings::leftFootJointWithoutRotation = KVR::KinectJointType::FootLeft;
