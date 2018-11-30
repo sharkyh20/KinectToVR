@@ -333,15 +333,15 @@ void processLoop(KinectHandlerBase& kinect) {
     std::vector<std::unique_ptr<TrackingMethod>> v_trackingMethods;
     guiRef.setTrackingMethodsReference(v_trackingMethods);
 
-    //SkeletonTracker mainSkeletalTracker;
+    SkeletonTracker mainSkeletalTracker;
     kinect.initialiseSkeleton();
-    //v_trackingMethods.push_back(std::make_unique<SkeletonTracker>(mainSkeletalTracker));
+    v_trackingMethods.push_back(std::make_unique<SkeletonTracker>(mainSkeletalTracker));
 
-    IMU_PositionMethod posMethod;
-    v_trackingMethods.push_back(std::make_unique<IMU_PositionMethod>(posMethod));
+    //IMU_PositionMethod posMethod;
+    //v_trackingMethods.push_back(std::make_unique<IMU_PositionMethod>(posMethod));
 
-    IMU_RotationMethod rotMethod;
-    v_trackingMethods.push_back(std::make_unique<IMU_RotationMethod>(rotMethod));
+    //IMU_RotationMethod rotMethod;
+    //v_trackingMethods.push_back(std::make_unique<IMU_RotationMethod>(rotMethod));
     /*
     ColorTracker mainColorTracker(KinectSettings::kinectV2Width, KinectSettings::kinectV2Height);
     v_trackingMethods.push_back(mainColorTracker);
@@ -460,7 +460,7 @@ void processLoop(KinectHandlerBase& kinect) {
 
             kinect.updateTrackersWithSkeletonPosition(v_trackers);
             //std::vector<KVR::TrackedDeviceInputData> v_inputData = psMoveHandler.extractVRTrackingPoses();
-            
+            /*
             for (auto & method_ptr : v_trackingMethods) {
                 method_ptr->update(kinect, v_trackers);
                 method_ptr->updateTrackers(kinect, v_trackers);
@@ -468,7 +468,7 @@ void processLoop(KinectHandlerBase& kinect) {
             for (auto & tracker : v_trackers) {
                 tracker.update();
             }
-            
+            */
             kinect.drawKinectData(renderWindow);
         }
         //std::vector<uint32_t> virtualDeviceIndexes;
