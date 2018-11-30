@@ -53,8 +53,5 @@
     <ClCompile Include="SmoothingParameters.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\easylogging\src\easylogging++.cc">
-      <Filter>Resource Files</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>

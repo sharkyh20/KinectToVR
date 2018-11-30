@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <tchar.h>
 
-#include <easylogging++.h>
+#include "logging.h"
 
 
 // TODO: reference additional headers your program requires here

@@ -5,16 +5,13 @@
 
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN //Fix for intellisense errors
-// Windows Header Files:
-#include <windows.h>
-
+#define NOMINMAX
 #include "targetver.h"
 
 #include <stdio.h>
 #include <tchar.h>
 
-#include <easylogging++.h>
+#include "logging.h"
 
 
 // TODO: reference additional headers your program requires here

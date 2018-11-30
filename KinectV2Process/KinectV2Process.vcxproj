@@ -87,7 +87,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>/DELPP_DEFAULT_LOG_FILE="K2VR.log";_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)SFMLProject\inc\;$(SolutionDir)\external\boost_1_63_0\;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\inputEmulator\;$(SolutionDir)external\glew\;$(SolutionDir)external\easylogging\src;$(SolutionDir)external\sfml\include;$(SolutionDir)external\sfgui\;$(SolutionDir)external\opencv\include\;$(KINECTSDK20_DIR)inc;$(SolutionDir)external\PSMoveService\include</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -136,7 +136,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>/DELPP_DEFAULT_LOG_FILE="K2VR.log";NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)SFMLProject\inc\;$(SolutionDir)\external\boost_1_63_0\;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\inputEmulator\;$(SolutionDir)external\glew\;$(SolutionDir)external\easylogging\src;$(SolutionDir)external\sfml\include;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\include;$(KINECTSDK20_DIR)inc;$(SolutionDir)external\PSMoveService\include</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
@@ -162,7 +162,6 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\easylogging\src\easylogging++.cc" />
     <ClCompile Include="KinectJointFilter.cpp" />
     <ClCompile Include="KinectV2Handler.cpp" />
     <ClCompile Include="KinectV2Process.cpp" />

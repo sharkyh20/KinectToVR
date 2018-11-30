@@ -107,10 +107,11 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>/DELPP_DEFAULT_LOG_FILE="K2VR.log";_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(IncludePath);$(ProjectDir)inc;$(SolutionDir)external\cereal\include;$(SolutionDir)external\inputemulator\;$(SolutionDir)external\openvr\headers\;$(SolutionDir)external\inputemulator\third-party\boost_1_63_0;$(SolutionDir)external\SFML\include\;$(SolutionDir)external\glew\;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\boost_1_63_0;$(SolutionDir)external\easylogging\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ShowIncludes>true</ShowIncludes>
-      <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
+      <ForcedIncludeFiles>
+      </ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -157,11 +158,11 @@ xcopy /s /y /i /e "$(SolutionDir)/Input" "$(TargetDir)/Input"</Command>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>/DELPP_DEFAULT_LOG_FILE="K2VR.log";NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(IncludePath);$(ProjectDir)inc;$(SolutionDir)external\cereal\include;$(SolutionDir)external\inputemulator\;$(SolutionDir)external\openvr\headers\;$(SolutionDir)external\inputemulator\third-party\boost_1_63_0;$(SolutionDir)external\SFML\include\;$(SolutionDir)external\glew\;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\boost_1_63_0;$(SolutionDir)external\easylogging\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <ForcedIncludeFiles>stdafx.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <ForcedIncludeFiles>%(ForcedIncludeFiles)</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -202,6 +203,7 @@ xcopy /s /y /i /e "$(SolutionDir)/Input" "$(TargetDir)/Input"</Command>
     <ClInclude Include="inc\KinectSettings.h" />
     <ClInclude Include="inc\KinectToVR.h" />
     <ClInclude Include="inc\KinectTrackedDevice.h" />
+    <ClInclude Include="inc\logging.h" />
     <ClInclude Include="inc\ManualCalibrator.h" />
     <ClInclude Include="inc\PSMoveHandler.h" />
     <ClInclude Include="inc\QuaternionMath.h" />
@@ -219,7 +221,6 @@ xcopy /s /y /i /e "$(SolutionDir)/Input" "$(TargetDir)/Input"</Command>
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\easylogging\src\easylogging++.cc" />
     <ClCompile Include="IETracker.cpp" />
     <ClCompile Include="KinectJoint.cpp" />
     <ClCompile Include="KinectSettings.cpp" />
