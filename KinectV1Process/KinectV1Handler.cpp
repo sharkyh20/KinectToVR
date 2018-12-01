@@ -172,9 +172,9 @@
 }
 
  void KinectV1Handler::updateTrackersWithSkeletonPosition(
-    std::vector<KVR::KinectTrackedDevice> trackers)
+    std::vector<KVR::KinectTrackedDevice> & trackers)
 {
-    for (KVR::KinectTrackedDevice device : trackers) {
+    for (KVR::KinectTrackedDevice & device : trackers) {
         if (device.isSensor()) {
             device.update(KinectSettings::kinectRepPosition, { 0,0,0 }, KinectSettings::kinectRepRotation);
         }

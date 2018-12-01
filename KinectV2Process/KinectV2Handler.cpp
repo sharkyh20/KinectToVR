@@ -398,7 +398,12 @@ void KinectV2Handler::updateSkeletalData() {
         IBodyFrame* bodyFrame = nullptr;
         HRESULT frameReceived = bodyFrameReader->AcquireLatestFrame(&bodyFrame);
         if (FAILED(frameReceived)) {
-            LOG(ERROR) << "Could not retrieve skeleton frame! HRESULT " << frameReceived;
+            if (frameReceived == E_PENDING) {
+                // LOG(INFO) << "Could not retrieve skeleton frame, stuck pending...";
+                // Harmless
+            }
+            else
+                LOG(ERROR) << "Could not retrieve skeleton frame! HRESULT " << frameReceived;
         }
         //IBodyFrameReference* frameRef = nullptr;
         //multiFrame->get_BodyFrameReference(&frameRef);
@@ -468,9 +473,9 @@ void KinectV2Handler::setKinectToVRMultiplier(int skeletonIndex) {
 // THIS IS BEING DEPRECATED INTO A SIMPLE RETURN OF THE JOINTS.
 // FROM NOW ON, EACH TRACKING-METHOD WILL HANDLE PROCESSING OF
 // THIS DATA, AND THEN UPDATE THE TRACKERS IN ANOTHER METHOD
-void KinectV2Handler::updateTrackersWithSkeletonPosition( std::vector<KVR::KinectTrackedDevice> trackers)
+void KinectV2Handler::updateTrackersWithSkeletonPosition( std::vector<KVR::KinectTrackedDevice> & trackers)
 {
-    for (KVR::KinectTrackedDevice device : trackers) {
+    for (KVR::KinectTrackedDevice & device : trackers) {
         if (device.positionTrackingOption == KVR::JointPositionTrackingOption::Skeleton) {
             if (device.isSensor() ) {
                 device.update(KinectSettings::kinectRepPosition, { 0,0,0 }, KinectSettings::kinectRepRotation);

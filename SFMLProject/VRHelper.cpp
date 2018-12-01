@@ -49,6 +49,34 @@ void removeTrackerRolesInVRSettings() {
     LOG_IF(sError != vr::VRSettingsError_None, ERROR) << "Error removing tracker roles: EVRSettingsError Code " << (int)sError;
 }
 
+void toEulerAngle(vr::HmdQuaternion_t q, double& roll, double& pitch, double& yaw)
+{
+    vr::HmdVector3d_t v;
+    double test = q.x * q.y + q.z * q.w;
+    if (test > 0.499)
+    { // singularity at north pole
+        v.v[0] = 2 * atan2(q.x, q.w); // heading
+        v.v[1] = M_PI / 2; // attitude
+        v.v[2]= 0; // bank
+        return;
+    }
+    if (test < -0.499)
+    { // singularity at south pole
+        v.v[0] = -2 * atan2(q.x, q.w); // headingq
+        v.v[1] = -M_PI / 2; // attitude
+        v.v[2] = 0; // bank
+        return;
+    }
+    double sqx = q.x * q.x;
+    double sqy = q.y * q.y;
+    double sqz = q.z * q.z;
+    v.v[0] = atan2(2 * q.y * q.w - 2 * q.x * q.z, 1 - 2 * sqy - 2 * sqz); // heading
+    v.v[1] = asin(2 * test); // attitude
+    v.v[2] = atan2(2 * q.x * q.w - 2 * q.y * q.z, 1 - 2 * sqx - 2 * sqz); // bank
+    pitch = v.v[0];
+    roll = v.v[1];
+    yaw = v.v[2];
+}
 vr::HmdVector3d_t updateHMDPosAndRot(vr::IVRSystem* &m_system) {
     //Gets the HMD location for relative position setting
     // Use the head joint for the zero location!

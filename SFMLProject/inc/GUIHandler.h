@@ -658,8 +658,8 @@ void setRolesListItems(sfg::ComboBox::Ptr comboBox) {
 }
 
 void updateKinectStatusLabel(KinectHandlerBase& kinect) {
+    HRESULT status = kinect.getStatusResult();
     if (kinect.isInitialised()) {
-        HRESULT status = kinect.getStatusResult();
         if (status == lastKinectStatus)
             return; // No need to waste time updating it;
         switch (status) {
@@ -673,7 +673,10 @@ void updateKinectStatusLabel(KinectHandlerBase& kinect) {
     }
     else
         updateKinectStatusLabelDisconnected();
-    LOG(INFO) << "Kinect Status changed to: " << KinectStatusLabel->GetText().toAnsiString();
+    if (status != lastKinectStatus) {
+        LOG(INFO) << "Kinect Status changed to: " << KinectStatusLabel->GetText().toAnsiString();
+        lastKinectStatus = status;
+    }
 }
 
 

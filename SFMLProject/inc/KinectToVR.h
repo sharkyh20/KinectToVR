@@ -7,8 +7,6 @@
 #include <openvr.h>
 
 //void updateKinectTracker(vrinputemulator::VRInputEmulator &emulator, KinectTrackedDevice device);
-void toEulerAngle(vr::HmdQuaternion_t q, double& roll, double& pitch, double& yaw);
-
 void processKeyEvents(sf::Event event);
 void toggle(bool &b);
 

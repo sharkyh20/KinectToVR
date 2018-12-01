@@ -49,7 +49,7 @@ public:
 
     virtual void zeroAllTracking(vr::IVRSystem* &m_sys) {};
     virtual void updateTrackersWithSkeletonPosition(
-        std::vector<KVR::KinectTrackedDevice> trackers
+        std::vector<KVR::KinectTrackedDevice> & trackers
     ) {};
     virtual void updateTrackersWithColorPosition(
         std::vector<KVR::KinectTrackedDevice> trackers, sf::Vector2i pos) {}
