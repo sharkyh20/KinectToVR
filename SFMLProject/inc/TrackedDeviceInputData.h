@@ -20,7 +20,7 @@ namespace KVR {
         KVR::JointPositionTrackingOption positionTrackingOption = KVR::JointPositionTrackingOption::IMU;
 
         // Pose left invalid if not in use
-        vr::DriverPose_t pose;
+        vr::DriverPose_t pose = {};
 
         DeviceHandler *parentHandler;
     };

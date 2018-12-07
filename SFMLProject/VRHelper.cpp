@@ -85,7 +85,7 @@ vr::HmdVector3d_t updateHMDPosAndRot(vr::IVRSystem* &m_system) {
 
     vr::TrackedDevicePose_t hmdPose;
     vr::TrackedDevicePose_t devicePose[vr::k_unMaxTrackedDeviceCount];
-    m_system->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, 0, devicePose, 1);
+    m_system->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, 0, devicePose, vr::k_unMaxTrackedDeviceCount);
     if (devicePose[HMD_INDEX].bPoseIsValid) {
         if (vr::VRSystem()->GetTrackedDeviceClass(HMD_INDEX) == vr::TrackedDeviceClass_HMD) {
             hmdPose = devicePose[HMD_INDEX];
@@ -93,6 +93,22 @@ vr::HmdVector3d_t updateHMDPosAndRot(vr::IVRSystem* &m_system) {
             position = GetVRPositionFromMatrix(hmdPose.mDeviceToAbsoluteTracking);
             vr::HmdQuaternion_t quaternion = GetVRRotationFromMatrix(hmdPose.mDeviceToAbsoluteTracking);
             KinectSettings::hmdPosition = position;
+            /*
+            // DEBUG -------------------------------------------------------------------
+
+
+            LOG(INFO) << "HMD: " << position.v[0] << ", " << position.v[1] << ", " << position.v[2];
+
+            auto vrRelativePSMovePos = GetVRPositionFromMatrix(devicePose[5].mDeviceToAbsoluteTracking);
+            LOG(INFO) << "PSMOVE: VR : " << vrRelativePSMovePos.v[0] << ", " << vrRelativePSMovePos.v[1] << ", " << vrRelativePSMovePos.v[2];
+
+            auto originMatrix = m_system->GetRawZeroPoseToStandingAbsoluteTrackingPose();
+            auto vrRelativeOriginPos = GetVRPositionFromMatrix(originMatrix);
+
+            LOG(INFO) << "ORIGIN: VR : " << vrRelativeOriginPos.v[0] << ", " << vrRelativeOriginPos.v[1] << ", " << vrRelativeOriginPos.v[2];
+
+            // -------------------------------------------------------------------------
+            */
             KinectSettings::hmdRotation = quaternion;
         }
     }

@@ -38,14 +38,6 @@ public:
             else {
                 auto deviceData = TrackingPoolManager::getDeviceData(device.rotationDevice_gId);
 
-                // For now, whether or not the trackers are set via pose is up for debate
-                //if (inputs[i].pose.poseIsValid) { 
-                //    device.update(inputs[i].pose);
-                //}
-                //else {
-                //    device.update(kinect.trackedPositionVROffset, inputs[i].position, inputs[i].rotation);
-                //}
-
                 device.setRotationForNextUpdate(deviceData.rotation);
             }
         }

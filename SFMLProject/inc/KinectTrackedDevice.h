@@ -7,6 +7,7 @@
 #include "KinectSettings.h"
 #include "KinectJoint.h"
 #include "IETracker.h"
+#include "VRHelper.h"
 #include <vrinputemulator.h>
 #include <SFML/System/Vector3.hpp>
 #include <openvr_math.h>
@@ -92,14 +93,39 @@ namespace KVR {
         }
 
         void setRotationForNextUpdate(vr::HmdQuaternion_t rotation) {
-            nextUpdateRotation = rotation;
+            if (!nextUpdateRotationIsSet) {
+                nextUpdateRotation = rotation;
+                nextUpdateRotationIsSet = true;
+            }
         }
         void setPositionForNextUpdate(vr::HmdVector3d_t position) {
-            nextUpdatePosition = position;
+            if (!nextUpdatePositionIsSet) {
+                nextUpdatePosition = position;
+                nextUpdatePositionIsSet = true;
+            }
+        }
+        void setPoseForNextUpdate(vr::DriverPose_t pose, bool readyForVR) {
+            if (!nextUpdatePoseIsSet) {
+                nextUpdatePoseIsSet = readyForVR;
+                nextUpdatePose = pose;
+            }
         }
         void update() {
             // Send through the positions for the next update of the controller
             // - called for each controller at the end of the TrackingMethod iteration
+            nextUpdatePositionIsSet = false;
+            nextUpdateRotationIsSet = false;
+
+            if (nextUpdatePoseIsSet) {
+                // If pose already handled entirely by tracking method
+                // and ready to be sent directly to IE
+                // e.g. PSMove's rotation and position and HMD alignment for the one tracker
+                //nextUpdatePose.vecWorldFromDriverTranslation[1] -= 1.75;
+                update(nextUpdatePose);
+                nextUpdatePoseIsSet = false;
+                return;
+            }
+
             vr::DriverPose_t pose{};
 
             usingKinectCalibrationModel = false;
@@ -107,6 +133,7 @@ namespace KVR {
                 applyKinectArrowCalibrationToTracker(nextUpdateRotation, nextUpdatePosition);
             }
             pose.deviceIsConnected = true;
+
             pose.qRotation = nextUpdateRotation;
 
             pose.qWorldFromDriverRotation = { 1,0,0,0 }; // need these else nothing rotates/moves visually
@@ -131,6 +158,9 @@ namespace KVR {
         void update(vr::DriverPose_t pose) {
             // Pose already completely handled by Tracking Method
             inputEmulatorRef.setVirtualDevicePose(deviceId, pose);
+
+            // DEBUG
+            //LOG(INFO) << "PSMOVE: IE: " << pose.vecPosition[0] + pose.vecWorldFromDriverTranslation[0] << ", " << pose.vecPosition[1] + pose.vecWorldFromDriverTranslation[1] << ", " << pose.vecPosition[2] + pose.vecWorldFromDriverTranslation[2];
         }
         bool sensorShouldSkipUpdate() {
             // The sensor doesn't actually need to be updated more often than not,
@@ -171,6 +201,82 @@ namespace KVR {
                 applyKinectArrowCalibrationToTracker(jointRotation, jointPosition);
             }
             pose.deviceIsConnected = true;
+
+            /*
+            // PSEUDO 360 TRACKING
+            // if in fzone
+            // do nothing
+            double x;
+            double y;
+            double z;
+            toEulerAngle(KinectSettings::hmdRotation, x, y, z);
+
+            // Example of the coordinates of OpenVR from top down
+            // O is the center of rotation, and basically North is facing the front of the OpenVR area
+            //     +ve           -ve
+            //(0)           N
+            //              |
+            //              |
+            //(pi/2) W------o------E
+            //              |
+            //              |
+            //(pi)          S
+
+            // if in backzone
+            float halfAngleSizeDegrees = 60.0; // Size on each side of south
+            float angleSizeDegrees = halfAngleSizeDegrees * 2.0;
+            float halfAngleRadians = (halfAngleSizeDegrees / 180.0 ) * M_PI;
+
+            float westBoundsRadians = M_PI - halfAngleRadians;
+            float eastBoundsRadians = -M_PI + halfAngleRadians;
+
+            bool inBackZoneBounds = y >= westBoundsRadians || y <= eastBoundsRadians;
+
+            if (inBackZoneBounds) {
+                //std::cout << "IN RANGE: " << y << "west: " << westBoundsRadians << " east " << eastBoundsRadians <<  '\n';
+                // rotate by 180
+                vr::HmdQuaternion_t rotation180 = { 0,0,1,0 };
+                jointRotation = rotation180 * jointRotation;
+
+                // Swap joints with handed sides
+                // For now just the feet, but in the future this can be expanded into a lookup table which converts them all
+                
+                switch (role) {
+                case KinectDeviceRole::LeftFoot:
+                    joint0.joint = KinectSettings::rightFootJointWithRotation;
+                    joint1.joint = KinectSettings::rightFootJointWithoutRotation;
+                    break;
+                case KinectDeviceRole::RightFoot:
+                    joint0.joint = KinectSettings::leftFootJointWithRotation;
+                    joint1.joint = KinectSettings::leftFootJointWithoutRotation;
+                    break;
+                case KinectDeviceRole::Hip: // Not handed
+                    break;
+                default:
+                    LOG(ERROR) << "Pseduo 360 rotation joint swapping attempted on an un-set joint!";
+                    break;
+                }
+                
+            }
+            else {
+                switch (role) {
+                case KinectDeviceRole::LeftFoot:
+                    joint0.joint = KinectSettings::leftFootJointWithRotation;
+                    joint1.joint = KinectSettings::leftFootJointWithoutRotation;
+                    break;
+                case KinectDeviceRole::RightFoot:
+                    joint0.joint = KinectSettings::rightFootJointWithRotation;
+                    joint1.joint = KinectSettings::rightFootJointWithoutRotation;
+                    break;
+                case KinectDeviceRole::Hip: // Not handed
+                    break;
+                default:
+                    LOG(ERROR) << "Pseduo 360 rotation joint un-swapping attempted on an un-set joint!";
+                    break;
+                }
+            }
+            */
+
             pose.qRotation = jointRotation;
 
             pose.qWorldFromDriverRotation = { 1,0,0,0 }; // need these two or else nothing rotates visually
@@ -232,9 +338,14 @@ namespace KVR {
 
         vr::HmdVector3_t trackedPositionVROffset;
         vr::HmdVector3_t lastRawPos{ 0,0,0 };
-        vr::DriverPose_t nextUpdatePose;
+
+        vr::DriverPose_t nextUpdatePose = {};
+        bool nextUpdatePoseIsSet = false;
+
         vr::HmdQuaternion_t nextUpdateRotation{ 1,0,0,0 };
+        bool nextUpdateRotationIsSet = false;
         vr::HmdVector3d_t nextUpdatePosition{0,0,0};
+        bool nextUpdatePositionIsSet = false;
 
         JointRotationFilterOption rotationFilterOption = JointRotationFilterOption::Filtered;
         JointPositionFilterOption positionFilterOption = JointPositionFilterOption::Filtered;

@@ -288,6 +288,10 @@ void processLoop(KinectHandlerBase& kinect) {
     verifyDefaultFilePath();
 
     if (eError == vr::VRInitError_None) {
+        // Set origins so that proper offsets for each coordinate system can be found
+        KinectSettings::trackingOrigin = m_VRSystem->GetRawZeroPoseToStandingAbsoluteTrackingPose();
+        KinectSettings::trackingOriginPosition = GetVRPositionFromMatrix(KinectSettings::trackingOrigin);
+
         guiRef.setVRSceneChangeButtonSignal(m_VRSystem);
         setTrackerRolesInVRSettings();
         VRInput::initialiseVRInput();
@@ -309,15 +313,15 @@ void processLoop(KinectHandlerBase& kinect) {
     std::vector<std::unique_ptr<TrackingMethod>> v_trackingMethods;
     guiRef.setTrackingMethodsReference(v_trackingMethods);
 
-    SkeletonTracker mainSkeletalTracker;
-    kinect.initialiseSkeleton();
-    v_trackingMethods.push_back(std::make_unique<SkeletonTracker>(mainSkeletalTracker));
+    //SkeletonTracker mainSkeletalTracker;
+    //kinect.initialiseSkeleton();
+    //v_trackingMethods.push_back(std::make_unique<SkeletonTracker>(mainSkeletalTracker));
 
-    //IMU_PositionMethod posMethod;
-    //v_trackingMethods.push_back(std::make_unique<IMU_PositionMethod>(posMethod));
+    IMU_PositionMethod posMethod;
+    v_trackingMethods.push_back(std::make_unique<IMU_PositionMethod>(posMethod));
 
-    //IMU_RotationMethod rotMethod;
-    //v_trackingMethods.push_back(std::make_unique<IMU_RotationMethod>(rotMethod));
+    IMU_RotationMethod rotMethod;
+    v_trackingMethods.push_back(std::make_unique<IMU_RotationMethod>(rotMethod));
     /*
     ColorTracker mainColorTracker(KinectSettings::kinectV2Width, KinectSettings::kinectV2Height);
     v_trackingMethods.push_back(mainColorTracker);
@@ -342,62 +346,62 @@ void processLoop(KinectHandlerBase& kinect) {
         SFMLsettings::debugDisplayTextStream << "FPS Start = " << 1.0 / deltaT << '\n';
         //std::cout << SFMLsettings::debugDisplayTextStream.str() << std::endl;
         
+        if (timingClock.getElapsedTime() > time_lastGuiDesktopUpdate + sf::milliseconds(33)) {
+            sf::Event event;
 
-        sf::Event event;
+            while (renderWindow.pollEvent(event))
+            {
+                guiRef.desktopHandleEvents(event);
+                if (event.type == sf::Event::Closed) {
+                    SFMLsettings::keepRunning = false;
+                    renderWindow.close();
+                    break;
+                }
+                if (event.type == sf::Event::KeyPressed) {
+                    processKeyEvents(event);
+                }
+                if (event.type == sf::Event::Resized) {
+                    std::cerr << "HELP I AM RESIZING!\n";
+                    //sf::Vector2f size = static_cast<sf::Vector2f>(renderWindow.getSize());
+                    sf::Vector2f size = sf::Vector2f(event.size.width, event.size.height);
+                    // Minimum size
+                    if (size.x < 800)
+                        size.x = 800;
+                    if (size.y < 600)
+                        size.y = 600;
 
-        while (renderWindow.pollEvent(event))
-        {
-            guiRef.desktopHandleEvents(event);
-            if (event.type == sf::Event::Closed) {
-                SFMLsettings::keepRunning = false;
-                renderWindow.close();
+                    // Apply possible size changes
+                    renderWindow.setSize(static_cast<sf::Vector2u>(size));
+
+                    // Reset grid view
+                    mGridView.setCenter(size / 2.f);
+                    mGridView.setSize(size); // = sf::View(sf::FloatRect(mGridView.getCenter().x, mGridView.getCenter().y, mGridView.getSize().x+(mGridView.getSize().x - size.x), mGridView.getSize().y+(mGridView.getSize().y - size.y)));
+
+                                             // Reset  GUI view
+                    mGUIView = sf::View(sf::FloatRect(0.f, 0.f, size.x, size.y));
+                    //mGUIView.setCenter(size / 2.f);
+                    renderWindow.setView(mGUIView);
+
+                    // Resize widgets
+                    updateKinectWindowRes(renderWindow);
+                    guiRef.updateWithNewWindowSize(size);
+                }
+            }
+            if (!(renderWindow.isOpen() && SFMLsettings::keepRunning)) {
+                // Possible for window to be closed mid-loop, in which case, instead of using goto's
+                // this is used to avoid glErrors that crash the program, and prevent proper
+                // destruction and cleaning up
                 break;
             }
-            if (event.type == sf::Event::KeyPressed) {
-                processKeyEvents(event);
-            }
-            if (event.type == sf::Event::Resized) {
-                std::cerr << "HELP I AM RESIZING!\n";
-                //sf::Vector2f size = static_cast<sf::Vector2f>(renderWindow.getSize());
-                sf::Vector2f size = sf::Vector2f(event.size.width, event.size.height);
-                // Minimum size
-                if (size.x < 800)
-                    size.x = 800;
-                if (size.y < 600)
-                    size.y = 600;
 
-                // Apply possible size changes
-                renderWindow.setSize(static_cast<sf::Vector2u>(size));
+            //Clear ---------------------------------------
+            renderWindow.clear();
+            renderWindow.setView(mGridView);
+            renderWindow.setView(mGUIView);
 
-                // Reset grid view
-                mGridView.setCenter(size / 2.f);
-                mGridView.setSize(size); // = sf::View(sf::FloatRect(mGridView.getCenter().x, mGridView.getCenter().y, mGridView.getSize().x+(mGridView.getSize().x - size.x), mGridView.getSize().y+(mGridView.getSize().y - size.y)));
+            //Process -------------------------------------
+            //Update GUI
 
-                                         // Reset  GUI view
-                mGUIView = sf::View(sf::FloatRect(0.f, 0.f, size.x, size.y));
-                //mGUIView.setCenter(size / 2.f);
-                renderWindow.setView(mGUIView);
-
-                // Resize widgets
-                updateKinectWindowRes(renderWindow);
-                guiRef.updateWithNewWindowSize(size);
-            }
-        }
-        if (!(renderWindow.isOpen() && SFMLsettings::keepRunning)) {
-            // Possible for window to be closed mid-loop, in which case, instead of using goto's
-            // this is used to avoid glErrors that crash the program, and prevent proper
-            // destruction and cleaning up
-            break;
-        }
-
-        //Clear ---------------------------------------
-        renderWindow.clear();
-        renderWindow.setView(mGridView);
-        renderWindow.setView(mGUIView);
-
-        //Process -------------------------------------
-        //Update GUI
-        if (timingClock.getElapsedTime() > time_lastGuiDesktopUpdate + sf::milliseconds(33)) {
             guiRef.updateDesktop(deltaT);
             time_lastGuiDesktopUpdate = timingClock.getElapsedTime();
         }
@@ -436,7 +440,7 @@ void processLoop(KinectHandlerBase& kinect) {
 
             kinect.updateTrackersWithSkeletonPosition(v_trackers);
             //std::vector<KVR::TrackedDeviceInputData> v_inputData = psMoveHandler.extractVRTrackingPoses();
-            /*
+            
             for (auto & method_ptr : v_trackingMethods) {
                 method_ptr->update(kinect, v_trackers);
                 method_ptr->updateTrackers(kinect, v_trackers);
@@ -444,7 +448,7 @@ void processLoop(KinectHandlerBase& kinect) {
             for (auto & tracker : v_trackers) {
                 tracker.update();
             }
-            */
+            
             kinect.drawKinectData(renderWindow);
         }
         //std::vector<uint32_t> virtualDeviceIndexes;

@@ -31,6 +31,7 @@ uint32_t initTracker(vrinputemulator::VRInputEmulator &inputEmulator, bool conne
         try {
             deviceId = count;
             inputEmulator.addVirtualDevice(vrinputemulator::VirtualDeviceType::TrackedController, std::to_string(deviceId), false);
+            inputEmulator.enableDeviceOffsets(deviceId, true);
             setTrackerDefaultProperties(inputEmulator, deviceId); // These properties MUST be set before publishing the device, or it throws
             inputEmulator.publishVirtualDevice(deviceId);
         }
@@ -52,7 +53,7 @@ uint32_t initTracker(vrinputemulator::VRInputEmulator &inputEmulator, bool conne
 
 void setTrackerDefaultProperties(vrinputemulator::VRInputEmulator &ie, uint32_t &deviceId) {
     using namespace vr;
-    setDeviceProperty(ie, deviceId, Prop_TrackingSystemName_String, "string", "k2vr"); // Necessary for auto calibration to only apply to these trackers
+    setDeviceProperty(ie, deviceId, Prop_TrackingSystemName_String, "string", "psvr"); // Necessary for auto calibration to only apply to these trackers
     setDeviceProperty(ie, deviceId, Prop_ModelNumber_String, "string", "Vive Controller MV");
     setDeviceProperty(ie, deviceId, Prop_RenderModelName_String, "string", "vr_controller_vive_1_5");
     setDeviceProperty(ie, deviceId, Prop_WillDriftInYaw_Bool, "bool", "0");

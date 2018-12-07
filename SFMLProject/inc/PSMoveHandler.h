@@ -41,11 +41,11 @@ public:
                 return 0;
             }
             else {
-                std::cerr << "Failed to startup the PSMoveClient. Check if PSMoveService is running..." << std::endl;
+                LOG(ERROR) << "Failed to startup the PSMoveClient. Check if PSMoveService is running...";
             }
         }
         catch (std::exception& e) {
-            std::cerr << e.what() << std::endl;
+            LOG(ERROR) << e.what();
         }
         return 1;
     }
@@ -56,6 +56,7 @@ public:
             rumbleIntensity = .9f;
 
         PSM_SetControllerRumble(controllerId, PSMControllerRumbleChannel_All, rumbleIntensity);
+        LOG(INFO) << "Set rumble identify to " << on << "for controller " << controllerId;
     }
     void flashControllerBulb(int controllerId, bool on) {
         char r = 255;
@@ -72,17 +73,33 @@ public:
 
         PSM_SetControllerLEDOverrideColor(controllerId, r, g, b);
     }
+    std::string PSMResultToString(PSMResult result) {
+        switch (result) {
+        case PSMResult_Error: 
+            return "General Error Result";
+        case PSMResult_Success:	
+            return "General Success Result";
+        case PSMResult_Timeout:	
+            return "Requested Timed Out";
+        case PSMResult_RequestSent:	
+            return "Request Successfully Sent";
+        case PSMResult_Canceled:	
+            return "Request Canceled ";
+        case PSMResult_NoData:	
+            return " Request Returned No Data";
+        default: return "PSMRESULTTOSTRING INVALID!!!!";
+        }
+    }
     // Attempt to start and run the client
     int run() {
-        if (m_keepRunning) {
-            update();
-            //_PAUSE(1); // Maybe uneccessary with all the other processing?
-        }
-        return 0;
+        update();
+
+        return m_keepRunning;
     }
     void shutdown()
     {
         if (!PSM_GetIsConnected()) {
+            LOG(ERROR) << "Attempted PSM shutdown on disconnected PSMoveService!";
             return;
         }
         if (controllerList.count > 0)
@@ -97,7 +114,18 @@ public:
 
         active = false;
 
-        PSM_Shutdown();
+        auto result = PSM_Shutdown();
+
+        //typedef enum
+        //{
+        //   PSMResult_Error = -1, 	///< General Error Result
+        //    PSMResult_Success = 0,	///< General Success Result
+        //    PSMResult_Timeout = 1,	///< Requested Timed Out
+        //    PSMResult_RequestSent = 2,	///< Request Successfully Sent
+        //   PSMResult_Canceled = 3,	///< Request Canceled 
+        //    PSMResult_NoData = 4,	///< Request Returned No Data
+        //} PSMResult;
+        LOG(INFO) << "PSMoveService attempted shutdown with PSMResult: " << PSMResultToString(result);
     }
     std::vector<KVR::TrackedDeviceInputData> extractVRTrackingPoses() {
         // Used to get the pose for each controller connected, and convert this
@@ -286,7 +314,7 @@ public:
         }
 
         vr::TrackedDeviceIndex_t hmd_device_index = 0;
-        
+
         PSMPosef hmd_pose_meters;
         hmd_pose_meters = openvrMatrixExtractPSMPosef(KinectSettings::hmdAbsoluteTracking);
 
@@ -368,7 +396,19 @@ public:
 
         // TODO, ACTUALLY MAKE THIS UPDATE THE CONTROLLERS WITH THEIR NEW POSITION
         // Can't do driver stuff, because that would offset everything.
-        v_controllers[0].controller->ControllerState.PSMoveState.Pose = driver_pose_to_world_pose;
+        //v_controllers[0].controller->ControllerState.PSMoveState.Pose = driver_pose_to_world_pose;
+
+
+        // Update the tracking space with pose
+        // from SteamVRBridge server_driver.cpp
+        // SetHMDTrackingSpace()
+        {
+            //Logger::Info("Begin CServerDriver_PSMoveService::SetHMDTrackingSpace()\n");
+
+            m_hasCalibratedWorldFromDriverPose = true;
+            //driver_pose_to_world_pose.Position.y -= 1.73f; //Input Emulator's y origin is actually the users set height
+            m_worldFromDriverPose = driver_pose_to_world_pose;
+        }
     }
     vr::HmdVector3d_t getPSMovePosition(int controllerId) {
         const PSMPSMove &view = v_controllers[controllerId].controller->ControllerState.PSMoveState;
@@ -406,6 +446,7 @@ public:
         // Taken from driver_psmoveservice.cpp line 3313, credit to HipsterSloth
         const PSMPSMove &view = v_controllers[controllerId].controller->ControllerState.PSMoveState;
 
+
         vr::DriverPose_t m_Pose;
 
         m_Pose.result = vr::TrackingResult_Running_OK;
@@ -420,7 +461,7 @@ public:
         // No prediction since that's already handled in the psmove service
         m_Pose.poseTimeOffset = 0.f;
 
-        // No transform due to the current HMD orientation
+        // Use HMD calibrated space if available, otherwise it's the default vector/quaternion
         m_Pose.qDriverFromHeadRotation.w = 1.f;
         m_Pose.qDriverFromHeadRotation.x = 0.0f;
         m_Pose.qDriverFromHeadRotation.y = 0.0f;
@@ -429,6 +470,15 @@ public:
         m_Pose.vecDriverFromHeadTranslation[1] = 0.f;
         m_Pose.vecDriverFromHeadTranslation[2] = 0.f;
 
+        ///*
+        m_Pose.qWorldFromDriverRotation.w = m_worldFromDriverPose.Orientation.w;
+        m_Pose.qWorldFromDriverRotation.x = m_worldFromDriverPose.Orientation.x;
+        m_Pose.qWorldFromDriverRotation.y = m_worldFromDriverPose.Orientation.y;
+        m_Pose.qWorldFromDriverRotation.z = m_worldFromDriverPose.Orientation.z;
+        m_Pose.vecWorldFromDriverTranslation[0] = m_worldFromDriverPose.Position.x - KinectSettings::trackingOriginPosition.v[0];
+        m_Pose.vecWorldFromDriverTranslation[1] = m_worldFromDriverPose.Position.y - KinectSettings::trackingOriginPosition.v[1];
+        m_Pose.vecWorldFromDriverTranslation[2] = m_worldFromDriverPose.Position.z - KinectSettings::trackingOriginPosition.v[2];
+        //LOG(INFO) << "worldFromDriver: PS : " << m_Pose.vecWorldFromDriverTranslation[0] << ", " << m_Pose.vecWorldFromDriverTranslation[1] << ", " << m_Pose.vecWorldFromDriverTranslation[2];
         // Set position
         
         {
@@ -440,8 +490,8 @@ public:
         }
 
         // virtual extend controllers
-        float m_fVirtuallExtendControllersYMeters = 0.0f;
-        float m_fVirtuallExtendControllersZMeters = 0.0f;
+        float m_fVirtuallExtendControllersYMeters = -0.07f;
+        float m_fVirtuallExtendControllersZMeters = 0.075f;
         if (m_fVirtuallExtendControllersYMeters != 0.0f || m_fVirtuallExtendControllersZMeters != 0.0f)
         {
             const PSMQuatf &orientation = view.Pose.Orientation;
@@ -524,11 +574,11 @@ private:
 
         if (PSM_Initialize(PSMOVESERVICE_DEFAULT_ADDRESS, PSMOVESERVICE_DEFAULT_PORT, PSM_DEFAULT_TIMEOUT) == PSMResult_Success)
         {
-            std::cout << "PSMoveConsoleClient::startup() - Initialized client version - " << PSM_GetClientVersionString() << std::endl;
+            LOG(INFO) << "PSMoveConsoleClient::startup() - Initialized client version - " << PSM_GetClientVersionString();
         }
         else
         {
-            std::cout << "PSMoveConsoleClient::startup() - Failed to initialize the client network manager" << std::endl;
+            LOG(INFO) << "PSMoveConsoleClient::startup() - Failed to initialize the client network manager";
             success = false;
         }
 
@@ -559,7 +609,7 @@ private:
                 
             }
             else {
-                std::cout << "PSMoveConsoleClient::startup() - No controllers found." << std::endl;
+                LOG(INFO) << "PSMoveConsoleClient::startup() - No controllers found.";
                 success = false;
             }
         }
@@ -582,6 +632,8 @@ private:
         {
             processKeyInputs();
             for (int i = 0; i < v_controllers.size(); ++i) {
+                //const PSMPSMove &view = v_controllers[i].controller->ControllerState.PSMoveState;
+                //LOG(INFO) << "Controller " << i << " has a battery level of " << (int)view.BatteryValue;
                 KVR::TrackedDeviceInputData data = defaultDeviceData(i);
                 data.pose = getPSMoveDriverPose(i);
                 // Reuse, instead of recalling for PSMoveState
@@ -647,12 +699,15 @@ private:
         }
     }
     void rebuildPSMoveLists() {
-        std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
-        std::chrono::milliseconds diff = now - last_report_fps_timestamp;
+        // Unneccessary holdover from inspiration for implementation
+        //std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+        //std::chrono::milliseconds diff = now - last_report_fps_timestamp;
 
         // Polls events and updates controller state
-        if (PSM_Update() != PSMResult_Success)
-        {
+        if (PSM_Update() == PSMResult_Success) {
+            m_keepRunning = true;
+        }
+        else {
             m_keepRunning = false;
         }
 
@@ -685,7 +740,7 @@ private:
                 rebuildPSMovesForPool(); // Here, because of timing issue, where controllers will report as 'None' occasionally when uninitialised properly
             }
             else {
-                std::cout << "PSMoveConsoleClient::startup() - No controllers found." << std::endl;
+                LOG(INFO) << "PSMoveConsoleClient::startup() - No controllers found.";
                 m_keepRunning = false;
             }
         }
@@ -706,9 +761,11 @@ private:
     void rebuildControllerList()
     {
         memset(&controllerList, 0, sizeof(PSMControllerList));
-        PSM_GetControllerList(&controllerList, PSM_DEFAULT_TIMEOUT);
+        int timeout = 2000;
+        auto result = PSM_GetControllerList(&controllerList, timeout);
+        LOG(INFO) << "PSM_GetControllerList returned " << PSMResultToString(result);
 
-        std::cout << "Found " << controllerList.count << " controllers." << std::endl;
+        LOG(INFO) << "Found " << controllerList.count << " controllers.";
 
         for (int cntlr_ix = 0; cntlr_ix<controllerList.count; ++cntlr_ix)
         {
@@ -730,16 +787,18 @@ private:
                 break;
             }
 
-            std::cout << "  Controller ID: " << controllerList.controller_id[cntlr_ix] << " is a " << controller_type << std::endl;
+            LOG(INFO) << "  Controller ID: " << controllerList.controller_id[cntlr_ix] << " is a " << controller_type;
         }
     }
 
     void rebuildTrackerList()
     {
         memset(&trackerList, 0, sizeof(PSMTrackerList));
-        PSM_GetTrackerList(&trackerList, 2000);
+        int timeout = 2000;
+        auto result = PSM_GetTrackerList(&trackerList, timeout);
+        LOG(INFO) << "PSM_GetTrackerList returned " << PSMResultToString(result);
 
-        std::cout << "Found " << trackerList.count << " trackers." << std::endl;
+        LOG(INFO) << "Found " << trackerList.count << " trackers.";
 
         for (int tracker_ix = 0; tracker_ix<trackerList.count; ++tracker_ix)
         {
@@ -752,7 +811,7 @@ private:
                 break;
             }
 
-            std::cout << "  Tracker ID: " << trackerList.trackers[tracker_ix].tracker_id << " is a " << tracker_type << std::endl;
+            LOG(INFO) << "  Tracker ID: " << trackerList.trackers[tracker_ix].tracker_id << " is a " << tracker_type;
         }
     }
 
@@ -761,7 +820,7 @@ private:
         memset(&hmdList, 0, sizeof(PSMHmdList));
         PSM_GetHmdList(&hmdList, PSM_DEFAULT_TIMEOUT);
 
-        std::cout << "Found " << hmdList.count << " HMDs." << std::endl;
+        LOG(INFO) << "Found " << hmdList.count << " HMDs.";
 
         for (int hmd_ix = 0; hmd_ix<hmdList.count; ++hmd_ix)
         {
@@ -777,7 +836,7 @@ private:
                 break;
             }
 
-            std::cout << "  HMD ID: " << hmdList.hmd_id[hmd_ix] << " is a " << hmd_type << std::endl;
+            LOG(INFO) << "  HMD ID: " << hmdList.hmd_id[hmd_ix] << " is a " << hmd_type;
         }
     }
 
@@ -796,8 +855,10 @@ private:
 
     //Vars
     bool m_bDisableHMDAlignmentGesture = false;
-    float m_fControllerMetersInFrontOfHmdAtCalibration;
-    bool m_bUseControllerOrientationInHMDAlignment = false;
+    float m_fControllerMetersInFrontOfHmdAtCalibration = 0.06f;
+    bool m_bUseControllerOrientationInHMDAlignment = true; // HMD *may* influence the magnetic field and disrupt readings
+    PSMPosef m_worldFromDriverPose = { {0,0,0}, {1,0,0,0} };
+    bool m_hasCalibratedWorldFromDriverPose = false;
     //Constants
     const float k_fScalePSMoveAPIToMeters = 0.01f;
 };
