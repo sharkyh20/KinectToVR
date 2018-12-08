@@ -466,6 +466,7 @@ public:
         m_Pose.qDriverFromHeadRotation.x = 0.0f;
         m_Pose.qDriverFromHeadRotation.y = 0.0f;
         m_Pose.qDriverFromHeadRotation.z = 0.0f;
+
         m_Pose.vecDriverFromHeadTranslation[0] = 0.f;
         m_Pose.vecDriverFromHeadTranslation[1] = 0.f;
         m_Pose.vecDriverFromHeadTranslation[2] = 0.f;
@@ -490,8 +491,8 @@ public:
         }
 
         // virtual extend controllers
-        float m_fVirtuallExtendControllersYMeters = -0.07f;
-        float m_fVirtuallExtendControllersZMeters = 0.075f;
+        float m_fVirtuallExtendControllersYMeters = 0.f;
+        float m_fVirtuallExtendControllersZMeters = 0.f;
         if (m_fVirtuallExtendControllersYMeters != 0.0f || m_fVirtuallExtendControllersZMeters != 0.0f)
         {
             const PSMQuatf &orientation = view.Pose.Orientation;
