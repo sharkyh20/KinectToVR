@@ -11,7 +11,7 @@ public:
         for (int i = 0; i < KVR::KinectJointCount; ++i) {
             KVR::TrackedDeviceInputData data;
             //data.parentHandler = dynamic_cast<DeviceHandler*>(this);
-            data.deviceName = "K: " + std::to_string(i) + KVR::KinectJointName[i];
+            data.deviceName = "KID: " + std::to_string(i) + " " + KVR::KinectJointName[i];
             uint32_t gID = k_invalidTrackerID;
             data.deviceId = gID;
             TrackingPoolManager::addDeviceToPool(data, gID);

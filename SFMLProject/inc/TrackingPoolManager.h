@@ -58,7 +58,7 @@ public:
     }
     static std::string deviceGuiString(uint32_t globalID) {
         // Have ID first, device name afters
-        return "ID: " + std::to_string(devicePool[globalID].deviceId) + " " + devicePool[globalID].deviceName;
+        return "GID: " + std::to_string(devicePool[globalID].deviceId) + " " + devicePool[globalID].deviceName;
     }
 private:
     // The global device tracking data pool - where every device allocates it's corresponding place by registering an id

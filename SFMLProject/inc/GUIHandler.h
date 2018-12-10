@@ -281,19 +281,22 @@ void addTrackerToList(KVR::KinectJointType joint, KVR::KinectDeviceRole role, bo
 
     updateTrackerLists(temp);
 }
-
 void updateTrackerLists(TempTracker &temp) {
     // Display a radio button menu where selecting each button selects that tracker
     // Displays the joint of each tracker and (Tracker)/(Controller)
-    std::stringstream ss;
+    std::stringstream roleStrStream;
     if (temp.isController)
-        ss << " (Tracked Controller) ";
+        roleStrStream << " (Tracked Controller) ";
     else
-        ss << " (Tracker) ";
-    ss << "(Role: " << KVR::KinectDeviceRoleName[int(temp.role)] << ") ";
+        roleStrStream << " (Tracker) ";
+    roleStrStream << "(Role: " << KVR::KinectDeviceRoleName[int(temp.role)] << ") ";
     std::string posName = TrackingPoolManager::deviceGuiString(temp.positionGlobalDeviceId);
     std::string rotName = TrackingPoolManager::deviceGuiString(temp.rotationGlobalDeviceId);
-    temp.radioButton = sfg::RadioButton::Create("Pos: " + posName + " Rot: " + rotName + ss.str());
+    std::string finalTrackerName = "Position: " + posName + " | Rotation: " + rotName + " | " + roleStrStream.str();
+
+    LOG(INFO) << "Adding tracker to list :: " << finalTrackerName;
+
+    temp.radioButton = sfg::RadioButton::Create(finalTrackerName);
     if (TrackersToBeInitialised.size()) {
         auto group = TrackersToBeInitialised.back().radioButton->GetGroup();
         temp.radioButton->SetGroup(group);
