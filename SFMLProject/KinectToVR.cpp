@@ -313,9 +313,10 @@ void processLoop(KinectHandlerBase& kinect) {
     std::vector<std::unique_ptr<TrackingMethod>> v_trackingMethods;
     guiRef.setTrackingMethodsReference(v_trackingMethods);
 
-    //SkeletonTracker mainSkeletalTracker;
-    //kinect.initialiseSkeleton();
-    //v_trackingMethods.push_back(std::make_unique<SkeletonTracker>(mainSkeletalTracker));
+    SkeletonTracker mainSkeletalTracker;
+    mainSkeletalTracker.initialise();
+    kinect.initialiseSkeleton();
+    v_trackingMethods.push_back(std::make_unique<SkeletonTracker>(mainSkeletalTracker));
 
     IMU_PositionMethod posMethod;
     v_trackingMethods.push_back(std::make_unique<IMU_PositionMethod>(posMethod));
@@ -438,8 +439,7 @@ void processLoop(KinectHandlerBase& kinect) {
                     VRInput::confirmCalibrationHandle,
                     guiRef);
 
-            kinect.updateTrackersWithSkeletonPosition(v_trackers);
-            //std::vector<KVR::TrackedDeviceInputData> v_inputData = psMoveHandler.extractVRTrackingPoses();
+            //kinect.updateTrackersWithSkeletonPosition(v_trackers);
             
             for (auto & method_ptr : v_trackingMethods) {
                 method_ptr->update(kinect, v_trackers);
