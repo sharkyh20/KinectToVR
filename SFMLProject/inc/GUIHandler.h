@@ -161,20 +161,22 @@ void setDefaultSignals() {
     });
     
     
-
-
     refreshDeviceListButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
         updateDeviceLists();
     });
     identifyPosDeviceButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
-        auto index = PositionDeviceList->GetSelectedItem();
-        auto d = TrackingPoolManager::getDeviceData(index);
-        d.parentHandler->identify(index, identifyPosDeviceButton->IsActive());
+        if (PositionDeviceList->GetItemCount()) {
+            auto index = PositionDeviceList->GetSelectedItem();
+            auto d = TrackingPoolManager::getDeviceData(index);
+            d.parentHandler->identify(index, identifyPosDeviceButton->IsActive());
+        }
     });
     identifyRotDeviceButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
-        auto index = RotationDeviceList->GetSelectedItem();
-        auto d = TrackingPoolManager::getDeviceData(index);
-        d.parentHandler->identify(index, identifyRotDeviceButton->IsActive());
+        if (RotationDeviceList->GetItemCount()) {
+            auto index = RotationDeviceList->GetSelectedItem();
+            auto d = TrackingPoolManager::getDeviceData(index);
+            d.parentHandler->identify(index, identifyRotDeviceButton->IsActive());
+        }
     });
     AddHandControllersToList->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
         //Add a left and right hand tracker as a controller
