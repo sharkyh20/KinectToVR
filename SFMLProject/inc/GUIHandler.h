@@ -258,12 +258,19 @@ void addUserTrackerToList() {
     temp.isController = IsControllerButton->IsActive();
 
     int posIndex = PositionDeviceList->GetSelectedItem();
+    if (kinectJointDevicesHiddenFromList)
+        posIndex += KVR::KinectJointCount; 
+    // Really need to find a less hacky way to do this - as without it, when the kinect joints are hidden,
+    // selecting a PSMove (ID of 25) would still use the kinect joint because it's technically the 0th item in the list
+
     KVR::TrackedDeviceInputData posData = TrackingPoolManager::getDeviceData(posIndex);
 
     temp.positionGlobalDeviceId = posIndex;
     temp.positionTrackingOption = posData.positionTrackingOption;
 
     int rotIndex = PositionDeviceList->GetSelectedItem();
+    if (kinectJointDevicesHiddenFromList)
+        rotIndex += KVR::KinectJointCount;
     KVR::TrackedDeviceInputData rotData = TrackingPoolManager::getDeviceData(rotIndex);
 
     temp.rotationGlobalDeviceId = rotIndex;

@@ -1,6 +1,14 @@
 #include "stdafx.h"
 #include "KinectSettings.h"
 #include <cereal/archives/json.hpp>
+#include <cereal/cereal.hpp>
+#include <cereal/types/array.hpp>
+#include <cereal/types/string.hpp>
+#include <cereal/types/vector.hpp>
+#include <cereal/types/memory.hpp>
+#include <cereal/types/base_class.hpp>
+#include <cereal/archives/binary.hpp>
+#include <cereal/types/common.hpp>
 
 #include <iostream>
 #include <fstream>
@@ -153,6 +161,7 @@ namespace SFMLsettings {
     
 }
 namespace KVR {
+    
     std::wstring fileToDirPath(std::wstring relativeFilePath) {
         return SFMLsettings::fileDirectoryPath + relativeFilePath;
     }
@@ -174,6 +183,68 @@ namespace KVR {
         std::cout << file << " PATH: " << path << '\n';
         return path;
     }
+
+    TrackingSystemCalibration retrieveSystemCalibration(std::string systemName) {
+        std::wstring trackingSystemConfig = ToUTF16(systemName) + L".tracking";
+        std::ifstream is(KVR::fileToDirPath(trackingSystemConfig));
+        LOG(INFO) << "Attempted tracking system load: " << KVR::fileToDirPath(trackingSystemConfig) << '\n';
+
+        TrackingSystemCalibration calibration;
+
+        //CHECK IF VALID
+        if (is.fail()) {
+            //FAIL!!!!
+            LOG(ERROR) << "ERROR: COULD NOT OPEN " << systemName << " TRACKING FILE, GENERATING NEW ONE...";
+            saveSystemCalibration(systemName, calibration);
+        }
+        else {
+            LOG(INFO) << systemName << "Tracking Load Attempted!";
+
+            vr::HmdQuaternion_t driverFromWorldRotation = { 1,0,0,0 };
+            vr::HmdVector3d_t driverFromWorldPosition = { 0,0,0 };
+            int b = 0;
+
+            try {
+                cereal::JSONInputArchive archive(is);
+                archive(CEREAL_NVP(driverFromWorldRotation));
+                archive(CEREAL_NVP(driverFromWorldPosition));
+            }
+            catch (cereal::Exception e) {
+                LOG(ERROR) << systemName << "TRACKING FILE LOAD JSON ERROR: " << e.what();
+            }
+            
+            calibration.systemName = systemName;
+            calibration.driverFromWorldRotation = driverFromWorldRotation;
+            calibration.driverFromWorldPosition = driverFromWorldPosition;
+            
+            return calibration;
+        }
+    }
+    void saveSystemCalibration(std::string systemName, TrackingSystemCalibration calibration) {
+        std::wstring trackingSystemConfig = ToUTF16(systemName) + L".tracking";
+        std::ofstream os(KVR::fileToDirPath(trackingSystemConfig));
+        if (os.fail()) {
+            //FAIL!!!
+            LOG(ERROR) << "ERROR: COULD NOT WRITE TO TRACKING SYSTEM FILE\n";
+        }
+        else {
+            cereal::JSONOutputArchive archive(os);
+            LOG(INFO) << "Attempted to save " << systemName << " tracking system to file";
+            
+            vr::HmdQuaternion_t driverFromWorldRotation = calibration.driverFromWorldRotation;
+            vr::HmdVector3d_t driverFromWorldPosition = calibration.driverFromWorldPosition;
+
+            try {
+                archive(CEREAL_NVP(driverFromWorldRotation));
+                archive(CEREAL_NVP(driverFromWorldPosition));
+            }
+            catch (cereal::RapidJSONException e) {
+                LOG(ERROR) << systemName << "TRACKING FILE SAVE JSON ERROR: " << e.what();
+            }
+
+        }
+    }
+
 }
 # define M_PI           3.14159265358979323846
 

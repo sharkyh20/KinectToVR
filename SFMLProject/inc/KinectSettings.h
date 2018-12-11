@@ -83,12 +83,40 @@ namespace SFMLsettings {
 
     extern std::stringstream debugDisplayTextStream;
 }
+namespace vr {
+    // For Cereal to actually use the serialization methods, they have to
+    // be in the same namespace as the declared object...
+    template<class Archive>
+    void serialize(Archive & archive,
+        vr::HmdQuaternion_t & q)
+    {
+        archive(q.w, q.x, q.y, q.z);
+    }
+
+    template<class Archive>
+    void serialize(Archive & archive,
+        vr::HmdVector3d_t & v)
+    {
+        archive(v.v[0], v.v[1], v.v[2]);
+    }
+}
 namespace KVR {
     std::wstring fileToDirPath(std::wstring relativeFilePath);
     extern std::wstring ToUTF16(const std::string &data);
 
     extern std::string ToUTF8(const std::wstring &data);
     extern const char* inputDirForOpenVR(std::string file);
+
+    // Each tracking system has it's global adjustments here, in the form
+    // of their driver-from-world offsets, so that they can be reapplied at startup
+    struct TrackingSystemCalibration {
+        std::string systemName = "INVALID";
+        vr::HmdQuaternion_t driverFromWorldRotation = { 1,0,0,0 };
+        vr::HmdVector3d_t driverFromWorldPosition = { 0,0,0 };
+    };
+    
+    TrackingSystemCalibration retrieveSystemCalibration(std::string systemName);
+    void saveSystemCalibration(std::string systemName, TrackingSystemCalibration calibration);
 }
 
 namespace VRInput {

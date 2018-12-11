@@ -408,8 +408,11 @@ public:
             m_hasCalibratedWorldFromDriverPose = true;
             //driver_pose_to_world_pose.Position.y -= 1.73f; //Input Emulator's y origin is actually the users set height
             m_worldFromDriverPose = driver_pose_to_world_pose;
+
+            saveTrackingCalibration();
         }
     }
+
     vr::HmdVector3d_t getPSMovePosition(int controllerId) {
         const PSMPSMove &view = v_controllers[controllerId].controller->ControllerState.PSMoveState;
         // Set position
@@ -585,6 +588,8 @@ private:
 
         if (success)
         {
+            loadTrackingCalibration();
+
             rebuildControllerList();
             rebuildTrackerList();
             rebuildHmdList();
@@ -665,6 +670,31 @@ private:
                 alignPSMoveAndHMDTrackingSpace();
             }
         }
+    }
+
+    void loadTrackingCalibration() {
+        KVR::TrackingSystemCalibration calibration = KVR::retrieveSystemCalibration(k_trackingSystemName);
+        m_worldFromDriverPose.Orientation.w = calibration.driverFromWorldRotation.w;
+        m_worldFromDriverPose.Orientation.x = calibration.driverFromWorldRotation.x;
+        m_worldFromDriverPose.Orientation.y = calibration.driverFromWorldRotation.y;
+        m_worldFromDriverPose.Orientation.z = calibration.driverFromWorldRotation.z;
+
+        m_worldFromDriverPose.Position.x = calibration.driverFromWorldPosition.v[0];
+        m_worldFromDriverPose.Position.y = calibration.driverFromWorldPosition.v[1];
+        m_worldFromDriverPose.Position.z = calibration.driverFromWorldPosition.v[2];
+    }
+    void saveTrackingCalibration() {
+        KVR::TrackingSystemCalibration calibration;
+        calibration.driverFromWorldRotation.w = m_worldFromDriverPose.Orientation.w;
+        calibration.driverFromWorldRotation.x = m_worldFromDriverPose.Orientation.x;
+        calibration.driverFromWorldRotation.y = m_worldFromDriverPose.Orientation.y;
+        calibration.driverFromWorldRotation.z = m_worldFromDriverPose.Orientation.z;
+
+        calibration.driverFromWorldPosition.v[0] = m_worldFromDriverPose.Position.x;
+        calibration.driverFromWorldPosition.v[1] = m_worldFromDriverPose.Position.y;
+        calibration.driverFromWorldPosition.v[2] = m_worldFromDriverPose.Position.z;
+
+        KVR::saveSystemCalibration(k_trackingSystemName, calibration);
     }
     KVR::TrackedDeviceInputData defaultDeviceData(uint32_t localID) {
         KVR::TrackedDeviceInputData data;
@@ -863,4 +893,5 @@ private:
     bool m_hasCalibratedWorldFromDriverPose = false;
     //Constants
     const float k_fScalePSMoveAPIToMeters = 0.01f;
+    const std::string k_trackingSystemName = "psmove";
 };
