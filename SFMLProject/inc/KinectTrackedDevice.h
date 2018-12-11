@@ -90,6 +90,7 @@ namespace KVR {
         }
         void init(vrinputemulator::VRInputEmulator& inputEmulator) {
             deviceId = initTracker(inputEmulator, true);
+            setDeviceProperty(inputEmulator, deviceId, vr::Prop_RenderModelName_String, "string", customModelName);
         }
 
         void setRotationForNextUpdate(vr::HmdQuaternion_t rotation) {
@@ -330,7 +331,8 @@ namespace KVR {
         KVR::KinectJoint joint0 = KVR::KinectJointType::INVALID;
         KVR::KinectJoint joint1 = KVR::KinectJointType::INVALID;
 
-        std::string defaultModelName{ "vr_controller_vive_1_5" };
+        std::string defaultModelName{ "{htc}vr_tracker_vive_1_0" };
+        std::string customModelName{ defaultModelName }; // Set by the device handler in the input data
 
         bool invisible = false;
 

@@ -51,42 +51,42 @@ uint32_t initTracker(vrinputemulator::VRInputEmulator &inputEmulator, bool conne
     return deviceId;
 }
 
-void setTrackerDefaultProperties(vrinputemulator::VRInputEmulator &ie, uint32_t &deviceId) {
+void setTrackerDefaultProperties(vrinputemulator::VRInputEmulator &ie, uint32_t &vrDeviceId) {
     using namespace vr;
-    setDeviceProperty(ie, deviceId, Prop_TrackingSystemName_String, "string", "psvr"); // Necessary for auto calibration to only apply to these trackers
-    setDeviceProperty(ie, deviceId, Prop_ModelNumber_String, "string", "Vive Controller MV");
-    setDeviceProperty(ie, deviceId, Prop_RenderModelName_String, "string", "vr_controller_vive_1_5");
-    setDeviceProperty(ie, deviceId, Prop_WillDriftInYaw_Bool, "bool", "0");
-    setDeviceProperty(ie, deviceId, Prop_ManufacturerName_String, "string", "HTC");
-    setDeviceProperty(ie, deviceId, Prop_TrackingFirmwareVersion_String, "string", "1465809478 htcvrsoftware@firmware-win32 2016-06-13 FPGA 1.6/0/0 VRC 1465809477 Radio 1466630404");
-    setDeviceProperty(ie, deviceId, Prop_HardwareRevision_String, "string", "product 129 rev 1.5.0 lot 2000/0/0 0");
-    setDeviceProperty(ie, deviceId, Prop_DeviceIsWireless_Bool, "bool", "1");
-    setDeviceProperty(ie, deviceId, Prop_HardwareRevision_Uint64, "uint64", "2164327680");
-    setDeviceProperty(ie, deviceId, Prop_FirmwareVersion_Uint64, "uint64", "1465809478");
-    setDeviceProperty(ie, deviceId, Prop_DeviceClass_Int32, "int32", "2"); 
-    //setDeviceProperty(ie, deviceId, Prop_SupportedButtons_Uint64, "uint64", "12884901895");
-    setDeviceProperty(ie, deviceId, Prop_Axis0Type_Int32, "int32", "1");
-    setDeviceProperty(ie, deviceId, Prop_Axis1Type_Int32, "int32", "3");
-    setDeviceProperty(ie, deviceId, Prop_Axis2Type_Int32, "int32", "0");
-    setDeviceProperty(ie, deviceId, Prop_Axis3Type_Int32, "int32", "0");
-    setDeviceProperty(ie, deviceId, Prop_Axis4Type_Int32, "int32", "0");
-    setDeviceProperty(ie, deviceId, Prop_ControllerRoleHint_Int32, "int32", "3");
-    setDeviceProperty(ie, deviceId, Prop_IconPathName_String, "string", "icons");
-    setDeviceProperty(ie, deviceId, Prop_NamedIconPathDeviceOff_String, "string", "{htc}controller_status_off.png");
-    setDeviceProperty(ie, deviceId, Prop_NamedIconPathDeviceSearching_String, "string", "{htc}controller_status_searching.gif");
-    setDeviceProperty(ie, deviceId, Prop_NamedIconPathDeviceSearchingAlert_String, "string", "{htc}controller_status_searching_alert.gif");
-    setDeviceProperty(ie, deviceId, Prop_NamedIconPathDeviceReady_String, "string", "{htc}controller_status_ready.png");
-    setDeviceProperty(ie, deviceId, Prop_NamedIconPathDeviceReadyAlert_String, "string", "{htc}controller_status_ready_alert.png");
-    setDeviceProperty(ie, deviceId, Prop_NamedIconPathDeviceNotReady_String, "string", "{htc}controller_status_error.png");
-    setDeviceProperty(ie, deviceId, Prop_NamedIconPathDeviceStandby_String, "string", "{htc}controller_status_standby.png");
-    setDeviceProperty(ie, deviceId, Prop_NamedIconPathDeviceAlertLow_String, "string", "{htc}controller_status_ready_low.png");
-    setDeviceProperty(ie, deviceId, Prop_ControllerType_String, "string", "kinect_device");
+    setDeviceProperty(ie, vrDeviceId, Prop_TrackingSystemName_String, "string", "psvr"); // Necessary for auto calibration to only apply to these trackers
+    setDeviceProperty(ie, vrDeviceId, Prop_ModelNumber_String, "string", "Vive Controller MV");
+    setDeviceProperty(ie, vrDeviceId, Prop_RenderModelName_String, "string", "{htc}vr_tracker_vive_1_0"); // Changed for specific devices, but for now, 
+    setDeviceProperty(ie, vrDeviceId, Prop_WillDriftInYaw_Bool, "bool", "0");
+    setDeviceProperty(ie, vrDeviceId, Prop_ManufacturerName_String, "string", "HTC");
+    setDeviceProperty(ie, vrDeviceId, Prop_TrackingFirmwareVersion_String, "string", "1465809478 htcvrsoftware@firmware-win32 2016-06-13 FPGA 1.6/0/0 VRC 1465809477 Radio 1466630404");
+    setDeviceProperty(ie, vrDeviceId, Prop_HardwareRevision_String, "string", "product 129 rev 1.5.0 lot 2000/0/0 0");
+    setDeviceProperty(ie, vrDeviceId, Prop_DeviceIsWireless_Bool, "bool", "1");
+    setDeviceProperty(ie, vrDeviceId, Prop_HardwareRevision_Uint64, "uint64", "2164327680");
+    setDeviceProperty(ie, vrDeviceId, Prop_FirmwareVersion_Uint64, "uint64", "1465809478");
+    setDeviceProperty(ie, vrDeviceId, Prop_DeviceClass_Int32, "int32", "2"); 
+    //setDeviceProperty(ie, vrDeviceId, Prop_SupportedButtons_Uint64, "uint64", "12884901895");
+    setDeviceProperty(ie, vrDeviceId, Prop_Axis0Type_Int32, "int32", "1");
+    setDeviceProperty(ie, vrDeviceId, Prop_Axis1Type_Int32, "int32", "3");
+    setDeviceProperty(ie, vrDeviceId, Prop_Axis2Type_Int32, "int32", "0");
+    setDeviceProperty(ie, vrDeviceId, Prop_Axis3Type_Int32, "int32", "0");
+    setDeviceProperty(ie, vrDeviceId, Prop_Axis4Type_Int32, "int32", "0");
+    setDeviceProperty(ie, vrDeviceId, Prop_ControllerRoleHint_Int32, "int32", "3");
+    setDeviceProperty(ie, vrDeviceId, Prop_IconPathName_String, "string", "icons");
+    setDeviceProperty(ie, vrDeviceId, Prop_NamedIconPathDeviceOff_String, "string", "{htc}controller_status_off.png");
+    setDeviceProperty(ie, vrDeviceId, Prop_NamedIconPathDeviceSearching_String, "string", "{htc}controller_status_searching.gif");
+    setDeviceProperty(ie, vrDeviceId, Prop_NamedIconPathDeviceSearchingAlert_String, "string", "{htc}controller_status_searching_alert.gif");
+    setDeviceProperty(ie, vrDeviceId, Prop_NamedIconPathDeviceReady_String, "string", "{htc}controller_status_ready.png");
+    setDeviceProperty(ie, vrDeviceId, Prop_NamedIconPathDeviceReadyAlert_String, "string", "{htc}controller_status_ready_alert.png");
+    setDeviceProperty(ie, vrDeviceId, Prop_NamedIconPathDeviceNotReady_String, "string", "{htc}controller_status_error.png");
+    setDeviceProperty(ie, vrDeviceId, Prop_NamedIconPathDeviceStandby_String, "string", "{htc}controller_status_standby.png");
+    setDeviceProperty(ie, vrDeviceId, Prop_NamedIconPathDeviceAlertLow_String, "string", "{htc}controller_status_ready_low.png");
+    setDeviceProperty(ie, vrDeviceId, Prop_ControllerType_String, "string", "kinect_device");
     static bool test_trackerProperties = true;
     if (test_trackerProperties) {
         // Debug for the purposes of testing if the new input system actually solved the tracker bug
-        setDeviceProperty(ie, deviceId, Prop_DeviceClass_Int32, "int32", "3");
-        removeDeviceProperty(ie, deviceId, Prop_ControllerRoleHint_Int32);
-        setDeviceProperty(ie, deviceId, Prop_InputProfilePath_String, "string", KVR::inputDirForOpenVR("kinect_device_profile.json"));
+        setDeviceProperty(ie, vrDeviceId, Prop_DeviceClass_Int32, "int32", "3");
+        removeDeviceProperty(ie, vrDeviceId, Prop_ControllerRoleHint_Int32);
+        setDeviceProperty(ie, vrDeviceId, Prop_InputProfilePath_String, "string", KVR::inputDirForOpenVR("kinect_device_profile.json"));
     }
 }
 void setDeviceProperty(vrinputemulator::VRInputEmulator &ie, uint32_t deviceId, int dProp, std::string type, std::string value) {
@@ -110,41 +110,41 @@ void setDeviceProperty(vrinputemulator::VRInputEmulator &ie, uint32_t deviceId, 
         throw std::runtime_error("Unknown value type.");
     }
 }
-void removeAllTrackerProperties(vrinputemulator::VRInputEmulator &ie, uint32_t &deviceId) {
+void removeAllTrackerProperties(vrinputemulator::VRInputEmulator &ie, uint32_t &vrDeviceId) {
     using namespace vr;
-    removeDeviceProperty(ie, deviceId, Prop_TrackingSystemName_String);
-    removeDeviceProperty(ie, deviceId, Prop_ModelNumber_String);
-    removeDeviceProperty(ie, deviceId, Prop_RenderModelName_String);
-    removeDeviceProperty(ie, deviceId, Prop_WillDriftInYaw_Bool);
-    removeDeviceProperty(ie, deviceId, Prop_ManufacturerName_String);
-    removeDeviceProperty(ie, deviceId, Prop_TrackingFirmwareVersion_String);
-    removeDeviceProperty(ie, deviceId, Prop_HardwareRevision_String);
-    removeDeviceProperty(ie, deviceId, Prop_DeviceIsWireless_Bool);
-    removeDeviceProperty(ie, deviceId, Prop_HardwareRevision_Uint64);
-    removeDeviceProperty(ie, deviceId, Prop_FirmwareVersion_Uint64);
-    removeDeviceProperty(ie, deviceId, Prop_DeviceClass_Int32);
-    removeDeviceProperty(ie, deviceId, Prop_SupportedButtons_Uint64);
-    removeDeviceProperty(ie, deviceId, Prop_Axis0Type_Int32);
-    removeDeviceProperty(ie, deviceId, Prop_Axis1Type_Int32);
-    removeDeviceProperty(ie, deviceId, Prop_Axis2Type_Int32);
-    removeDeviceProperty(ie, deviceId, Prop_Axis3Type_Int32);
-    removeDeviceProperty(ie, deviceId, Prop_Axis4Type_Int32);
-    removeDeviceProperty(ie, deviceId, Prop_ControllerRoleHint_Int32);
-    removeDeviceProperty(ie, deviceId, Prop_IconPathName_String);
-    removeDeviceProperty(ie, deviceId, Prop_NamedIconPathDeviceOff_String);
-    removeDeviceProperty(ie, deviceId, Prop_NamedIconPathDeviceSearching_String);
-    removeDeviceProperty(ie, deviceId, Prop_NamedIconPathDeviceSearchingAlert_String);
-    removeDeviceProperty(ie, deviceId, Prop_NamedIconPathDeviceReady_String);
-    removeDeviceProperty(ie, deviceId, Prop_NamedIconPathDeviceReadyAlert_String);
-    removeDeviceProperty(ie, deviceId, Prop_NamedIconPathDeviceNotReady_String);
-    removeDeviceProperty(ie, deviceId, Prop_NamedIconPathDeviceStandby_String);
-    removeDeviceProperty(ie, deviceId, Prop_NamedIconPathDeviceAlertLow_String);
-    removeDeviceProperty(ie, deviceId, Prop_ControllerType_String);
+    removeDeviceProperty(ie, vrDeviceId, Prop_TrackingSystemName_String);
+    removeDeviceProperty(ie, vrDeviceId, Prop_ModelNumber_String);
+    removeDeviceProperty(ie, vrDeviceId, Prop_RenderModelName_String);
+    removeDeviceProperty(ie, vrDeviceId, Prop_WillDriftInYaw_Bool);
+    removeDeviceProperty(ie, vrDeviceId, Prop_ManufacturerName_String);
+    removeDeviceProperty(ie, vrDeviceId, Prop_TrackingFirmwareVersion_String);
+    removeDeviceProperty(ie, vrDeviceId, Prop_HardwareRevision_String);
+    removeDeviceProperty(ie, vrDeviceId, Prop_DeviceIsWireless_Bool);
+    removeDeviceProperty(ie, vrDeviceId, Prop_HardwareRevision_Uint64);
+    removeDeviceProperty(ie, vrDeviceId, Prop_FirmwareVersion_Uint64);
+    removeDeviceProperty(ie, vrDeviceId, Prop_DeviceClass_Int32);
+    removeDeviceProperty(ie, vrDeviceId, Prop_SupportedButtons_Uint64);
+    removeDeviceProperty(ie, vrDeviceId, Prop_Axis0Type_Int32);
+    removeDeviceProperty(ie, vrDeviceId, Prop_Axis1Type_Int32);
+    removeDeviceProperty(ie, vrDeviceId, Prop_Axis2Type_Int32);
+    removeDeviceProperty(ie, vrDeviceId, Prop_Axis3Type_Int32);
+    removeDeviceProperty(ie, vrDeviceId, Prop_Axis4Type_Int32);
+    removeDeviceProperty(ie, vrDeviceId, Prop_ControllerRoleHint_Int32);
+    removeDeviceProperty(ie, vrDeviceId, Prop_IconPathName_String);
+    removeDeviceProperty(ie, vrDeviceId, Prop_NamedIconPathDeviceOff_String);
+    removeDeviceProperty(ie, vrDeviceId, Prop_NamedIconPathDeviceSearching_String);
+    removeDeviceProperty(ie, vrDeviceId, Prop_NamedIconPathDeviceSearchingAlert_String);
+    removeDeviceProperty(ie, vrDeviceId, Prop_NamedIconPathDeviceReady_String);
+    removeDeviceProperty(ie, vrDeviceId, Prop_NamedIconPathDeviceReadyAlert_String);
+    removeDeviceProperty(ie, vrDeviceId, Prop_NamedIconPathDeviceNotReady_String);
+    removeDeviceProperty(ie, vrDeviceId, Prop_NamedIconPathDeviceStandby_String);
+    removeDeviceProperty(ie, vrDeviceId, Prop_NamedIconPathDeviceAlertLow_String);
+    removeDeviceProperty(ie, vrDeviceId, Prop_ControllerType_String);
 }
-void removeDeviceProperty(vrinputemulator::VRInputEmulator &ie, uint32_t deviceId, int dProp) {
+void removeDeviceProperty(vrinputemulator::VRInputEmulator &ie, uint32_t vrDeviceId, int dProp) {
     vr::ETrackedDeviceProperty deviceProperty = (vr::ETrackedDeviceProperty)dProp;
 
-    ie.removeVirtualDeviceProperty(deviceId, deviceProperty);
+    ie.removeVirtualDeviceProperty(vrDeviceId, deviceProperty);
 }
 void destroyTracker(vrinputemulator::VRInputEmulator& inputEmulator, uint32_t ID) {
     std::cerr << "DESTROYING TRACKER " << ID << "!!!\n";

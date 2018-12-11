@@ -671,6 +671,7 @@ private:
         data.parentHandler = dynamic_cast<DeviceHandler*>(this);
         data.deviceName = "PSMOVE " + std::to_string(localID);
         data.deviceId = v_controllers[localID].id.globalID;
+        data.customModelName = "{k2vr}psmove_controller";
         return data;
     }
     void rebuildPSMovesForPool() {

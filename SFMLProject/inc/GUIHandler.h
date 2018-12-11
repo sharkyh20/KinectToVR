@@ -160,7 +160,10 @@ void setDefaultSignals() {
         }
     });
     
-    
+    showJointDevicesButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
+        kinectJointDevicesHiddenFromList = !showJointDevicesButton->IsActive();
+        updateDeviceLists();
+    });
     refreshDeviceListButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
         updateDeviceLists();
     });
@@ -385,6 +388,7 @@ void spawnAndConnectTracker(vrinputemulator::VRInputEmulator & inputE, std::vect
     KVR::KinectTrackedDevice device(inputE, t_tracker.positionGlobalDeviceId, t_tracker.rotationGlobalDeviceId, t_tracker.role);
     device.positionTrackingOption = t_tracker.positionTrackingOption;
     device.rotationTrackingOption = t_tracker.rotationTrackingOption;
+    device.customModelName = TrackingPoolManager::getDeviceData(t_tracker.positionGlobalDeviceId).customModelName;
     device.init(inputE);
     v_trackers.push_back(device);
 }
@@ -585,6 +589,7 @@ void packElementsIntoAdvTrackerBox() {
     advancedTrackerBox->Pack(SetAllJointsRotHead);
 
     advancedTrackerBox->Pack(TrackerList);
+    advancedTrackerBox->Pack(showJointDevicesButton);
 
     TrackerList->Pack(TrackerListLabel);
 
@@ -648,6 +653,9 @@ void setBonesListItems() {
 void setDeviceListItems(sfg::ComboBox::Ptr comboBox) {
     comboBox->Clear();
     for (int i = 0; i < TrackingPoolManager::count(); ++i) {
+        if (kinectJointDevicesHiddenFromList && i < KVR::KinectJointCount) {
+            continue;
+        }
         comboBox->AppendItem(TrackingPoolManager::deviceGuiString(i));
     }
     // Set as default - to prevent garbage additions 
@@ -804,7 +812,8 @@ private:
     sfg::SpinButton::Ptr HipScale = sfg::SpinButton::Create(sfg::Adjustment::Create(KinectSettings::hipRoleHeightAdjust, -1.f, 1.f, .01f));
     sfg::Box::Ptr HipScaleBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
 
-
+    bool kinectJointDevicesHiddenFromList = true;
+    sfg::CheckButton::Ptr showJointDevicesButton = sfg::CheckButton::Create("Show joints in devices");
     sfg::Button::Ptr refreshDeviceListButton = sfg::Button::Create("Refresh Devices");
     sfg::ComboBox::Ptr BonesList = sfg::ComboBox::Create();
     sfg::ComboBox::Ptr PositionDeviceList = sfg::ComboBox::Create();

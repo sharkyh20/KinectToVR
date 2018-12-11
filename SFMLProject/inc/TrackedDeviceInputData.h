@@ -23,5 +23,6 @@ namespace KVR {
         vr::DriverPose_t pose = {};
 
         DeviceHandler *parentHandler;
+        std::string customModelName = "{htc}vr_tracker_vive_1_0";
     };
 }

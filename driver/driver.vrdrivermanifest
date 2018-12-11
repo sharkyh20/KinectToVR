@@ -1,0 +1,7 @@
+{
+	"alwaysActivate": false,
+	"name" : "k2vr",
+	"directory" : "",
+	"resourceOnly" : true,
+	"hmd_presence" : []
+}
