@@ -16,6 +16,7 @@
 #include "SkeletonTracker.h"
 #include "IMU_PositionMethod.h"
 #include "IMU_RotationMethod.h"
+#include "VRDeviceHandler.h"
 #include "PSMoveHandler.h"
 #include "DeviceHandler.h"
 #include "TrackingPoolManager.h"
@@ -291,6 +292,7 @@ void processLoop(KinectHandlerBase& kinect) {
         // Set origins so that proper offsets for each coordinate system can be found
         KinectSettings::trackingOrigin = m_VRSystem->GetRawZeroPoseToStandingAbsoluteTrackingPose();
         KinectSettings::trackingOriginPosition = GetVRPositionFromMatrix(KinectSettings::trackingOrigin);
+        LOG(INFO) << "SteamVR Tracking Origin for Input Emulator: " << KinectSettings::trackingOriginPosition.v[0] << ", " << KinectSettings::trackingOriginPosition.v[1] << ", " << KinectSettings::trackingOriginPosition.v[2];
 
         guiRef.setVRSceneChangeButtonSignal(m_VRSystem);
         setTrackerRolesInVRSettings();
@@ -314,9 +316,12 @@ void processLoop(KinectHandlerBase& kinect) {
     guiRef.setTrackingMethodsReference(v_trackingMethods);
 
     SkeletonTracker mainSkeletalTracker;
-    mainSkeletalTracker.initialise();
-    kinect.initialiseSkeleton();
-    v_trackingMethods.push_back(std::make_unique<SkeletonTracker>(mainSkeletalTracker));
+    if (kinect.kVersion == KinectVersion::INVALID)
+    {
+        mainSkeletalTracker.initialise();
+        kinect.initialiseSkeleton();
+        v_trackingMethods.push_back(std::make_unique<SkeletonTracker>(mainSkeletalTracker));
+    }
 
     IMU_PositionMethod posMethod;
     v_trackingMethods.push_back(std::make_unique<IMU_PositionMethod>(posMethod));
@@ -331,7 +336,13 @@ void processLoop(KinectHandlerBase& kinect) {
     // Physical Device Handlers
     // Ideally, nothing should be spawned in code, and everything done by user input
     // This means that these Handlers are spawned in the GuiHandler, and each updated in the vector automatically
+    
+    VRDeviceHandler vrDeviceHandler(m_VRSystem, inputEmulator);
+    if (eError == vr::VRInitError_None)
+        vrDeviceHandler.initialise();
+
     std::vector<std::unique_ptr<DeviceHandler>> v_deviceHandlers;
+    v_deviceHandlers.push_back(std::make_unique<VRDeviceHandler>(vrDeviceHandler));
     guiRef.setDeviceHandlersReference(v_deviceHandlers);
 
 
@@ -409,8 +420,8 @@ void processLoop(KinectHandlerBase& kinect) {
 
         //Update VR Components
         if (eError == vr::VRInitError_None) {
-            rightController.update(deltaT);
-            leftController.update(deltaT);
+            //rightController.update(deltaT);
+            //leftController.update(deltaT);
             updateHMDPosAndRot(m_VRSystem);
 
             VRInput::updateVRInput();

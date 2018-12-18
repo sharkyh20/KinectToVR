@@ -254,7 +254,7 @@ void setColorTrackerSignals(ColorTracker & colorTracker) {
 int selectedPositionDeviceIndex() {
     
     int posIndex = PositionDeviceList->GetSelectedItem();
-    if (kinectJointDevicesHiddenFromList)
+    if (kinectJointDevicesHiddenFromList && trackerIdInKinectRange(posIndex))
         posIndex += KVR::KinectJointCount;
     // Really need to find a less hacky way to do this - as without it, when the kinect joints are hidden,
     // selecting a PSMove (ID of 25) would still use the kinect joint because it's technically the 0th item in the list
@@ -262,7 +262,7 @@ int selectedPositionDeviceIndex() {
 }
 int selectedRotationDeviceIndex() {
     int rotIndex = RotationDeviceList->GetSelectedItem();
-    if (kinectJointDevicesHiddenFromList)
+    if (kinectJointDevicesHiddenFromList && trackerIdInKinectRange(rotIndex))
         rotIndex += KVR::KinectJointCount;
     // Really need to find a less hacky way to do this - as without it, when the kinect joints are hidden,
     // selecting a PSMove (ID of 25) would still use the kinect joint because it's technically the 0th item in the list
@@ -665,11 +665,32 @@ void setBonesListItems() {
     // Set as default - to prevent garbage additions 
     BonesList->SelectItem(0);
 }
+bool trackerIdInKinectRange(uint32_t trackerId) {
+    static bool kinectIdLocated = false;
+    static uint32_t kinectFirstId = k_invalidTrackerID;
+    static uint32_t kinectLastId = k_invalidTrackerID;
+    if (!kinectIdLocated) {
+        for (int i = 0; i < TrackingPoolManager::count(); ++i) {
+            auto data = TrackingPoolManager::getDeviceData(i);
+            if (data.positionTrackingOption == KVR::JointPositionTrackingOption::Skeleton) {
+                kinectFirstId = i;
+                // Kinect Trackers spawned all together, so no need to account for different devices's between this range
+                kinectLastId = i + KVR::KinectJointCount - 1;
 
+                kinectIdLocated = true;
+                break;
+            }
+        }
+
+        // Outside for loop, in case it couldn't find any kinect joints, so any calls to this will always return false because the invalid ID is so high
+        kinectIdLocated = true;
+    }
+    return trackerId >= kinectFirstId && trackerId <= kinectLastId;
+}
 void setDeviceListItems(sfg::ComboBox::Ptr comboBox) {
     comboBox->Clear();
     for (int i = 0; i < TrackingPoolManager::count(); ++i) {
-        if (kinectJointDevicesHiddenFromList && i < KVR::KinectJointCount) {
+        if (kinectJointDevicesHiddenFromList && trackerIdInKinectRange(i)) {
             continue;
         }
         comboBox->AppendItem(TrackingPoolManager::deviceGuiString(i));

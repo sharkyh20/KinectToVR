@@ -10,6 +10,8 @@ void removeTrackerRolesInVRSettings();
 
 void toEulerAngle(vr::HmdQuaternion_t q, double& roll, double& pitch, double& yaw);
 
+vr::DriverPose_t trackedDeviceToDriverPose(vr::TrackedDevicePose_t tPose);
+
 vr::HmdVector3d_t updateHMDPosAndRot(vr::IVRSystem* &m_sys);
 
 // Get the quaternion representing the rotation

@@ -132,6 +132,9 @@
     <ClInclude Include="inc\logging.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="inc\VRDeviceHandler.h">
+      <Filter>Header Files\DeviceHandlers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

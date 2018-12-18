@@ -44,7 +44,7 @@ public:
     static TrackingPoolError updatePoolWithDevice(KVR::TrackedDeviceInputData inputData, uint32_t globalID) {
         if ((inputData.deviceName != devicePool[globalID].deviceName)
            || (inputData.deviceId != devicePool[globalID].deviceId)) {
-            std::cerr << devicePool[globalID].deviceName << " IS BEING OVERWRITTEN BY " << inputData.deviceName << '\n';
+            LOG(ERROR) << devicePool[globalID].deviceName << " IS BEING OVERWRITTEN BY " << inputData.deviceName << '\n';
             return TrackingPoolError::OverwritingWrongDevice;
         }
         devicePool[globalID] = inputData;

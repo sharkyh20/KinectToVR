@@ -77,6 +77,46 @@ void toEulerAngle(vr::HmdQuaternion_t q, double& roll, double& pitch, double& ya
     roll = v.v[1];
     yaw = v.v[2];
 }
+vr::DriverPose_t trackedDeviceToDriverPose(vr::TrackedDevicePose_t tPose) {
+    vr::DriverPose_t pose{};
+    pose.deviceIsConnected = true;
+
+    vr::HmdVector3d_t pos = GetVRPositionFromMatrix(tPose.mDeviceToAbsoluteTracking);
+    vr::HmdQuaternion_t rot = GetVRRotationFromMatrix(tPose.mDeviceToAbsoluteTracking);
+
+    pose.qRotation = rot;
+
+    pose.qWorldFromDriverRotation = { 1,0,0,0 }; // need these else nothing rotates/moves visually, but if the tracking system requires adjustments, these must be set by the device handler
+    pose.vecWorldFromDriverTranslation[0] = 0;
+    pose.vecWorldFromDriverTranslation[1] = 0;
+    pose.vecWorldFromDriverTranslation[2] = 0;
+
+    pose.qDriverFromHeadRotation = { 1,0,0,0 };
+    pose.vecDriverFromHeadTranslation[0] = 0;
+    pose.vecDriverFromHeadTranslation[1] = 0;
+    pose.vecDriverFromHeadTranslation[2] = 0;
+
+    //Final Position Adjustment
+    pose.vecPosition[0] = pos.v[0];
+    pose.vecPosition[1] = pos.v[1];
+    pose.vecPosition[2] = pos.v[2];
+
+    pose.poseIsValid = true;
+
+    pose.result = vr::TrackingResult_Running_OK;
+    // From here above, it all works fine
+    pose.vecAngularVelocity[0] = tPose.vAngularVelocity.v[0];
+    pose.vecAngularVelocity[1] = tPose.vAngularVelocity.v[1];
+    pose.vecAngularVelocity[2] = tPose.vAngularVelocity.v[2];
+    
+    pose.vecVelocity[0] = tPose.vVelocity.v[0];
+    pose.vecVelocity[1] = tPose.vVelocity.v[1];
+    pose.vecVelocity[2] = tPose.vVelocity.v[2];
+
+    pose.poseTimeOffset = 0.f;
+    
+    return pose;
+}
 vr::HmdVector3d_t updateHMDPosAndRot(vr::IVRSystem* &m_system) {
     //Gets the HMD location for relative position setting
     // Use the head joint for the zero location!
@@ -84,8 +124,8 @@ vr::HmdVector3d_t updateHMDPosAndRot(vr::IVRSystem* &m_system) {
     const int HMD_INDEX = 0;
 
     vr::TrackedDevicePose_t hmdPose;
-    vr::TrackedDevicePose_t devicePose[vr::k_unMaxTrackedDeviceCount];
-    m_system->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, 0, devicePose, vr::k_unMaxTrackedDeviceCount);
+    vr::TrackedDevicePose_t devicePose[1];
+    m_system->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, 0, devicePose, 1);
     if (devicePose[HMD_INDEX].bPoseIsValid) {
         if (vr::VRSystem()->GetTrackedDeviceClass(HMD_INDEX) == vr::TrackedDeviceClass_HMD) {
             hmdPose = devicePose[HMD_INDEX];

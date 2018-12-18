@@ -14,6 +14,8 @@ public:
             data.deviceName = "KID: " + std::to_string(i) + " " + KVR::KinectJointName[i];
             uint32_t gID = k_invalidTrackerID;
             data.deviceId = gID;
+            data.positionTrackingOption = KVR::JointPositionTrackingOption::Skeleton;
+            data.rotationTrackingOption = KVR::JointRotationTrackingOption::Skeleton;
             TrackingPoolManager::addDeviceToPool(data, gID);
             //v_controllers[i].id.globalID = gID;
         }
