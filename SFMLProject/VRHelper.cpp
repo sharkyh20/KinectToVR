@@ -77,12 +77,13 @@ void toEulerAngle(vr::HmdQuaternion_t q, double& roll, double& pitch, double& ya
     roll = v.v[1];
     yaw = v.v[2];
 }
-vr::DriverPose_t trackedDeviceToDriverPose(vr::TrackedDevicePose_t tPose) {
+vr::DriverPose_t defaultReadyDriverPose()
+{
     vr::DriverPose_t pose{};
     pose.deviceIsConnected = true;
 
-    vr::HmdVector3d_t pos = GetVRPositionFromMatrix(tPose.mDeviceToAbsoluteTracking);
-    vr::HmdQuaternion_t rot = GetVRRotationFromMatrix(tPose.mDeviceToAbsoluteTracking);
+    vr::HmdVector3d_t pos = { 0 };
+    vr::HmdQuaternion_t rot = { 1,0,0,0 };
 
     pose.qRotation = rot;
 
@@ -104,7 +105,17 @@ vr::DriverPose_t trackedDeviceToDriverPose(vr::TrackedDevicePose_t tPose) {
     pose.poseIsValid = true;
 
     pose.result = vr::TrackingResult_Running_OK;
-    // From here above, it all works fine
+
+    return pose;
+}
+vr::DriverPose_t trackedDeviceToDriverPose(vr::TrackedDevicePose_t tPose) {
+    vr::DriverPose_t pose = defaultReadyDriverPose();
+    pose.deviceIsConnected = true;
+
+    vr::HmdVector3d_t pos = GetVRPositionFromMatrix(tPose.mDeviceToAbsoluteTracking);
+    vr::HmdQuaternion_t rot = GetVRRotationFromMatrix(tPose.mDeviceToAbsoluteTracking);
+
+    
     pose.vecAngularVelocity[0] = tPose.vAngularVelocity.v[0];
     pose.vecAngularVelocity[1] = tPose.vAngularVelocity.v[1];
     pose.vecAngularVelocity[2] = tPose.vAngularVelocity.v[2];

@@ -10,6 +10,30 @@
 
 #include <vrinputemulator.h>
 
+enum class VirtualHipMode {
+        Standing,
+        Sitting,
+        Lying
+    };
+
+struct VirtualHipSettings {
+    bool followHmdYawRotation = true;
+    bool followHmdRollRotation = false;
+    bool followHmdPitchRotation = false;
+
+    bool positionFollowsHMDLean = false; // Determines whether the virtual hips in standing mode will stay above the foot trackers, or interpolate between the HMD and foot trackers on a direct slant
+
+    double heightFromHMD = -0.72; // Meters. Hips are by default projected downwards from the HMD, by 72cm (adjustable by user)
+    VirtualHipMode hipMode = VirtualHipMode::Standing;
+    double hipThickness = 0.1; // Meters. Essentially how wide the hips are, so that when lying down, they are put slightly above the ground
+
+    double sittingMaxHeightThreshold = 0.95; // Under this height, mode is sitting
+    double lyingMaxHeightThreshold = 0.5; // Under this height, mode is lying
+
+    uint32_t leftFootGlobalID = k_invalidTrackerID;
+    uint32_t rightFootGlobalID = k_invalidTrackerID;
+};
+
 class VRDeviceHandler : public DeviceHandler {
     // Updates the tracking pool with data from the 
     // non-IE SteamVR devices - e.g. head position/rotation
@@ -49,6 +73,9 @@ public:
             vrDeviceToPoolIds[i].internalID = i;
             vrDeviceToPoolIds[i].globalID = globalID;
         }
+
+        initVirtualHips();
+
         active = true;
         return 0;
     }
@@ -85,6 +112,8 @@ public:
             }
         }
 
+        updateVirtualHips();
+
         return 0;
     }
 
@@ -104,13 +133,90 @@ private:
     int virtualDeviceCount = 0;
     bool virtualDevices[vr::k_unMaxTrackedDeviceCount]{ false };
     TrackerIDs vrDeviceToPoolIds[vr::k_unMaxTrackedDeviceCount]{};
+    TrackerIDs virtualHipsIds{};
+    uint32_t virtualHipsLocalId = 420;
+    VirtualHipSettings hipSettings;
+    
+    void initVirtualHips() {
+        KVR::TrackedDeviceInputData data = defaultDeviceData(virtualHipsLocalId);
 
-    int update() {
+        uint32_t globalID = k_invalidTrackerID;
+        TrackingPoolManager::addDeviceToPool(data, globalID);
 
+        virtualHipsIds.internalID = virtualHipsLocalId;
+        virtualHipsIds.globalID = globalID;
+    }
+
+    void updateVirtualHips() {
+        // Has access to head point directly, (and controllers if necessary)
+        // Needs feet points to be supplied in order to properly predict the hips
+
+        if (hipSettings.leftFootGlobalID == k_invalidTrackerID ||
+            hipSettings.rightFootGlobalID == k_invalidTrackerID) {
+            retrieveFootIdsFromRoles();
+        }
+
+        // Determine mode
+        if (KinectSettings::hmdPosition.v[1] <= hipSettings.lyingMaxHeightThreshold)
+            hipSettings.hipMode = VirtualHipMode::Lying;
+        else if (KinectSettings::hmdPosition.v[1] <= hipSettings.sittingMaxHeightThreshold)
+            hipSettings.hipMode = VirtualHipMode::Sitting;
+        else
+            hipSettings.hipMode = VirtualHipMode::Standing;
+
+        // Calculate Position
+        vr::HmdVector3d_t position{ 0 };
+
+        switch (hipSettings.hipMode) {
+        case VirtualHipMode::Standing:
+
+            break;
+        case VirtualHipMode::Sitting:
+
+            break;
+        case VirtualHipMode::Lying:
+
+            break;
+        default:
+            LOG(ERROR) << "Virtual Hip mode invalid!!!";
+        };
+
+        // Calculate Rotation
+        vr::HmdQuaternion_t rotation{ 1,0,0,0 };
+        switch (hipSettings.hipMode) {
+        case VirtualHipMode::Standing:
+
+            break;
+        case VirtualHipMode::Sitting:
+
+            break;
+        case VirtualHipMode::Lying:
+
+            break;
+        default:
+            LOG(ERROR) << "Virtual Hip mode invalid!!!";
+        };
+    }
+    void retrieveFootIdsFromRoles() {
+        // TODO
     }
 
     KVR::TrackedDeviceInputData defaultDeviceData(uint32_t localID) {
         // Local ID is the same as SteamVR ID's considering it iterates over the tracked device array
+        if (localID == virtualHipsLocalId) {
+            KVR::TrackedDeviceInputData data;
+
+            data.positionTrackingOption = KVR::JointPositionTrackingOption::IMU;
+            data.rotationTrackingOption = KVR::JointRotationTrackingOption::IMU;
+            data.parentHandler = dynamic_cast<DeviceHandler*>(this);
+
+            data.deviceName = "Virtual Hips";
+            data.deviceId = virtualHipsLocalId;
+            data.customModelName = "vr_controller_01_mrhat";
+
+            return data;
+        }
+
         KVR::TrackedDeviceInputData data;
         data.positionTrackingOption = KVR::JointPositionTrackingOption::IMU;
         data.rotationTrackingOption = KVR::JointRotationTrackingOption::IMU;
