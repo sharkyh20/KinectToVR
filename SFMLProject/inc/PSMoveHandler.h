@@ -654,8 +654,19 @@ private:
         }
     }
     void processKeyInputs() {
-        if (controllerList.count > 0) {
-            auto firstController = v_controllers[0].controller->ControllerState.PSMoveState;
+        if (controllerList.count > 0 && v_controllers.size() > 0) {
+            PSMPSMove firstController;
+            bool inputAvailable = false;
+            for (int i = 0; i < v_controllers.size(); ++i) {
+                if (v_controllers[i].controller->ControllerType == PSMControllerType::PSMController_Move) {
+                    firstController = v_controllers[i].controller->ControllerState.PSMoveState;
+                    inputAvailable = true;
+                }
+
+            }
+
+            if (!inputAvailable) { return; }
+
             bool bStartRealignHMDTriggered =
                 (firstController.StartButton == PSMButtonState_PRESSED && firstController.SelectButton == PSMButtonState_PRESSED) ||
                 (firstController.StartButton == PSMButtonState_PRESSED && firstController.SelectButton == PSMButtonState_DOWN) ||
