@@ -416,8 +416,23 @@ void setTrackerButtonSignals(vrinputemulator::VRInputEmulator &inputE, std::vect
             spawnAndConnectKinectTracker(inputE, v_trackers);
         }
         else {
+            TrackingPoolManager::leftFootDevicePosGID = k_invalidTrackerID;
+            TrackingPoolManager::rightFootDevicePosGID = k_invalidTrackerID;
+            TrackingPoolManager::leftFootDeviceRotGID = k_invalidTrackerID;
+            TrackingPoolManager::rightFootDeviceRotGID = k_invalidTrackerID;
+
             for (TempTracker tracker : TrackersToBeInitialised) {
                 spawnAndConnectTracker(inputE, v_trackers, tracker);
+
+                if (tracker.role == KVR::KinectDeviceRole::LeftFoot) {
+                    TrackingPoolManager::leftFootDevicePosGID = tracker.positionGlobalDeviceId;
+                    TrackingPoolManager::leftFootDeviceRotGID = tracker.rotationGlobalDeviceId;
+                }
+                if (tracker.role == KVR::KinectDeviceRole::RightFoot) {
+                    TrackingPoolManager::rightFootDevicePosGID = tracker.positionGlobalDeviceId;
+                    TrackingPoolManager::rightFootDeviceRotGID = tracker.rotationGlobalDeviceId;
+                }
+
                 if (tracker.isController) {
                     setDeviceProperty(inputE, v_trackers.back().deviceId, vr::Prop_DeviceClass_Int32, "int32", "2"); // Device Class: Controller
                     if (tracker.role == KVR::KinectDeviceRole::LeftHand) {

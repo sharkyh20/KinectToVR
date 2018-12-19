@@ -17,6 +17,11 @@ public:
         OverwritingWrongDevice
     };
 
+    static uint32_t leftFootDevicePosGID;
+    static uint32_t rightFootDevicePosGID;
+    static uint32_t leftFootDeviceRotGID;
+    static uint32_t rightFootDeviceRotGID;
+
     static TrackingPoolError addDeviceToPool(KVR::TrackedDeviceInputData & inputData, uint32_t & globalID) {
         globalID = devicePool.size(); // for the default case of adding instead of rebuilding
 

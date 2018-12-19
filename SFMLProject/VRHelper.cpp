@@ -49,8 +49,9 @@ void removeTrackerRolesInVRSettings() {
     LOG_IF(sError != vr::VRSettingsError_None, ERROR) << "Error removing tracker roles: EVRSettingsError Code " << (int)sError;
 }
 
-void toEulerAngle(vr::HmdQuaternion_t q, double& roll, double& pitch, double& yaw)
+void toEulerAngle(vr::HmdQuaternion_t q, double& pitch, double& yaw, double& roll)
 {
+    // y, x, z = Yaw, pitch, roll = heading, pitch, bank respectively
     vr::HmdVector3d_t v;
     double test = q.x * q.y + q.z * q.w;
     if (test > 0.499)
@@ -70,12 +71,12 @@ void toEulerAngle(vr::HmdQuaternion_t q, double& roll, double& pitch, double& ya
     double sqx = q.x * q.x;
     double sqy = q.y * q.y;
     double sqz = q.z * q.z;
-    v.v[0] = atan2(2 * q.y * q.w - 2 * q.x * q.z, 1 - 2 * sqy - 2 * sqz); // heading
-    v.v[1] = asin(2 * test); // attitude
+    v.v[0] = asin(2 * test); // pitch
+    v.v[1] = atan2(2 * q.y * q.w - 2 * q.x * q.z, 1 - 2 * sqy - 2 * sqz); // heading
     v.v[2] = atan2(2 * q.x * q.w - 2 * q.y * q.z, 1 - 2 * sqx - 2 * sqz); // bank
     pitch = v.v[0];
-    roll = v.v[1];
-    yaw = v.v[2];
+    yaw = v.v[1];
+    roll = v.v[2];
 }
 vr::DriverPose_t defaultReadyDriverPose()
 {
@@ -127,6 +128,16 @@ vr::DriverPose_t trackedDeviceToDriverPose(vr::TrackedDevicePose_t tPose) {
     pose.poseTimeOffset = 0.f;
     
     return pose;
+}
+vr::HmdVector3d_t getWorldPositionFromDriverPose(vr::DriverPose_t pose)
+{
+    vr::HmdVector3d_t position{ 0 };
+
+    position.v[0] = pose.vecPosition[0] + pose.vecWorldFromDriverTranslation[0];
+    position.v[1] = pose.vecPosition[1] + pose.vecWorldFromDriverTranslation[1];
+    position.v[2] = pose.vecPosition[2] + pose.vecWorldFromDriverTranslation[2];
+
+    return position;
 }
 vr::HmdVector3d_t updateHMDPosAndRot(vr::IVRSystem* &m_system) {
     //Gets the HMD location for relative position setting

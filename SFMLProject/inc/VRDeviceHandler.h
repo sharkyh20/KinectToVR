@@ -21,17 +21,16 @@ struct VirtualHipSettings {
     bool followHmdRollRotation = false;
     bool followHmdPitchRotation = false;
 
+    bool positionAccountsForFootTrackers = true; // If false, Hip tracker always stays bolted to directly under the HMD with no horizontal shift
+    double positionLatency = 0.05; // Seconds. How far behind the head should the hips be so that they don't instantly follow every tiny movement of the HMD
     bool positionFollowsHMDLean = false; // Determines whether the virtual hips in standing mode will stay above the foot trackers, or interpolate between the HMD and foot trackers on a direct slant
 
     double heightFromHMD = -0.72; // Meters. Hips are by default projected downwards from the HMD, by 72cm (adjustable by user)
     VirtualHipMode hipMode = VirtualHipMode::Standing;
     double hipThickness = 0.1; // Meters. Essentially how wide the hips are, so that when lying down, they are put slightly above the ground
 
-    double sittingMaxHeightThreshold = 0.95; // Under this height, mode is sitting
-    double lyingMaxHeightThreshold = 0.5; // Under this height, mode is lying
-
-    uint32_t leftFootGlobalID = k_invalidTrackerID;
-    uint32_t rightFootGlobalID = k_invalidTrackerID;
+    double sittingMaxHeightThreshold = 0.95; // Meters. Under this height, mode is sitting
+    double lyingMaxHeightThreshold = 0.5; // Meters. Under this height, mode is lying
 };
 
 class VRDeviceHandler : public DeviceHandler {
@@ -102,6 +101,10 @@ public:
                 data.rotation = rotation;
 
                 data.pose = trackedDeviceToDriverPose(pose);
+                data.pose.vecPosition[0] = position.v[0];
+                data.pose.vecPosition[1] = position.v[1];
+                data.pose.vecPosition[2] = position.v[2];
+                data.pose.qRotation = rotation;
                 // Needed because of IE's natural offsets
                 
                 data.pose.vecWorldFromDriverTranslation[0] -= KinectSettings::trackingOriginPosition.v[0];
@@ -146,59 +149,122 @@ private:
         virtualHipsIds.internalID = virtualHipsLocalId;
         virtualHipsIds.globalID = globalID;
     }
-
-    void updateVirtualHips() {
-        // Has access to head point directly, (and controllers if necessary)
-        // Needs feet points to be supplied in order to properly predict the hips
-
-        if (hipSettings.leftFootGlobalID == k_invalidTrackerID ||
-            hipSettings.rightFootGlobalID == k_invalidTrackerID) {
-            retrieveFootIdsFromRoles();
-        }
-
-        // Determine mode
+    bool footTrackersAvailable() {
+        return
+            TrackingPoolManager::leftFootDevicePosGID != k_invalidTrackerID &&
+            TrackingPoolManager::rightFootDevicePosGID != k_invalidTrackerID &&
+            TrackingPoolManager::leftFootDeviceRotGID != k_invalidTrackerID &&
+            TrackingPoolManager::rightFootDeviceRotGID != k_invalidTrackerID;
+    }
+    void calculateHipMode() {
+        // Determine user mode from HMD position
         if (KinectSettings::hmdPosition.v[1] <= hipSettings.lyingMaxHeightThreshold)
             hipSettings.hipMode = VirtualHipMode::Lying;
         else if (KinectSettings::hmdPosition.v[1] <= hipSettings.sittingMaxHeightThreshold)
             hipSettings.hipMode = VirtualHipMode::Sitting;
         else
             hipSettings.hipMode = VirtualHipMode::Standing;
+    }
+    void calculateStandingPosition(vr::HmdVector3d_t & hipPosition) {
+        // Initially use head position, project downwards
+        hipPosition = KinectSettings::hmdPosition;
+        hipPosition.v[1] += hipSettings.heightFromHMD; // height -ve
+
+        if (hipSettings.positionAccountsForFootTrackers &&
+            footTrackersAvailable()) {
+            // Get average of feet controller positions
+            // NEED TO TAKE INTO ACCOUNT DRIVER-WORLD OFFSET!
+            auto leftData = TrackingPoolManager::getDeviceData(TrackingPoolManager::leftFootDevicePosGID);
+            auto rightData = TrackingPoolManager::getDeviceData(TrackingPoolManager::rightFootDevicePosGID);
+
+            /* // Doesn't actually work properly here, considering the raw position is already in proper vr units, and the world from driver is literally just for IE
+            vr::HmdVector3d_t leftPos = getWorldPositionFromDriverPose(leftData.pose);
+            vr::HmdVector3d_t rightPos = getWorldPositionFromDriverPose(rightData.pose);
+            */
+            vr::HmdVector3d_t leftPos = { leftData.pose.vecPosition[0], leftData.pose.vecPosition[1], leftData.pose.vecPosition[2] };
+            vr::HmdVector3d_t rightPos = { rightData.pose.vecPosition[0], rightData.pose.vecPosition[1], rightData.pose.vecPosition[2] };
+            vr::HmdVector3d_t averageFeetPos{
+                (leftPos.v[0] + rightPos.v[0]) * 0.5,
+                (leftPos.v[1] + rightPos.v[1]) * 0.5,
+                (leftPos.v[2] + rightPos.v[2]) * 0.5
+            };
+
+            // Use their X and Z
+            hipPosition.v[0] = averageFeetPos.v[0];
+            hipPosition.v[2] = averageFeetPos.v[2];
+        }
+    }
+    void updateVirtualHips() {
+        // Has access to head point directly, (and controllers if necessary)
+        // Needs feet points to be supplied in order to properly predict the hips
+
+        calculateHipMode();
 
         // Calculate Position
-        vr::HmdVector3d_t position{ 0 };
+        vr::HmdVector3d_t hipPosition{ 0 };
 
         switch (hipSettings.hipMode) {
-        case VirtualHipMode::Standing:
-
+        case VirtualHipMode::Standing: {
+            calculateStandingPosition(hipPosition);
             break;
-        case VirtualHipMode::Sitting:
-
+        }
+        case VirtualHipMode::Sitting: {
+            // TODO
             break;
-        case VirtualHipMode::Lying:
-
+        }
+        case VirtualHipMode::Lying: {
+            // TODO
             break;
-        default:
+        }
+        default: {
             LOG(ERROR) << "Virtual Hip mode invalid!!!";
+        }
         };
 
         // Calculate Rotation
         vr::HmdQuaternion_t rotation{ 1,0,0,0 };
+        double yaw = 0;
+        double pitch = 0;
+        double roll = 0;
+        toEulerAngle(KinectSettings::hmdRotation, pitch, yaw, roll);
         switch (hipSettings.hipMode) {
-        case VirtualHipMode::Standing:
-
+        case VirtualHipMode::Standing: {
+            
+            if (hipSettings.followHmdYawRotation) {
+                rotation = vrmath::quaternionFromRotationY(yaw);
+            }
             break;
-        case VirtualHipMode::Sitting:
-
+        }
+        case VirtualHipMode::Sitting: {
+            //TODO
             break;
-        case VirtualHipMode::Lying:
-
+        }
+        case VirtualHipMode::Lying: {
+            //TODO
             break;
-        default:
+        }
+        default: {
             LOG(ERROR) << "Virtual Hip mode invalid!!!";
+        }
         };
-    }
-    void retrieveFootIdsFromRoles() {
-        // TODO
+
+        KVR::TrackedDeviceInputData data = defaultDeviceData(virtualHipsLocalId);
+        data.deviceId = virtualHipsIds.globalID;
+        data.position = hipPosition;
+        data.rotation = rotation;
+
+        data.pose = defaultReadyDriverPose();
+        data.pose.vecPosition[0] = hipPosition.v[0];
+        data.pose.vecPosition[1] = hipPosition.v[1];
+        data.pose.vecPosition[2] = hipPosition.v[2];
+        data.pose.qRotation = rotation;
+        // Needed because of IE's natural offsets
+
+        data.pose.vecWorldFromDriverTranslation[0] -= KinectSettings::trackingOriginPosition.v[0];
+        data.pose.vecWorldFromDriverTranslation[1] -= KinectSettings::trackingOriginPosition.v[1];
+        data.pose.vecWorldFromDriverTranslation[2] -= KinectSettings::trackingOriginPosition.v[2];
+
+        TrackingPoolManager::updatePoolWithDevice(data, virtualHipsIds.globalID);
     }
 
     KVR::TrackedDeviceInputData defaultDeviceData(uint32_t localID) {

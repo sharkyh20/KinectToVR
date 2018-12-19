@@ -8,10 +8,11 @@
 void setTrackerRolesInVRSettings();
 void removeTrackerRolesInVRSettings();
 
-void toEulerAngle(vr::HmdQuaternion_t q, double& roll, double& pitch, double& yaw);
+void toEulerAngle(vr::HmdQuaternion_t q, double& pitch, double& yaw, double& roll);
 
 vr::DriverPose_t defaultReadyDriverPose();
 vr::DriverPose_t trackedDeviceToDriverPose(vr::TrackedDevicePose_t tPose);
+vr::HmdVector3d_t getWorldPositionFromDriverPose(vr::DriverPose_t pose);
 
 vr::HmdVector3d_t updateHMDPosAndRot(vr::IVRSystem* &m_sys);
 
