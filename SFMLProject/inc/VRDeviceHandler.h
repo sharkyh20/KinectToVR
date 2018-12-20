@@ -8,6 +8,8 @@
 #include "TrackedDeviceInputData.h"
 #include "VRHelper.h"
 
+#include <openvr_math.h>
+
 #include <vrinputemulator.h>
 
 enum class VirtualHipMode {
@@ -25,9 +27,9 @@ struct VirtualHipSettings {
     double positionLatency = 0.05; // Seconds. How far behind the head should the hips be so that they don't instantly follow every tiny movement of the HMD
     bool positionFollowsHMDLean = false; // Determines whether the virtual hips in standing mode will stay above the foot trackers, or interpolate between the HMD and foot trackers on a direct slant
 
-    double heightFromHMD = -0.72; // Meters. Hips are by default projected downwards from the HMD, by 72cm (adjustable by user)
+    double heightFromHMD = 0.72; // Meters. Hips are by default projected downwards from the HMD, by 72cm (adjustable by user)
     VirtualHipMode hipMode = VirtualHipMode::Standing;
-    double hipThickness = 0.1; // Meters. Essentially how wide the hips are, so that when lying down, they are put slightly above the ground
+    double hipThickness = 0.03; // Meters. Essentially how wide the hips are, so that when lying down, they are put slightly above the ground
 
     double sittingMaxHeightThreshold = 0.95; // Meters. Under this height, mode is sitting
     double lyingMaxHeightThreshold = 0.5; // Meters. Under this height, mode is lying
@@ -160,36 +162,107 @@ private:
         else
             hipSettings.hipMode = VirtualHipMode::Standing;
     }
+    vr::HmdVector3d_t getAverageFootPosition()
+    {
+        // Get average of feet controller positions
+        // NEED TO TAKE INTO ACCOUNT DRIVER-WORLD OFFSET!
+        auto leftData = TrackingPoolManager::getDeviceData(TrackingPoolManager::leftFootDevicePosGID);
+        auto rightData = TrackingPoolManager::getDeviceData(TrackingPoolManager::rightFootDevicePosGID);
+
+        vr::HmdVector3d_t leftPos = getWorldPositionFromDriverPose(leftData.pose);
+        vr::HmdVector3d_t rightPos = getWorldPositionFromDriverPose(rightData.pose);
+
+        return vr::HmdVector3d_t{
+            (leftPos.v[0] + rightPos.v[0]) * 0.5,
+            (leftPos.v[1] + rightPos.v[1]) * 0.5,
+            (leftPos.v[2] + rightPos.v[2]) * 0.5
+        };
+    }
     void calculateStandingPosition(vr::HmdVector3d_t & hipPosition) {
         // Initially use head position, project downwards
         hipPosition = KinectSettings::hmdPosition;
-        hipPosition.v[1] += hipSettings.heightFromHMD; // height -ve
+        hipPosition.v[1] -= hipSettings.heightFromHMD; 
 
         if (hipSettings.positionAccountsForFootTrackers &&
             footTrackersAvailable()) {
-            // Get average of feet controller positions
-            // NEED TO TAKE INTO ACCOUNT DRIVER-WORLD OFFSET!
-            auto leftData = TrackingPoolManager::getDeviceData(TrackingPoolManager::leftFootDevicePosGID);
-            auto rightData = TrackingPoolManager::getDeviceData(TrackingPoolManager::rightFootDevicePosGID);
+            vr::HmdVector3d_t averageFeetPos = getAverageFootPosition();
 
-            // Doesn't actually work properly here, considering the raw position is already in proper vr units, and the world from driver is literally just for IE
-            vr::HmdVector3d_t leftPos = getWorldPositionFromDriverPose(leftData.pose);
-            vr::HmdVector3d_t rightPos = getWorldPositionFromDriverPose(rightData.pose);
+            // Use their X and Z
+            hipPosition.v[0] = averageFeetPos.v[0];
+            hipPosition.v[2] = averageFeetPos.v[2];
+        }
+    }
+    void calculateSittingPosition(vr::HmdVector3d_t & hipPosition) {
+        // Initially use head position, project downwards
+        hipPosition = KinectSettings::hmdPosition;
+        hipPosition.v[1] -= hipSettings.heightFromHMD; 
+
+        // Prevents sinking when head gets closer to ground
+        if (hipPosition.v[1] <= hipSettings.hipThickness) {
+            hipPosition.v[1] = hipSettings.hipThickness;
+        }
+
+        // Use the x,z average of all tracked points - for now, turned off as it didn't have the desired result
+        /*
+        if (hipSettings.positionAccountsForFootTrackers &&
+            footTrackersAvailable()) {
+            const vr::HmdVector3d_t & headPos = KinectSettings::hmdPosition;
+
+            vr::HmdVector3d_t averageFeetPos = getAverageFootPosition();
             
-            /*
-            vr::HmdVector3d_t leftPos = { leftData.pose.vecPosition[0], leftData.pose.vecPosition[1], leftData.pose.vecPosition[2] };
-            vr::HmdVector3d_t rightPos = { rightData.pose.vecPosition[0], rightData.pose.vecPosition[1], rightData.pose.vecPosition[2] };
-            */
-            vr::HmdVector3d_t averageFeetPos{
-                (leftPos.v[0] + rightPos.v[0]) * 0.5,
-                (leftPos.v[1] + rightPos.v[1]) * 0.5,
-                (leftPos.v[2] + rightPos.v[2]) * 0.5
+            vr::HmdVector3d_t averageHipPos{
+                (averageFeetPos.v[0] + headPos.v[0]) * 0.5,
+                (averageFeetPos.v[1] + headPos.v[1]) * 0.5,
+                (averageFeetPos.v[2] + headPos.v[2]) * 0.5
             };
 
             // Use their X and Z
             hipPosition.v[0] = averageFeetPos.v[0];
             hipPosition.v[2] = averageFeetPos.v[2];
         }
+        else {
+            // Stays only under the HMD
+        }
+        */
+    }
+    void calculateLyingPosition(vr::HmdVector3d_t & hipPosition) {
+        // Initially use head position, project downwards
+        hipPosition = KinectSettings::hmdPosition;
+        hipPosition.v[1] -= hipSettings.heightFromHMD;
+
+        // Prevents sinking when head gets closer to ground
+        if (hipPosition.v[1] <= hipSettings.hipThickness) {
+            hipPosition.v[1] = hipSettings.hipThickness;
+        }
+
+        // Move the tracker horizontally to simulate hip position when lying down
+        // https://math.stackexchange.com/questions/83404/finding-a-point-along-a-line-in-three-dimensions-given-two-points
+
+        // Get the point 'd' units along the line from point 'A' to 'B'
+        vr::HmdVector3d_t A = KinectSettings::hmdPosition;
+        vr::HmdVector3d_t B = getAverageFootPosition();
+        double ratio = 0.5; // Ratio for how far from the head to the feet the hips are
+        double distanceAB = sqrt(
+            (B.v[0] - A.v[0]) * (B.v[0] - A.v[0]) +
+            (B.v[1] - A.v[1]) * (B.v[1] - A.v[1]) +
+            (B.v[2] - A.v[2]) * (B.v[2] - A.v[2])
+            );
+        //double d = hipSettings.heightFromHMD
+        double d = distanceAB * ratio;
+
+        vr::HmdVector3d_t BA = B - A;
+
+        // Normalise
+        double length = sqrt(
+            BA.v[0] * BA.v[0] +
+            BA.v[1] * BA.v[1] +
+            BA.v[2] * BA.v[2] );
+        vr::HmdVector3d_t unitVector = (BA) / length;
+
+        // Scale towards B
+        vr::HmdVector3d_t desiredHipPosition = A + (unitVector * d);
+        hipPosition.v[0] = desiredHipPosition.v[0];
+        hipPosition.v[2] = desiredHipPosition.v[2];
     }
     void updateVirtualHips() {
         // Has access to head point directly, (and controllers if necessary)
@@ -206,11 +279,11 @@ private:
             break;
         }
         case VirtualHipMode::Sitting: {
-            // TODO
+            calculateSittingPosition(hipPosition);
             break;
         }
         case VirtualHipMode::Lying: {
-            // TODO
+            calculateLyingPosition(hipPosition);
             break;
         }
         default: {
@@ -233,11 +306,24 @@ private:
             break;
         }
         case VirtualHipMode::Sitting: {
-            //TODO
+            // As the hip tracker sinks further into the ground, rotate the hip upwards
+            // Apply yaw first, then pitch
+            vr::HmdQuaternion_t yawRotation = { 1,0,0,0 };
+            if (hipSettings.followHmdYawRotation) {
+                vr::HmdQuaternion_t yawRotation = vrmath::quaternionFromRotationY(yaw);
+            }
+
+            // Adjust up/down
+            vr::HmdQuaternion_t pitchRotation = { 1,0,0,0 };
+            double minRotation = 0;
+            double maxRotation = M_PI / 4.0; // 45 degrees up
+
+            double rotationRatio = (KinectSettings::hmdPosition.v[1] - hipSettings.heightFromHMD) / (hipSettings.sittingMaxHeightThreshold - hipSettings.heightFromHMD);
+            pitchRotation = {};
             break;
         }
         case VirtualHipMode::Lying: {
-            //TODO
+            // Have the hip face directly upright
             break;
         }
         default: {
