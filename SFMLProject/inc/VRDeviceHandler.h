@@ -105,12 +105,7 @@ public:
                 data.pose.vecPosition[1] = position.v[1];
                 data.pose.vecPosition[2] = position.v[2];
                 data.pose.qRotation = rotation;
-                // Needed because of IE's natural offsets
-                
-                data.pose.vecWorldFromDriverTranslation[0] -= KinectSettings::trackingOriginPosition.v[0];
-                data.pose.vecWorldFromDriverTranslation[1] -= KinectSettings::trackingOriginPosition.v[1];
-                data.pose.vecWorldFromDriverTranslation[2] -= KinectSettings::trackingOriginPosition.v[2];
-                
+
                 TrackingPoolManager::updatePoolWithDevice(data, vrDeviceToPoolIds[i].globalID);
             }
         }
@@ -177,12 +172,14 @@ private:
             auto leftData = TrackingPoolManager::getDeviceData(TrackingPoolManager::leftFootDevicePosGID);
             auto rightData = TrackingPoolManager::getDeviceData(TrackingPoolManager::rightFootDevicePosGID);
 
-            /* // Doesn't actually work properly here, considering the raw position is already in proper vr units, and the world from driver is literally just for IE
+            // Doesn't actually work properly here, considering the raw position is already in proper vr units, and the world from driver is literally just for IE
             vr::HmdVector3d_t leftPos = getWorldPositionFromDriverPose(leftData.pose);
             vr::HmdVector3d_t rightPos = getWorldPositionFromDriverPose(rightData.pose);
-            */
+            
+            /*
             vr::HmdVector3d_t leftPos = { leftData.pose.vecPosition[0], leftData.pose.vecPosition[1], leftData.pose.vecPosition[2] };
             vr::HmdVector3d_t rightPos = { rightData.pose.vecPosition[0], rightData.pose.vecPosition[1], rightData.pose.vecPosition[2] };
+            */
             vr::HmdVector3d_t averageFeetPos{
                 (leftPos.v[0] + rightPos.v[0]) * 0.5,
                 (leftPos.v[1] + rightPos.v[1]) * 0.5,
@@ -258,11 +255,6 @@ private:
         data.pose.vecPosition[1] = hipPosition.v[1];
         data.pose.vecPosition[2] = hipPosition.v[2];
         data.pose.qRotation = rotation;
-        // Needed because of IE's natural offsets
-
-        data.pose.vecWorldFromDriverTranslation[0] -= KinectSettings::trackingOriginPosition.v[0];
-        data.pose.vecWorldFromDriverTranslation[1] -= KinectSettings::trackingOriginPosition.v[1];
-        data.pose.vecWorldFromDriverTranslation[2] -= KinectSettings::trackingOriginPosition.v[2];
 
         TrackingPoolManager::updatePoolWithDevice(data, virtualHipsIds.globalID);
     }

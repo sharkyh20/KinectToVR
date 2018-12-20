@@ -117,11 +117,17 @@ namespace KVR {
             nextUpdatePositionIsSet = false;
             nextUpdateRotationIsSet = false;
 
+            
             if (nextUpdatePoseIsSet) {
                 // If pose already handled entirely by tracking method
                 // and ready to be sent directly to IE
                 // e.g. PSMove's rotation and position and HMD alignment for the one tracker
-                //nextUpdatePose.vecWorldFromDriverTranslation[1] -= 1.75;
+                
+                // World from driver should be set here - as it is used solely for translating to IE right now, and any devices should have their vecPosition be their properVR position
+                // It should not be taken into account for any calculations - as it is SOLELY TO SEND INTO IE
+                nextUpdatePose.vecWorldFromDriverTranslation[0] -= KinectSettings::trackingOriginPosition.v[0];
+                nextUpdatePose.vecWorldFromDriverTranslation[1] -= KinectSettings::trackingOriginPosition.v[1];
+                nextUpdatePose.vecWorldFromDriverTranslation[2] -= KinectSettings::trackingOriginPosition.v[2];
                 update(nextUpdatePose);
                 nextUpdatePoseIsSet = false;
                 return;
@@ -138,9 +144,9 @@ namespace KVR {
             pose.qRotation = nextUpdateRotation;
 
             pose.qWorldFromDriverRotation = { 1,0,0,0 }; // need these else nothing rotates/moves visually
-            pose.vecWorldFromDriverTranslation[0] = 0;
-            pose.vecWorldFromDriverTranslation[1] = 0;
-            pose.vecWorldFromDriverTranslation[2] = 0;
+            pose.vecWorldFromDriverTranslation[0] -= KinectSettings::trackingOriginPosition.v[0];
+            pose.vecWorldFromDriverTranslation[1] -= KinectSettings::trackingOriginPosition.v[1];
+            pose.vecWorldFromDriverTranslation[2] -= KinectSettings::trackingOriginPosition.v[2];
 
             pose.qDriverFromHeadRotation = { 1,0,0,0 };
             pose.vecDriverFromHeadTranslation[0] = 0;

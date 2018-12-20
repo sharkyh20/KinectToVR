@@ -380,3 +380,4 @@ SFMLProject/*.ttf
 KinectV2Process/KinectToVR.cfg
 KinectV1Process/KinectToVR.cfg
 *.ttf
+driver/scripts/SteamVR_SetDriverVars.bat

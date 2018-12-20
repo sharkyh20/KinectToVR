@@ -312,7 +312,7 @@ public:
         return yaw_quaternion;
     }
     
-    void alignPSMoveAndHMDTrackingSpace() {
+    void alignPSMoveAndHMDTrackingSpace(PSMController * controller) {
         if (m_bDisableHMDAlignmentGesture)
         {
             return;
@@ -326,7 +326,7 @@ public:
         // Make the HMD orientation only contain a yaw
         hmd_pose_meters.Orientation = ExtractHMDYawQuaternion(hmd_pose_meters.Orientation);
 
-        auto m_PSMControllerType = v_controllers[0].controller->ControllerType;
+        auto m_PSMControllerType = controller->ControllerType;
         // We have the transform of the HMD in world space. 
         // However the HMD and the controller aren't quite aligned depending on the controller type:
         PSMQuatf controllerOrientationInHmdSpaceQuat = *k_psm_quaternion_identity;
@@ -368,7 +368,7 @@ public:
         // value because the user may have triggered a pose reset, in which case the driver's
         // cached pose might not yet be up to date by the time this callback is triggered.
         PSMPosef controller_pose_meters = *k_psm_pose_identity;
-        PSM_GetControllerPose(v_controllers[0].controller->ControllerID, &controller_pose_meters);
+        PSM_GetControllerPose(controller->ControllerID, &controller_pose_meters);
 
         // PSMove Position is in cm, but OpenVR stores position in meters
         controller_pose_meters.Position = PSM_Vector3fScale(&controller_pose_meters.Position, k_fScalePSMoveAPIToMeters);
@@ -484,9 +484,9 @@ public:
         m_Pose.qWorldFromDriverRotation.x = m_worldFromDriverPose.Orientation.x;
         m_Pose.qWorldFromDriverRotation.y = m_worldFromDriverPose.Orientation.y;
         m_Pose.qWorldFromDriverRotation.z = m_worldFromDriverPose.Orientation.z;
-        m_Pose.vecWorldFromDriverTranslation[0] = m_worldFromDriverPose.Position.x - KinectSettings::trackingOriginPosition.v[0];
-        m_Pose.vecWorldFromDriverTranslation[1] = m_worldFromDriverPose.Position.y - KinectSettings::trackingOriginPosition.v[1];
-        m_Pose.vecWorldFromDriverTranslation[2] = m_worldFromDriverPose.Position.z - KinectSettings::trackingOriginPosition.v[2];
+        m_Pose.vecWorldFromDriverTranslation[0] = m_worldFromDriverPose.Position.x;
+        m_Pose.vecWorldFromDriverTranslation[1] = m_worldFromDriverPose.Position.y;
+        m_Pose.vecWorldFromDriverTranslation[2] = m_worldFromDriverPose.Position.z;
         //LOG(INFO) << "worldFromDriver: PS : " << m_Pose.vecWorldFromDriverTranslation[0] << ", " << m_Pose.vecWorldFromDriverTranslation[1] << ", " << m_Pose.vecWorldFromDriverTranslation[2];
         // Set position
         
@@ -659,33 +659,32 @@ private:
         }
     }
     void processKeyInputs() {
-        if (controllerList.count > 0 && v_controllers.size() > 0) {
-            PSMPSMove firstController;
-            bool inputAvailable = false;
-            for (int i = 0; i < v_controllers.size(); ++i) {
-                if (v_controllers[i].controller->ControllerType == PSMControllerType::PSMController_Move) {
-                    firstController = v_controllers[i].controller->ControllerState.PSMoveState;
-                    inputAvailable = true;
-                }
-
+        if (controllerList.count == 0 || v_controllers.size() == 0) { return; }
+        bool inputAvailable = false;
+        for (TrackerWrapper_PSM & wrapper : v_controllers) {
+            if (wrapper.controller->ControllerType == PSMControllerType::PSMController_Move) {
+                inputAvailable = true;
             }
+            else
+                inputAvailable = false;
 
-            if (!inputAvailable) { return; }
-
+            if (!inputAvailable) {
+                continue;
+            }
+            auto & controller = wrapper.controller->ControllerState.PSMoveState;
             bool bStartRealignHMDTriggered =
-                (firstController.StartButton == PSMButtonState_PRESSED && firstController.SelectButton == PSMButtonState_PRESSED) ||
-                (firstController.StartButton == PSMButtonState_PRESSED && firstController.SelectButton == PSMButtonState_DOWN) ||
-                (firstController.StartButton == PSMButtonState_DOWN && firstController.SelectButton == PSMButtonState_PRESSED);
+                (controller.StartButton == PSMButtonState_PRESSED && controller.SelectButton == PSMButtonState_PRESSED);
             if (bStartRealignHMDTriggered) {
                 PSMVector3f controllerBallPointedUpEuler = { (float)M_PI_2, 0.0f, 0.0f };
 
                 PSMQuatf controllerBallPointedUpQuat = PSM_QuatfCreateFromAngles(&controllerBallPointedUpEuler);
 
-                PSM_ResetControllerOrientationAsync(v_controllers[0].controller->ControllerID, &controllerBallPointedUpQuat, nullptr);
+                PSM_ResetControllerOrientationAsync(wrapper.controller->ControllerID, &controllerBallPointedUpQuat, nullptr);
 
-                alignPSMoveAndHMDTrackingSpace();
+                alignPSMoveAndHMDTrackingSpace(wrapper.controller);
             }
         }
+
     }
 
     void loadTrackingCalibration() {
