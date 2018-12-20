@@ -12,6 +12,53 @@
 
 #include <vrinputemulator.h>
 
+namespace vrmath {
+    double length_sq(vr::HmdVector3d_t v) {
+        return 
+            v.v[0] * v.v[0] +
+            v.v[1] * v.v[1] +
+            v.v[2] * v.v[2];
+    }
+    double length(vr::HmdVector3d_t v) {
+        return sqrt(length_sq(v));
+    }
+    double length(vr::HmdQuaternion_t q) {
+        return sqrt(q.w * q.w + q.x * q.x + q.y * q.y + q.z * q.z);
+    }
+    vr::HmdQuaternion_t normalized(vr::HmdQuaternion_t a) {
+        vr::HmdQuaternion_t q = a;
+        float magnitude = pow(length(q), 2);
+        q.w /= magnitude;
+        q.x /= magnitude;
+        q.y /= magnitude;
+        q.z /= magnitude;
+        return q;
+    }
+        
+    vr::HmdVector3d_t cross(vr::HmdVector3d_t v1, vr::HmdVector3d_t v2) {
+        float x = (v1.v[1] * v2.v[2]) - (v1.v[2]*v2.v[1]);
+        float y = -((v1.v[0]*v2.v[2]) - (v1.v[2]*v2.v[0]));
+        float z = (v1.v[0]*v2.v[1]) - (v1.v[1]*v2.v[0]);
+        return { x,y,z };
+    }
+    double dot(vr::HmdVector3d_t v1, vr::HmdVector3d_t v2) {
+        return v1.v[0] * v2.v[0] + v1.v[1] * v2.v[1] + v1.v[2] * v2.v[2];
+    }
+    vr::HmdQuaternion_t get_rotation_between(vr::HmdVector3d_t u, vr::HmdVector3d_t v) {
+        double k_cos_theta = dot(u, v);
+        float k = sqrt(length_sq(u) * length_sq(v));
+
+        if (k_cos_theta / k == -1)
+        {
+            // 180 degree rotation around any orthogonal vector
+            return vr::HmdQuaternion_t{ 1, 0, 0, 0 };
+        }
+        auto vec = cross(u, v);
+        return normalized(vr::HmdQuaternion_t{ k_cos_theta + k, vec.v[0], vec.v[1], vec.v[2] });
+    }
+    
+}
+
 enum class VirtualHipMode {
         Standing,
         Sitting,
@@ -23,7 +70,7 @@ struct VirtualHipSettings {
     bool followHmdRollRotation = false;
     bool followHmdPitchRotation = false;
 
-    bool positionAccountsForFootTrackers = true; // If false, Hip tracker always stays bolted to directly under the HMD with no horizontal shift
+    bool positionAccountsForFootTrackers = false; // If false, Hip tracker always stays bolted to directly under the HMD with no horizontal shift
     double positionLatency = 0.05; // Seconds. How far behind the head should the hips be so that they don't instantly follow every tiny movement of the HMD
     bool positionFollowsHMDLean = false; // Determines whether the virtual hips in standing mode will stay above the foot trackers, or interpolate between the HMD and foot trackers on a direct slant
 
@@ -238,31 +285,34 @@ private:
         // Move the tracker horizontally to simulate hip position when lying down
         // https://math.stackexchange.com/questions/83404/finding-a-point-along-a-line-in-three-dimensions-given-two-points
 
-        // Get the point 'd' units along the line from point 'A' to 'B'
-        vr::HmdVector3d_t A = KinectSettings::hmdPosition;
-        vr::HmdVector3d_t B = getAverageFootPosition();
-        double ratio = 0.5; // Ratio for how far from the head to the feet the hips are
-        double distanceAB = sqrt(
-            (B.v[0] - A.v[0]) * (B.v[0] - A.v[0]) +
-            (B.v[1] - A.v[1]) * (B.v[1] - A.v[1]) +
-            (B.v[2] - A.v[2]) * (B.v[2] - A.v[2])
+        if (hipSettings.positionAccountsForFootTrackers &&
+            footTrackersAvailable()) {
+            // Get the point 'd' units along the line from point 'A' to 'B'
+            vr::HmdVector3d_t A = KinectSettings::hmdPosition;
+            vr::HmdVector3d_t B = getAverageFootPosition();
+            double ratio = 0.5; // Ratio for how far from the head to the feet the hips are
+            double distanceAB = sqrt(
+                (B.v[0] - A.v[0]) * (B.v[0] - A.v[0]) +
+                (B.v[1] - A.v[1]) * (B.v[1] - A.v[1]) +
+                (B.v[2] - A.v[2]) * (B.v[2] - A.v[2])
             );
-        //double d = hipSettings.heightFromHMD
-        double d = distanceAB * ratio;
+            //double d = hipSettings.heightFromHMD
+            double d = distanceAB * ratio;
 
-        vr::HmdVector3d_t BA = B - A;
+            vr::HmdVector3d_t BA = B - A;
 
-        // Normalise
-        double length = sqrt(
-            BA.v[0] * BA.v[0] +
-            BA.v[1] * BA.v[1] +
-            BA.v[2] * BA.v[2] );
-        vr::HmdVector3d_t unitVector = (BA) / length;
+            // Normalise
+            double length = sqrt(
+                BA.v[0] * BA.v[0] +
+                BA.v[1] * BA.v[1] +
+                BA.v[2] * BA.v[2]);
+            vr::HmdVector3d_t unitVector = (BA) / length;
 
-        // Scale towards B
-        vr::HmdVector3d_t desiredHipPosition = A + (unitVector * d);
-        hipPosition.v[0] = desiredHipPosition.v[0];
-        hipPosition.v[2] = desiredHipPosition.v[2];
+            // Scale towards B
+            vr::HmdVector3d_t desiredHipPosition = A + (unitVector * d);
+            hipPosition.v[0] = desiredHipPosition.v[0];
+            hipPosition.v[2] = desiredHipPosition.v[2];
+        }
     }
     void updateVirtualHips() {
         // Has access to head point directly, (and controllers if necessary)
@@ -276,14 +326,17 @@ private:
         switch (hipSettings.hipMode) {
         case VirtualHipMode::Standing: {
             calculateStandingPosition(hipPosition);
+            LOG(INFO) << "Standing";
             break;
         }
         case VirtualHipMode::Sitting: {
             calculateSittingPosition(hipPosition);
+            LOG(INFO) << "Sitting";
             break;
         }
         case VirtualHipMode::Lying: {
             calculateLyingPosition(hipPosition);
+            LOG(INFO) << "Lying";
             break;
         }
         default: {
@@ -310,20 +363,41 @@ private:
             // Apply yaw first, then pitch
             vr::HmdQuaternion_t yawRotation = { 1,0,0,0 };
             if (hipSettings.followHmdYawRotation) {
-                vr::HmdQuaternion_t yawRotation = vrmath::quaternionFromRotationY(yaw);
+                yawRotation = vrmath::quaternionFromRotationY(yaw);
             }
 
             // Adjust up/down
             vr::HmdQuaternion_t pitchRotation = { 1,0,0,0 };
-            double minRotation = 0;
-            double maxRotation = M_PI / 4.0; // 45 degrees up
+            const double maxRotation = M_PI / 4.0; // 45 degrees up
 
-            double rotationRatio = (KinectSettings::hmdPosition.v[1] - hipSettings.heightFromHMD) / (hipSettings.sittingMaxHeightThreshold - hipSettings.heightFromHMD);
-            pitchRotation = {};
+            double rotationRatio = (
+                KinectSettings::hmdPosition.v[1] - hipSettings.heightFromHMD) 
+                / (hipSettings.sittingMaxHeightThreshold - hipSettings.heightFromHMD);
+            double radiansToRotatePitch = -( maxRotation * rotationRatio);
+            pitchRotation = vrmath::quaternionFromRotationX(radiansToRotatePitch);
+            
+            rotation = pitchRotation * yawRotation; // Right side applied first
             break;
         }
         case VirtualHipMode::Lying: {
-            // Have the hip face directly upright
+            // Follows HMD roll now, and yaw is based on lookat from HMD to feet
+            vr::HmdQuaternion_t rollRotation = vrmath::quaternionFromRotationZ(roll);
+            vr::HmdQuaternion_t yawRotation = { 1,0,0,0 };
+
+            if (hipSettings.positionAccountsForFootTrackers &&
+                footTrackersAvailable()) {
+                // rotation between
+                auto rawQ = vrmath::get_rotation_between(KinectSettings::hmdPosition, getAverageFootPosition());
+                double lookAtYaw = 0;
+                double lookAtPitch = 0;
+                double lookAtRoll = 0;
+                toEulerAngle(rawQ, lookAtPitch, lookAtYaw, lookAtRoll);
+
+                yawRotation = vrmath::quaternionFromRotationY(lookAtYaw);
+            }
+
+
+            rotation = rollRotation * yawRotation;
             break;
         }
         default: {
