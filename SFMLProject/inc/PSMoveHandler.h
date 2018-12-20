@@ -49,7 +49,12 @@ public:
         }
         return 1;
     }
-    void identify(int controllerId, bool on) {
+    void identify(int globalId, bool on) {
+        int controllerId = 0;
+        for (TrackerWrapper_PSM & t : v_controllers) {
+            if (t.id.globalID == globalId)
+                controllerId = t.id.internalID;
+        }
         flashControllerBulb(controllerId, on);
         float rumbleIntensity = 0;
         if (on)

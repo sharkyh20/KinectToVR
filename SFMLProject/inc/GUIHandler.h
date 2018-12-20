@@ -169,16 +169,16 @@ void setDefaultSignals() {
     });
     identifyPosDeviceButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
         if (PositionDeviceList->GetItemCount()) {
-            auto index = selectedPositionDeviceIndex();
-            auto d = TrackingPoolManager::getDeviceData(index);
-            d.parentHandler->identify(index, identifyPosDeviceButton->IsActive());
+            auto globalIndex = selectedPositionDeviceIndex();
+            auto d = TrackingPoolManager::getDeviceData(globalIndex);
+            d.parentHandler->identify(globalIndex, identifyPosDeviceButton->IsActive());
         }
     });
     identifyRotDeviceButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
         if (RotationDeviceList->GetItemCount()) {
-            auto index = selectedRotationDeviceIndex();
-            auto d = TrackingPoolManager::getDeviceData(index);
-            d.parentHandler->identify(index, identifyRotDeviceButton->IsActive());
+            auto globalIndex = selectedRotationDeviceIndex();
+            auto d = TrackingPoolManager::getDeviceData(globalIndex);
+            d.parentHandler->identify(globalIndex, identifyRotDeviceButton->IsActive());
         }
     });
     AddHandControllersToList->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
