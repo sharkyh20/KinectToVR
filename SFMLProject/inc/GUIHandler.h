@@ -417,13 +417,17 @@ void setTrackerButtonSignals(vrinputemulator::VRInputEmulator &inputE, std::vect
         pose.vecPosition[0] = 0;
         pose.vecPosition[1] = 0;
         pose.vecPosition[2] = 0;
+        pose.vecWorldFromDriverTranslation[0] -= KinectSettings::trackingOriginPosition.v[0];
+        pose.vecWorldFromDriverTranslation[1] -= KinectSettings::trackingOriginPosition.v[1];
+        pose.vecWorldFromDriverTranslation[2] -= KinectSettings::trackingOriginPosition.v[2];
         v_trackers[0].nextUpdatePoseIsSet = false;
         v_trackers[0].setPoseForNextUpdate(pose, true);
             // Get it's VR ID
         auto info = inputE.getVirtualDeviceInfo(0);
         uint32_t vrID = info.openvrDeviceId;
         // Get it's absolute tracking, set the secondary offset to that
-        v_trackers[0].update();
+
+        v_trackers[0].update(pose);
 
         vr::TrackedDevicePose_t devicePose[vr::k_unMaxTrackedDeviceCount];
         m_VRSystem->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, 0, devicePose, vr::k_unMaxTrackedDeviceCount);
