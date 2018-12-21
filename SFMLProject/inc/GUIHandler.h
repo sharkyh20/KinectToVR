@@ -429,6 +429,8 @@ void setTrackerButtonSignals(vrinputemulator::VRInputEmulator &inputE, std::vect
         m_VRSystem->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, 0, devicePose, vr::k_unMaxTrackedDeviceCount);
 
         KinectSettings::secondaryTrackingOriginOffset = GetVRPositionFromMatrix(devicePose[vrID].mDeviceToAbsoluteTracking);
+        LOG(INFO) << "SET THE SECONDARY OFFSET TO " << KinectSettings::secondaryTrackingOriginOffset.v[0] << ", " << KinectSettings::secondaryTrackingOriginOffset.v[1] << ", " << KinectSettings::secondaryTrackingOriginOffset.v[2];
+
 });
     TrackerInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers, &inputE] {
         /*
