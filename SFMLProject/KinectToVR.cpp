@@ -222,9 +222,9 @@ void processLoop(KinectHandlerBase& kinect) {
     LOG(INFO) << "Kinect version is V" << (int)kinect.kVersion;
     updateFilePath();
     //sf::RenderWindow renderWindow(getScaledWindowResolution(), "KinectToVR: " + KinectSettings::KVRversion, sf::Style::Titlebar | sf::Style::Close);
-    sf::RenderWindow renderWindow(sf::VideoMode(1024, 768, 32) , "KinectToVR: " + KinectSettings::KVRversion, sf::Style::Titlebar | sf::Style::Close | sf::Style::Resize);
+    sf::RenderWindow renderWindow(sf::VideoMode(1280, 768, 32) , "KinectToVR: " + KinectSettings::KVRversion, sf::Style::Titlebar | sf::Style::Close | sf::Style::Resize);
     auto mGUIView = sf::View(renderWindow.getDefaultView());
-    auto mGridView = sf::View(sf::FloatRect(0, 0, 1024, 768));
+    auto mGridView = sf::View(sf::FloatRect(0, 0, 1280, 768));
 
     updateKinectWindowRes(renderWindow);
     int windowFrameLimit = 90;
