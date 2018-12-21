@@ -126,12 +126,19 @@ namespace KVR {
                 // World from driver should be set here - as it is used solely for translating to IE right now, and any devices should have their vecPosition be their properVR position
                 // It should not be taken into account for any calculations - as it is SOLELY TO SEND INTO IE
                 
+                // Calibrate off the device's own offsets
+
+
                 nextUpdatePose.vecWorldFromDriverTranslation[0] -= KinectSettings::trackingOriginPosition.v[0];
                 nextUpdatePose.vecWorldFromDriverTranslation[1] -= KinectSettings::trackingOriginPosition.v[1];
                 nextUpdatePose.vecWorldFromDriverTranslation[2] -= KinectSettings::trackingOriginPosition.v[2];
 
+                nextUpdatePose.vecWorldFromDriverTranslation[0] -= KinectSettings::secondaryTrackingOriginOffset.v[0];
+                nextUpdatePose.vecWorldFromDriverTranslation[1] -= KinectSettings::secondaryTrackingOriginOffset.v[1];
+                nextUpdatePose.vecWorldFromDriverTranslation[2] -= KinectSettings::secondaryTrackingOriginOffset.v[2];
 
-                nextUpdatePose.qWorldFromDriverRotation = vrmath::inverse(GetVRRotationFromMatrix(KinectSettings::trackingOrigin));
+
+                nextUpdatePose.qWorldFromDriverRotation = vrmath::inverse(GetVRRotationFromMatrix(KinectSettings::trackingOrigin)); // CLEAN UP INTO SETTINGS
                 update(nextUpdatePose);
                 
                 nextUpdatePoseIsSet = false;
@@ -152,6 +159,13 @@ namespace KVR {
             pose.vecWorldFromDriverTranslation[0] -= KinectSettings::trackingOriginPosition.v[0];
             pose.vecWorldFromDriverTranslation[1] -= KinectSettings::trackingOriginPosition.v[1];
             pose.vecWorldFromDriverTranslation[2] -= KinectSettings::trackingOriginPosition.v[2];
+
+            nextUpdatePose.vecWorldFromDriverTranslation[0] -= KinectSettings::secondaryTrackingOriginOffset.v[0];
+            nextUpdatePose.vecWorldFromDriverTranslation[1] -= KinectSettings::secondaryTrackingOriginOffset.v[1];
+            nextUpdatePose.vecWorldFromDriverTranslation[2] -= KinectSettings::secondaryTrackingOriginOffset.v[2];
+
+            pose.qWorldFromDriverRotation = vrmath::inverse(GetVRRotationFromMatrix(KinectSettings::trackingOrigin)); // CLEAN UP INTO SETTINGS
+            update(nextUpdatePose);
 
             pose.qDriverFromHeadRotation = { 1,0,0,0 };
             pose.vecDriverFromHeadTranslation[0] = 0;

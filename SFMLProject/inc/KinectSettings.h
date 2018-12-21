@@ -52,6 +52,7 @@ namespace KinectSettings {
     extern vr::HmdMatrix34_t hmdAbsoluteTracking;
     extern vr::HmdMatrix34_t trackingOrigin;
     extern vr::HmdVector3d_t trackingOriginPosition; // Input Emulator is by default offset from this - so 0,0,0 in IE is really these coords
+    extern vr::HmdVector3d_t secondaryTrackingOriginOffset; // Demonic offset, actual origin unknown. Probably evil and trying to destroy everything I love.
 
 
     extern vr::HmdQuaternion_t kinectRepRotation;

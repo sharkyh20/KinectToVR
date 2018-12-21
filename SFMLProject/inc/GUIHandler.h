@@ -7,7 +7,7 @@
 #include "KinectTrackedDevice.h"
 #include "KinectJoint.h"
 #include "ColorTracker.h"
-
+#include "VRHelper.h"
 
 #include "TrackingMethod.h"
 #include "DeviceHandler.h"
@@ -408,8 +408,39 @@ void spawnAndConnectTracker(vrinputemulator::VRInputEmulator & inputE, std::vect
     device.init(inputE);
     v_trackers.push_back(device);
 }
-void setTrackerButtonSignals(vrinputemulator::VRInputEmulator &inputE, std::vector<KVR::KinectTrackedDevice> &v_trackers) {
+void setTrackerButtonSignals(vrinputemulator::VRInputEmulator &inputE, std::vector<KVR::KinectTrackedDevice> &v_trackers, vr::IVRSystem * & m_VRSystem) {
+    calibrateOffsetButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, & inputE, & v_trackers, & m_VRSystem]{
+        // WARNING, SUPER HACKY!!!
+        // Spawn device which sets it's vec position to 0
+        vr::DriverPose_t pose = defaultReadyDriverPose();
+
+        pose.vecPosition[0] = 0;
+        pose.vecPosition[1] = 0;
+        pose.vecPosition[2] = 0;
+        v_trackers[0].nextUpdatePoseIsSet = false;
+        v_trackers[0].setPoseForNextUpdate(pose, true);
+            // Get it's VR ID
+        auto info = inputE.getVirtualDeviceInfo(0);
+        uint32_t vrID = info.openvrDeviceId;
+        // Get it's absolute tracking, set the secondary offset to that
+        v_trackers[0].update();
+
+        vr::TrackedDevicePose_t devicePose[vr::k_unMaxTrackedDeviceCount];
+        m_VRSystem->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, 0, devicePose, vr::k_unMaxTrackedDeviceCount);
+
+        KinectSettings::secondaryTrackingOriginOffset = GetVRPositionFromMatrix(devicePose[vrID].mDeviceToAbsoluteTracking);
+});
     TrackerInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers, &inputE] {
+        /*
+        bool reuseLastTrackers = true;
+        if (reuseLastTrackers) {
+            LOG(INFO) << "SPAWNING TRACKERS FROM LAST OPEN, MAY BE ISSUES";
+
+            // Load Last Set of trackers used
+
+            // Spawn
+        }
+        */
         TrackerInitButton->SetLabel("Trackers Initialised");
         if (TrackersToBeInitialised.empty()) {
             spawnDefaultLowerBodyTrackers(inputE, v_trackers);
@@ -627,6 +658,8 @@ void packElementsIntoAdvTrackerBox() {
     setBonesListItems();
     updateDeviceLists();
     setRolesListItems(RolesList);
+
+    advancedTrackerBox->Pack(calibrateOffsetButton);
 
     TrackerListOptionsBox->Pack(refreshDeviceListButton);
     TrackerListOptionsBox->Pack(BonesList);
@@ -854,6 +887,7 @@ private:
     sfg::Button::Ptr ActivateVRSceneTypeButton = sfg::Button::Create("Show K2VR in the VR Bindings Menu!");
 
     //Adv Trackers
+    sfg::Button::Ptr calibrateOffsetButton = sfg::Button::Create("Calibrate VR Offset");
     sfg::Button::Ptr AddHandControllersToList = sfg::Button::Create("Add Hand Controllers");
     sfg::Button::Ptr AddLowerTrackersToList = sfg::Button::Create("Add Lower Body Trackers");
 
@@ -909,6 +943,7 @@ private:
         SetAllJointsRotFiltered->Show(show);
         SetJointsToAnkleRotationButton->Show(show);
         SetJointsToFootRotationButton->Show(show);
+        calibrateOffsetButton->Show(show);
 
         //calibrationBox->Show(show);
     }

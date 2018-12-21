@@ -181,9 +181,9 @@ void attemptIEmulatorConnection(vrinputemulator::VRInputEmulator & inputEmulator
         LOG(ERROR) << "Attempted connection to Input Emulator" << std::to_string(e.errorcode) + " " + e.what() + "\n\n Is SteamVR open and InputEmulator installed?";
     }
 }
-void updateTrackerInitGuiSignals(vrinputemulator::VRInputEmulator &inputEmulator, GUIHandler &guiRef, std::vector<KVR::KinectTrackedDevice> & v_trackers) {
+void updateTrackerInitGuiSignals(vrinputemulator::VRInputEmulator &inputEmulator, GUIHandler &guiRef, std::vector<KVR::KinectTrackedDevice> & v_trackers, vr::IVRSystem * & m_VRsystem) {
     if (inputEmulator.isConnected()) {
-        guiRef.setTrackerButtonSignals(inputEmulator, v_trackers);
+        guiRef.setTrackerButtonSignals(inputEmulator, v_trackers, m_VRsystem);
         guiRef.updateEmuStatusLabelSuccess();
     }
     else {
@@ -260,7 +260,6 @@ void processLoop(KinectHandlerBase& kinect) {
     std::vector<KVR::KinectTrackedDevice> v_trackers{};
     vrinputemulator::VRInputEmulator inputEmulator;
     attemptIEmulatorConnection(inputEmulator, guiRef);
-    updateTrackerInitGuiSignals(inputEmulator, guiRef, v_trackers);
 
     // Function pointer for the currently selected calibration method, which can be swapped out for the others
     // Only one calibration method can be active at a time
@@ -295,6 +294,7 @@ void processLoop(KinectHandlerBase& kinect) {
         LOG(INFO) << "SteamVR Tracking Origin for Input Emulator: " << KinectSettings::trackingOriginPosition.v[0] << ", " << KinectSettings::trackingOriginPosition.v[1] << ", " << KinectSettings::trackingOriginPosition.v[2];
 
         guiRef.setVRSceneChangeButtonSignal(m_VRSystem);
+        updateTrackerInitGuiSignals(inputEmulator, guiRef, v_trackers, m_VRSystem);
         setTrackerRolesInVRSettings();
         VRInput::initialiseVRInput();
     
