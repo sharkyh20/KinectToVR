@@ -34,6 +34,23 @@ namespace vrmath {
         q.z /= magnitude;
         return q;
     }
+    float norm_squared(const vr::HmdQuaternion_t x) {
+        return  x.w * x.w + x.x * x.x + x.y * x.y + x.z * x.z;
+    }
+    vr::HmdQuaternion_t divide(const vr::HmdQuaternion_t& x, float k) {
+        vr::HmdQuaternion_t q;
+        q.w = x.w / k;
+        q.x = x.x / k;
+        q.y = x.y / k;
+        q.z = x.z / k;
+        return q;
+    }
+    vr::HmdQuaternion_t  inverse(const vr::HmdQuaternion_t  x) {   // Might need to take in reference
+        auto sq = norm_squared(x);
+        if (sq == 0.0f)
+            return { 1,0,0,0 };
+        return vrmath::quaternionConjugate(x) / sq;
+    }
         
     vr::HmdVector3d_t cross(vr::HmdVector3d_t v1, vr::HmdVector3d_t v2) {
         float x = (v1.v[1] * v2.v[2]) - (v1.v[2]*v2.v[1]);
