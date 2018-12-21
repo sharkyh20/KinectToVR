@@ -155,14 +155,14 @@ vr::HmdVector3d_t updateHMDPosAndRot(vr::IVRSystem* &m_system) {
             position = GetVRPositionFromMatrix(hmdPose.mDeviceToAbsoluteTracking);
             vr::HmdQuaternion_t quaternion = GetVRRotationFromMatrix(hmdPose.mDeviceToAbsoluteTracking);
             KinectSettings::hmdPosition = position;
-            /*
+            
             // DEBUG -------------------------------------------------------------------
 
 
             LOG(INFO) << "HMD: " << position.v[0] << ", " << position.v[1] << ", " << position.v[2];
 
             auto vrRelativePSMovePos = GetVRPositionFromMatrix(devicePose[5].mDeviceToAbsoluteTracking);
-            LOG(INFO) << "PSMOVE: VR : " << vrRelativePSMovePos.v[0] << ", " << vrRelativePSMovePos.v[1] << ", " << vrRelativePSMovePos.v[2];
+            LOG(INFO) << "SPAWNED: VR : " << vrRelativePSMovePos.v[0] << ", " << vrRelativePSMovePos.v[1] << ", " << vrRelativePSMovePos.v[2];
 
             auto originMatrix = m_system->GetRawZeroPoseToStandingAbsoluteTrackingPose();
             auto vrRelativeOriginPos = GetVRPositionFromMatrix(originMatrix);
@@ -170,7 +170,7 @@ vr::HmdVector3d_t updateHMDPosAndRot(vr::IVRSystem* &m_system) {
             LOG(INFO) << "ORIGIN: VR : " << vrRelativeOriginPos.v[0] << ", " << vrRelativeOriginPos.v[1] << ", " << vrRelativeOriginPos.v[2];
 
             // -------------------------------------------------------------------------
-            */
+            
             KinectSettings::hmdRotation = quaternion;
         }
     }

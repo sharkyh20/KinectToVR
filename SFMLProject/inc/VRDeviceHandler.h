@@ -153,6 +153,9 @@ public:
                 data.pose.vecPosition[0] = position.v[0];
                 data.pose.vecPosition[1] = position.v[1];
                 data.pose.vecPosition[2] = position.v[2];
+                data.pose.vecPosition[0] = 0; // DEBUG
+                data.pose.vecPosition[1] = 0; // DEBUG
+                data.pose.vecPosition[2] = 0; // DEBUG
                 data.pose.qRotation = rotation;
 
                 TrackingPoolManager::updatePoolWithDevice(data, vrDeviceToPoolIds[i].globalID);
