@@ -673,7 +673,9 @@ private:
             }
             auto & controller = wrapper.controller->ControllerState.PSMoveState;
             bool bStartRealignHMDTriggered =
-                (controller.StartButton == PSMButtonState_PRESSED && controller.SelectButton == PSMButtonState_PRESSED);
+                (controller.StartButton == PSMButtonState_PRESSED
+                    || controller.StartButton == PSMButtonState_DOWN) && (controller.SelectButton == PSMButtonState_PRESSED
+                        || controller.SelectButton == PSMButtonState_DOWN);
             if (bStartRealignHMDTriggered) {
                 PSMVector3f controllerBallPointedUpEuler = { (float)M_PI_2, 0.0f, 0.0f };
 
@@ -934,7 +936,7 @@ private:
     //Vars
     bool m_bDisableHMDAlignmentGesture = false;
     float m_fControllerMetersInFrontOfHmdAtCalibration = 0.06f;
-    bool m_bUseControllerOrientationInHMDAlignment = true; // HMD *may* influence the magnetic field and disrupt readings
+    bool m_bUseControllerOrientationInHMDAlignment = false; // HMD *may* influence the magnetic field and disrupt readings
     PSMPosef m_worldFromDriverPose = { {0,0,0}, {1,0,0,0} };
     bool m_hasCalibratedWorldFromDriverPose = false;
     //Constants
