@@ -209,8 +209,8 @@ vr::HmdVector3d_t updateHMDPosAndRot(vr::IVRSystem* &m_system) {
     const int HMD_INDEX = 0;
 
     vr::TrackedDevicePose_t hmdPose;
-    vr::TrackedDevicePose_t devicePose[1];
-    m_system->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, 0, devicePose, 1);
+    vr::TrackedDevicePose_t devicePose[vr::k_unMaxTrackedDeviceCount];
+    m_system->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, 0, devicePose, vr::k_unMaxTrackedDeviceCount);
     if (devicePose[HMD_INDEX].bPoseIsValid) {
         if (vr::VRSystem()->GetTrackedDeviceClass(HMD_INDEX) == vr::TrackedDeviceClass_HMD) {
             hmdPose = devicePose[HMD_INDEX];
@@ -224,7 +224,7 @@ vr::HmdVector3d_t updateHMDPosAndRot(vr::IVRSystem* &m_system) {
 
             LOG(INFO) << "HMD: " << position.v[0] << ", " << position.v[1] << ", " << position.v[2];
 
-            auto vrRelativePSMovePos = GetVRPositionFromMatrix(devicePose[5].mDeviceToAbsoluteTracking);
+            auto vrRelativePSMovePos = GetVRPositionFromMatrix(devicePose[6].mDeviceToAbsoluteTracking);
             LOG(INFO) << "SPAWNED: VR : " << vrRelativePSMovePos.v[0] << ", " << vrRelativePSMovePos.v[1] << ", " << vrRelativePSMovePos.v[2];
 
             auto originMatrix = m_system->GetRawZeroPoseToStandingAbsoluteTrackingPose();
