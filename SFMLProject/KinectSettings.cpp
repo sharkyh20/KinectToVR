@@ -64,7 +64,7 @@ namespace KinectSettings {
     vr::HmdMatrix34_t hmdAbsoluteTracking = {};
     extern vr::HmdMatrix34_t trackingOrigin = {};
     extern vr::HmdVector3d_t trackingOriginPosition = { 0,0,0 };
-    vr::HmdVector3d_t secondaryTrackingOriginOffset = { 0.217914, 0, 1.42683}; // Hardcoded for renchamp
+    vr::HmdVector3d_t secondaryTrackingOriginOffset = { 0 };
     vr::HmdQuaternion_t kinectRepRotation{0,0,0,0};  //TEMP
     vr::HmdVector3d_t kinectRadRotation{0,0,0};
     vr::HmdVector3d_t kinectRepPosition{0,0,0};

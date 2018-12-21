@@ -133,12 +133,12 @@ namespace KVR {
                 nextUpdatePose.vecWorldFromDriverTranslation[1] -= KinectSettings::trackingOriginPosition.v[1];
                 nextUpdatePose.vecWorldFromDriverTranslation[2] -= KinectSettings::trackingOriginPosition.v[2];
 
-                nextUpdatePose.vecWorldFromDriverTranslation[0] -= KinectSettings::secondaryTrackingOriginOffset.v[0];
-                nextUpdatePose.vecWorldFromDriverTranslation[1] -= KinectSettings::secondaryTrackingOriginOffset.v[1];
-                nextUpdatePose.vecWorldFromDriverTranslation[2] -= KinectSettings::secondaryTrackingOriginOffset.v[2];
+                nextUpdatePose.vecPosition[0] -= KinectSettings::secondaryTrackingOriginOffset.v[0];
+                nextUpdatePose.vecPosition[1] -= KinectSettings::secondaryTrackingOriginOffset.v[1];
+                nextUpdatePose.vecPosition[2] -= KinectSettings::secondaryTrackingOriginOffset.v[2];
 
-                nextUpdatePose.vecPosition[0] -= 0.98954;
-                nextUpdatePose.vecPosition[2] -= 0.207021;
+                //nextUpdatePose.vecPosition[0] -= 0.98954;
+                //nextUpdatePose.vecPosition[2] -= 0.207021;
 
 
                 nextUpdatePose.qWorldFromDriverRotation = vrmath::inverse(GetVRRotationFromMatrix(KinectSettings::trackingOrigin)); // CLEAN UP INTO SETTINGS
