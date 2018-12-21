@@ -219,6 +219,7 @@ vr::HmdVector3d_t updateHMDPosAndRot(vr::IVRSystem* &m_system) {
             vr::HmdQuaternion_t quaternion = GetVRRotationFromMatrix(hmdPose.mDeviceToAbsoluteTracking);
             KinectSettings::hmdPosition = position;
             
+            /*
             // DEBUG -------------------------------------------------------------------
             // FIND THE SECONDARY ORIGIN
             // Has to have vecPosition at 
@@ -239,7 +240,7 @@ vr::HmdVector3d_t updateHMDPosAndRot(vr::IVRSystem* &m_system) {
 
 
             // -------------------------------------------------------------------------
-            
+            */
             KinectSettings::hmdRotation = quaternion;
         }
     }

@@ -101,6 +101,7 @@ namespace KinectSettings {
                 archive(pos);
                 archive(hipHeight);
                 archive(globalFontSize);
+                archive(secondaryTrackingOriginOffset);
             }
             catch(cereal::RapidJSONException e){
                 LOG(ERROR) << "CONFIG FILE LOAD JSON ERROR: " << e.what();
@@ -133,7 +134,8 @@ namespace KinectSettings {
                     CEREAL_NVP(kRotation),
                     CEREAL_NVP(kPosition),
                     CEREAL_NVP(hipRoleHeightAdjust),
-                    CEREAL_NVP(globalFontSize)
+                    CEREAL_NVP(globalFontSize),
+                    CEREAL_NVP(secondaryTrackingOriginOffset)
                 );
             }
             catch (cereal::RapidJSONException e) {
