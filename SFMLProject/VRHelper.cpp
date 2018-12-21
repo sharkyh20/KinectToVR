@@ -229,8 +229,9 @@ vr::HmdVector3d_t updateHMDPosAndRot(vr::IVRSystem* &m_system) {
 
             auto originMatrix = m_system->GetRawZeroPoseToStandingAbsoluteTrackingPose();
             auto vrRelativeOriginPos = GetVRPositionFromMatrix(originMatrix);
-
+            auto vrRelativeOriginRot = GetVRRotationFromMatrix(KinectSettings::trackingOrigin);
             LOG(INFO) << "ORIGIN: VR : " << vrRelativeOriginPos.v[0] << ", " << vrRelativeOriginPos.v[1] << ", " << vrRelativeOriginPos.v[2];
+            LOG(INFO) << "ORIGIN ROT: VR : " << vrRelativeOriginRot.w << ", " << vrRelativeOriginRot.x << ", " << vrRelativeOriginRot.y << ", " << vrRelativeOriginRot.z;
 
             // -------------------------------------------------------------------------
             
