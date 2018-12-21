@@ -719,6 +719,29 @@ private:
         data.customModelName = "{k2vr}psmove_controller";
         return data;
     }
+    std::string batteryValueString(PSMBatteryState battery) {
+        switch (battery) {
+        case PSMBattery_0:
+            return "~0%";
+        case PSMBattery_20:
+            return "~20%";
+        case PSMBattery_40:
+            return "~40%";
+        case PSMBattery_60:
+            return "~60%";
+        case PSMBattery_80:
+            return "~80%";
+        case PSMBattery_100:
+            return "~100%";
+        case PSMBattery_Charging:
+            return "Charging...";
+        case PSMBattery_Charged:
+            return "Charged!";
+        default:
+            LOG(ERROR) << "INVALID BATTERY VALUE!!!";
+            return "INVALID";
+        }
+    }
     void rebuildPSMovesForPool() {
         for (int i = 0; i < v_controllers.size(); ++i) {
             TrackingPoolManager::clearDeviceInPool(v_controllers[i].id.globalID);
@@ -727,8 +750,9 @@ private:
         v_controllers.clear(); // All old controllers must be gone
         for (int i = 0; i < controllerList.count; ++i) {
             auto controller = PSM_GetController(controllerList.controller_id[i]);
-            // Check that it's actually a Psmove, as there could be dualshock's connected
-            if (controller->ControllerType == PSMController_Move) {
+            // Check that it's actually a Psmove/Virtual, as there could be dualshock's connected
+            if (controller->ControllerType == PSMController_Move ||
+                controller->ControllerType == PSMController_Virtual) {
                 TrackerWrapper_PSM wrapper;
                 wrapper.controller = controller;
                 v_controllers.push_back(wrapper);
@@ -743,6 +767,12 @@ private:
             uint32_t gID = k_invalidTrackerID;
             TrackingPoolManager::addDeviceToPool(data, gID);
             v_controllers[i].id.globalID = gID;
+
+            if (v_controllers[i].controller->ControllerType == PSMController_Move) {
+                auto value = v_controllers[i].controller->ControllerState.PSMoveState.BatteryValue;
+
+                LOG(INFO) << "Controller " << i << " has battery level: " << batteryValueString(value);
+            }
         }
     }
     void rebuildPSMoveLists() {
@@ -780,11 +810,12 @@ private:
                 for (int i = 0; i < controllerList.count; ++i) {
                     if (PSM_StartControllerDataStream(controllerList.controller_id[i], data_stream_flags, PSM_DEFAULT_TIMEOUT) != PSMResult_Success) {
                         m_keepRunning = false;
-                        printf("Controller stream %i failed to start!", i);
+                        LOG (ERROR) << "Controller stream " << i << " failed to start!";
                     }
                 }
                 // Rebuild K2VR Controller List for Trackers
                 rebuildPSMovesForPool(); // Here, because of timing issue, where controllers will report as 'None' occasionally when uninitialised properly
+                
             }
             else {
                 LOG(INFO) << "PSMoveConsoleClient::startup() - No controllers found.";

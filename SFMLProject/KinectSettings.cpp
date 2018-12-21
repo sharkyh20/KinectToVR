@@ -216,9 +216,8 @@ namespace KVR {
             calibration.systemName = systemName;
             calibration.driverFromWorldRotation = driverFromWorldRotation;
             calibration.driverFromWorldPosition = driverFromWorldPosition;
-            
-            return calibration;
         }
+        return calibration;
     }
     void saveSystemCalibration(std::string systemName, TrackingSystemCalibration calibration) {
         std::wstring trackingSystemConfig = ToUTF16(systemName) + L".tracking";
