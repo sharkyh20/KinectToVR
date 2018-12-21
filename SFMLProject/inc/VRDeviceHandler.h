@@ -326,17 +326,17 @@ private:
         switch (hipSettings.hipMode) {
         case VirtualHipMode::Standing: {
             calculateStandingPosition(hipPosition);
-            LOG(INFO) << "Standing";
+            //LOG(INFO) << "Standing";
             break;
         }
         case VirtualHipMode::Sitting: {
             calculateSittingPosition(hipPosition);
-            LOG(INFO) << "Sitting";
+            //LOG(INFO) << "Sitting";
             break;
         }
         case VirtualHipMode::Lying: {
             calculateLyingPosition(hipPosition);
-            LOG(INFO) << "Lying";
+            //LOG(INFO) << "Lying";
             break;
         }
         default: {
@@ -382,6 +382,7 @@ private:
         case VirtualHipMode::Lying: {
             // Follows HMD roll now, and yaw is based on lookat from HMD to feet
             vr::HmdQuaternion_t rollRotation = vrmath::quaternionFromRotationZ(roll);
+            vr::HmdQuaternion_t pitchRotation = vrmath::quaternionFromRotationAxis(M_PI_2, 0, 0, 1);
             vr::HmdQuaternion_t yawRotation = { 1,0,0,0 };
 
             if (hipSettings.positionAccountsForFootTrackers &&
@@ -397,7 +398,7 @@ private:
             }
 
 
-            rotation = rollRotation * yawRotation;
+            rotation = rollRotation * pitchRotation * yawRotation;
             break;
         }
         default: {
