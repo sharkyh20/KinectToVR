@@ -12,69 +12,6 @@
 
 #include <vrinputemulator.h>
 
-namespace vrmath {
-    double length_sq(vr::HmdVector3d_t v) {
-        return 
-            v.v[0] * v.v[0] +
-            v.v[1] * v.v[1] +
-            v.v[2] * v.v[2];
-    }
-    double length(vr::HmdVector3d_t v) {
-        return sqrt(length_sq(v));
-    }
-    double length(vr::HmdQuaternion_t q) {
-        return sqrt(q.w * q.w + q.x * q.x + q.y * q.y + q.z * q.z);
-    }
-    vr::HmdQuaternion_t normalized(vr::HmdQuaternion_t a) {
-        vr::HmdQuaternion_t q = a;
-        float magnitude = pow(length(q), 2);
-        q.w /= magnitude;
-        q.x /= magnitude;
-        q.y /= magnitude;
-        q.z /= magnitude;
-        return q;
-    }
-    float norm_squared(const vr::HmdQuaternion_t x) {
-        return  x.w * x.w + x.x * x.x + x.y * x.y + x.z * x.z;
-    }
-    vr::HmdQuaternion_t divide(const vr::HmdQuaternion_t& x, float k) {
-        vr::HmdQuaternion_t q;
-        q.w = x.w / k;
-        q.x = x.x / k;
-        q.y = x.y / k;
-        q.z = x.z / k;
-        return q;
-    }
-    vr::HmdQuaternion_t  inverse(const vr::HmdQuaternion_t  x) {   // Might need to take in reference
-        auto sq = norm_squared(x);
-        if (sq == 0.0f)
-            return { 1,0,0,0 };
-        return vrmath::quaternionConjugate(x) / sq;
-    }
-        
-    vr::HmdVector3d_t cross(vr::HmdVector3d_t v1, vr::HmdVector3d_t v2) {
-        float x = (v1.v[1] * v2.v[2]) - (v1.v[2]*v2.v[1]);
-        float y = -((v1.v[0]*v2.v[2]) - (v1.v[2]*v2.v[0]));
-        float z = (v1.v[0]*v2.v[1]) - (v1.v[1]*v2.v[0]);
-        return { x,y,z };
-    }
-    double dot(vr::HmdVector3d_t v1, vr::HmdVector3d_t v2) {
-        return v1.v[0] * v2.v[0] + v1.v[1] * v2.v[1] + v1.v[2] * v2.v[2];
-    }
-    vr::HmdQuaternion_t get_rotation_between(vr::HmdVector3d_t u, vr::HmdVector3d_t v) {
-        double k_cos_theta = dot(u, v);
-        float k = sqrt(length_sq(u) * length_sq(v));
-
-        if (k_cos_theta / k == -1)
-        {
-            // 180 degree rotation around any orthogonal vector
-            return vr::HmdQuaternion_t{ 1, 0, 0, 0 };
-        }
-        auto vec = cross(u, v);
-        return normalized(vr::HmdQuaternion_t{ k_cos_theta + k, vec.v[0], vec.v[1], vec.v[2] });
-    }
-    
-}
 
 enum class VirtualHipMode {
         Standing,

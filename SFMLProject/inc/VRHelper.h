@@ -1,9 +1,24 @@
 #pragma once
 #include "stdafx.h"
 #include "openvr.h"
+#include <openvr_math.h>
 #include <SFML/System/Vector3.hpp>
 #include <vrinputemulator.h>
 
+namespace vrmath {
+    double length_sq(vr::HmdVector3d_t v);
+    double length(vr::HmdVector3d_t v);
+    double length(vr::HmdQuaternion_t q);
+    vr::HmdQuaternion_t normalized(vr::HmdQuaternion_t a);
+    float norm_squared(const vr::HmdQuaternion_t x);
+    vr::HmdQuaternion_t divide(const vr::HmdQuaternion_t& x, float k);
+    vr::HmdQuaternion_t  inverse(const vr::HmdQuaternion_t  x);
+
+    vr::HmdVector3d_t cross(vr::HmdVector3d_t v1, vr::HmdVector3d_t v2);
+    double dot(vr::HmdVector3d_t v1, vr::HmdVector3d_t v2);
+    vr::HmdQuaternion_t get_rotation_between(vr::HmdVector3d_t u, vr::HmdVector3d_t v);
+
+}
 
 void setTrackerRolesInVRSettings();
 void removeTrackerRolesInVRSettings();
