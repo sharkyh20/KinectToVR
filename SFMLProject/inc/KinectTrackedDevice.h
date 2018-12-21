@@ -125,12 +125,12 @@ namespace KVR {
                 
                 // World from driver should be set here - as it is used solely for translating to IE right now, and any devices should have their vecPosition be their properVR position
                 // It should not be taken into account for any calculations - as it is SOLELY TO SEND INTO IE
-                /*
+                
                 nextUpdatePose.vecWorldFromDriverTranslation[0] -= KinectSettings::trackingOriginPosition.v[0];
                 nextUpdatePose.vecWorldFromDriverTranslation[1] -= KinectSettings::trackingOriginPosition.v[1];
                 nextUpdatePose.vecWorldFromDriverTranslation[2] -= KinectSettings::trackingOriginPosition.v[2];
                 update(nextUpdatePose);
-                */
+                
                 nextUpdatePoseIsSet = false;
                 return;
             }
