@@ -51,7 +51,7 @@ public:
     }
     void identify(int globalId, bool on) {
         int controllerId = 0;
-        for (TrackerWrapper_PSM & t : v_controllers) {
+        for (MoveWrapper_PSM & t : v_controllers) {
             if (t.id.globalID == globalId)
                 controllerId = t.id.internalID;
         }
@@ -449,7 +449,79 @@ public:
         }
         return qRotation;
     }
-    
+    vr::DriverPose_t getPSEyeDriverPose(int psEyeId) {
+        // Taken from driver_psmoveservice.cpp line 3313, credit to HipsterSloth
+        const auto &view = v_eyeTrackers[psEyeId].trackerInfo;
+
+
+        vr::DriverPose_t m_Pose = defaultReadyDriverPose();
+
+        m_Pose.result = vr::TrackingResult_Running_OK;
+
+        m_Pose.deviceIsConnected = true;
+
+        // These should always be false from any modern driver.  These are for Oculus DK1-like
+        // rotation-only tracking.  Support for that has likely rotted in vrserver.
+        m_Pose.willDriftInYaw = false;
+        m_Pose.shouldApplyHeadModel = false;
+
+        // No prediction since that's already handled in the psmove service
+        m_Pose.poseTimeOffset = 0.f;
+
+        // Use HMD calibrated space if available, otherwise it's the default vector/quaternion
+        m_Pose.qDriverFromHeadRotation.w = 1.f;
+        m_Pose.qDriverFromHeadRotation.x = 0.0f;
+        m_Pose.qDriverFromHeadRotation.y = 0.0f;
+        m_Pose.qDriverFromHeadRotation.z = 0.0f;
+
+        m_Pose.vecDriverFromHeadTranslation[0] = 0.f;
+        m_Pose.vecDriverFromHeadTranslation[1] = 0.f;
+        m_Pose.vecDriverFromHeadTranslation[2] = 0.f;
+
+        ///*
+        m_Pose.qWorldFromDriverRotation.w = m_worldFromDriverPose.Orientation.w;
+        m_Pose.qWorldFromDriverRotation.x = m_worldFromDriverPose.Orientation.x;
+        m_Pose.qWorldFromDriverRotation.y = m_worldFromDriverPose.Orientation.y;
+        m_Pose.qWorldFromDriverRotation.z = m_worldFromDriverPose.Orientation.z;
+        m_Pose.vecWorldFromDriverTranslation[0] = m_worldFromDriverPose.Position.x;
+        m_Pose.vecWorldFromDriverTranslation[1] = m_worldFromDriverPose.Position.y;
+        m_Pose.vecWorldFromDriverTranslation[2] = m_worldFromDriverPose.Position.z;
+        //LOG(INFO) << "worldFromDriver: PS : " << m_Pose.vecWorldFromDriverTranslation[0] << ", " << m_Pose.vecWorldFromDriverTranslation[1] << ", " << m_Pose.vecWorldFromDriverTranslation[2];
+
+
+        m_Pose.vecAngularVelocity[0] = 0;
+        m_Pose.vecAngularVelocity[1] = 0;
+        m_Pose.vecAngularVelocity[2] = 0;
+
+        m_Pose.vecVelocity[0] = 0;
+        m_Pose.vecVelocity[1] = 0;
+        m_Pose.vecVelocity[2] = 0;
+
+        // Set position
+
+        {
+            const PSMVector3f &position = view.tracker_pose.Position;
+
+            m_Pose.vecPosition[0] = position.x * k_fScalePSMoveAPIToMeters;
+            m_Pose.vecPosition[1] = position.y * k_fScalePSMoveAPIToMeters;
+            m_Pose.vecPosition[2] = position.z * k_fScalePSMoveAPIToMeters;
+        }
+
+        // Set rotational coordinates
+        bool m_fVirtuallyRotateController = false;
+        {
+            const PSMQuatf &orientation = view.tracker_pose.Orientation;
+
+            m_Pose.qRotation.w = m_fVirtuallyRotateController ? -orientation.w : orientation.w;
+            m_Pose.qRotation.x = orientation.x;
+            m_Pose.qRotation.y = orientation.y;
+            m_Pose.qRotation.z = m_fVirtuallyRotateController ? -orientation.z : orientation.z;
+        }
+
+        m_Pose.poseIsValid = true;
+
+        return m_Pose;
+    }
     vr::DriverPose_t getPSMoveDriverPose(int controllerId) {
         // Taken from driver_psmoveservice.cpp line 3313, credit to HipsterSloth
         const PSMPSMove &view = v_controllers[controllerId].controller->ControllerState.PSMoveState;
@@ -493,9 +565,9 @@ public:
         {
             const PSMVector3f &position = view.Pose.Position;
 
-            m_Pose.vecPosition[0] = position.x * k_fScalePSMoveAPIToMeters;
-            m_Pose.vecPosition[1] = position.y * k_fScalePSMoveAPIToMeters;
-            m_Pose.vecPosition[2] = position.z * k_fScalePSMoveAPIToMeters;
+            m_Pose.vecPosition[0] = position.x * k_fScalePSMoveAPIToMeters * finalPSMoveScale;
+            m_Pose.vecPosition[1] = position.y * k_fScalePSMoveAPIToMeters* finalPSMoveScale;
+            m_Pose.vecPosition[2] = position.z * k_fScalePSMoveAPIToMeters* finalPSMoveScale;
         }
 
         // virtual extend controllers
@@ -617,7 +689,7 @@ private:
                     }
                 }
                 rebuildPSMovesForPool();
-                
+                rebuildPSEyesForPool();
             }
             else {
                 LOG(INFO) << "PSMoveConsoleClient::startup() - No controllers found.";
@@ -656,12 +728,26 @@ private:
                 
                 TrackingPoolManager::updatePoolWithDevice(data, data.deviceId);
             }
+            for (int i = 0; i < v_eyeTrackers.size(); ++i) {
+                KVR::TrackedDeviceInputData data = defaultDeviceData_PSEYE(i);
+                data.pose = getPSEyeDriverPose(i);
+                // Reuse, instead of recalling for PSMoveState
+                data.position = {
+                    data.pose.vecPosition[0],
+                    data.pose.vecPosition[1],
+                    data.pose.vecPosition[2] }; // Pose stores as array
+
+                //LOG(INFO) << "PSEYE " << i << data.position.v[0] << ", " << data.position.v[1] << ", " << data.position.v[2];
+                data.rotation = data.pose.qRotation;
+
+                TrackingPoolManager::updatePoolWithDevice(data, data.deviceId);
+            }
         }
     }
     void processKeyInputs() {
         if (controllerList.count == 0 || v_controllers.size() == 0) { return; }
         bool inputAvailable = false;
-        for (TrackerWrapper_PSM & wrapper : v_controllers) {
+        for (MoveWrapper_PSM & wrapper : v_controllers) {
             if (wrapper.controller->ControllerType == PSMControllerType::PSMController_Move) {
                 inputAvailable = true;
             }
@@ -676,6 +762,12 @@ private:
                 (controller.StartButton == PSMButtonState_PRESSED
                     || controller.StartButton == PSMButtonState_DOWN) && (controller.SelectButton == PSMButtonState_PRESSED
                         || controller.SelectButton == PSMButtonState_DOWN);
+            bool bStartVRRatioCalibrationTriggered = (
+                controller.CrossButton == PSMButtonState_PRESSED
+                
+                ) &&
+                (controller.CircleButton == PSMButtonState_PRESSED
+                    );
             if (bStartRealignHMDTriggered) {
                 PSMVector3f controllerBallPointedUpEuler = { (float)M_PI_2, 0.0f, 0.0f };
 
@@ -684,6 +776,32 @@ private:
                 PSM_ResetControllerOrientationAsync(wrapper.controller->ControllerID, &controllerBallPointedUpQuat, nullptr);
 
                 alignPSMoveAndHMDTrackingSpace(wrapper.controller);
+            }
+            bool enabledRatioCalibration = false;
+            if (bStartVRRatioCalibrationTriggered && enabledRatioCalibration) {
+                static bool zeroCalibrationAttempted = false;
+                static PSMVector3f zeroPos = {0,0,0};
+                static PSMVector3f endPos = {0,0,0};
+                static const double calibrationDistance = 20; // centimeters, real life distance expected
+
+                if (zeroCalibrationAttempted) {
+                    endPos = controller.Pose.Position;
+                    zeroCalibrationAttempted = false;
+
+                    auto zeroToEndVector = PSM_Vector3fSubtract(&endPos, &zeroPos);
+                    double length = PSM_Vector3fLength(&zeroToEndVector);
+                    finalPSMoveScale = calibrationDistance / length;
+                    LOG(INFO) << "Set PSMove Scale Factor to " << finalPSMoveScale;
+
+                    zeroPos = { 0,0,0 };
+                    endPos = { 0,0,0 };
+                }
+                else {
+                    zeroPos = controller.Pose.Position;
+                    zeroCalibrationAttempted = true;
+                }
+                
+
             }
         }
 
@@ -721,6 +839,14 @@ private:
         data.customModelName = "{k2vr}psmove_controller";
         return data;
     }
+    KVR::TrackedDeviceInputData defaultDeviceData_PSEYE(uint32_t localID) {
+        KVR::TrackedDeviceInputData data;
+        data.parentHandler = dynamic_cast<DeviceHandler*>(this);
+        data.deviceName = "PSEYE " + std::to_string(localID);
+        data.deviceId = v_eyeTrackers[localID].id.globalID;
+        data.customModelName = "{k2vr}ps3eye_tracker";
+        return data;
+    }
     std::string batteryValueString(PSMBatteryState battery) {
         switch (battery) {
         case PSMBattery_0:
@@ -744,6 +870,30 @@ private:
             return "INVALID";
         }
     }
+    void rebuildPSEyesForPool() {
+        for (int i = 0; i < v_eyeTrackers.size(); ++i) {
+            TrackingPoolManager::clearDeviceInPool(v_eyeTrackers[i].id.globalID);
+        } // Clear last controllers in pool
+
+        v_eyeTrackers.clear(); // All old controllers must be gone
+        for (int i = 0; i < trackerList.count; ++i) {
+            auto eye = trackerList.trackers[i];
+            // Check that it's actually a Psmove/Virtual, as there could be dualshock's connected
+            TrackerWrapper_PSM wrapper;
+            wrapper.trackerInfo = eye;
+            v_eyeTrackers.push_back(wrapper);
+        }
+
+        for (int i = 0; i < v_eyeTrackers.size(); ++i) {
+            // Redo the loop over the successfully excised trackers (PS Move's only)
+            // But this time edit the wrapper with the tracking pool id's
+            v_eyeTrackers[i].id.internalID = i;
+            KVR::TrackedDeviceInputData data = defaultDeviceData_PSEYE(i);
+            uint32_t gID = k_invalidTrackerID;
+            TrackingPoolManager::addDeviceToPool(data, gID);
+            v_eyeTrackers[i].id.globalID = gID;
+        }
+    }
     void rebuildPSMovesForPool() {
         for (int i = 0; i < v_controllers.size(); ++i) {
             TrackingPoolManager::clearDeviceInPool(v_controllers[i].id.globalID);
@@ -755,7 +905,7 @@ private:
             // Check that it's actually a Psmove/Virtual, as there could be dualshock's connected
             if (controller->ControllerType == PSMController_Move ||
                 controller->ControllerType == PSMController_Virtual) {
-                TrackerWrapper_PSM wrapper;
+                MoveWrapper_PSM wrapper;
                 wrapper.controller = controller;
                 v_controllers.push_back(wrapper);
             }
@@ -829,6 +979,7 @@ private:
         if (m_keepRunning && PSM_HasTrackerListChanged())
         {
             rebuildTrackerList();
+            rebuildPSEyesForPool();
         }
 
         // See if we need to rebuild the hmd list
@@ -922,11 +1073,18 @@ private:
 
     std::chrono::milliseconds last_report_fps_timestamp;
 
-    struct TrackerWrapper_PSM {
+    struct MoveWrapper_PSM {
         PSMController* controller = nullptr;
         TrackerIDs id;
     };
-    std::vector<TrackerWrapper_PSM> v_controllers;
+    std::vector<MoveWrapper_PSM> v_controllers;
+
+    struct TrackerWrapper_PSM {
+        PSMClientTrackerInfo trackerInfo;
+        TrackerIDs id;
+    };
+    std::vector<TrackerWrapper_PSM> v_eyeTrackers;
+
     PSMControllerList controllerList;
     PSMTrackerList trackerList;
     PSMHmdList hmdList;
@@ -941,5 +1099,6 @@ private:
     bool m_hasCalibratedWorldFromDriverPose = false;
     //Constants
     const float k_fScalePSMoveAPIToMeters = 0.01f;
+    double finalPSMoveScale = 1.0;
     const std::string k_trackingSystemName = "psmove";
 };
