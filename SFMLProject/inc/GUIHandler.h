@@ -21,6 +21,63 @@
 #include <SFGUI/Widgets.hpp>
 #include <string>
 
+    void saveLastSpawnedTrackers(const std::vector<KinectTrackedDevice>& v_trackers)
+    {
+        std::wstring trackerConfig = L"lastTrackers.cfg";
+        std::ofstream os(KVR::fileToDirPath(trackerConfig));
+        if (os.fail()) {
+            //FAIL!!!
+            LOG(ERROR) << "ERROR: COULD NOT WRITE TO TRACKER CONFIG FILE\n";
+        }
+        else {
+            cereal::JSONOutputArchive archive(os);
+            LOG(INFO) << "Attempted to save last tracker settings to file";
+            try {
+                archive(
+                    CEREAL_NVP(v_trackers)
+                );
+            }
+            catch (cereal::RapidJSONException e) {
+                LOG(ERROR) << "CONFIG FILE SAVE JSON ERROR: " << e.what();
+            }
+
+        }
+    }
+    std::vector<KinectTrackedDevice> retrieveLastSpawnedTrackers(vrinputemulator::VRInputEmulator* & inputEmulator)
+    {
+        std::wstring trackerConfig = L"lastTrackers.cfg";
+        std::ifstream is(KVR::fileToDirPath(trackerConfig));
+
+        LOG(INFO) << "Attempted to load last set of spawned trackers at " << KVR::fileToDirPath(trackerConfig);
+
+        std::vector<KinectTrackedDevice> v_trackers{};
+        //CHECK IF VALID
+        if (is.fail()) {
+            //FAIL!!!!
+            LOG(ERROR) << "ERROR: COULD NOT OPEN " << trackerConfig << " FILE, GENERATING NEW ONE...";
+            saveLastSpawnedTrackers(v_trackers);
+        }
+        else {
+            LOG(INFO) << trackerConfig << " load attempted!";
+            try {
+                cereal::JSONInputArchive archive(is);
+                archive(CEREAL_NVP(v_trackers));
+                for (KVR::KinectTrackedDevice d : v_trackers) {
+                    d.inputEmulatorRef = inputEmulator;
+                }
+            }
+            catch (cereal::Exception e) {
+                LOG(ERROR) << trackerConfig << "TRACKER FILE LOAD JSON ERROR: " << e.what();
+            }
+        }
+
+
+        return std::vector<KinectTrackedDevice>();
+    }
+
+    
+}
+
 class GUIHandler {
 private:
 struct TempTracker {
@@ -459,7 +516,7 @@ void setTrackerButtonSignals(vrinputemulator::VRInputEmulator &inputE, std::vect
             TrackingPoolManager::rightFootDeviceRotGID = k_invalidTrackerID;
 
             for (TempTracker tracker : TrackersToBeInitialised) {
-                spawnAndConnectTracker(inputE, v_trackers, tracker);
+                spawnAndConnectTracker(&inputE, v_trackers, tracker);
 
                 if (tracker.role == KVR::KinectDeviceRole::LeftFoot) {
                     TrackingPoolManager::leftFootDevicePosGID = tracker.positionGlobalDeviceId;
