@@ -667,16 +667,30 @@ void packElementsIntoAdvTrackerBox() {
 
     advancedTrackerBox->Pack(calibrateOffsetButton);
 
-    TrackerListOptionsBox->Pack(refreshDeviceListButton);
-    TrackerListOptionsBox->Pack(BonesList);
-    TrackerListOptionsBox->Pack(PositionDeviceList);
-    TrackerListOptionsBox->Pack(identifyPosDeviceButton);
-    TrackerListOptionsBox->Pack(RotationDeviceList);
-    TrackerListOptionsBox->Pack(identifyRotDeviceButton);
-    TrackerListOptionsBox->Pack(RolesList);
-    TrackerListOptionsBox->Pack(IsControllerButton);
-    TrackerListOptionsBox->Pack(AddTrackerToListButton);
-    TrackerListOptionsBox->Pack(RemoveTrackerFromListButton);
+    auto positionBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
+    auto rotationBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
+    auto selectionBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
+    auto connectBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
+    
+    //TrackerListOptionsBox->Pack(BonesList);
+
+    positionBox->Pack(PositionDeviceList);
+    positionBox->Pack(identifyPosDeviceButton);
+
+    rotationBox->Pack(RotationDeviceList);
+    rotationBox->Pack(identifyRotDeviceButton);
+
+    selectionBox->Pack(refreshDeviceListButton);
+    selectionBox->Pack(positionBox);
+    selectionBox->Pack(rotationBox);
+
+    connectBox->Pack(RolesList);
+    connectBox->Pack(IsControllerButton);
+    connectBox->Pack(AddTrackerToListButton);
+    connectBox->Pack(RemoveTrackerFromListButton);
+
+    TrackerListOptionsBox->Pack(selectionBox);
+    TrackerListOptionsBox->Pack(connectBox);
 
 
     advancedTrackerBox->Pack(TrackerListOptionsBox);
@@ -900,7 +914,7 @@ private:
     sfg::Box::Ptr TrackerList = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5);
     sfg::Label::Ptr TrackerListLabel = sfg::Label::Create("Trackers to be spawned:");
 
-    sfg::Box::Ptr TrackerListOptionsBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5);
+    sfg::Box::Ptr TrackerListOptionsBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5);
     sfg::SpinButton::Ptr HipScale = sfg::SpinButton::Create(sfg::Adjustment::Create(KinectSettings::hipRoleHeightAdjust, -1.f, 1.f, .01f));
     sfg::Box::Ptr HipScaleBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
 
