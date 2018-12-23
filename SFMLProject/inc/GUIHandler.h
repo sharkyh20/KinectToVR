@@ -21,79 +21,59 @@
 #include <SFGUI/Widgets.hpp>
 #include <string>
 
-    void saveLastSpawnedTrackers(const std::vector<KinectTrackedDevice>& v_trackers)
+#include <cereal/archives/json.hpp>
+#include <cereal/cereal.hpp>
+#include <cereal/types/vector.hpp>
+#include <cereal/types/common.hpp>
+#include <cereal/types/memory.hpp>
+#include <cereal/access.hpp>
+struct TempTrackerData {
+    TempTrackerData() {}
+    uint32_t positionGlobalDeviceId = 0;
+    uint32_t rotationGlobalDeviceId = 0;
+    KVR::KinectDeviceRole role = KVR::KinectDeviceRole::Unassigned;
+    bool isController = false;
+
+
+    friend class cereal::access;
+
+    template<class Archive>
+    void serialize(Archive & archive)
     {
-        std::wstring trackerConfig = L"lastTrackers.cfg";
-        std::ofstream os(KVR::fileToDirPath(trackerConfig));
-        if (os.fail()) {
-            //FAIL!!!
-            LOG(ERROR) << "ERROR: COULD NOT WRITE TO TRACKER CONFIG FILE\n";
-        }
-        else {
-            cereal::JSONOutputArchive archive(os);
-            LOG(INFO) << "Attempted to save last tracker settings to file";
-            try {
-                archive(
-                    CEREAL_NVP(v_trackers)
-                );
-            }
-            catch (cereal::RapidJSONException e) {
-                LOG(ERROR) << "CONFIG FILE SAVE JSON ERROR: " << e.what();
-            }
-
-        }
+        archive(
+            CEREAL_NVP(positionGlobalDeviceId),
+            CEREAL_NVP(rotationGlobalDeviceId),
+            CEREAL_NVP(role),
+            CEREAL_NVP(isController)
+        );
     }
-    std::vector<KinectTrackedDevice> retrieveLastSpawnedTrackers(vrinputemulator::VRInputEmulator* & inputEmulator)
+};
+struct TempTracker {
+    sfg::RadioButton::Ptr radioButton = sfg::RadioButton::Create("");
+    int GUID = 404;
+
+    KVR::JointPositionTrackingOption positionTrackingOption = KVR::JointPositionTrackingOption::Skeleton;
+
+
+    KVR::JointRotationTrackingOption rotationTrackingOption = KVR::JointRotationTrackingOption::Skeleton;
+
+    TempTrackerData data;
+};
+struct serialTest {
+    int butt;
+    template<class Archive>
+    void serialize(Archive & archive,
+        serialTest & t)
     {
-        std::wstring trackerConfig = L"lastTrackers.cfg";
-        std::ifstream is(KVR::fileToDirPath(trackerConfig));
-
-        LOG(INFO) << "Attempted to load last set of spawned trackers at " << KVR::fileToDirPath(trackerConfig);
-
-        std::vector<KinectTrackedDevice> v_trackers{};
-        //CHECK IF VALID
-        if (is.fail()) {
-            //FAIL!!!!
-            LOG(ERROR) << "ERROR: COULD NOT OPEN " << trackerConfig << " FILE, GENERATING NEW ONE...";
-            saveLastSpawnedTrackers(v_trackers);
-        }
-        else {
-            LOG(INFO) << trackerConfig << " load attempted!";
-            try {
-                cereal::JSONInputArchive archive(is);
-                archive(CEREAL_NVP(v_trackers));
-                for (KVR::KinectTrackedDevice d : v_trackers) {
-                    d.inputEmulatorRef = inputEmulator;
-                }
-            }
-            catch (cereal::Exception e) {
-                LOG(ERROR) << trackerConfig << "TRACKER FILE LOAD JSON ERROR: " << e.what();
-            }
-        }
-
-
-        return std::vector<KinectTrackedDevice>();
+        archive(butt);
     }
-
-    
-}
+};
 
 class GUIHandler {
 private:
-struct TempTracker {
-        sfg::RadioButton::Ptr radioButton;
-        int GUID = 404;
 
-        KVR::JointPositionTrackingOption positionTrackingOption = KVR::JointPositionTrackingOption::Skeleton;
-        uint32_t positionGlobalDeviceId = 0;
-
-        KVR::JointRotationTrackingOption rotationTrackingOption = KVR::JointRotationTrackingOption::Skeleton;
-        uint32_t rotationGlobalDeviceId = 0;
-
-		KVR::KinectDeviceRole role = KVR::KinectDeviceRole::Unassigned;
-        bool isController = false;
-    };
 public:
+    
     GUIHandler() {
         guiWindow->SetTitle("Main Window");
 
@@ -120,6 +100,7 @@ public:
         setScale();
 
         bool b = guiDesktop.LoadThemeFromFile("main_theme.theme");
+        
         guiDesktop.Update(0.f);
     }
     ~GUIHandler() {}
@@ -163,6 +144,63 @@ void toggleRotButton() {
 void togglePosButton() {
     KinectPosButton->SetActive(KinectSettings::adjustingKinectRepresentationPos);
 }
+
+void saveLastSpawnedTrackers(std::vector<TempTracker> v_trackers)
+{
+    std::vector<TempTrackerData> v_trackerData;
+    for (TempTracker & t : v_trackers) {
+        v_trackerData.push_back(t.data);
+    }
+    std::wstring trackerConfig = L"lastTrackers.cfg";
+    std::ofstream os(KVR::fileToDirPath(trackerConfig));
+    if (os.fail()) {
+        //FAIL!!!
+        LOG(ERROR) << "ERROR: COULD NOT WRITE TO TRACKER CONFIG FILE\n";
+    }
+    else {
+        cereal::JSONOutputArchive archive(os);
+        LOG(INFO) << "Attempted to save last tracker settings to file";
+        try {
+            archive(
+                CEREAL_NVP(v_trackerData)
+            );
+        }
+        catch (cereal::RapidJSONException e) {
+            LOG(ERROR) << "CONFIG FILE SAVE JSON ERROR: " << e.what();
+        }
+
+    }
+}
+
+void retrieveLastSpawnedTrackers()
+{
+    std::wstring trackerConfig = L"lastTrackers.cfg";
+    std::ifstream is(KVR::fileToDirPath(trackerConfig));
+
+    LOG(INFO) << "Attempted to load last set of spawned trackers at " << KVR::fileToDirPath(trackerConfig);
+
+    std::vector<TempTrackerData> v_trackerData;
+    //CHECK IF VALID
+    if (is.fail()) {
+        //FAIL!!!!
+        LOG(ERROR) << "ERROR: COULD NOT OPEN " << trackerConfig << " FILE";
+        // Does not need to exist - as the vector is empty anyway
+    }
+    else {
+        LOG(INFO) << trackerConfig << " load attempted!";
+        try {
+            cereal::JSONInputArchive archive(is);
+            archive(v_trackerData);
+        }
+        catch (cereal::Exception e) {
+            LOG(ERROR) << trackerConfig << "TRACKER FILE LOAD JSON ERROR: " << e.what();
+        }
+    }
+    for (TempTrackerData & data : v_trackerData) {
+        addUserTrackerToList(data);
+    }
+}
+
 void setDefaultSignals() {
     //Post VR Tracker Initialisation
     hidePostTrackerInitUI();
@@ -328,32 +366,51 @@ int selectedRotationDeviceIndex() {
 void addUserTrackerToList() {
     TempTracker temp;
     temp.GUID = TrackersToBeInitialised.size();
-    temp.isController = IsControllerButton->IsActive();
+    temp.data.isController = IsControllerButton->IsActive();
 
     int posIndex = selectedPositionDeviceIndex();
     KVR::TrackedDeviceInputData posData = TrackingPoolManager::getDeviceData(posIndex);
 
-    temp.positionGlobalDeviceId = posIndex;
+    temp.data.positionGlobalDeviceId = posIndex;
     temp.positionTrackingOption = posData.positionTrackingOption;
 
     int rotIndex = selectedRotationDeviceIndex();
     KVR::TrackedDeviceInputData rotData = TrackingPoolManager::getDeviceData(rotIndex);
 
-    temp.rotationGlobalDeviceId = rotIndex;
+    temp.data.rotationGlobalDeviceId = rotIndex;
     temp.rotationTrackingOption = rotData.rotationTrackingOption;
 
     //temp.joint0 = KVR::KinectJointType(BonesList->GetSelectedItem());
 	//temp.joint1 = temp.joint0;	//TEMP BEFORE SELECTION IMPLEMENTED
-    temp.role = KVR::KinectDeviceRole(RolesList->GetSelectedItem());
+    temp.data.role = KVR::KinectDeviceRole(RolesList->GetSelectedItem());
+    updateTrackerLists(temp);
+}
+void addUserTrackerToList(TempTrackerData & data) {
+    TempTracker temp;
+    temp.GUID = TrackersToBeInitialised.size();
+    temp.data.isController = data.isController;
+
+    KVR::TrackedDeviceInputData posData = TrackingPoolManager::getDeviceData(data.positionGlobalDeviceId);
+    temp.data.positionGlobalDeviceId = data.positionGlobalDeviceId;
+    temp.positionTrackingOption = posData.positionTrackingOption;
+
+    
+    KVR::TrackedDeviceInputData rotData = TrackingPoolManager::getDeviceData(data.rotationGlobalDeviceId);
+    temp.data.rotationGlobalDeviceId = data.rotationGlobalDeviceId;
+    temp.rotationTrackingOption = rotData.rotationTrackingOption;
+
+    //temp.joint0 = KVR::KinectJointType(BonesList->GetSelectedItem());
+    //temp.joint1 = temp.joint0;	//TEMP BEFORE SELECTION IMPLEMENTED
+    temp.data.role = data.role;
     updateTrackerLists(temp);
 }
 void addTrackerToList(KVR::KinectJointType joint, KVR::KinectDeviceRole role, bool isController) {
 	TempTracker temp;
     temp.GUID = TrackersToBeInitialised.size();
-    temp.isController = isController;
+    temp.data.isController = isController;
     //temp.joint0 = joint;
 	//temp.joint1 = temp.joint0; //TEMP BEFORE SELECTION IMPLEMENTED
-    temp.role = role;
+    temp.data.role = role;
 
     updateTrackerLists(temp);
 }
@@ -361,13 +418,13 @@ void updateTrackerLists(TempTracker &temp) {
     // Display a radio button menu where selecting each button selects that tracker
     // Displays the joint of each tracker and (Tracker)/(Controller)
     std::stringstream roleStrStream;
-    if (temp.isController)
+    if (temp.data.isController)
         roleStrStream << " (Tracked Controller) ";
     else
         roleStrStream << " (Tracker) ";
-    roleStrStream << "(Role: " << KVR::KinectDeviceRoleName[int(temp.role)] << ") ";
-    std::string posName = TrackingPoolManager::deviceGuiString(temp.positionGlobalDeviceId);
-    std::string rotName = TrackingPoolManager::deviceGuiString(temp.rotationGlobalDeviceId);
+    roleStrStream << "(Role: " << KVR::KinectDeviceRoleName[int(temp.data.role)] << ") ";
+    std::string posName = TrackingPoolManager::deviceGuiString(temp.data.positionGlobalDeviceId);
+    std::string rotName = TrackingPoolManager::deviceGuiString(temp.data.rotationGlobalDeviceId);
     std::string finalTrackerName = "Position: " + posName + " | Rotation: " + rotName + " | " + roleStrStream.str();
 
     LOG(INFO) << "Adding tracker to list :: " << finalTrackerName;
@@ -458,10 +515,10 @@ void setKinectButtonSignal(KinectHandlerBase& kinect) {
 }
 void spawnAndConnectTracker(vrinputemulator::VRInputEmulator & inputE, std::vector<KVR::KinectTrackedDevice>& v_trackers, TempTracker t_tracker)
 {
-    KVR::KinectTrackedDevice device(inputE, t_tracker.positionGlobalDeviceId, t_tracker.rotationGlobalDeviceId, t_tracker.role);
+    KVR::KinectTrackedDevice device(inputE, t_tracker.data.positionGlobalDeviceId, t_tracker.data.rotationGlobalDeviceId, t_tracker.data.role);
     device.positionTrackingOption = t_tracker.positionTrackingOption;
     device.rotationTrackingOption = t_tracker.rotationTrackingOption;
-    device.customModelName = TrackingPoolManager::getDeviceData(t_tracker.positionGlobalDeviceId).customModelName;
+    device.customModelName = TrackingPoolManager::getDeviceData(t_tracker.data.positionGlobalDeviceId).customModelName;
     device.init(inputE);
     v_trackers.push_back(device);
 }
@@ -516,32 +573,77 @@ void setTrackerButtonSignals(vrinputemulator::VRInputEmulator &inputE, std::vect
             TrackingPoolManager::rightFootDeviceRotGID = k_invalidTrackerID;
 
             for (TempTracker tracker : TrackersToBeInitialised) {
-                spawnAndConnectTracker(&inputE, v_trackers, tracker);
+                spawnAndConnectTracker(inputE, v_trackers, tracker);
 
-                if (tracker.role == KVR::KinectDeviceRole::LeftFoot) {
-                    TrackingPoolManager::leftFootDevicePosGID = tracker.positionGlobalDeviceId;
-                    TrackingPoolManager::leftFootDeviceRotGID = tracker.rotationGlobalDeviceId;
+                if (tracker.data.role == KVR::KinectDeviceRole::LeftFoot) {
+                    TrackingPoolManager::leftFootDevicePosGID = tracker.data.positionGlobalDeviceId;
+                    TrackingPoolManager::leftFootDeviceRotGID = tracker.data.rotationGlobalDeviceId;
                 }
-                if (tracker.role == KVR::KinectDeviceRole::RightFoot) {
-                    TrackingPoolManager::rightFootDevicePosGID = tracker.positionGlobalDeviceId;
-                    TrackingPoolManager::rightFootDeviceRotGID = tracker.rotationGlobalDeviceId;
+                if (tracker.data.role == KVR::KinectDeviceRole::RightFoot) {
+                    TrackingPoolManager::rightFootDevicePosGID = tracker.data.positionGlobalDeviceId;
+                    TrackingPoolManager::rightFootDeviceRotGID = tracker.data.rotationGlobalDeviceId;
                 }
 
-                if (tracker.isController) {
+                if (tracker.data.isController) {
                     setDeviceProperty(inputE, v_trackers.back().deviceId, vr::Prop_DeviceClass_Int32, "int32", "2"); // Device Class: Controller
-                    if (tracker.role == KVR::KinectDeviceRole::LeftHand) {
+                    if (tracker.data.role == KVR::KinectDeviceRole::LeftHand) {
                         setDeviceProperty(inputE, v_trackers.back().deviceId, vr::Prop_ControllerRoleHint_Int32, "int32", "1"); // ControllerRole Left
                     }
-                    else if (tracker.role == KVR::KinectDeviceRole::RightHand) {
+                    else if (tracker.data.role == KVR::KinectDeviceRole::RightHand) {
                         setDeviceProperty(inputE, v_trackers.back().deviceId, vr::Prop_ControllerRoleHint_Int32, "int32", "2"); // ControllerRole Right
                     }
                 }
             }
+            saveLastSpawnedTrackers(TrackersToBeInitialised);
         }
 
         showPostTrackerInitUI();
 
         TrackerInitButton->SetState(sfg::Widget::State::INSENSITIVE);
+        TrackerLastInitButton->SetState(sfg::Widget::State::INSENSITIVE);
+    });
+    TrackerLastInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers, &inputE] {
+        retrieveLastSpawnedTrackers();
+        TrackerLastInitButton->SetLabel("Trackers Initialised");
+        if (TrackersToBeInitialised.empty()) {
+            spawnDefaultLowerBodyTrackers(inputE, v_trackers);
+            spawnAndConnectKinectTracker(inputE, v_trackers);
+        }
+        else {
+            TrackingPoolManager::leftFootDevicePosGID = k_invalidTrackerID;
+            TrackingPoolManager::rightFootDevicePosGID = k_invalidTrackerID;
+            TrackingPoolManager::leftFootDeviceRotGID = k_invalidTrackerID;
+            TrackingPoolManager::rightFootDeviceRotGID = k_invalidTrackerID;
+
+            for (TempTracker tracker : TrackersToBeInitialised) {
+                spawnAndConnectTracker(inputE, v_trackers, tracker);
+
+                if (tracker.data.role == KVR::KinectDeviceRole::LeftFoot) {
+                    TrackingPoolManager::leftFootDevicePosGID = tracker.data.positionGlobalDeviceId;
+                    TrackingPoolManager::leftFootDeviceRotGID = tracker.data.rotationGlobalDeviceId;
+                }
+                if (tracker.data.role == KVR::KinectDeviceRole::RightFoot) {
+                    TrackingPoolManager::rightFootDevicePosGID = tracker.data.positionGlobalDeviceId;
+                    TrackingPoolManager::rightFootDeviceRotGID = tracker.data.rotationGlobalDeviceId;
+                }
+
+                if (tracker.data.isController) {
+                    setDeviceProperty(inputE, v_trackers.back().deviceId, vr::Prop_DeviceClass_Int32, "int32", "2"); // Device Class: Controller
+                    if (tracker.data.role == KVR::KinectDeviceRole::LeftHand) {
+                        setDeviceProperty(inputE, v_trackers.back().deviceId, vr::Prop_ControllerRoleHint_Int32, "int32", "1"); // ControllerRole Left
+                    }
+                    else if (tracker.data.role == KVR::KinectDeviceRole::RightHand) {
+                        setDeviceProperty(inputE, v_trackers.back().deviceId, vr::Prop_ControllerRoleHint_Int32, "int32", "2"); // ControllerRole Right
+                    }
+                }
+            }
+            saveLastSpawnedTrackers(TrackersToBeInitialised);
+        }
+
+        showPostTrackerInitUI();
+
+        TrackerInitButton->SetState(sfg::Widget::State::INSENSITIVE);
+        TrackerLastInitButton->SetState(sfg::Widget::State::INSENSITIVE);
     });
 
     SetJointsToFootRotationButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers] {
@@ -652,6 +754,7 @@ void packElementsIntoMainBox() {
 
     mainGUIBox->Pack(reconKinectButton);
     mainGUIBox->Pack(TrackerInitButton);
+    mainGUIBox->Pack(TrackerLastInitButton);
     mainGUIBox->Pack(InstructionsLabel);
 
     setHipScaleBox();
@@ -917,6 +1020,7 @@ private:
 
     sfg::Button::Ptr reconKinectButton = sfg::Button::Create("Reconnect Kinect");
     sfg::Button::Ptr TrackerInitButton = sfg::Button::Create("**Please be in VR before hitting me!** Initialise SteamVR Kinect Trackers - HIT ME");
+    sfg::Button::Ptr TrackerLastInitButton = sfg::Button::Create("**Please be in VR before hitting me!** Spawn same trackers as last session");
 
     sfg::Button::Ptr ShowSkeletonButton = sfg::CheckButton::Create("Show/Hide Skeleton Tracking: MAY CAUSE LAG IN TRACKERS");
 
