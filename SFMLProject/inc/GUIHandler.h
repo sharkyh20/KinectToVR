@@ -276,6 +276,31 @@ void setDefaultSignals() {
             d.parentHandler->identify(globalIndex, identifyRotDeviceButton->IsActive());
         }
     });
+
+    PositionDeviceList->GetSignal(sfg::ComboBox::OnSelect).Connect([this] {
+        // QOL Change to make selecting trackers easier
+        if (userSelectedDeviceRotIndex) {
+            // Don't auto change
+        }
+        else {
+            RotationDeviceList->SelectItem(PositionDeviceList->GetSelectedItem());
+            userSelectedDeviceRotIndex = false;
+            userSelectedDevicePosIndex = true;
+        }
+    });
+    RotationDeviceList->GetSignal(sfg::ComboBox::OnSelect).Connect([this] {
+        // QOL Change to make selecting trackers easier
+        if (userSelectedDevicePosIndex) {
+            // Don't auto change
+        }
+        else {
+            PositionDeviceList->SelectItem(RotationDeviceList->GetSelectedItem());
+            userSelectedDevicePosIndex = false;
+            userSelectedDeviceRotIndex = true;
+        }
+    });
+
+
     AddHandControllersToList->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
         //Add a left and right hand tracker as a controller
         addTrackerToList(KVR::KinectJointType::HandLeft, KVR::KinectDeviceRole::LeftHand, true);
@@ -288,6 +313,8 @@ void setDefaultSignals() {
     });
     AddTrackerToListButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
         addUserTrackerToList();
+        userSelectedDeviceRotIndex = false;
+        userSelectedDevicePosIndex = false;
     });
     RemoveTrackerFromListButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
         int i = 0;
@@ -1072,6 +1099,8 @@ private:
     sfg::Button::Ptr AddHandControllersToList = sfg::Button::Create("Add Hand Controllers");
     sfg::Button::Ptr AddLowerTrackersToList = sfg::Button::Create("Add Lower Body Trackers");
 
+    bool userSelectedDeviceRotIndex = false;
+    bool userSelectedDevicePosIndex = false;
     sfg::Box::Ptr TrackerList = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5);
     sfg::Label::Ptr TrackerListLabel = sfg::Label::Create("Trackers to be spawned:");
 
