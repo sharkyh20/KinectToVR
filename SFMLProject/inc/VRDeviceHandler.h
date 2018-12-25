@@ -384,6 +384,7 @@ private:
             data.parentHandler = dynamic_cast<DeviceHandler*>(this);
 
             data.deviceName = "Virtual Hips";
+            data.serial = "SERIAL_HIPS";
             data.deviceId = virtualHipsLocalId;
             data.customModelName = "vr_controller_01_mrhat";
 
@@ -397,22 +398,28 @@ private:
         
         // Courtesy of https://steamcommunity.com/app/358720/discussions/0/1353742967802223832/
         std::string modelName = "";
-
-        vr::ETrackedPropertyError peError;
-        uint32_t unRequiredBufferLen = m_VRSystem->GetStringTrackedDeviceProperty(localID, vr::Prop_ModelNumber_String, nullptr, 0, &peError);
-        if (unRequiredBufferLen == 0) {
-            modelName = "";
-        }
-        else {
-            char* pchBuffer = new char[unRequiredBufferLen];
-            unRequiredBufferLen = m_VRSystem->GetStringTrackedDeviceProperty(localID, vr::Prop_ModelNumber_String, pchBuffer, unRequiredBufferLen, &peError);
-            modelName = pchBuffer;
-            delete[] pchBuffer;
-        }
+        std::string serial = "";
+        getVRStringProperty(localID, vr::Prop_ModelNumber_String, modelName);
+        getVRStringProperty(localID, vr::Prop_SerialNumber_String, serial);
 
         data.deviceName = "SteamVR ID: " + std::to_string(localID) + " " + modelName;
+        data.serial = serial;
         data.deviceId = localID;
         data.customModelName = "vr_controller_vive_1_5";
         return data;
+    }
+    void getVRStringProperty(const uint32_t &openvrID, vr::ETrackedDeviceProperty strProperty, std::string &string)
+    {
+        vr::ETrackedPropertyError peError;
+        uint32_t unRequiredBufferLen = m_VRSystem->GetStringTrackedDeviceProperty(openvrID, strProperty, nullptr, 0, &peError);
+        if (unRequiredBufferLen == 0) {
+            string = "";
+        }
+        else {
+            char* pchBuffer = new char[unRequiredBufferLen];
+            unRequiredBufferLen = m_VRSystem->GetStringTrackedDeviceProperty(openvrID, strProperty, pchBuffer, unRequiredBufferLen, &peError);
+            string = pchBuffer;
+            delete[] pchBuffer;
+        }
     }
 };

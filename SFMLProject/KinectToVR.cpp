@@ -344,6 +344,7 @@ void processLoop(KinectHandlerBase& kinect) {
     std::vector<std::unique_ptr<DeviceHandler>> v_deviceHandlers;
     v_deviceHandlers.push_back(std::make_unique<VRDeviceHandler>(vrDeviceHandler));
     guiRef.setDeviceHandlersReference(v_deviceHandlers);
+    guiRef.initialisePSMoveHandlerIntoGUI(); // Needs the deviceHandlerRef to be set
 
 
 

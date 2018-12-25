@@ -27,10 +27,17 @@
 #include <cereal/types/common.hpp>
 #include <cereal/types/memory.hpp>
 #include <cereal/access.hpp>
+
 struct TempTrackerData {
     TempTrackerData() {}
     uint32_t positionGlobalDeviceId = 0;
+    std::string posDeviceName = "INVALID";
+    std::string posDeviceSerial = "INVALID";
+
     uint32_t rotationGlobalDeviceId = 0;
+    std::string rotDeviceName = "INVALID";
+    std::string rotDeviceSerial = "INVALID";
+
     KVR::KinectDeviceRole role = KVR::KinectDeviceRole::Unassigned;
     bool isController = false;
 
@@ -42,7 +49,11 @@ struct TempTrackerData {
     {
         archive(
             CEREAL_NVP(positionGlobalDeviceId),
-            CEREAL_NVP(rotationGlobalDeviceId),
+            CEREAL_NVP(posDeviceName),
+            CEREAL_NVP(posDeviceSerial),
+            CEREAL_NVP(positionGlobalDeviceId),
+            CEREAL_NVP(rotDeviceName),
+            CEREAL_NVP(rotDeviceSerial),
             CEREAL_NVP(role),
             CEREAL_NVP(isController)
         );
@@ -172,7 +183,7 @@ void saveLastSpawnedTrackers(std::vector<TempTracker> v_trackers)
     }
 }
 
-void retrieveLastSpawnedTrackers()
+bool retrieveLastSpawnedTrackers()
 {
     std::wstring trackerConfig = L"lastTrackers.cfg";
     std::ifstream is(KVR::fileToDirPath(trackerConfig));
@@ -182,26 +193,64 @@ void retrieveLastSpawnedTrackers()
     std::vector<TempTrackerData> v_trackerData;
     //CHECK IF VALID
     if (is.fail()) {
-        //FAIL!!!!
-        LOG(ERROR) << "ERROR: COULD NOT OPEN " << trackerConfig << " FILE";
-        // Does not need to exist - as the vector is empty anyway
+        error_trackerCfgNotFound(trackerConfig);
+        return false;
     }
     else {
         LOG(INFO) << trackerConfig << " load attempted!";
         try {
             cereal::JSONInputArchive archive(is);
-            archive(v_trackerData);
+            archive(CEREAL_NVP(v_trackerData));
         }
         catch (cereal::Exception e) {
             LOG(ERROR) << trackerConfig << "TRACKER FILE LOAD JSON ERROR: " << e.what();
         }
     }
-    for (TempTrackerData & data : v_trackerData) {
-        addUserTrackerToList(data);
+    if (v_trackerData.size() == 0) {
+        error_trackerCfgEmpty(trackerConfig);
+        return false;
     }
+    for (TempTrackerData & data : v_trackerData) {
+        if (!addUserTrackerToList(data)) {
+            error_lastTrackersRespawnFailure();
+            return false;
+        }
+    }
+    return true;
 }
 
-void guiConnectPSMoveHandler() {
+void error_lastTrackersRespawnFailure()
+{
+    LOG(ERROR) << "Attempted to respawn trackers, but at least one was invalid!";
+    auto message = L"ERROR: INVALID TRACKERS DETECTED IN CFG: "
+        + SFMLsettings::fileDirectoryPath
+        + L"\n No trackers will be spawned"
+        + L"\n Refer to K2VR.log, to see what went wrong";
+    auto result = MessageBox(NULL, message.c_str(), L"ERROR!!!", MB_OK + MB_ICONWARNING);
+}
+
+void error_trackerCfgNotFound(std::wstring &trackerConfig)
+{
+    //FAIL!!!!
+    LOG(ERROR) << "ERROR: COULD NOT OPEN " << trackerConfig << " FILE";
+    // Does not need to create config file - as the vector is empty anyway
+    LOG(ERROR) << "ERROR: Can't find last used custom tracker file!";
+    auto message = L"WARNING: NO lastTrackers.cfg DETECTED: "
+        + SFMLsettings::fileDirectoryPath
+        + L"\n No trackers will be added to the menu";
+    auto result = MessageBox(NULL, message.c_str(), L"WARNING!!!", MB_OK + MB_ICONWARNING);
+}
+
+void error_trackerCfgEmpty(std::wstring &trackerConfig)
+{
+    LOG(ERROR) << "WARNING: " << trackerConfig << " FILE IS EMPTY OF TRACKERS";
+
+    auto message = L"WARNING: No trackers were found in file at all! "
+        + SFMLsettings::fileDirectoryPath
+        + L"\n No trackers will be added to the menu";
+    auto result = MessageBox(NULL, message.c_str(), L"WARNING!!!", MB_OK + MB_ICONWARNING);
+}
+void connectPSMoveHandlerGUIEvents() {
     if (psMoveHandler.active) {
         PSMoveHandlerLabel->SetText("Status: Connected!");
     }
@@ -210,23 +259,7 @@ void guiConnectPSMoveHandler() {
     }
 
     StartPSMoveHandler->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
-        if (psMoveHandler.active)
-            return;
-
-        auto errorCode = psMoveHandler.initialise();
-
-        if (psMoveHandler.active) {
-            static bool addedToVector = false;
-            if (!addedToVector) {
-                v_deviceHandlersRef->push_back(std::make_unique<PSMoveHandler>(psMoveHandler));
-                addedToVector = true;
-            }
-            updateDeviceLists();
-            PSMoveHandlerLabel->SetText("Status: Connected!");
-        }
-        else {
-            PSMoveHandlerLabel->SetText(psMoveHandler.connectionMessages[errorCode]);
-        }
+        initialisePSMoveHandlerIntoGUI();
     });
     StopPSMoveHandler->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
         if (!psMoveHandler.active)
@@ -235,6 +268,27 @@ void guiConnectPSMoveHandler() {
         updateDeviceLists();
         PSMoveHandlerLabel->SetText("Status: Disconnected!");
     });
+}
+
+void initialisePSMoveHandlerIntoGUI()
+{
+    if (psMoveHandler.active)
+        return;
+
+    auto errorCode = psMoveHandler.initialise();
+
+    if (psMoveHandler.active) {
+        static bool addedToVector = false;
+        if (!addedToVector) {
+            v_deviceHandlersRef->push_back(std::make_unique<PSMoveHandler>(psMoveHandler));
+            addedToVector = true;
+            PSMoveHandlerLabel->SetText("Status: Connected!");
+        }
+        updateDeviceLists();
+    }
+    else {
+        PSMoveHandlerLabel->SetText(psMoveHandler.connectionMessages[errorCode]);
+    }
 }
 
 void setDefaultSignals() {
@@ -365,7 +419,7 @@ void setDefaultSignals() {
         //updateTempTrackerButtonGroups();
     });
 
-    guiConnectPSMoveHandler();
+    connectPSMoveHandlerGUIEvents();
 
     HipScale->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
         // Update the Global hip offset
@@ -406,41 +460,121 @@ void addUserTrackerToList() {
     temp.GUID = TrackersToBeInitialised.size();
     temp.data.isController = IsControllerButton->IsActive();
 
+    // Obtain Position Information
     int posIndex = selectedPositionDeviceIndex();
     KVR::TrackedDeviceInputData posData = TrackingPoolManager::getDeviceData(posIndex);
-
+    
     temp.data.positionGlobalDeviceId = posIndex;
     temp.positionTrackingOption = posData.positionTrackingOption;
+    temp.data.posDeviceName = posData.deviceName;
+    temp.data.posDeviceSerial = posData.serial;
 
+    // Obtain Rotation Information
     int rotIndex = selectedRotationDeviceIndex();
     KVR::TrackedDeviceInputData rotData = TrackingPoolManager::getDeviceData(rotIndex);
-
+    
     temp.data.rotationGlobalDeviceId = rotIndex;
     temp.rotationTrackingOption = rotData.rotationTrackingOption;
+    temp.data.rotDeviceName = rotData.deviceName;
+    temp.data.rotDeviceSerial = rotData.serial;
 
-    //temp.joint0 = KVR::KinectJointType(BonesList->GetSelectedItem());
-	//temp.joint1 = temp.joint0;	//TEMP BEFORE SELECTION IMPLEMENTED
     temp.data.role = KVR::KinectDeviceRole(RolesList->GetSelectedItem());
     updateTrackerLists(temp);
 }
-void addUserTrackerToList(TempTrackerData & data) {
-    TempTracker temp;
-    temp.GUID = TrackersToBeInitialised.size();
-    temp.data.isController = data.isController;
+bool validatedTrackerData(TempTrackerData & data) {
+    // Verify that data is correct
+
+    // Index bound checks to prevent array access errors
+    bool posMismatched = false;
+    bool rotMismatched = false;
+    if (data.positionGlobalDeviceId >= TrackingPoolManager::count()) {
+        // INVALID POS ID
+        LOG(WARNING) << "POSITION ID " << data.positionGlobalDeviceId << " GREATER THAN THE SIZE OF TRACKING POOL";
+        posMismatched = true;
+    }
+    if (data.rotationGlobalDeviceId >= TrackingPoolManager::count()) {
+        // INVALID ROT ID
+        LOG(WARNING) << "ROTATION ID " << data.rotationGlobalDeviceId << " GREATER THAN THE SIZE OF TRACKING POOL";
+        rotMismatched = true;
+    }
 
     KVR::TrackedDeviceInputData posData = TrackingPoolManager::getDeviceData(data.positionGlobalDeviceId);
-    temp.data.positionGlobalDeviceId = data.positionGlobalDeviceId;
-    temp.positionTrackingOption = posData.positionTrackingOption;
-
-    
     KVR::TrackedDeviceInputData rotData = TrackingPoolManager::getDeviceData(data.rotationGlobalDeviceId);
-    temp.data.rotationGlobalDeviceId = data.rotationGlobalDeviceId;
+
+    // Mismatched Device Index Checks
+    if (data.posDeviceName != posData.deviceName) {
+        // POTENTIALLY MISMATCHED DEVICE
+        LOG(WARNING) << "POTENTIALLY MISMATCHED POS DEVICE NAME, EXPECTED " << data.posDeviceName << " AND RECEIVED " << posData.deviceName;
+
+        // If serial is also wrong, panic
+        if (data.posDeviceSerial != posData.serial) {
+            LOG(ERROR) << "MISMATCHED POS DEVICE SERIAL, EXPECTED " << data.posDeviceSerial << " AND RECEIVED " << posData.serial;
+            posMismatched = true;
+        }
+    }
+    if (data.rotDeviceName != rotData.deviceName) {
+        // POTENTIALLY MISMATCHED DEVICE
+        LOG(WARNING) << "POTENTIALLY MISMATCHED ROT DEVICE NAME, EXPECTED " << data.rotDeviceName << " AND RECEIVED " << rotData.deviceName;
+
+        // If serial is also wrong, panic
+        if (data.rotDeviceSerial != rotData.serial) {
+            LOG(ERROR) << "MISMATCHED ROT DEVICE SERIAL, EXPECTED " << data.rotDeviceSerial << " AND RECEIVED " << rotData.serial;
+            rotMismatched = true;
+        }
+    }
+
+
+    // If incorrect, search for device
+    if (posMismatched) {
+        LOG(INFO) << "Attempting to find Pos ID from device info...";
+        uint32_t potentialNewID = TrackingPoolManager::locateGlobalDeviceID(data.posDeviceSerial);
+        if (potentialNewID != k_invalidTrackerID) {
+            LOG(INFO) << "Replacement Pos ID successfully found!";
+            posMismatched = false;
+            data.positionGlobalDeviceId = potentialNewID;
+        }
+        else {
+            LOG(ERROR) << "Could not relocate pos device ID to spawn!";
+        }
+    }
+    if (rotMismatched) {
+        LOG(INFO) << "Attempting to find Rot ID from device info...";
+        uint32_t potentialNewID = TrackingPoolManager::locateGlobalDeviceID(data.rotDeviceSerial);
+        if (potentialNewID != k_invalidTrackerID) {
+            LOG(INFO) << "Replacement Rot ID successfully found!";
+            rotMismatched = false;
+            data.rotationGlobalDeviceId = potentialNewID;
+        }
+        else {
+            LOG(ERROR) << "Could not relocate rot device ID to spawn!";
+        }
+    }
+
+    bool failed = rotMismatched || posMismatched;
+    // If could not be found, produce warning to cancel
+    if (failed) {
+        return false;
+    }
+    return true;
+}
+bool addUserTrackerToList(TempTrackerData & data) {
+    bool dataIsValid = validatedTrackerData(data);
+    if (!dataIsValid)
+        return false;
+
+    TempTracker temp;
+    temp.data = data;
+    temp.GUID = TrackersToBeInitialised.size();
+
+    KVR::TrackedDeviceInputData posData = TrackingPoolManager::getDeviceData(data.positionGlobalDeviceId);
+    KVR::TrackedDeviceInputData rotData = TrackingPoolManager::getDeviceData(data.rotationGlobalDeviceId);
+
+    temp.positionTrackingOption = posData.positionTrackingOption;
     temp.rotationTrackingOption = rotData.rotationTrackingOption;
 
-    //temp.joint0 = KVR::KinectJointType(BonesList->GetSelectedItem());
-    //temp.joint1 = temp.joint0;	//TEMP BEFORE SELECTION IMPLEMENTED
-    temp.data.role = data.role;
     updateTrackerLists(temp);
+
+    return true;
 }
 void addTrackerToList(KVR::KinectJointType joint, KVR::KinectDeviceRole role, bool isController) {
 	TempTracker temp;
@@ -641,7 +775,9 @@ void setTrackerButtonSignals(vrinputemulator::VRInputEmulator &inputE, std::vect
         TrackerLastInitButton->SetState(sfg::Widget::State::INSENSITIVE);
     });
     TrackerLastInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers, &inputE] {
-        retrieveLastSpawnedTrackers();
+        if (!retrieveLastSpawnedTrackers()) {
+            return; // Don't actually spawn the trackers, as they will likely crash
+        }
         TrackerLastInitButton->SetLabel("Trackers Initialised");
         if (TrackersToBeInitialised.empty()) {
             spawnDefaultLowerBodyTrackers(inputE, v_trackers);

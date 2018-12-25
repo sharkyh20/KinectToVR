@@ -11,6 +11,7 @@ namespace KVR {
         // Only data ready for tracking use is put into these structs
         bool clearedForReinit = false; // Flag for devices that like to clear themselves once a new one is added
         std::string deviceName = "UNSET_DEVICE_DATA";
+        std::string serial = "INVALID_SERIAL";
         uint32_t deviceId = 0;
 
         vr::HmdQuaternion_t rotation = { 1, 0, 0, 0 };

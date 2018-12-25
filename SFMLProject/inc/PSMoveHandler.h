@@ -25,7 +25,6 @@ public:
     PSMoveHandler() 
         : m_started(false),
         m_keepRunning(true) {
-        initialise();
     }
     ~PSMoveHandler() {}
 
@@ -836,6 +835,7 @@ private:
         data.parentHandler = dynamic_cast<DeviceHandler*>(this);
         data.deviceName = "PSMOVE " + std::to_string(localID);
         data.deviceId = v_controllers[localID].id.globalID;
+        data.serial = controllerList.controller_serial[localID];
         data.customModelName = "{k2vr}psmove_controller";
         return data;
     }
@@ -844,6 +844,7 @@ private:
         data.parentHandler = dynamic_cast<DeviceHandler*>(this);
         data.deviceName = "PSEYE " + std::to_string(localID);
         data.deviceId = v_eyeTrackers[localID].id.globalID;
+        data.serial = v_eyeTrackers[localID].trackerInfo.device_path; // For the eyes, the path is basically their serial number
         data.customModelName = "{k2vr}ps3eye_tracker";
         return data;
     }

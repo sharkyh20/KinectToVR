@@ -22,6 +22,14 @@ public:
     static uint32_t leftFootDeviceRotGID;
     static uint32_t rightFootDeviceRotGID;
 
+    static uint32_t locateGlobalDeviceID(std::string serial) {
+        for (KVR::TrackedDeviceInputData & data : devicePool) {
+            if (data.serial == serial) {
+                return data.deviceId;
+            }
+        }
+        return k_invalidTrackerID;
+    }
     static TrackingPoolError addDeviceToPool(KVR::TrackedDeviceInputData & inputData, uint32_t & globalID) {
         globalID = devicePool.size(); // for the default case of adding instead of rebuilding
 
