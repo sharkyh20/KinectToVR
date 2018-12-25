@@ -201,6 +201,42 @@ void retrieveLastSpawnedTrackers()
     }
 }
 
+void guiConnectPSMoveHandler() {
+    if (psMoveHandler.active) {
+        PSMoveHandlerLabel->SetText("Status: Connected!");
+    }
+    else {
+        PSMoveHandlerLabel->SetText("Status: Disconnected!");
+    }
+
+    StartPSMoveHandler->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
+        if (psMoveHandler.active)
+            return;
+
+        auto errorCode = psMoveHandler.initialise();
+
+        if (psMoveHandler.active) {
+            static bool addedToVector = false;
+            if (!addedToVector) {
+                v_deviceHandlersRef->push_back(std::make_unique<PSMoveHandler>(psMoveHandler));
+                addedToVector = true;
+            }
+            updateDeviceLists();
+            PSMoveHandlerLabel->SetText("Status: Connected!");
+        }
+        else {
+            PSMoveHandlerLabel->SetText(psMoveHandler.connectionMessages[errorCode]);
+        }
+    });
+    StopPSMoveHandler->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
+        if (!psMoveHandler.active)
+            return;
+        psMoveHandler.shutdown();
+        updateDeviceLists();
+        PSMoveHandlerLabel->SetText("Status: Disconnected!");
+    });
+}
+
 void setDefaultSignals() {
     //Post VR Tracker Initialisation
     hidePostTrackerInitUI();
@@ -329,7 +365,7 @@ void setDefaultSignals() {
         //updateTempTrackerButtonGroups();
     });
 
-    
+    guiConnectPSMoveHandler();
 
     HipScale->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
         // Update the Global hip offset
@@ -338,32 +374,7 @@ void setDefaultSignals() {
     );
     setCalibrationSignal();
 
-    StartPSMoveHandler->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
-        if (psMoveHandler.active)
-            return;
-
-        auto errorCode = psMoveHandler.initialise();
-
-        if (psMoveHandler.active) {
-            static bool addedToVector = false;
-            if (!addedToVector) {
-                v_deviceHandlersRef->push_back(std::make_unique<PSMoveHandler>(psMoveHandler));
-                addedToVector = true;
-            }
-            updateDeviceLists();
-            PSMoveHandlerLabel->SetText("Status: Connected!");
-        }
-        else {
-            PSMoveHandlerLabel->SetText(psMoveHandler.connectionMessages[errorCode]);
-        }
-    });
-    StopPSMoveHandler->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
-        if (!psMoveHandler.active)
-            return;
-        psMoveHandler.shutdown();
-        updateDeviceLists();
-        PSMoveHandlerLabel->SetText("Status: Disconnected!");
-    });
+    
 }
 void setColorTrackerSignals(ColorTracker & colorTracker) {
     InitiateColorTrackingButton->GetSignal(sfg::Button::OnMouseLeftPress).Connect([this, &colorTracker] {
@@ -938,8 +949,10 @@ bool trackerIdInKinectRange(uint32_t trackerId) {
         }
 
         // Outside for loop, in case it couldn't find any kinect joints, so any calls to this will always return false because the invalid ID is so high
-        kinectIdLocated = true;
+        //kinectIdLocated = true;
     }
+    if (!kinectIdLocated)
+        return false;
     return trackerId >= kinectFirstId && trackerId <= kinectLastId;
 }
 void setDeviceListItems(sfg::ComboBox::Ptr comboBox) {

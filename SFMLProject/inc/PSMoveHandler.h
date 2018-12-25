@@ -25,7 +25,7 @@ public:
     PSMoveHandler() 
         : m_started(false),
         m_keepRunning(true) {
-
+        initialise();
     }
     ~PSMoveHandler() {}
 
@@ -678,7 +678,7 @@ private:
                 PSMControllerDataStreamFlags::PSMStreamFlags_includeCalibratedSensorData |
                 PSMControllerDataStreamFlags::PSMStreamFlags_includeRawTrackerData;
 
-            if (controllerList.count > 0) {
+            if (controllerList.count > 0 || trackerList.count > 0) {
                 for (int i = 0; i < controllerList.count; ++i) { 
                     // In order for the controllers to report more than their IMU stuff, and turn on the light, they all have to go through this
                     if (PSM_AllocateControllerListener(controllerList.controller_id[i]) != PSMResult_Success) {
