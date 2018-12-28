@@ -12,6 +12,7 @@
 #include "TrackingMethod.h"
 #include "DeviceHandler.h"
 #include "PSMoveHandler.h"
+#include "VRDeviceHandler.h"
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Window/Mouse.hpp>
@@ -95,12 +96,14 @@ public:
         packElementsIntoAdvTrackerBox();
         packElementsIntoTrackingMethodBox();
         packElementsIntoCalibrationBox();
+        packElementsIntoVirtualHipsBox();
         setRequisitions();
 
         mainNotebook->AppendPage(mainGUIBox, sfg::Label::Create("KinectToVR"));
         mainNotebook->AppendPage(advancedTrackerBox, sfg::Label::Create("Adv. Trackers"));
         mainNotebook->AppendPage(calibrationBox, sfg::Label::Create("Calibration"));
         mainNotebook->AppendPage(trackingMethodBox, sfg::Label::Create("Tracking Method"));
+        mainNotebook->AppendPage(virtualHipsBox, sfg::Label::Create("Virtual Hips"));
         
         
 
@@ -1161,6 +1164,142 @@ void updateWithNewWindowSize(sf::Vector2f size) {
     //guiWindow->SetAllocation(sf::FloatRect(size.x - width, 0.f, width, size.y));
     //mGUI.SideBar->SetAllocation(sf::FloatRect(0.f, 0.f, width, size.y));
 }
+void setVirtualHipsBoxSignals() {
+    using namespace VirtualHips;
+
+    VirtualHipHeightFromHMDButton->SetDigits(2);
+    VirtualHipSittingThreshold->SetDigits(2);
+    VirtualHipLyingThreshold->SetDigits(2);
+
+    VirtualHipUseHMDYawButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
+        settings.followHmdYawRotation = (VirtualHipUseHMDYawButton->IsActive());
+    });
+    VirtualHipUseHMDPitchButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
+        settings.followHmdPitchRotation = (VirtualHipUseHMDPitchButton->IsActive());
+    });
+    VirtualHipUseHMDRollButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
+        settings.followHmdRollRotation = (VirtualHipUseHMDRollButton->IsActive());
+    });
+
+    VirtualHipLockToHeadButton->GetSignal(sfg::RadioButton::OnToggle).Connect([this] {
+        settings.positionAccountsForFootTrackers = !VirtualHipLockToHeadButton->IsActive();
+    }
+    );
+    VirtualHipLockToFeetButton->GetSignal(sfg::RadioButton::OnToggle).Connect([this] {
+        settings.positionAccountsForFootTrackers = VirtualHipLockToFeetButton->IsActive();
+    }
+    );
+
+    VirtualHipHeightFromHMDButton->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
+        settings.heightFromHMD = VirtualHipHeightFromHMDButton->GetValue();
+    }
+    );
+    VirtualHipFollowHMDLean->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
+        settings.positionFollowsHMDLean = (VirtualHipFollowHMDLean->IsActive());
+    });
+
+    VirtualHipSittingThreshold->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
+        float sittingThreshold = VirtualHipSittingThreshold->GetValue();
+        float lyingThreshold = VirtualHipLyingThreshold->GetValue();
+        if (sittingThreshold < lyingThreshold) {
+            settings.sittingMaxHeightThreshold = lyingThreshold;
+            VirtualHipSittingThreshold->SetValue(lyingThreshold);
+        }
+        else {
+            settings.sittingMaxHeightThreshold = sittingThreshold;
+        }
+    }
+    );
+    VirtualHipLyingThreshold->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
+        float sittingThreshold = VirtualHipSittingThreshold->GetValue();
+        float lyingThreshold = VirtualHipLyingThreshold->GetValue();
+        settings.lyingMaxHeightThreshold = lyingThreshold;       
+        VirtualHipSittingThreshold->SetValue(sittingThreshold); // Necessary to ensure that sitting isn't lower than lying down. Curious as to what would happen.
+    }
+    );
+
+    VirtualHipConfigSaveButton->GetSignal(sfg::Button::OnLeftClick).Connect([this] {
+        VirtualHips::saveSettings();
+    }
+    );
+}
+void loadVirtualHipSettingsIntoGUIElements()
+{
+    // Retrieve the values from config
+    using namespace VirtualHips;
+    retrieveSettings();
+
+    VirtualHipUseHMDYawButton->SetActive(settings.followHmdYawRotation);
+    VirtualHipUseHMDPitchButton->SetActive(settings.followHmdPitchRotation);
+    VirtualHipUseHMDRollButton->SetActive(settings.followHmdRollRotation);
+
+    VirtualHipLockToHeadButton->SetActive(!settings.positionAccountsForFootTrackers);
+
+    VirtualHipHeightFromHMDButton->SetValue(settings.heightFromHMD);
+    VirtualHipFollowHMDLean->SetActive(settings.positionFollowsHMDLean);
+
+    VirtualHipSittingThreshold->SetValue(settings.sittingMaxHeightThreshold);
+    VirtualHipLyingThreshold->SetValue(settings.lyingMaxHeightThreshold);
+}
+// Virtual Hips Menu
+void packElementsIntoVirtualHipsBox() {
+    loadVirtualHipSettingsIntoGUIElements();
+    setVirtualHipsBoxSignals();
+
+    virtualHipsBox->SetSpacing(0.5f);
+    auto rotationSettingsBox = sfg::Box::Create();
+    rotationSettingsBox->Pack(sfg::Label::Create("Follow HMD Rotation: "));
+    rotationSettingsBox->Pack(VirtualHipUseHMDYawButton);
+    rotationSettingsBox->Pack(VirtualHipUseHMDPitchButton);
+    rotationSettingsBox->Pack(VirtualHipUseHMDRollButton);
+
+    virtualHipsBox->Pack(rotationSettingsBox);
+
+    auto hipLockingBox = sfg::Box::Create();
+    hipLockingBox->Pack(sfg::Label::Create("Hips lock to: "));
+    std::shared_ptr<sfg::RadioButtonGroup> hipLockGroup = VirtualHipLockToHeadButton->GetGroup();
+    VirtualHipLockToFeetButton->SetGroup(hipLockGroup);
+
+    auto hipLockingRadioBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 20.f);
+    hipLockingRadioBox->Pack(VirtualHipLockToHeadButton);
+    hipLockingRadioBox->Pack(sfg::Label::Create("or"));
+    hipLockingRadioBox->Pack(VirtualHipLockToFeetButton);
+
+    hipLockingBox->Pack(hipLockingRadioBox);
+
+    virtualHipsBox->Pack(hipLockingBox);
+
+    
+    auto modeTitleBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
+    auto standingBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
+    modeTitleBox->Pack(sfg::Label::Create("-- Standing Settings --"));
+    standingBox->Pack(sfg::Label::Create("Hip distance from head (Meters)"));
+    standingBox->Pack(VirtualHipHeightFromHMDButton);
+    standingBox->Pack(VirtualHipFollowHMDLean);
+    
+
+    auto sittingBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
+    modeTitleBox->Pack(sfg::Label::Create("-- Sitting Settings --"));
+    sittingBox->Pack(sfg::Label::Create("Sitting mode cutoff height (Meters)"));
+    sittingBox->Pack(VirtualHipSittingThreshold);
+
+    auto lyingBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
+    modeTitleBox->Pack(sfg::Label::Create("-- Lying Settings --"));
+    lyingBox->Pack(sfg::Label::Create("Lying mode cutoff height (Meters)"));
+    lyingBox->Pack(VirtualHipLyingThreshold);
+
+    auto modeBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
+    modeBox->Pack(standingBox);
+    modeBox->Pack(sittingBox);
+    modeBox->Pack(lyingBox);
+
+    virtualHipsBox->Pack(modeTitleBox);
+    virtualHipsBox->Pack(modeBox);
+    virtualHipsBox->Pack(VirtualHipConfigSaveButton);
+}
+
+
+
 private:
     sf::Font mainGUIFont;
     sfg::SFGUI sfguiRef;
@@ -1182,6 +1321,7 @@ private:
     sfg::Box::Ptr calibrationBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
     sfg::Box::Ptr advancedTrackerBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
     sfg::Box::Ptr trackingMethodBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
+    sfg::Box::Ptr virtualHipsBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
     
     sfg::Adjustment::Ptr fontSizeAdjustment = sfg::Adjustment::Create();
     sfg::Label::Ptr FontSizeScaleLabel = sfg::Label::Create("(WARNING, LAGS ON CHANGE) Font Size: ");
@@ -1281,6 +1421,24 @@ private:
     sfg::Button::Ptr StartPSMoveHandler = sfg::Button::Create("Run PS Move Handler");
     sfg::Button::Ptr StopPSMoveHandler = sfg::Button::Create("Stop PS Move Handler");
     sfg::Label::Ptr PSMoveHandlerLabel = sfg::Label::Create("Status: Off");
+
+
+    // Virtual Hips Box
+    sfg::CheckButton::Ptr VirtualHipUseHMDYawButton = sfg::CheckButton::Create("Yaw");
+    sfg::CheckButton::Ptr VirtualHipUseHMDPitchButton = sfg::CheckButton::Create("Pitch");
+    sfg::CheckButton::Ptr VirtualHipUseHMDRollButton = sfg::CheckButton::Create("Roll");
+
+    sfg::RadioButton::Ptr VirtualHipLockToHeadButton = sfg::RadioButton::Create("Head");
+    sfg::RadioButton::Ptr VirtualHipLockToFeetButton = sfg::RadioButton::Create("Feet");
+
+    sfg::SpinButton::Ptr VirtualHipHeightFromHMDButton = sfg::SpinButton::Create(sfg::Adjustment::Create(VirtualHips::settings.heightFromHMD, 0.f, 2.f, 0.01f));
+    sfg::CheckButton::Ptr VirtualHipFollowHMDLean = sfg::CheckButton::Create("Follow HMD Lean");
+
+    sfg::SpinButton::Ptr VirtualHipSittingThreshold = sfg::SpinButton::Create(sfg::Adjustment::Create(VirtualHips::settings.sittingMaxHeightThreshold, 0.f, 2.f, 0.01f));
+
+    sfg::SpinButton::Ptr VirtualHipLyingThreshold = sfg::SpinButton::Create(sfg::Adjustment::Create(VirtualHips::settings.lyingMaxHeightThreshold, 0.f, 2.f, 0.01f));
+
+    sfg::Button::Ptr VirtualHipConfigSaveButton = sfg::Button::Create("Save Settings");
 
     void updateKinectStatusLabelDisconnected() {
         KinectStatusLabel->SetText("Kinect Status: ERROR KINECT NOT DETECTED");

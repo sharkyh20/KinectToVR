@@ -12,6 +12,9 @@
 
 #include <vrinputemulator.h>
 
+#include <cereal/archives/json.hpp>
+#include <cereal/cereal.hpp>
+
 
 enum class VirtualHipMode {
         Standing,
@@ -24,17 +27,87 @@ struct VirtualHipSettings {
     bool followHmdRollRotation = false;
     bool followHmdPitchRotation = false;
 
-    bool positionAccountsForFootTrackers = false; // If false, Hip tracker always stays bolted to directly under the HMD with no horizontal shift
-    double positionLatency = 0.05; // Seconds. How far behind the head should the hips be so that they don't instantly follow every tiny movement of the HMD
-    bool positionFollowsHMDLean = false; // Determines whether the virtual hips in standing mode will stay above the foot trackers, or interpolate between the HMD and foot trackers on a direct slant
-
-    double heightFromHMD = 0.72; // Meters. Hips are by default projected downwards from the HMD, by 72cm (adjustable by user)
     VirtualHipMode hipMode = VirtualHipMode::Standing;
-    double hipThickness = 0.03; // Meters. Essentially how wide the hips are, so that when lying down, they are put slightly above the ground
+    
+    double positionLatency = 0.05; // Seconds. How far behind the tracked point should the hips be so that they don't instantly follow every tiny movement
 
+
+    // --- Standing Settings ---
+    bool positionFollowsHMDLean = false; // Determines whether the virtual hips in standing mode will stay above the foot trackers, or interpolate between the HMD and foot trackers on a direct slant
+    double heightFromHMD = 0.72; // Meters. Hips are by default projected downwards from the HMD, by 72cm (adjustable by user)
+    bool positionAccountsForFootTrackers = false; // If false, Hip tracker always stays bolted to directly under the HMD with no horizontal shift
+
+
+    // --- Sitting Settings ---
     double sittingMaxHeightThreshold = 0.95; // Meters. Under this height, mode is sitting
+    
+
+    // --- Lying Settings
+    double hipThickness = 0.03; // Meters. Essentially how wide the hips are, so that when lying down, they are put slightly above the ground
     double lyingMaxHeightThreshold = 0.5; // Meters. Under this height, mode is lying
+
+    template<class Archive>
+    void serialize(Archive & archive)
+    {
+        archive(
+            CEREAL_NVP(followHmdYawRotation),
+            CEREAL_NVP(followHmdRollRotation),
+            CEREAL_NVP(followHmdPitchRotation),
+            CEREAL_NVP(hipMode),
+            CEREAL_NVP(positionFollowsHMDLean),
+            CEREAL_NVP(heightFromHMD),
+            CEREAL_NVP(positionAccountsForFootTrackers),
+            CEREAL_NVP(sittingMaxHeightThreshold),
+            CEREAL_NVP(hipThickness),
+            CEREAL_NVP(lyingMaxHeightThreshold)
+        );
+    }
 };
+
+namespace VirtualHips {
+    VirtualHipSettings settings;
+    static std::wstring settingsConfig = L"virtualHips.cfg";
+    void saveSettings() {
+        std::ofstream os(KVR::fileToDirPath(settingsConfig));
+        if (os.fail()) {
+            //FAIL!!!
+            LOG(ERROR) << "ERROR: COULD NOT WRITE TO VIRTUAL HIPS CONFIG FILE\n";
+        }
+        else {
+            cereal::JSONOutputArchive archive(os);
+            LOG(INFO) << "Attempted to save virtual hip settings to file";
+            try {
+                archive(
+                    CEREAL_NVP(settings)
+                );
+            }
+            catch (cereal::RapidJSONException e) {
+                LOG(ERROR) << "CONFIG FILE SAVE JSON ERROR: " << e.what();
+            }
+
+        }
+    }
+    void retrieveSettings() {
+        std::ifstream is(KVR::fileToDirPath(settingsConfig));
+
+        LOG(INFO) << "Attempted to load virtual hip settings at " << KVR::fileToDirPath(settingsConfig);
+
+        if (is.fail()) {
+            LOG(ERROR) << "Virtual Hip settings file could not be found, generating a new one...";
+            saveSettings();
+        }
+        else {
+            LOG(INFO) << settingsConfig << " load attempted!";
+            try {
+                cereal::JSONInputArchive archive(is);
+                archive(CEREAL_NVP(settings));
+            }
+            catch (cereal::Exception e) {
+                LOG(ERROR) << settingsConfig << "VIRTUAL HIP FILE LOAD JSON ERROR: " << e.what();
+            }
+        }
+    }
+}
 
 class VRDeviceHandler : public DeviceHandler {
     // Updates the tracking pool with data from the 
@@ -136,9 +209,10 @@ private:
     TrackerIDs vrDeviceToPoolIds[vr::k_unMaxTrackedDeviceCount]{};
     TrackerIDs virtualHipsIds{};
     uint32_t virtualHipsLocalId = 420;
-    VirtualHipSettings hipSettings;
     
     void initVirtualHips() {
+        VirtualHips::retrieveSettings();
+
         KVR::TrackedDeviceInputData data = defaultDeviceData(virtualHipsLocalId);
 
         uint32_t globalID = k_invalidTrackerID;
@@ -156,12 +230,12 @@ private:
     }
     void calculateHipMode() {
         // Determine user mode from HMD position
-        if (KinectSettings::hmdPosition.v[1] <= hipSettings.lyingMaxHeightThreshold)
-            hipSettings.hipMode = VirtualHipMode::Lying;
-        else if (KinectSettings::hmdPosition.v[1] <= hipSettings.sittingMaxHeightThreshold)
-            hipSettings.hipMode = VirtualHipMode::Sitting;
+        if (KinectSettings::hmdPosition.v[1] <= VirtualHips::settings.lyingMaxHeightThreshold)
+            VirtualHips::settings.hipMode = VirtualHipMode::Lying;
+        else if (KinectSettings::hmdPosition.v[1] <= VirtualHips::settings.sittingMaxHeightThreshold)
+            VirtualHips::settings.hipMode = VirtualHipMode::Sitting;
         else
-            hipSettings.hipMode = VirtualHipMode::Standing;
+            VirtualHips::settings.hipMode = VirtualHipMode::Standing;
     }
     vr::HmdVector3d_t getAverageFootPosition()
     {
@@ -182,9 +256,9 @@ private:
     void calculateStandingPosition(vr::HmdVector3d_t & hipPosition) {
         // Initially use head position, project downwards
         hipPosition = KinectSettings::hmdPosition;
-        hipPosition.v[1] -= hipSettings.heightFromHMD; 
+        hipPosition.v[1] -= VirtualHips::settings.heightFromHMD; 
 
-        if (hipSettings.positionAccountsForFootTrackers &&
+        if (VirtualHips::settings.positionAccountsForFootTrackers &&
             footTrackersAvailable()) {
             vr::HmdVector3d_t averageFeetPos = getAverageFootPosition();
 
@@ -196,16 +270,16 @@ private:
     void calculateSittingPosition(vr::HmdVector3d_t & hipPosition) {
         // Initially use head position, project downwards
         hipPosition = KinectSettings::hmdPosition;
-        hipPosition.v[1] -= hipSettings.heightFromHMD; 
+        hipPosition.v[1] -= VirtualHips::settings.heightFromHMD; 
 
         // Prevents sinking when head gets closer to ground
-        if (hipPosition.v[1] <= hipSettings.hipThickness) {
-            hipPosition.v[1] = hipSettings.hipThickness;
+        if (hipPosition.v[1] <= VirtualHips::settings.hipThickness) {
+            hipPosition.v[1] = VirtualHips::settings.hipThickness;
         }
 
         // Use the x,z average of all tracked points - for now, turned off as it didn't have the desired result
         /*
-        if (hipSettings.positionAccountsForFootTrackers &&
+        if (VirtualHips::settings.positionAccountsForFootTrackers &&
             footTrackersAvailable()) {
             const vr::HmdVector3d_t & headPos = KinectSettings::hmdPosition;
 
@@ -229,17 +303,17 @@ private:
     void calculateLyingPosition(vr::HmdVector3d_t & hipPosition) {
         // Initially use head position, project downwards
         hipPosition = KinectSettings::hmdPosition;
-        hipPosition.v[1] -= hipSettings.heightFromHMD;
+        hipPosition.v[1] -= VirtualHips::settings.heightFromHMD;
 
         // Prevents sinking when head gets closer to ground
-        if (hipPosition.v[1] <= hipSettings.hipThickness) {
-            hipPosition.v[1] = hipSettings.hipThickness;
+        if (hipPosition.v[1] <= VirtualHips::settings.hipThickness) {
+            hipPosition.v[1] = VirtualHips::settings.hipThickness;
         }
 
         // Move the tracker horizontally to simulate hip position when lying down
         // https://math.stackexchange.com/questions/83404/finding-a-point-along-a-line-in-three-dimensions-given-two-points
 
-        if (hipSettings.positionAccountsForFootTrackers &&
+        if (VirtualHips::settings.positionAccountsForFootTrackers &&
             footTrackersAvailable()) {
             // Get the point 'd' units along the line from point 'A' to 'B'
             vr::HmdVector3d_t A = KinectSettings::hmdPosition;
@@ -250,7 +324,7 @@ private:
                 (B.v[1] - A.v[1]) * (B.v[1] - A.v[1]) +
                 (B.v[2] - A.v[2]) * (B.v[2] - A.v[2])
             );
-            //double d = hipSettings.heightFromHMD
+            //double d = VirtualHips::settings.heightFromHMD
             double d = distanceAB * ratio;
 
             vr::HmdVector3d_t BA = B - A;
@@ -277,7 +351,7 @@ private:
         // Calculate Position
         vr::HmdVector3d_t hipPosition{ 0 };
 
-        switch (hipSettings.hipMode) {
+        switch (VirtualHips::settings.hipMode) {
         case VirtualHipMode::Standing: {
             calculateStandingPosition(hipPosition);
             //LOG(INFO) << "Standing";
@@ -304,10 +378,10 @@ private:
         double pitch = 0;
         double roll = 0;
         toEulerAngle(KinectSettings::hmdRotation, pitch, yaw, roll);
-        switch (hipSettings.hipMode) {
+        switch (VirtualHips::settings.hipMode) {
         case VirtualHipMode::Standing: {
             
-            if (hipSettings.followHmdYawRotation) {
+            if (VirtualHips::settings.followHmdYawRotation) {
                 rotation = vrmath::quaternionFromRotationY(yaw);
             }
             break;
@@ -316,7 +390,7 @@ private:
             // As the hip tracker sinks further into the ground, rotate the hip upwards
             // Apply yaw first, then pitch
             vr::HmdQuaternion_t yawRotation = { 1,0,0,0 };
-            if (hipSettings.followHmdYawRotation) {
+            if (VirtualHips::settings.followHmdYawRotation) {
                 yawRotation = vrmath::quaternionFromRotationY(yaw);
             }
 
@@ -325,8 +399,8 @@ private:
             const double maxRotation = M_PI / 4.0; // 45 degrees up
 
             double rotationRatio = (
-                KinectSettings::hmdPosition.v[1] - hipSettings.heightFromHMD) 
-                / (hipSettings.sittingMaxHeightThreshold - hipSettings.heightFromHMD);
+                KinectSettings::hmdPosition.v[1] - VirtualHips::settings.heightFromHMD) 
+                / (VirtualHips::settings.sittingMaxHeightThreshold - VirtualHips::settings.heightFromHMD);
             double radiansToRotatePitch = -( maxRotation * rotationRatio);
             pitchRotation = vrmath::quaternionFromRotationX(radiansToRotatePitch);
             
@@ -339,7 +413,7 @@ private:
             vr::HmdQuaternion_t pitchRotation = vrmath::quaternionFromRotationAxis(M_PI_2, 0, 0, 1);
             vr::HmdQuaternion_t yawRotation = { 1,0,0,0 };
 
-            if (hipSettings.positionAccountsForFootTrackers &&
+            if (VirtualHips::settings.positionAccountsForFootTrackers &&
                 footTrackersAvailable()) {
                 // rotation between
                 auto rawQ = vrmath::get_rotation_between(KinectSettings::hmdPosition, getAverageFootPosition());

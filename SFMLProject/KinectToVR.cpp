@@ -505,6 +505,7 @@ void processLoop(KinectHandlerBase& kinect) {
         d.destroy();
     }
     KinectSettings::writeKinectSettings();
+    VirtualHips::saveSettings();
 
     //playspaceMovementAdjuster.resetPlayspaceAdjustments();
     if (eError == vr::EVRInitError::VRInitError_None) {
