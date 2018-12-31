@@ -47,7 +47,10 @@
 
  HRESULT KinectV1Handler::getStatusResult()
  {
-     return kinectSensor->NuiStatus();
+     if (kinectSensor)
+         return kinectSensor->NuiStatus();
+     else
+         return E_NUI_NOTCONNECTED;
  }
 
  std::string KinectV1Handler::statusResultString(HRESULT stat) {

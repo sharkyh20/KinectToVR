@@ -359,14 +359,21 @@ void setDefaultSignals() {
         if (PositionDeviceList->GetItemCount()) {
             auto globalIndex = selectedPositionDeviceIndex();
             auto d = TrackingPoolManager::getDeviceData(globalIndex);
-            d.parentHandler->identify(globalIndex, identifyPosDeviceButton->IsActive());
+            if (d.parentHandler) {
+                d.parentHandler->identify(globalIndex, identifyPosDeviceButton->IsActive());
+            }
+            else LOG(ERROR) << "Attempted to identify a device with no valid parent handler bound";
         }
     });
     identifyRotDeviceButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
         if (RotationDeviceList->GetItemCount()) {
             auto globalIndex = selectedRotationDeviceIndex();
             auto d = TrackingPoolManager::getDeviceData(globalIndex);
-            d.parentHandler->identify(globalIndex, identifyRotDeviceButton->IsActive());
+
+            if (d.parentHandler) {
+                d.parentHandler->identify(globalIndex, identifyRotDeviceButton->IsActive());
+            }
+            else LOG(ERROR) << "Attempted to identify a device with no valid parent handler bound";
         }
     });
 
@@ -444,7 +451,7 @@ void setColorTrackerSignals(ColorTracker & colorTracker) {
 int selectedPositionDeviceIndex() {
     
     int posIndex = PositionDeviceList->GetSelectedItem();
-    if (kinectJointDevicesHiddenFromList && trackerIdInKinectRange(posIndex))
+    if (kinectJointDevicesHiddenFromList && TrackingPoolManager::trackerIdInKinectRange(posIndex))
         posIndex += KVR::KinectJointCount;
     // Really need to find a less hacky way to do this - as without it, when the kinect joints are hidden,
     // selecting a PSMove (ID of 25) would still use the kinect joint because it's technically the 0th item in the list
@@ -452,7 +459,7 @@ int selectedPositionDeviceIndex() {
 }
 int selectedRotationDeviceIndex() {
     int rotIndex = RotationDeviceList->GetSelectedItem();
-    if (kinectJointDevicesHiddenFromList && trackerIdInKinectRange(rotIndex))
+    if (kinectJointDevicesHiddenFromList && TrackingPoolManager::trackerIdInKinectRange(rotIndex))
         rotIndex += KVR::KinectJointCount;
     // Really need to find a less hacky way to do this - as without it, when the kinect joints are hidden,
     // selecting a PSMove (ID of 25) would still use the kinect joint because it's technically the 0th item in the list
@@ -465,6 +472,7 @@ void addUserTrackerToList() {
 
     // Obtain Position Information
     int posIndex = selectedPositionDeviceIndex();
+    if (posIndex < 0 || posIndex == k_invalidTrackerID) return;
     KVR::TrackedDeviceInputData posData = TrackingPoolManager::getDeviceData(posIndex);
     
     temp.data.positionGlobalDeviceId = posIndex;
@@ -474,6 +482,7 @@ void addUserTrackerToList() {
 
     // Obtain Rotation Information
     int rotIndex = selectedRotationDeviceIndex();
+    if (rotIndex < 0 || rotIndex == k_invalidTrackerID) return;
     KVR::TrackedDeviceInputData rotData = TrackingPoolManager::getDeviceData(rotIndex);
     
     temp.data.rotationGlobalDeviceId = rotIndex;
@@ -583,8 +592,25 @@ void addTrackerToList(KVR::KinectJointType joint, KVR::KinectDeviceRole role, bo
 	TempTracker temp;
     temp.GUID = TrackersToBeInitialised.size();
     temp.data.isController = isController;
-    //temp.joint0 = joint;
-	//temp.joint1 = temp.joint0; //TEMP BEFORE SELECTION IMPLEMENTED
+    // Obtain Position Information
+    int posIndex = TrackingPoolManager::globalDeviceIDFromJoint(joint);
+    if (posIndex < 0 || posIndex == k_invalidTrackerID) return;
+    KVR::TrackedDeviceInputData posData = TrackingPoolManager::getDeviceData(posIndex);
+
+    temp.data.positionGlobalDeviceId = posIndex;
+    temp.positionTrackingOption = posData.positionTrackingOption;
+    temp.data.posDeviceName = posData.deviceName;
+    temp.data.posDeviceSerial = posData.serial;
+
+    // Obtain Rotation Information
+    int rotIndex = TrackingPoolManager::globalDeviceIDFromJoint(joint);
+    if (rotIndex < 0 || rotIndex == k_invalidTrackerID) return;
+    KVR::TrackedDeviceInputData rotData = TrackingPoolManager::getDeviceData(rotIndex);
+
+    temp.data.rotationGlobalDeviceId = rotIndex;
+    temp.rotationTrackingOption = rotData.rotationTrackingOption;
+    temp.data.rotDeviceName = rotData.deviceName;
+    temp.data.rotDeviceSerial = rotData.serial;
     temp.data.role = role;
 
     updateTrackerLists(temp);
@@ -1070,34 +1096,11 @@ void setBonesListItems() {
     // Set as default - to prevent garbage additions 
     BonesList->SelectItem(0);
 }
-bool trackerIdInKinectRange(uint32_t trackerId) {
-    static bool kinectIdLocated = false;
-    static uint32_t kinectFirstId = k_invalidTrackerID;
-    static uint32_t kinectLastId = k_invalidTrackerID;
-    if (!kinectIdLocated) {
-        for (int i = 0; i < TrackingPoolManager::count(); ++i) {
-            auto data = TrackingPoolManager::getDeviceData(i);
-            if (data.positionTrackingOption == KVR::JointPositionTrackingOption::Skeleton) {
-                kinectFirstId = i;
-                // Kinect Trackers spawned all together, so no need to account for different devices's between this range
-                kinectLastId = i + KVR::KinectJointCount - 1;
 
-                kinectIdLocated = true;
-                break;
-            }
-        }
-
-        // Outside for loop, in case it couldn't find any kinect joints, so any calls to this will always return false because the invalid ID is so high
-        //kinectIdLocated = true;
-    }
-    if (!kinectIdLocated)
-        return false;
-    return trackerId >= kinectFirstId && trackerId <= kinectLastId;
-}
 void setDeviceListItems(sfg::ComboBox::Ptr comboBox) {
     comboBox->Clear();
     for (int i = 0; i < TrackingPoolManager::count(); ++i) {
-        if (kinectJointDevicesHiddenFromList && trackerIdInKinectRange(i)) {
+        if (kinectJointDevicesHiddenFromList && TrackingPoolManager::trackerIdInKinectRange(i)) {
             continue;
         }
         comboBox->AppendItem(TrackingPoolManager::deviceGuiString(i));

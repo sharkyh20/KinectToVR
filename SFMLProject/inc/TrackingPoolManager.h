@@ -22,6 +22,52 @@ public:
     static uint32_t leftFootDeviceRotGID;
     static uint32_t rightFootDeviceRotGID;
 
+    static bool findKinectGlobalIDRange(uint32_t & kinectFirstId, uint32_t & kinectLastId) {
+        static bool kinectIdLocated = false;
+        static uint32_t firstId = k_invalidTrackerID;
+        static uint32_t lastId = k_invalidTrackerID;
+        if (!kinectIdLocated) {
+            for (int i = 0; i < TrackingPoolManager::count(); ++i) {
+                auto data = TrackingPoolManager::getDeviceData(i);
+                if (data.positionTrackingOption == KVR::JointPositionTrackingOption::Skeleton) {
+                    firstId = i;
+                    // Kinect Trackers spawned all together, so no need to account for different devices's between this range
+                    lastId = i + KVR::KinectJointCount - 1;
+
+                    kinectIdLocated = true;
+                    break;
+                }
+            }
+        }
+        kinectFirstId = firstId;
+        kinectLastId = lastId;
+        if (kinectIdLocated)
+            return true;
+        return false;
+    }
+
+    static bool trackerIdInKinectRange(uint32_t trackerId) {
+        
+        static uint32_t kinectFirstId = k_invalidTrackerID;
+        static uint32_t kinectLastId = k_invalidTrackerID;
+        findKinectGlobalIDRange(kinectFirstId, kinectLastId);
+
+        return trackerId >= kinectFirstId && trackerId <= kinectLastId;
+    }
+    static uint32_t globalDeviceIDFromJoint(KVR::KinectJointType joint) {
+        static uint32_t kinectFirstId = k_invalidTrackerID;
+        static uint32_t kinectLastId = k_invalidTrackerID;
+        if (findKinectGlobalIDRange(kinectFirstId, kinectLastId)) {
+
+            static uint32_t table[KVR::KinectJointCount];
+            for (int i = 0; i < KVR::KinectJointCount; ++i) {
+                table[i] = kinectFirstId + i;
+            }
+            return table[(int)joint];
+        }
+        return k_invalidTrackerID;
+    }
+
     static uint32_t locateGlobalDeviceID(std::string serial) {
         for (KVR::TrackedDeviceInputData & data : devicePool) {
             if (data.serial == serial) {
@@ -64,14 +110,19 @@ public:
         return TrackingPoolError::OK;
     }
     static KVR::TrackedDeviceInputData getDeviceData(uint32_t globalID) {
-        return devicePool[globalID];
+        if (globalID >= 0 && globalID < devicePool.size())
+            return devicePool[globalID];
+        return KVR::TrackedDeviceInputData();
     }
     static int count() {
         return devicePool.size();
     }
     static std::string deviceGuiString(uint32_t globalID) {
         // Have ID first, device name afters
-        return "GID: " + std::to_string(devicePool[globalID].deviceId) + " " + devicePool[globalID].deviceName;
+        if (globalID >= 0 && globalID < devicePool.size()) {
+            return "GID: " + std::to_string(devicePool[globalID].deviceId) + " " + devicePool[globalID].deviceName;
+        }
+        return "ERROR: DEVICE ID OUTSIDE OF POOL RANGE";
     }
 private:
     // The global device tracking data pool - where every device allocates it's corresponding place by registering an id
