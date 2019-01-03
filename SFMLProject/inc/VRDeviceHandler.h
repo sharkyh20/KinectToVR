@@ -274,7 +274,7 @@ private:
 
         // Prevents sinking when head gets closer to ground
         if (hipPosition.v[1] <= VirtualHips::settings.hipThickness) {
-            hipPosition.v[1] = VirtualHips::settings.hipThickness;
+            hipPosition.v[1] = VirtualHips::settings.hipThickness + 0.20;
         }
 
         // Use the x,z average of all tracked points - for now, turned off as it didn't have the desired result
@@ -313,8 +313,7 @@ private:
         // Move the tracker horizontally to simulate hip position when lying down
         // https://math.stackexchange.com/questions/83404/finding-a-point-along-a-line-in-three-dimensions-given-two-points
 
-        if (VirtualHips::settings.positionAccountsForFootTrackers &&
-            footTrackersAvailable()) {
+        if (footTrackersAvailable()) {
             // Get the point 'd' units along the line from point 'A' to 'B'
             vr::HmdVector3d_t A = KinectSettings::hmdPosition;
             vr::HmdVector3d_t B = getAverageFootPosition();
@@ -378,24 +377,32 @@ private:
         double pitch = 0;
         double roll = 0;
         toEulerAngle(KinectSettings::hmdRotation, pitch, yaw, roll);
+
+        vr::HmdQuaternion_t yawRotation = { 1,0,0,0 };
+        vr::HmdQuaternion_t pitchRotation = { 1,0,0,0 };
+        vr::HmdQuaternion_t rollRotation = { 1,0,0,0 };
+
         switch (VirtualHips::settings.hipMode) {
         case VirtualHipMode::Standing: {
             
-            if (VirtualHips::settings.followHmdYawRotation) {
-                rotation = vrmath::quaternionFromRotationY(yaw);
-            }
+            if (VirtualHips::settings.followHmdYawRotation)
+                yawRotation = vrmath::quaternionFromRotationY(yaw);
+            if (VirtualHips::settings.followHmdPitchRotation)
+                pitchRotation = vrmath::quaternionFromRotationX(pitch);
+            if (VirtualHips::settings.followHmdRollRotation)
+                rollRotation = vrmath::quaternionFromRotationZ(roll);
             break;
         }
         case VirtualHipMode::Sitting: {
             // As the hip tracker sinks further into the ground, rotate the hip upwards
             // Apply yaw first, then pitch
-            vr::HmdQuaternion_t yawRotation = { 1,0,0,0 };
+            
             if (VirtualHips::settings.followHmdYawRotation) {
                 yawRotation = vrmath::quaternionFromRotationY(yaw);
             }
 
             // Adjust up/down
-            vr::HmdQuaternion_t pitchRotation = { 1,0,0,0 };
+            
             const double maxRotation = M_PI / 4.0; // 45 degrees up
 
             double rotationRatio = (
@@ -403,36 +410,38 @@ private:
                 / (VirtualHips::settings.sittingMaxHeightThreshold - VirtualHips::settings.heightFromHMD);
             double radiansToRotatePitch = -( maxRotation * rotationRatio);
             pitchRotation = vrmath::quaternionFromRotationX(radiansToRotatePitch);
-            
-            rotation = pitchRotation * yawRotation; // Right side applied first
             break;
         }
         case VirtualHipMode::Lying: {
             // Follows HMD roll now, and yaw is based on lookat from HMD to feet
-            vr::HmdQuaternion_t rollRotation = vrmath::quaternionFromRotationZ(roll);
-            vr::HmdQuaternion_t pitchRotation = vrmath::quaternionFromRotationAxis(M_PI_2, 0, 0, 1);
-            vr::HmdQuaternion_t yawRotation = { 1,0,0,0 };
+            //rollRotation = vrmath::quaternionFromRotationZ(roll);
+            pitchRotation = vrmath::quaternionFromRotationX(M_PI_2);
+            yawRotation = { 1,0,0,0 };
 
-            if (VirtualHips::settings.positionAccountsForFootTrackers &&
-                footTrackersAvailable()) {
+            if (footTrackersAvailable()) {
                 // rotation between
                 auto rawQ = vrmath::get_rotation_between(KinectSettings::hmdPosition, getAverageFootPosition());
                 double lookAtYaw = 0;
                 double lookAtPitch = 0;
                 double lookAtRoll = 0;
+                
                 toEulerAngle(rawQ, lookAtPitch, lookAtYaw, lookAtRoll);
-
+                LOG(INFO) << lookAtYaw;
                 yawRotation = vrmath::quaternionFromRotationY(lookAtYaw);
+                pitchRotation = vrmath::quaternionFromRotationX(lookAtPitch);
+                rollRotation = vrmath::quaternionFromRotationZ(lookAtRoll);
+                //yawRotation = vrmath::quaternionFromRotationY(lookAtYaw) * vrmath::quaternionFromRotationY(yaw);
+                //pitchRotation = vrmath::quaternionFromRotationX(lookAtPitch) * vrmath::quaternionFromRotationX(pitch);
+                //rollRotation = vrmath::quaternionFromRotationZ(lookAtRoll) * vrmath::quaternionFromRotationZ(roll);
             }
-
-
-            rotation = rollRotation * pitchRotation * yawRotation;
             break;
         }
         default: {
             LOG(ERROR) << "Virtual Hip mode invalid!!!";
         }
         };
+
+        rotation = yawRotation * pitchRotation * rollRotation; // Right side applied first
 
         KVR::TrackedDeviceInputData data = defaultDeviceData(virtualHipsLocalId);
         data.deviceId = virtualHipsIds.globalID;

@@ -18,7 +18,7 @@ namespace vrmath {
     }
     vr::HmdQuaternion_t normalized(vr::HmdQuaternion_t a) {
         vr::HmdQuaternion_t q = a;
-        float magnitude = pow(length(q), 2);
+        float magnitude = length(q);
         q.w /= magnitude;
         q.x /= magnitude;
         q.y /= magnitude;
@@ -45,7 +45,7 @@ namespace vrmath {
 
     vr::HmdVector3d_t cross(vr::HmdVector3d_t v1, vr::HmdVector3d_t v2) {
         float x = (v1.v[1] * v2.v[2]) - (v1.v[2] * v2.v[1]);
-        float y = -((v1.v[0] * v2.v[2]) - (v1.v[2] * v2.v[0]));
+        float y = (v1.v[2] * v2.v[0]) - (v1.v[0] * v2.v[2]);
         float z = (v1.v[0] * v2.v[1]) - (v1.v[1] * v2.v[0]);
         return { x,y,z };
     }
@@ -114,7 +114,6 @@ void removeTrackerRolesInVRSettings() {
 
 void toEulerAngle(vr::HmdQuaternion_t q, double& pitch, double& yaw, double& roll)
 {
-    // y, x, z = Yaw, pitch, roll = heading, pitch, bank respectively
     vr::HmdVector3d_t v;
     double test = q.x * q.y + q.z * q.w;
     if (test > 0.499)
@@ -134,12 +133,12 @@ void toEulerAngle(vr::HmdQuaternion_t q, double& pitch, double& yaw, double& rol
     double sqx = q.x * q.x;
     double sqy = q.y * q.y;
     double sqz = q.z * q.z;
-    v.v[0] = asin(2 * test); // pitch
-    v.v[1] = atan2(2 * q.y * q.w - 2 * q.x * q.z, 1 - 2 * sqy - 2 * sqz); // heading
-    v.v[2] = atan2(2 * q.x * q.w - 2 * q.y * q.z, 1 - 2 * sqx - 2 * sqz); // bank
-    pitch = v.v[0];
+    v.v[0] = asin(2 * test); 
+    v.v[1] = atan2(2 * q.y * q.w - 2 * q.x * q.z, 1 - 2 * sqy - 2 * sqz); 
+    v.v[2] = atan2(2 * q.x * q.w - 2 * q.y * q.z, 1 - 2 * sqx - 2 * sqz); 
+    roll = v.v[0];
     yaw = v.v[1];
-    roll = v.v[2];
+    pitch = v.v[2];
 }
 vr::DriverPose_t defaultReadyDriverPose()
 {
