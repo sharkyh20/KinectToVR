@@ -159,14 +159,18 @@ void togglePosButton() {
     KinectPosButton->SetActive(KinectSettings::adjustingKinectRepresentationPos);
 }
 
+bool trackerConfigExists() {
+    // NOTE: Does not necessarily mean that it is valid
+    std::ifstream is(KVR::fileToDirPath(KVR::trackerConfig));
+    return !is.fail();
+}
 void saveLastSpawnedTrackers(std::vector<TempTracker> v_trackers)
 {
     std::vector<TempTrackerData> v_trackerData;
     for (TempTracker & t : v_trackers) {
         v_trackerData.push_back(t.data);
     }
-    std::wstring trackerConfig = L"lastTrackers.cfg";
-    std::ofstream os(KVR::fileToDirPath(trackerConfig));
+    std::ofstream os(KVR::fileToDirPath(KVR::trackerConfig));
     if (os.fail()) {
         //FAIL!!!
         LOG(ERROR) << "ERROR: COULD NOT WRITE TO TRACKER CONFIG FILE\n";
@@ -188,29 +192,28 @@ void saveLastSpawnedTrackers(std::vector<TempTracker> v_trackers)
 
 bool retrieveLastSpawnedTrackers()
 {
-    std::wstring trackerConfig = L"lastTrackers.cfg";
-    std::ifstream is(KVR::fileToDirPath(trackerConfig));
+    std::ifstream is(KVR::fileToDirPath(KVR::trackerConfig));
 
-    LOG(INFO) << "Attempted to load last set of spawned trackers at " << KVR::fileToDirPath(trackerConfig);
+    LOG(INFO) << "Attempted to load last set of spawned trackers at " << KVR::fileToDirPath(KVR::trackerConfig);
 
     std::vector<TempTrackerData> v_trackerData;
     //CHECK IF VALID
     if (is.fail()) {
-        error_trackerCfgNotFound(trackerConfig);
+        error_trackerCfgNotFound(KVR::trackerConfig);
         return false;
     }
     else {
-        LOG(INFO) << trackerConfig << " load attempted!";
+        LOG(INFO) << KVR::trackerConfig << " load attempted!";
         try {
             cereal::JSONInputArchive archive(is);
             archive(CEREAL_NVP(v_trackerData));
         }
         catch (cereal::Exception e) {
-            LOG(ERROR) << trackerConfig << "TRACKER FILE LOAD JSON ERROR: " << e.what();
+            LOG(ERROR) << KVR::trackerConfig << "TRACKER FILE LOAD JSON ERROR: " << e.what();
         }
     }
     if (v_trackerData.size() == 0) {
-        error_trackerCfgEmpty(trackerConfig);
+        error_trackerCfgEmpty(KVR::trackerConfig);
         return false;
     }
     for (TempTrackerData & data : v_trackerData) {
@@ -803,6 +806,10 @@ void setTrackerButtonSignals(vrinputemulator::VRInputEmulator &inputE, std::vect
         TrackerInitButton->SetState(sfg::Widget::State::INSENSITIVE);
         TrackerLastInitButton->SetState(sfg::Widget::State::INSENSITIVE);
     });
+    // Make sure that users don't get confused and hit the spawn last button when they don't need it
+    bool foundCachedTrackers = trackerConfigExists() ? true : false;
+    TrackerLastInitButton->Show(foundCachedTrackers);
+
     TrackerLastInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers, &inputE] {
         if (!retrieveLastSpawnedTrackers()) {
             return; // Don't actually spawn the trackers, as they will likely crash

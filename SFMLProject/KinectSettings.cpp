@@ -163,7 +163,8 @@ namespace SFMLsettings {
     
 }
 namespace KVR {
-    
+    std::wstring trackerConfig = L"lastTrackers.cfg";
+
     std::wstring fileToDirPath(std::wstring relativeFilePath) {
         return SFMLsettings::fileDirectoryPath + relativeFilePath;
     }

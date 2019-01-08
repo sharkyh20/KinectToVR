@@ -102,6 +102,8 @@ namespace vr {
     }
 }
 namespace KVR {
+    extern std::wstring trackerConfig;
+
     std::wstring fileToDirPath(std::wstring relativeFilePath);
     extern std::wstring ToUTF16(const std::string &data);
 

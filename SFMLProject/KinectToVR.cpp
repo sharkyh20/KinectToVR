@@ -316,7 +316,7 @@ void processLoop(KinectHandlerBase& kinect) {
     guiRef.setTrackingMethodsReference(v_trackingMethods);
 
     SkeletonTracker mainSkeletalTracker;
-    if (kinect.kVersion == KinectVersion::INVALID)
+    if (kinect.kVersion != KinectVersion::INVALID)
     {
         mainSkeletalTracker.initialise();
         kinect.initialiseSkeleton();
