@@ -176,14 +176,10 @@ namespace KVR {
     {
         return std::wstring_convert<std::codecvt_utf8<wchar_t>>().to_bytes(data);
     }
-    const char* inputDirForOpenVR(std::string file) {
-        const char* path;
-
+    std::string inputDirForOpenVR(std::string file) {
         std::string pathStr = ToUTF8(SFMLsettings::fileDirectoryPath) + "Input\\" + file;
-        path = pathStr.c_str();
-
-        std::cout << file << " PATH: " << path << '\n';
-        return path;
+        std::cout << file << " PATH: " << pathStr << '\n';
+        return pathStr;
     }
 
     TrackingSystemCalibration retrieveSystemCalibration(std::string systemName) {
@@ -270,7 +266,9 @@ namespace VRInput {
 }
 bool VRInput::initialiseVRInput()
 {
-    vr::EVRInputError iError = vr::VRInput()->SetActionManifestPath(KVR::inputDirForOpenVR("action-manifest.json"));
+    std::string path = KVR::inputDirForOpenVR("action-manifest.json");
+    const char * c_path = path.c_str();
+    vr::EVRInputError iError = vr::VRInput()->SetActionManifestPath(c_path);
     if (iError == vr::EVRInputError::VRInputError_None) {
         LOG(INFO) << "Action manifest path set correctly!";
     }

@@ -106,7 +106,7 @@ namespace KVR {
     extern std::wstring ToUTF16(const std::string &data);
 
     extern std::string ToUTF8(const std::wstring &data);
-    extern const char* inputDirForOpenVR(std::string file);
+    extern std::string inputDirForOpenVR(std::string file);
 
     // Each tracking system has it's global adjustments here, in the form
     // of their driver-from-world offsets, so that they can be reapplied at startup
