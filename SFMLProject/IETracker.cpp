@@ -55,7 +55,7 @@ void setTrackerDefaultProperties(vrinputemulator::VRInputEmulator &ie, uint32_t 
     using namespace vr;
     setDeviceProperty(ie, vrDeviceId, Prop_TrackingSystemName_String, "string", "psvr"); // Necessary for auto calibration to only apply to these trackers
     setDeviceProperty(ie, vrDeviceId, Prop_ModelNumber_String, "string", "Vive Controller MV");
-    setDeviceProperty(ie, vrDeviceId, Prop_RenderModelName_String, "string", "{htc}vr_tracker_vive_1_0"); // Changed for specific devices, but for now, 
+    setDeviceProperty(ie, vrDeviceId, Prop_RenderModelName_String, "string", "vr_controller_vive_1_5"); // Changed for specific devices, but for now, 
     setDeviceProperty(ie, vrDeviceId, Prop_WillDriftInYaw_Bool, "bool", "0");
     setDeviceProperty(ie, vrDeviceId, Prop_ManufacturerName_String, "string", "HTC");
     setDeviceProperty(ie, vrDeviceId, Prop_TrackingFirmwareVersion_String, "string", "1465809478 htcvrsoftware@firmware-win32 2016-06-13 FPGA 1.6/0/0 VRC 1465809477 Radio 1466630404");

@@ -100,6 +100,9 @@ namespace vr {
     {
         archive(v.v[0], v.v[1], v.v[2]);
     }
+    bool operator== (const vr::HmdVector3d_t &lhs, const vr::HmdVector3d_t &rhs);
+    bool operator== (const vr::HmdQuaternion_t &lhs, const vr::HmdQuaternion_t &rhs);
+    
 }
 namespace KVR {
     extern std::wstring trackerConfig;

@@ -261,17 +261,6 @@ void processLoop(KinectHandlerBase& kinect) {
     vrinputemulator::VRInputEmulator inputEmulator;
     attemptIEmulatorConnection(inputEmulator, guiRef);
 
-    // Function pointer for the currently selected calibration method, which can be swapped out for the others
-    // Only one calibration method can be active at a time
-    std::function<void
-    (double deltaT,
-        KinectHandlerBase &kinect,
-        vr::VRActionHandle_t &h_horizontalPos,
-        vr::VRActionHandle_t &h_verticalPos,
-        vr::VRActionHandle_t &h_confirmPos,
-        GUIHandler &guiRef)>
-        currentCalibrationMethod = ManualCalibrator::Calibrate;
-
 
     VRcontroller rightController(vr::TrackedControllerRole_RightHand);
     VRcontroller leftController(vr::TrackedControllerRole_LeftHand);
@@ -288,6 +277,7 @@ void processLoop(KinectHandlerBase& kinect) {
     verifyDefaultFilePath();
 
     if (eError == vr::VRInitError_None) {
+        VRInput::initialiseVRInput();
         // Set origins so that proper offsets for each coordinate system can be found
         KinectSettings::trackingOrigin = m_VRSystem->GetRawZeroPoseToStandingAbsoluteTrackingPose();
         KinectSettings::trackingOriginPosition = GetVRPositionFromMatrix(KinectSettings::trackingOrigin);
@@ -296,7 +286,7 @@ void processLoop(KinectHandlerBase& kinect) {
         guiRef.setVRSceneChangeButtonSignal(m_VRSystem);
         updateTrackerInitGuiSignals(inputEmulator, guiRef, v_trackers, m_VRSystem);
         setTrackerRolesInVRSettings();
-        VRInput::initialiseVRInput();
+        
     
         leftController.Connect(m_VRSystem);
         rightController.Connect(m_VRSystem);
@@ -305,6 +295,16 @@ void processLoop(KinectHandlerBase& kinect) {
         // Todo: implement binding system
         guiRef.loadK2VRIntoBindingsMenu(m_VRSystem);
     }
+    // Function pointer for the currently selected calibration method, which can be swapped out for the others
+        // Only one calibration method can be active at a time
+    std::function<void
+    (double deltaT,
+        KinectHandlerBase &kinect,
+        vr::VRActionHandle_t &h_horizontalPos,
+        vr::VRActionHandle_t &h_verticalPos,
+        vr::VRActionHandle_t &h_confirmPos,
+        GUIHandler &guiRef)>
+        currentCalibrationMethod = ManualCalibrator::Calibrate;
     guiRef.updateVRStatusLabel(eError);
 
     
@@ -523,7 +523,11 @@ void spawnAndConnectTracker(vrinputemulator::VRInputEmulator & inputE, std::vect
 }
 void spawnAndConnectTracker(vrinputemulator::VRInputEmulator & inputE, std::vector<KVR::KinectTrackedDevice>& v_trackers, KVR::KinectJointType mainJoint, KVR::KinectJointType secondaryJoint, KVR::KinectDeviceRole role)
 {
-    KVR::KinectTrackedDevice device(inputE, mainJoint, secondaryJoint, role);
+    uint32_t mainGID = TrackingPoolManager::globalDeviceIDFromJoint(mainJoint);
+    uint32_t secondaryGID = TrackingPoolManager::globalDeviceIDFromJoint(secondaryJoint);
+    KVR::KinectTrackedDevice device(inputE, mainGID, mainGID, role); // The secondary joint is a fallback, and is used for rotation/freezing calculations
+    device.joint0 = mainJoint;
+    device.joint1 = secondaryJoint;
     device.init(inputE);
     v_trackers.push_back(device);
 }
@@ -541,7 +545,7 @@ void spawnDefaultLowerBodyTrackers(vrinputemulator::VRInputEmulator & inputE, st
 
 void spawnAndConnectKinectTracker(vrinputemulator::VRInputEmulator &inputE, std::vector<KVR::KinectTrackedDevice> &v_trackers)
 {
-    KVR::KinectTrackedDevice kinectTrackerRef(inputE, KVR::KinectJointType::Head, KVR::KinectJointType::Head, KVR::KinectDeviceRole::KinectSensor);
+    KVR::KinectTrackedDevice kinectTrackerRef(inputE, TrackingPoolManager::kinectSensorGID, TrackingPoolManager::kinectSensorGID, KVR::KinectDeviceRole::KinectSensor);
     kinectTrackerRef.init(inputE);
     setKinectTrackerProperties(inputE, kinectTrackerRef.deviceId);
     v_trackers.push_back(kinectTrackerRef);

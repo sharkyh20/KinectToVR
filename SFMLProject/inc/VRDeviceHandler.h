@@ -469,7 +469,7 @@ private:
             data.deviceName = "Virtual Hips";
             data.serial = "SERIAL_HIPS";
             data.deviceId = virtualHipsLocalId;
-            data.customModelName = "vr_controller_01_mrhat";
+            data.customModelName = "vr_controller_vive_1_5";
 
             return data;
         }

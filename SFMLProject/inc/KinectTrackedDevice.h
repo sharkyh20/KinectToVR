@@ -105,19 +105,27 @@ namespace KVR {
                 nextUpdatePositionIsSet = true;
             }
         }
-        void setPoseForNextUpdate(vr::DriverPose_t pose, bool readyForVR) {
+        void setPoseForNextUpdate(vr::DriverPose_t pose, bool readyForVR = true) {
             if (!nextUpdatePoseIsSet) {
                 nextUpdatePoseIsSet = readyForVR;
                 nextUpdatePose = pose;
             }
         }
         void update() {
+            if (sensorShouldSkipUpdate())
+                return;
             // Send through the positions for the next update of the controller
             // - called for each controller at the end of the TrackingMethod iteration
             nextUpdatePositionIsSet = false;
             nextUpdateRotationIsSet = false;
 
-            
+            // If invalid
+            if (nextUpdatePosition == vr::HmdVector3d_t{ 0,0,0 }
+                || nextUpdateRotation == vr::HmdQuaternion_t{ 1, 0, 0, 0 }) {
+                nextUpdatePoseIsSet = false;
+                update(lastValidPose);
+                return;
+            }
             if (nextUpdatePoseIsSet) {
                 // If pose already handled entirely by tracking method
                 // and ready to be sent directly to IE
@@ -128,20 +136,15 @@ namespace KVR {
                 
                 // Calibrate off the device's own offsets
 
-
                 applyInputEmulatorOffsets(nextUpdatePose);
                 update(nextUpdatePose);
                 
                 nextUpdatePoseIsSet = false;
+                lastValidPose = nextUpdatePose;
                 return;
             }
 
             vr::DriverPose_t pose{};
-
-            usingKinectCalibrationModel = false;
-            if (usingKinectCalibrationModel) {
-                applyKinectArrowCalibrationToTracker(nextUpdateRotation, nextUpdatePosition);
-            }
             pose.deviceIsConnected = true;
 
             pose.qRotation = nextUpdateRotation;
@@ -162,6 +165,8 @@ namespace KVR {
 
             pose.result = vr::TrackingResult_Running_OK;
             inputEmulatorRef.setVirtualDevicePose(deviceId, pose);
+
+            lastValidPose = pose;
         }
 
         void applyInputEmulatorOffsets(vr::DriverPose_t & nextUpdatePose)
@@ -365,7 +370,7 @@ namespace KVR {
         KVR::KinectJoint joint0 = KVR::KinectJointType::INVALID;
         KVR::KinectJoint joint1 = KVR::KinectJointType::INVALID;
 
-        std::string defaultModelName{ "{htc}vr_tracker_vive_1_0" };
+        std::string defaultModelName{ "vr_controller_vive_1_5" };
         std::string customModelName{ defaultModelName }; // Set by the device handler in the input data
 
         bool invisible = false;
@@ -375,6 +380,7 @@ namespace KVR {
         vr::HmdVector3_t trackedPositionVROffset;
         vr::HmdVector3_t lastRawPos{ 0,0,0 };
 
+        vr::DriverPose_t lastValidPose = {};
         vr::DriverPose_t nextUpdatePose = {};
         bool nextUpdatePoseIsSet = false;
 

@@ -162,6 +162,19 @@ namespace SFMLsettings {
     
     
 }
+namespace vr {
+    bool operator== (const vr::HmdVector3d_t &lhs, const vr::HmdVector3d_t &rhs) {
+        return lhs.v[0] == rhs.v[0]
+            && lhs.v[1] == rhs.v[1]
+            && lhs.v[2] == rhs.v[2];
+    }
+    bool operator== (const vr::HmdQuaternion_t &lhs, const vr::HmdQuaternion_t &rhs) {
+        return lhs.w == rhs.w
+            && lhs.x == rhs.x
+            && lhs.y == rhs.y
+            && lhs.z == rhs.z;
+    }
+}
 namespace KVR {
     std::wstring trackerConfig = L"lastTrackers.cfg";
 

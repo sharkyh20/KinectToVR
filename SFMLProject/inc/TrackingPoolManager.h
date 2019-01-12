@@ -22,7 +22,13 @@ public:
     static uint32_t leftFootDeviceRotGID;
     static uint32_t rightFootDeviceRotGID;
 
-    static bool findKinectGlobalIDRange(uint32_t & kinectFirstId, uint32_t & kinectLastId) {
+    static uint32_t kinectFirstId;
+    static uint32_t kinectLastId;
+    static uint32_t kinectJointToGlobalIDTable[KVR::KinectJointCount];
+
+    static uint32_t kinectSensorGID;
+
+    static bool findKinectGlobalIDRange() {
         static bool kinectIdLocated = false;
         static uint32_t firstId = k_invalidTrackerID;
         static uint32_t lastId = k_invalidTrackerID;
@@ -47,27 +53,21 @@ public:
     }
 
     static bool trackerIdInKinectRange(uint32_t trackerId) {
-        
-        static uint32_t kinectFirstId = k_invalidTrackerID;
-        static uint32_t kinectLastId = k_invalidTrackerID;
-        findKinectGlobalIDRange(kinectFirstId, kinectLastId);
-
+        findKinectGlobalIDRange();
         return trackerId >= kinectFirstId && trackerId <= kinectLastId;
     }
     static uint32_t globalDeviceIDFromJoint(KVR::KinectJointType joint) {
-        static uint32_t kinectFirstId = k_invalidTrackerID;
-        static uint32_t kinectLastId = k_invalidTrackerID;
-        if (findKinectGlobalIDRange(kinectFirstId, kinectLastId)) {
-
-            static uint32_t table[KVR::KinectJointCount];
+        if (kinectFirstId == k_invalidTrackerID
+            && kinectLastId == k_invalidTrackerID) {
+            findKinectGlobalIDRange();
             for (int i = 0; i < KVR::KinectJointCount; ++i) {
-                table[i] = kinectFirstId + i;
+                kinectJointToGlobalIDTable[i] = kinectFirstId + i;
             }
-            return table[(int)joint];
-        }
+            return kinectJointToGlobalIDTable[(int)joint];
+        } else
+            return kinectJointToGlobalIDTable[(int)joint];
         return k_invalidTrackerID;
     }
-
     static uint32_t locateGlobalDeviceID(std::string serial) {
         for (KVR::TrackedDeviceInputData & data : devicePool) {
             if (data.serial == serial) {
