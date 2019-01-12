@@ -207,11 +207,12 @@ bool KinectV1Handler::getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdV
             }
 
             // Don't track if both points are inferred
-            if (jointsInferred(device.joint0, device.joint1, skeletonFrame.SkeletonData[i]))
+            bool ignoreInferredJoints = true;
+            if (ignoreInferredJoints && jointsInferred(device.joint0, device.joint1, skeletonFrame.SkeletonData[i]))
             {
                 return false;
             }
-            else
+            
             {
                 float jointX = jointPositions[convertJoint(device.joint0)].x;
                 float jointY = jointPositions[convertJoint(device.joint0)].y;
@@ -219,10 +220,10 @@ bool KinectV1Handler::getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdV
                 position = vr::HmdVector3d_t{ jointX,jointY,jointZ };
 
                 //Rotation - Need to seperate into function
-                Vector4 kRotation = { 0,0,0,0 };
+                Vector4 kRotation = { 0,0,0,1 };
                 switch (device.rotationFilterOption) {
                 case KVR::JointRotationFilterOption::Unfiltered:
-                    kRotation = boneOrientations[convertJoint(device.joint1)].absoluteRotation.rotationQuaternion;
+                    kRotation = boneOrientations[convertJoint(device.joint0)].absoluteRotation.rotationQuaternion;
                     break;
                 case KVR::JointRotationFilterOption::Filtered:
                     kRotation = rotFilter.GetFilteredJoints()[convertJoint(device.joint0)];
