@@ -75,7 +75,7 @@ public:
     }
 
     // Initialize the filter with a set of TransformSmoothParameters.
-    void Init(SmoothingParameters smoothingParameters)
+    void Init(const SmoothingParameters & smoothingParameters)
     {
         smoothParameters = smoothingParameters;
 
@@ -153,15 +153,15 @@ private:
             vJointPosition.z != 0.0f);
     }
     sf::Vector3f normalise(sf::Vector3f v) {
-        float  length = v.x*v.x + v.y*v.y + v.z*v.z;
-        if (length == 0)
+        float  vecLength = v.x*v.x + v.y*v.y + v.z*v.z;
+        if (vecLength == 0)
             return v;
-        length = 1.0 / sqrt(length);
+        vecLength = 1.0 / sqrt(vecLength);
 
         return {
-            v.x * length,
-            v.y * length,
-            v.z * length };
+            v.x * vecLength,
+            v.y * vecLength,
+            v.z * vecLength };
     }
     bool equal(const Vector4& lhs, const Vector4& rhs) {
         return

@@ -1,15 +1,19 @@
 #pragma once
 
 #include "TrackingMethod.h"
+#include "logging.h"
 class SkeletonTracker : public TrackingMethod {
     // For now, always register the kinect FIRST, until there's some structure which binds joints and global id's
 public:
-    SkeletonTracker() {}
+    SkeletonTracker() { 
+        std::fill(kinectJointGIDs, kinectJointGIDs + KVR::KinectJointCount, k_invalidTrackerID);
+    }
     ~SkeletonTracker() {}
 
-    uint32_t kinectJointGIDs[KVR::KinectJointCount]{ k_invalidTrackerID };
+    uint32_t kinectJointGIDs[KVR::KinectJointCount];
 
     void initialise() {
+        LOG(INFO) << "Initialising Skeleton Tracking Method...";
         for (int i = 0; i < KVR::KinectJointCount; ++i) {
             KVR::TrackedDeviceInputData data = defaultDeviceData(i);
             uint32_t gID = k_invalidTrackerID;

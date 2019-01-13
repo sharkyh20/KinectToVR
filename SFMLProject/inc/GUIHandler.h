@@ -278,8 +278,10 @@ void connectPSMoveHandlerGUIEvents() {
 
 void initialisePSMoveHandlerIntoGUI()
 {
-    if (psMoveHandler.active)
+    if (psMoveHandler.active) {
+        LOG(INFO) << "Tried to initialise PSMoveHandler in the GUI, but it was already active";
         return;
+    }
 
     auto errorCode = psMoveHandler.initialise();
 
@@ -699,12 +701,17 @@ void loadK2VRIntoBindingsMenu(vr::IVRSystem * & m_VRSystem) {
     // Only scene apps currently actually load into the Bindings menu
     // So, this momentarily opens the vrsystem as a scene, and closes it
     // Which actually allows the menu to stay open, while still functioning as normal
-    vr::EVRInitError eError = vr::VRInitError_None;
-    vr::VR_Shutdown();
-    m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Scene);
-    Sleep(100); // Necessary because of SteamVR timing occasionally being too quick to change the scenes
-    vr::VR_Shutdown();
-    m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Background);
+    do {
+        vr::EVRInitError eError = vr::VRInitError_None;
+        vr::VR_Shutdown();
+        LOG(INFO) << "(Workaround/Hack) Loading K2VR into bindings menu...";
+        m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Scene);
+        Sleep(100); // Necessary because of SteamVR timing occasionally being too quick to change the scenes
+        vr::VR_Shutdown();
+        m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Background);
+        LOG_IF(eError != vr::EVRInitError::VRInitError_None, ERROR) << " (Workaround/Hack) VR System failed to reinitialise, attempting again...";
+    } while (m_VRSystem == nullptr); // Potential Segfault if not actually initialised and used later on
+    LOG(INFO) << "(Workaround/Hack) Successfully loaded K2VR into bindings menu!";
 }
 void setVRSceneChangeButtonSignal(vr::IVRSystem * & m_VRSystem) {
     ActivateVRSceneTypeButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &m_VRSystem] {

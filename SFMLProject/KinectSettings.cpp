@@ -103,7 +103,7 @@ namespace KinectSettings {
                 archive(globalFontSize);
                 archive(secondaryTrackingOriginOffset);
             }
-            catch(cereal::RapidJSONException e){
+            catch(cereal::RapidJSONException & e){
                 LOG(ERROR) << "CONFIG FILE LOAD JSON ERROR: " << e.what();
             }
             kinectRadRotation = { rot[0], rot[1], rot[2] };
@@ -138,7 +138,7 @@ namespace KinectSettings {
                     CEREAL_NVP(secondaryTrackingOriginOffset)
                 );
             }
-            catch (cereal::RapidJSONException e) {
+            catch (cereal::RapidJSONException & e) {
                 LOG(ERROR) << "CONFIG FILE SAVE JSON ERROR: " << e.what();
             }
             
@@ -178,10 +178,10 @@ namespace vr {
 namespace KVR {
     std::wstring trackerConfig = L"lastTrackers.cfg";
 
-    std::wstring fileToDirPath(std::wstring relativeFilePath) {
+    std::wstring fileToDirPath(const std::wstring & relativeFilePath) {
         return SFMLsettings::fileDirectoryPath + relativeFilePath;
     }
-    std::wstring ToUTF16(const std::string &data)
+    std::wstring ToUTF16(const std::string & data)
     {
         return std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(data);
     }
@@ -190,13 +190,13 @@ namespace KVR {
     {
         return std::wstring_convert<std::codecvt_utf8<wchar_t>>().to_bytes(data);
     }
-    std::string inputDirForOpenVR(std::string file) {
+    std::string inputDirForOpenVR(const std::string & file) {
         std::string pathStr = ToUTF8(SFMLsettings::fileDirectoryPath) + "Input\\" + file;
         std::cout << file << " PATH: " << pathStr << '\n';
         return pathStr;
     }
 
-    TrackingSystemCalibration retrieveSystemCalibration(std::string systemName) {
+    TrackingSystemCalibration retrieveSystemCalibration(const std::string & systemName) {
         std::wstring trackingSystemConfig = ToUTF16(systemName) + L".tracking";
         std::ifstream is(KVR::fileToDirPath(trackingSystemConfig));
         LOG(INFO) << "Attempted tracking system load: " << KVR::fileToDirPath(trackingSystemConfig) << '\n';
@@ -214,14 +214,13 @@ namespace KVR {
 
             vr::HmdQuaternion_t driverFromWorldRotation = { 1,0,0,0 };
             vr::HmdVector3d_t driverFromWorldPosition = { 0,0,0 };
-            int b = 0;
 
             try {
                 cereal::JSONInputArchive archive(is);
                 archive(CEREAL_NVP(driverFromWorldRotation));
                 archive(CEREAL_NVP(driverFromWorldPosition));
             }
-            catch (cereal::Exception e) {
+            catch (cereal::Exception & e) {
                 LOG(ERROR) << systemName << "TRACKING FILE LOAD JSON ERROR: " << e.what();
             }
             
@@ -231,7 +230,7 @@ namespace KVR {
         }
         return calibration;
     }
-    void saveSystemCalibration(std::string systemName, TrackingSystemCalibration calibration) {
+    void saveSystemCalibration(const std::string & systemName, TrackingSystemCalibration calibration) {
         std::wstring trackingSystemConfig = ToUTF16(systemName) + L".tracking";
         std::ofstream os(KVR::fileToDirPath(trackingSystemConfig));
         if (os.fail()) {
@@ -249,7 +248,7 @@ namespace KVR {
                 archive(CEREAL_NVP(driverFromWorldRotation));
                 archive(CEREAL_NVP(driverFromWorldPosition));
             }
-            catch (cereal::RapidJSONException e) {
+            catch (cereal::RapidJSONException & e) {
                 LOG(ERROR) << systemName << "TRACKING FILE SAVE JSON ERROR: " << e.what();
             }
 

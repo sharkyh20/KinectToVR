@@ -176,7 +176,7 @@ void attemptIEmulatorConnection(vrinputemulator::VRInputEmulator & inputEmulator
         inputEmulator.connect();
         LOG_IF(inputEmulator.isConnected(), INFO) << "InputEmulator connected successfully!";
     }
-    catch (vrinputemulator::vrinputemulator_connectionerror e) {
+    catch (vrinputemulator::vrinputemulator_connectionerror & e) {
         guiRef.updateEmuStatusLabelError(e);
         LOG(ERROR) << "Attempted connection to Input Emulator" << std::to_string(e.errorcode) + " " + e.what() + "\n\n Is SteamVR open and InputEmulator installed?";
     }
@@ -288,9 +288,9 @@ void processLoop(KinectHandlerBase& kinect) {
         setTrackerRolesInVRSettings();
         
     
-        leftController.Connect(m_VRSystem);
-        rightController.Connect(m_VRSystem);
-        guiRef.setReconnectControllerButtonSignal(leftController, rightController, m_VRSystem);
+        //leftController.Connect(m_VRSystem);
+        //rightController.Connect(m_VRSystem);
+        //guiRef.setReconnectControllerButtonSignal(leftController, rightController, m_VRSystem);
 
         // Todo: implement binding system
         guiRef.loadK2VRIntoBindingsMenu(m_VRSystem);
