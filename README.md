@@ -55,7 +55,7 @@ For the Xbox One Kinect:
   	* If Windows won't detect it, you can try looking through Microsoft's troubleshooting [here](https://support.xbox.com/en-AU/xbox-on-windows/accessories/kinect-for-windows-v2-known-issues)
 2. Point your Kinect into your VR area
 	* I recommend turning on the Draw Skeleton checkbox while adjusting your sensor position, so that you can visualise where it's tracking. Remember to turn it off, as it may cause a little lag.
-1. Open SteamVR with your headset plugged in, and install InputEmulator.
+1. Open SteamVR with your headset plugged in, and install InputEmulator. Additionally, make sure to install https://github.com/sharkyh20/OpenVR-InputEmulator/releases/tag/SteamVR-Fix as after November 2018, InputEmulator broke a little (A lot).
 1. SteamVR Home blocks the trackers from appearing - you need to exit it so that you are in the Steam Grey void area to see them.
 1. Run the corresponding process in the KinectToVR folder
 
@@ -76,6 +76,37 @@ For the Xbox One Kinect:
 1. The trackers may not fit your position still, so you need to adjust the rotation, follow the same process with the rotation checkbox.
 
 Unfortunately, due to the limitations of the Kinect, it can only detect a skeleton head-on and it may jitter or get occluded fairly easily as it is only one sensor. This means that with tracking enabled, you're going to have to stand facing the Kinect, like the old-fashioned 2-sensor Oculus configuration. I can't really do anything about this limitation. But the Xbox One suffers a lot less from this than the Xbox 360.
+
+## If you are after the PSMoveService Instructions
+
+# KinectToVR PSMove Beta Test Instructions (As of 0.6.0)
+
+https://github.com/sharkyh20/KinectToVR/releases/tag/a0.6.0
+
+### The PSEye camera is currently the only supported camera, due to this being the PSMoveService test. Kinect support will come when it is ready
+
+### Again, just to reiterate: this is not a stable version, and is purely for testing - the process will likely be frustrating to setup if you aren't savvy with PSMoveService, and there are many tiny things that you need to ensure are working correctly. But when they *do* work correctly, 360 degree tracking baybee.
+
+# Notes:
+
+* Make sure you've applied the Input Emulator DLL fix from my fork of InputEmulator
+* Use PSMoveService version https://github.com/cboulay/PSMoveService/releases/tag/v0.9-alpha9.0.1
+* Follow through with the Setup of the PSMove stuff here: https://github.com/cboulay/PSMoveService/wiki
+* Additionally, to spawn Virtual Trackers (Using coloured ping pong balls tracked by PSEyes): https://github.com/HipsterSloth/PSMoveSteamVRBridge/wiki/Virtual-Controller-Setup
+
+Once all that is setup, and your SteamVR doesn't boot into Safe Mode and crash from other drivers (OVR Advanced Settings is the likely other culprit: updated version here: https://github.com/ykeara/OpenVR-AdvancedSettings/releases/tag/v2.7) Follow on to the next steps.
+
+# To use the PSMoves with K2VR:
+1. Open up the K2VR/driver/scripts directory
+1. Run Install.bat - make sure it says it installed successfully
+    * If you move the location of K2VR, make sure to Uninstall and reinstall it with the batch scripts
+1. Have PSMoveService running, and all of your PSMove's connected with the cameras
+1. Open KinectToVR's 'KinectLessProcess.exe (Doesn't require any kinect connected at all, and actually recommended if not using skeletal tracking)
+1. Go to the Tracking Methods Tab, click 'Run PSMove Handler'
+1. If it ran successfully, go to the Adv. Trackers tab, and select the PSMove's corresponding to your left foot position and rotation (The same PSMove ID), set it's role to 'Left Foot', and click Add.
+1. Repeat this process for the right foot, and hip trackers respectively.
+1. Go back to the main menu of K2VR and click the spawn tracker button.
+1. Wear your headset. Hold any PSMove to the bottom of the front of your headset, with the buttons facing you, and look directly forwards in SteamVR. Hold the START + SELECT buttons, and it should be calibrated. Retry it as many times as you want until it feels right.
 
 ### VRChat
 
