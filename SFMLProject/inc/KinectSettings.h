@@ -126,6 +126,9 @@ namespace KVR {
 }
 
 namespace VRInput {
+    // Switch to fall back to legacy controls when the new SteamVR Input system breaks.
+    extern bool legacyInputModeEnabled;
+
     // Action Handles
     extern vr::VRActionHandle_t moveHorizontallyHandle;
     extern vr::VRActionHandle_t moveVerticallyHandle;

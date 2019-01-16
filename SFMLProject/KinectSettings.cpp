@@ -259,6 +259,8 @@ namespace KVR {
 # define M_PI           3.14159265358979323846
 
 namespace VRInput {
+    bool legacyInputModeEnabled;
+
     // Action Handles
     vr::VRActionHandle_t moveHorizontallyHandle;
     vr::VRActionHandle_t moveVerticallyHandle;
@@ -315,5 +317,41 @@ bool VRInput::initialiseVRInput()
 void VRInput::updateVRInput()
 {
     vr::EVRInputError iError = vr::VRInput()->UpdateActionState(&activeActionSet, sizeof(activeActionSet), 1);
-    LOG_IF(iError != vr::EVRInputError::VRInputError_None, ERROR) << "Error when updating input action state, EVRInputError Code: " << (int)iError;
+    if (iError != vr::EVRInputError::VRInputError_None) {
+        LOG(ERROR) << "Error when updating input action state, EVRInputError Code: " << (int)iError;
+        return;
+    }
+    vr::InputAnalogActionData_t moveHorizontallyData{};
+    iError = vr::VRInput()->GetAnalogActionData(
+        moveHorizontallyHandle,
+        &moveHorizontallyData,
+        sizeof(moveHorizontallyData),
+        vr::k_ulInvalidInputValueHandle);
+
+    vr::InputAnalogActionData_t moveVerticallyData{};
+    iError = vr::VRInput()->GetAnalogActionData(
+        moveVerticallyHandle,
+        &moveVerticallyData,
+        sizeof(moveVerticallyData),
+        vr::k_ulInvalidInputValueHandle);
+
+    vr::InputDigitalActionData_t confirmPosData{};
+    iError = vr::VRInput()->GetDigitalActionData(
+        confirmCalibrationHandle,
+        &confirmPosData,
+        sizeof(confirmPosData),
+        vr::k_ulInvalidInputValueHandle);
+
+    // Ugly Hack until Valve fixes this behaviour ---------
+    if (iError == vr::EVRInputError::VRInputError_InvalidHandle) {
+        // SteamVR's latest wonderful bug/feature:
+        // Switches to Legacy mode on any application it doesn't recognize
+        // Meaning that the new system isn't used at all...
+        // Why god. Why do you taunt me so?
+        VRInput::legacyInputModeEnabled = true;
+    }
+    else {
+        VRInput::legacyInputModeEnabled = false;
+    }
+    // -----------------------------------------------------
 }

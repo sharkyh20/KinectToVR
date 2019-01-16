@@ -50,14 +50,7 @@ public:
     */
 private:
     static void adjustHorizontalPosition(double deltaT, vr::VRActionHandle_t & h_horizontalPos) {
-        vr::InputAnalogActionData_t moveHorizontallyData{};
-        vr::EVRInputError iError;
-        iError = vr::VRInput()->GetAnalogActionData(
-            h_horizontalPos,
-            &moveHorizontallyData,
-            sizeof(moveHorizontallyData),
-            vr::k_ulInvalidInputValueHandle);
-
+        using namespace VRInput;
         if (moveHorizontallyData.bActive) {
             float x = moveHorizontallyData.x;
             float y = moveHorizontallyData.y;
@@ -66,29 +59,15 @@ private:
         }
     }
     static void adjustVerticalPosition(double deltaT, vr::VRActionHandle_t & h_verticalPos) {
-        vr::InputAnalogActionData_t moveVerticallyData{};
-        vr::EVRInputError iError;
-        iError = vr::VRInput()->GetAnalogActionData(
-            h_verticalPos,
-            &moveVerticallyData,
-            sizeof(moveVerticallyData),
-            vr::k_ulInvalidInputValueHandle);
-
+        using namespace VRInput;
         if (moveVerticallyData.bActive) {
             float y = moveVerticallyData.y;
             KinectSettings::kinectRepPosition.v[1] += deltaScaled(1.0, deltaT) * y;
         }
     }
     static void confirmPosition(vr::VRActionHandle_t & h_confirmPos, GUIHandler & guiRef) {
-        vr::InputDigitalActionData_t confirmPosData{};
-        vr::EVRInputError iError;
-        iError = vr::VRInput()->GetDigitalActionData(
-            h_confirmPos,
-            &confirmPosData,
-            sizeof(confirmPosData),
-            vr::k_ulInvalidInputValueHandle);
-
-        if (confirmPosData.bState) {
+        using namespace VRInput;
+        if (confirmCalibrationData.bState) {
             KinectSettings::adjustingKinectRepresentationPos = false;
             KinectSettings::sensorConfigChanged = true;
             guiRef.togglePosButton();
@@ -99,43 +78,22 @@ private:
     }
 
     static void adjustYawRotation(double deltaT, vr::VRActionHandle_t & h_horizontalPos) {
-        vr::InputAnalogActionData_t moveHorizontallyData{};
-        vr::EVRInputError iError;
-        iError = vr::VRInput()->GetAnalogActionData(
-            h_horizontalPos,
-            &moveHorizontallyData,
-            sizeof(moveHorizontallyData),
-            vr::k_ulInvalidInputValueHandle);
-
+        using namespace VRInput;
         if (moveHorizontallyData.bActive) {
             float x = moveHorizontallyData.x;
             KinectSettings::kinectRadRotation.v[1] += deltaScaled(3.0, deltaT) * x;
         }
     }
     static void adjustPitchRotation(double deltaT, vr::VRActionHandle_t & h_verticalPos) {
-        vr::InputAnalogActionData_t moveVerticallyData{};
-        vr::EVRInputError iError;
-        iError = vr::VRInput()->GetAnalogActionData(
-            h_verticalPos,
-            &moveVerticallyData,
-            sizeof(moveVerticallyData),
-            vr::k_ulInvalidInputValueHandle);
-
+        using namespace VRInput;
         if (moveVerticallyData.bActive) {
             float y = moveVerticallyData.y;
             KinectSettings::kinectRadRotation.v[0] += deltaScaled(3.0, deltaT) * y;
         }
     }
     static void confirmRotation(vr::VRActionHandle_t & h_confirmRot, GUIHandler & guiRef) {
-        vr::InputDigitalActionData_t confirmRotData{};
-        vr::EVRInputError iError;
-        iError = vr::VRInput()->GetDigitalActionData(
-            h_confirmRot,
-            &confirmRotData,
-            sizeof(confirmRotData),
-            vr::k_ulInvalidInputValueHandle);
-
-        if (confirmRotData.bState) {
+        using namespace VRInput;
+        if (confirmCalibrationData.bState) {
             KinectSettings::adjustingKinectRepresentationRot = false;
             KinectSettings::sensorConfigChanged = true;
             guiRef.toggleRotButton();
