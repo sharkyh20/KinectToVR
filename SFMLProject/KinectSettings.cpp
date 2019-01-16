@@ -68,7 +68,7 @@ namespace KinectSettings {
     vr::HmdQuaternion_t kinectRepRotation{0,0,0,0};  //TEMP
     vr::HmdVector3d_t kinectRadRotation{0,0,0};
     vr::HmdVector3d_t kinectRepPosition{0,0,0};
-    bool sensorConfigChanged = false;
+    bool sensorConfigChanged = true; // First time used, it's config has changed internally
 
     bool adjustingKinectRepresentationRot = false;
     bool adjustingKinectRepresentationPos = false;
