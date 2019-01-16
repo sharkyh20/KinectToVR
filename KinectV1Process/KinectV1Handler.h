@@ -9,8 +9,8 @@ class KinectV1Handler : public KinectHandlerBase {
 public:
     KinectV1Handler()
     {
-        initialise();
-        initOpenGL();
+        KinectV1Handler::initialise();
+        KinectV1Handler::initOpenGL();
     }
     HANDLE kinectRGBStream = nullptr;
     HANDLE kinectDepthStream = nullptr;

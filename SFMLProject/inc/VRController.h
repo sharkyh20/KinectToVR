@@ -45,11 +45,7 @@ public:
                 controllerID = m_HMDSystem->GetTrackedDeviceIndexForControllerRole(controllerType);
             }
             else {
-                lastStateValid = m_HMDSystem->GetControllerState(controllerID, &state_, sizeof(state_));
-                vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
-                m_HMDSystem->GetDeviceToAbsoluteTrackingPose(
-                    vr::ETrackingUniverseOrigin::TrackingUniverseStanding, 0, poses, vr::k_unMaxTrackedDeviceCount);
-                controllerPose = poses[controllerID];
+                lastStateValid = m_HMDSystem->GetControllerStateWithPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, controllerID, &state_, sizeof(state_), &controllerPose);
                 if (lastStateValid) {
                     prevState_ = state_;
                 }

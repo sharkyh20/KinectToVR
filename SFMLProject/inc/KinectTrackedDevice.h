@@ -119,9 +119,10 @@ namespace KVR {
             nextUpdatePositionIsSet = false;
             nextUpdateRotationIsSet = false;
 
-            // If invalid
-            if (nextUpdatePosition == vr::HmdVector3d_t{ 0,0,0 }
-                || nextUpdateRotation == vr::HmdQuaternion_t{ 1, 0, 0, 0 }) {
+            /* bool poseDataInvalid = (nextUpdatePosition == vr::HmdVector3d_t{ 0,0,0 }
+             * || nextUpdateRotation == vr::HmdQuaternion_t{ 1, 0, 0, 0 });
+             */
+            if (!nextUpdatePose.poseIsValid) {
                 nextUpdatePoseIsSet = false;
                 update(lastValidPose);
                 return;

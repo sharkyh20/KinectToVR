@@ -23,7 +23,7 @@
 
 namespace KinectSettings {
     std::wstring const CFG_NAME(L"KinectToVR.cfg");
-    std::string KVRversion = "a0.6.0 Prime-time Test r1";
+    std::string KVRversion = "a0.6.0 Prime-time R2";
 
     bool isKinectDrawn = false;
     bool isSkeletonDrawn = false;
@@ -68,7 +68,7 @@ namespace KinectSettings {
     vr::HmdQuaternion_t kinectRepRotation{0,0,0,0};  //TEMP
     vr::HmdVector3d_t kinectRadRotation{0,0,0};
     vr::HmdVector3d_t kinectRepPosition{0,0,0};
-    bool sensorConfigChanged = false;
+    bool sensorConfigChanged = true; // First time used, it's config has changed internally
 
     bool adjustingKinectRepresentationRot = false;
     bool adjustingKinectRepresentationPos = false;
@@ -103,7 +103,7 @@ namespace KinectSettings {
                 archive(globalFontSize);
                 archive(secondaryTrackingOriginOffset);
             }
-            catch(cereal::RapidJSONException e){
+            catch(cereal::RapidJSONException & e){
                 LOG(ERROR) << "CONFIG FILE LOAD JSON ERROR: " << e.what();
             }
             kinectRadRotation = { rot[0], rot[1], rot[2] };
@@ -138,7 +138,7 @@ namespace KinectSettings {
                     CEREAL_NVP(secondaryTrackingOriginOffset)
                 );
             }
-            catch (cereal::RapidJSONException e) {
+            catch (cereal::RapidJSONException & e) {
                 LOG(ERROR) << "CONFIG FILE SAVE JSON ERROR: " << e.what();
             }
             
@@ -178,10 +178,10 @@ namespace vr {
 namespace KVR {
     std::wstring trackerConfig = L"lastTrackers.cfg";
 
-    std::wstring fileToDirPath(std::wstring relativeFilePath) {
+    std::wstring fileToDirPath(const std::wstring & relativeFilePath) {
         return SFMLsettings::fileDirectoryPath + relativeFilePath;
     }
-    std::wstring ToUTF16(const std::string &data)
+    std::wstring ToUTF16(const std::string & data)
     {
         return std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(data);
     }
@@ -190,13 +190,13 @@ namespace KVR {
     {
         return std::wstring_convert<std::codecvt_utf8<wchar_t>>().to_bytes(data);
     }
-    std::string inputDirForOpenVR(std::string file) {
+    std::string inputDirForOpenVR(const std::string & file) {
         std::string pathStr = ToUTF8(SFMLsettings::fileDirectoryPath) + "Input\\" + file;
         std::cout << file << " PATH: " << pathStr << '\n';
         return pathStr;
     }
 
-    TrackingSystemCalibration retrieveSystemCalibration(std::string systemName) {
+    TrackingSystemCalibration retrieveSystemCalibration(const std::string & systemName) {
         std::wstring trackingSystemConfig = ToUTF16(systemName) + L".tracking";
         std::ifstream is(KVR::fileToDirPath(trackingSystemConfig));
         LOG(INFO) << "Attempted tracking system load: " << KVR::fileToDirPath(trackingSystemConfig) << '\n';
@@ -214,14 +214,13 @@ namespace KVR {
 
             vr::HmdQuaternion_t driverFromWorldRotation = { 1,0,0,0 };
             vr::HmdVector3d_t driverFromWorldPosition = { 0,0,0 };
-            int b = 0;
 
             try {
                 cereal::JSONInputArchive archive(is);
                 archive(CEREAL_NVP(driverFromWorldRotation));
                 archive(CEREAL_NVP(driverFromWorldPosition));
             }
-            catch (cereal::Exception e) {
+            catch (cereal::Exception & e) {
                 LOG(ERROR) << systemName << "TRACKING FILE LOAD JSON ERROR: " << e.what();
             }
             
@@ -231,7 +230,7 @@ namespace KVR {
         }
         return calibration;
     }
-    void saveSystemCalibration(std::string systemName, TrackingSystemCalibration calibration) {
+    void saveSystemCalibration(const std::string & systemName, TrackingSystemCalibration calibration) {
         std::wstring trackingSystemConfig = ToUTF16(systemName) + L".tracking";
         std::ofstream os(KVR::fileToDirPath(trackingSystemConfig));
         if (os.fail()) {
@@ -249,7 +248,7 @@ namespace KVR {
                 archive(CEREAL_NVP(driverFromWorldRotation));
                 archive(CEREAL_NVP(driverFromWorldPosition));
             }
-            catch (cereal::RapidJSONException e) {
+            catch (cereal::RapidJSONException & e) {
                 LOG(ERROR) << systemName << "TRACKING FILE SAVE JSON ERROR: " << e.what();
             }
 
@@ -260,6 +259,8 @@ namespace KVR {
 # define M_PI           3.14159265358979323846
 
 namespace VRInput {
+    bool legacyInputModeEnabled;
+
     // Action Handles
     vr::VRActionHandle_t moveHorizontallyHandle;
     vr::VRActionHandle_t moveVerticallyHandle;
@@ -316,5 +317,41 @@ bool VRInput::initialiseVRInput()
 void VRInput::updateVRInput()
 {
     vr::EVRInputError iError = vr::VRInput()->UpdateActionState(&activeActionSet, sizeof(activeActionSet), 1);
-    LOG_IF(iError != vr::EVRInputError::VRInputError_None, ERROR) << "Error when updating input action state, EVRInputError Code: " << (int)iError;
+    if (iError != vr::EVRInputError::VRInputError_None) {
+        LOG(ERROR) << "Error when updating input action state, EVRInputError Code: " << (int)iError;
+        return;
+    }
+    vr::InputAnalogActionData_t moveHorizontallyData{};
+    iError = vr::VRInput()->GetAnalogActionData(
+        moveHorizontallyHandle,
+        &moveHorizontallyData,
+        sizeof(moveHorizontallyData),
+        vr::k_ulInvalidInputValueHandle);
+
+    vr::InputAnalogActionData_t moveVerticallyData{};
+    iError = vr::VRInput()->GetAnalogActionData(
+        moveVerticallyHandle,
+        &moveVerticallyData,
+        sizeof(moveVerticallyData),
+        vr::k_ulInvalidInputValueHandle);
+
+    vr::InputDigitalActionData_t confirmPosData{};
+    iError = vr::VRInput()->GetDigitalActionData(
+        confirmCalibrationHandle,
+        &confirmPosData,
+        sizeof(confirmPosData),
+        vr::k_ulInvalidInputValueHandle);
+
+    // Ugly Hack until Valve fixes this behaviour ---------
+    if (iError == vr::EVRInputError::VRInputError_InvalidHandle) {
+        // SteamVR's latest wonderful bug/feature:
+        // Switches to Legacy mode on any application it doesn't recognize
+        // Meaning that the new system isn't used at all...
+        // Why god. Why do you taunt me so?
+        VRInput::legacyInputModeEnabled = true;
+    }
+    else {
+        VRInput::legacyInputModeEnabled = false;
+    }
+    // -----------------------------------------------------
 }

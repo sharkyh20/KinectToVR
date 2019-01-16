@@ -66,7 +66,7 @@ struct VirtualHipSettings {
 
 namespace VirtualHips {
     VirtualHipSettings settings;
-    static std::wstring settingsConfig = L"virtualHips.cfg";
+    static const std::wstring settingsConfig = L"virtualHips.cfg";
     void saveSettings() {
         std::ofstream os(KVR::fileToDirPath(settingsConfig));
         if (os.fail()) {
@@ -123,6 +123,7 @@ public:
 
     int initialise() {
         // Add all devices that aren't sensors or virtual
+        LOG(INFO) << "Initialising VR Device Handler...";
 
         vr::TrackedDevicePose_t devicePose[vr::k_unMaxTrackedDeviceCount];
         m_VRSystem->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, 0, devicePose, vr::k_unMaxTrackedDeviceCount);
@@ -193,8 +194,7 @@ public:
 
     void updateVirtualDeviceList() {
         int virtualDeviceCount = m_inputEmulator.getVirtualDeviceCount();
-        memset(virtualDevices, false, sizeof virtualDevices);
-
+        std::fill(virtualDevices, virtualDevices + vr::k_unMaxTrackedDeviceCount, false);
         for (int i = 0; i < virtualDeviceCount; ++i) {
             vrinputemulator::VirtualDeviceInfo info = m_inputEmulator.getVirtualDeviceInfo(i);
             virtualDevices[info.openvrDeviceId] = true;
@@ -211,6 +211,7 @@ private:
     uint32_t virtualHipsLocalId = 420;
     
     void initVirtualHips() {
+        LOG(INFO) << "Initialising Virtual Hips...";
         VirtualHips::retrieveSettings();
 
         KVR::TrackedDeviceInputData data = defaultDeviceData(virtualHipsLocalId);

@@ -12,8 +12,8 @@
 class KinectV2Handler : public KinectHandlerBase {
 public:
     KinectV2Handler() {
-        initialise();
-        initOpenGL();
+        KinectV2Handler::initialise();
+        KinectV2Handler::initOpenGL();
     }
     virtual ~KinectV2Handler() {}
 

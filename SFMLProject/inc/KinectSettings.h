@@ -107,11 +107,11 @@ namespace vr {
 namespace KVR {
     extern std::wstring trackerConfig;
 
-    std::wstring fileToDirPath(std::wstring relativeFilePath);
+    std::wstring fileToDirPath(const std::wstring & relativeFilePath);
     extern std::wstring ToUTF16(const std::string &data);
 
     extern std::string ToUTF8(const std::wstring &data);
-    extern std::string inputDirForOpenVR(std::string file);
+    extern std::string inputDirForOpenVR(const std::string & file);
 
     // Each tracking system has it's global adjustments here, in the form
     // of their driver-from-world offsets, so that they can be reapplied at startup
@@ -121,11 +121,14 @@ namespace KVR {
         vr::HmdVector3d_t driverFromWorldPosition = { 0,0,0 };
     };
     
-    TrackingSystemCalibration retrieveSystemCalibration(std::string systemName);
-    void saveSystemCalibration(std::string systemName, TrackingSystemCalibration calibration);
+    TrackingSystemCalibration retrieveSystemCalibration(const std::string & systemName);
+    void saveSystemCalibration(const std::string & systemName, TrackingSystemCalibration calibration);
 }
 
 namespace VRInput {
+    // Switch to fall back to legacy controls when the new SteamVR Input system breaks.
+    extern bool legacyInputModeEnabled;
+
     // Action Handles
     extern vr::VRActionHandle_t moveHorizontallyHandle;
     extern vr::VRActionHandle_t moveVerticallyHandle;
