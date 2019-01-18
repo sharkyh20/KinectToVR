@@ -131,19 +131,6 @@ public:
         //} PSMResult;
         LOG(INFO) << "PSMoveService attempted shutdown with PSMResult: " << PSMResultToString(result);
     }
-    std::vector<KVR::TrackedDeviceInputData> extractVRTrackingPoses() {
-        // Used to get the pose for each controller connected, and convert this
-        // into the format used by the tracking methods - such as IMU Position
-        // in order to update the FBT trackers.
-        std::vector<KVR::TrackedDeviceInputData> v_inputData;
-        for (int i = 0; i < v_controllers.size(); ++i) {
-            KVR::TrackedDeviceInputData inputData;
-            inputData.deviceId = i;
-            inputData.pose = getPSMoveDriverPose(i);
-            v_inputData.push_back(inputData);
-        }
-        return v_inputData;
-    }
 
 
     int controllersConnected() {
@@ -521,10 +508,59 @@ public:
 
         return m_Pose;
     }
-    vr::DriverPose_t getPSMoveDriverPose(int controllerId) {
+    vr::DriverPose_t getDriverPose(int controllerId) {
+        auto controller = v_controllers[controllerId].controller;
+        switch (controller->ControllerType) {
+        case PSMController_Virtual:
+        {
+            const PSMVirtualController &view = v_controllers[controllerId].controller->ControllerState.VirtualController;
+            auto const & pos = view.Pose.Position;
+            auto const & rot = view.Pose.Orientation;
+            auto const & physics = view.PhysicsData;
+            bool const & valid = view.bIsPositionValid;
+            return calculateDriverPose(controllerId, pos, rot, physics, valid);
+            break;
+        }
+        case PSMController_Move:
+        {
+            const PSMPSMove &view = v_controllers[controllerId].controller->ControllerState.PSMoveState;
+            const auto & pos = view.Pose.Position;
+            const auto & rot = view.Pose.Orientation;
+            const auto & physics = view.PhysicsData;
+            bool const & valid = view.bIsPositionValid;
+            return calculateDriverPose(controllerId, pos, rot, physics, valid);
+            break;
+        }
+        case PSMController_Navi:
+        {
+            return defaultReadyDriverPose();
+            break;
+        }
+        case PSMController_DualShock4:
+        {
+            return defaultReadyDriverPose();
+            break;
+        }
+        case PSMController_None:
+        {
+            return defaultReadyDriverPose();
+            break;
+        }
+        default:
+            LOG(FATAL) << "!!! getDriverPose called on a PSMoveHandler device with no known type !!!"; // Not supposed to happen, and may be impossible
+            break;
+        }
+    }
+    vr::DriverPose_t getVirtualControllerDriverPose(const int & controllerId) {
+        
+    }
+    vr::DriverPose_t calculateDriverPose(
+        const bool & controllerId,
+        const PSMVector3f & position,
+        const PSMQuatf & orientation,
+        const PSMPhysicsData & physicsData,
+        const bool & poseIsValid) {
         // Taken from driver_psmoveservice.cpp line 3313, credit to HipsterSloth
-        const PSMPSMove &view = v_controllers[controllerId].controller->ControllerState.PSMoveState;
-
 
         vr::DriverPose_t m_Pose;
 
@@ -562,7 +598,7 @@ public:
         // Set position
         
         {
-            const PSMVector3f &position = view.Pose.Position;
+            //const PSMVector3f &position = view.Pose.Position;
 
             m_Pose.vecPosition[0] = position.x * k_fScalePSMoveAPIToMeters * finalPSMoveScale;
             m_Pose.vecPosition[1] = position.y * k_fScalePSMoveAPIToMeters* finalPSMoveScale;
@@ -574,7 +610,7 @@ public:
         float m_fVirtuallExtendControllersZMeters = 0.f;
         if (m_fVirtuallExtendControllersYMeters != 0.0f || m_fVirtuallExtendControllersZMeters != 0.0f)
         {
-            const PSMQuatf &orientation = view.Pose.Orientation;
+            //const PSMQuatf &orientation = view.Pose.Orientation;
 
             PSMVector3f shift = { (float)m_Pose.vecPosition[0], (float)m_Pose.vecPosition[1], (float)m_Pose.vecPosition[2] };
 
@@ -602,7 +638,7 @@ public:
         // Set rotational coordinates
         bool m_fVirtuallyRotateController = false;
         {
-            const PSMQuatf &orientation = view.Pose.Orientation;
+            //const PSMQuatf &orientation = view.Pose.Orientation;
 
             m_Pose.qRotation.w = m_fVirtuallyRotateController ? -orientation.w : orientation.w;
             m_Pose.qRotation.x = orientation.x;
@@ -615,7 +651,7 @@ public:
             static float m_fLinearVelocityMultiplier = 1.f;
             static float m_fLinearVelocityExponent = 0.f;
 
-            const PSMPhysicsData &physicsData = view.PhysicsData;
+            //const PSMPhysicsData &physicsData = view.PhysicsData;
 
             m_Pose.vecVelocity[0] = physicsData.LinearVelocityCmPerSec.x
                 * abs(pow(abs(physicsData.LinearVelocityCmPerSec.x), m_fLinearVelocityExponent))
@@ -641,8 +677,7 @@ public:
         }
 
         m_Pose.poseIsValid =
-            v_controllers[controllerId].controller->ControllerState.PSMoveState.bIsPositionValid &&
-            v_controllers[controllerId].controller->ControllerState.PSMoveState.bIsOrientationValid;
+            poseIsValid;
 
         return m_Pose;
     }
@@ -717,7 +752,7 @@ private:
                 //const PSMPSMove &view = v_controllers[i].controller->ControllerState.PSMoveState;
                 //LOG(INFO) << "Controller " << i << " has a battery level of " << (int)view.BatteryValue;
                 KVR::TrackedDeviceInputData data = defaultDeviceData(i);
-                data.pose = getPSMoveDriverPose(i);
+                data.pose = getDriverPose(i);
                 // Reuse, instead of recalling for PSMoveState
                 data.position = { 
                     data.pose.vecPosition[0],
