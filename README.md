@@ -9,7 +9,7 @@ If you'd prefer to donate to charity in my stead, I recommend [Doctors Without B
 
 ## For those who want video instructions [go here](https://www.youtube.com/playlist?list=PL9kBn2ECbDU_NFxcJRx7XXfJavCsVol_Y)
 
-## *The Official Discord is [here](https://discord.gg/422qZtz) (Australian timezone, though)*
+## *The Official Discord is [here](https://discord.gg/Mu28W4N) (Australian timezone, though)*
 
 ## If you're unfamiliar with github: [Go here to download](https://github.com/sharkyh20/KinectToVR/releases)
 
