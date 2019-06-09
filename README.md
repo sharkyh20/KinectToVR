@@ -2,8 +2,11 @@
 An open-source hook for VRInputEmulator to enable foot and hip tracking with the Kinect.
 It currently allows for the hips, left foot and right foot to be tracked with the skeletal positions from the Kinect. Their positions are updated to a virtual tracker from the OpenVR Input Emulator in order to translate it into VR games.
 
+# Where has the dev been?
+[->Watching this video shall explain all.<-](https://www.youtube.com/watch?v=6ZwE7Bl7hbc)
+
 ## Supporting the Project
-After much urging from others, I now have a [donation jar here](https://digitaltipjar.com/sharkyh20), and a [paypal link here](https://www.paypal.me/sharkyh20)
+After much urging from others, I now have a [paypal link here](https://www.paypal.me/sharkyh20)
 
 If you'd prefer to donate to charity in my stead, I recommend [Doctors Without Borders](https://donate.doctorswithoutborders.org/onetime.cfm)
 
