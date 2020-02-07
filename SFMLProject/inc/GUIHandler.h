@@ -52,7 +52,7 @@ struct TempTrackerData {
             CEREAL_NVP(positionGlobalDeviceId),
             CEREAL_NVP(posDeviceName),
             CEREAL_NVP(posDeviceSerial),
-            CEREAL_NVP(positionGlobalDeviceId),
+            CEREAL_NVP(rotationGlobalDeviceId),
             CEREAL_NVP(rotDeviceName),
             CEREAL_NVP(rotDeviceSerial),
             CEREAL_NVP(role),
