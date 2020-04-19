@@ -5,8 +5,8 @@ It currently allows for the hips, left foot and right foot to be tracked with th
 # Where has the dev been?
 [->Watching this video shall explain all.<-](https://www.youtube.com/watch?v=6ZwE7Bl7hbc)
 
-## Getting Started - Users - www.k2vr.tech
-Take a look at the fantastic webpage TripingPC made for the project: www.k2vr.tech
+## Getting Started - Users - https://triping.stream/kinect
+Take a look at the fantastic webpage TripingPC made for the project: https://triping.stream/kinect
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ## *The Official Discord is [here](https://discord.gg/Mu28W4N) (Australian timezone, though)*
 
