@@ -240,6 +240,18 @@ vr::HmdVector3d_t updateHMDPosAndRot(vr::IVRSystem* &m_system) {
 
             // -------------------------------------------------------------------------
             */
+
+            double yaw = std::atan2(hmdPose.mDeviceToAbsoluteTracking.m[0][2], hmdPose.mDeviceToAbsoluteTracking.m[2][2]),
+                yawRaw = std::atan2(hmdPose.mDeviceToAbsoluteTracking.m[0][2], hmdPose.mDeviceToAbsoluteTracking.m[2][2]);
+
+            if (yawRaw < 0.0f) {
+                yawRaw += 2 * M_PI;
+            }
+            if (yaw < 0.0) {
+                yaw = 2 * M_PI + yaw;
+            }
+
+            KinectSettings::hmdYaw = yaw;
             KinectSettings::hmdRotation = quaternion;
         }
     }

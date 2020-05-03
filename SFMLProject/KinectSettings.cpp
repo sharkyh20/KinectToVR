@@ -58,6 +58,7 @@ namespace KinectSettings {
     int rightHandPlayspaceMovementButton = 0;
     int leftFootPlayspaceMovementButton = 0;
     int rightFootPlayspaceMovementButton = 0;
+    float hmdYaw = 0;
 
     vr::HmdVector3d_t hmdPosition = { 0,0,0 };
     vr::HmdQuaternion_t hmdRotation = { 0,0,0,0 };

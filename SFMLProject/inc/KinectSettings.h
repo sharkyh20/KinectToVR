@@ -30,6 +30,7 @@ namespace KinectSettings {
     extern float g_TrackedBoneThickness;
     extern float g_InferredBoneThickness;
     extern float g_JointThickness;
+    extern float hmdYaw;
 
     extern const int kinectHeight;
     extern const int kinectWidth;

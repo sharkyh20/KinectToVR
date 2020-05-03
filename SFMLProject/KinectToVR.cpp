@@ -496,6 +496,7 @@ void processLoop(KinectHandlerBase& kinect) {
 
 
         // Draw GUI
+        updateHMDPosAndRot(m_VRSystem);
         renderWindow.setActive(true);
 
         renderWindow.setView(mGUIView);

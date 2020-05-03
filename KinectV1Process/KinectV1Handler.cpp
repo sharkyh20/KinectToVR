@@ -416,6 +416,7 @@ void KinectV1Handler::getKinectRGBData() {
         sensor->NuiImageStreamReleaseFrame(rgbStream, &imageFrame);
     }
 
+    static bool flip = false;
     void KinectV1Handler::updateSkeletalData() {
         if (kinectSensor->NuiSkeletonGetNextFrame(0, &skeletonFrame) >= 0) {
             NUI_TRANSFORM_SMOOTH_PARAMETERS params;
@@ -465,13 +466,11 @@ void KinectV1Handler::getKinectRGBData() {
 
                 using PointSet = Eigen::Matrix<float, 3, Eigen::Dynamic>;
 
-                auto q = KinectSettings::hmdRotation;
-                float yaw = atan2(2 * q.w * q.y + 2 * q.x * q.z, +q.w * q.w + q.x * q.x - q.z * q.z - q.y * q.y) * 180 / M_PI;
+                float yaw = KinectSettings::hmdYaw * 180 / M_PI;
                 float facing = yaw - KinectSettings::tryaw;
-                bool flip = false;
-
-                if (facing > 70 && facing < -70)flip = 0;
-                if (facing > 110 && facing < 250)flip = 1;
+                
+                if (facing < 25 && facing > -25)flip = false;
+                if (facing < -155 && facing > -205)flip = true;
 
                 if (KinectSettings::rtcalibrated) {
                     Eigen::Vector3f Hf, Mf, Hp;

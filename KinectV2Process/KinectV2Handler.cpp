@@ -421,6 +421,8 @@ void KinectV2Handler::updateSkeletalData() {
         updateSkeletalFilters();
     }
 }
+
+static bool flip = false;
 void KinectV2Handler::updateSkeletalFilters() {
     for (int i = 0; i < BODY_COUNT; i++) {
         if (kinectBodies[i])
@@ -458,27 +460,44 @@ void KinectV2Handler::updateSkeletalFilters() {
 
         using PointSet = Eigen::Matrix<float, 3, Eigen::Dynamic>;
 
-        auto q = KinectSettings::hmdRotation;
-        float yaw = atan2(2 * q.w * q.y + 2 * q.x * q.z, +q.w * q.w + q.x * q.x - q.z * q.z - q.y * q.y) * 180 / M_PI;
+        float yaw = KinectSettings::hmdYaw * 180 / M_PI;
         float facing = yaw - KinectSettings::tryaw;
-        bool flip = false;
 
-        if (facing > 70 && facing < -70)flip = 0;
-        if (facing > 110 && facing < 250)flip = 1;
+        if (facing < 25 && facing > -25)flip = false;
+        if (facing < -155 && facing > -205)flip = true;
 
         if (KinectSettings::rtcalibrated) {
             Eigen::Vector3f Hf, Mf, Hp;
-            Hf(0) = joints[JointType_FootLeft].Position.X;
-            Hf(1) = joints[JointType_FootLeft].Position.Y;
-            Hf(2) = joints[JointType_FootLeft].Position.Z;
+            if (!flip) {
+                Hf(0) = joints[JointType_FootLeft].Position.X;
+                Hf(1) = joints[JointType_FootLeft].Position.Y;
+                Hf(2) = joints[JointType_FootLeft].Position.Z;
 
-            Mf(0) = joints[JointType_FootRight].Position.X;
-            Mf(1) = joints[JointType_FootRight].Position.Y;
-            Mf(2) = joints[JointType_FootRight].Position.Z;
+                Mf(0) = joints[JointType_FootRight].Position.X;
+                Mf(1) = joints[JointType_FootRight].Position.Y;
+                Mf(2) = joints[JointType_FootRight].Position.Z;
 
-            Hp(0) = joints[JointType_SpineBase].Position.X;
-            Hp(1) = joints[JointType_SpineBase].Position.Y;
-            Hp(2) = joints[JointType_SpineBase].Position.Z;
+                Hp(0) = joints[JointType_SpineBase].Position.X;
+                Hp(1) = joints[JointType_SpineBase].Position.Y;
+                Hp(2) = joints[JointType_SpineBase].Position.Z;
+            }
+            else {
+                trotation[0].v[1] = 180;
+                trotation[1].v[1] = 180;
+                trotation[2].v[1] = 180;
+
+                Mf(0) = joints[JointType_FootLeft].Position.X;
+                Mf(1) = joints[JointType_FootLeft].Position.Y;
+                Mf(2) = joints[JointType_FootLeft].Position.Z;
+
+                Hf(0) = joints[JointType_FootRight].Position.X;
+                Hf(1) = joints[JointType_FootRight].Position.Y;
+                Hf(2) = joints[JointType_FootRight].Position.Z;
+
+                Hp(0) = joints[JointType_SpineBase].Position.X;
+                Hp(1) = joints[JointType_SpineBase].Position.Y;
+                Hp(2) = joints[JointType_SpineBase].Position.Z;
+            }
 
             PointSet Hf2 = (KinectSettings::R_matT * Hf).colwise() + KinectSettings::T_matT;
             PointSet Mf2 = (KinectSettings::R_matT * Mf).colwise() + KinectSettings::T_matT;
@@ -505,25 +524,53 @@ void KinectV2Handler::updateSkeletalFilters() {
                 "/WRW" << 10000 * (0) << "/"; //DEPRECATED: GLM_ROTATE SCREWED UP WITH > 99
         }
         else {
-            S << "HX" << 10000 * (joints[JointType_FootLeft].Position.X + KinectSettings::moffsets[0][1].v[0] + KinectSettings::troffsets.v[0]) <<
-                "/HY" << 10000 * (joints[JointType_FootLeft].Position.Y + KinectSettings::moffsets[0][1].v[1] + KinectSettings::troffsets.v[1]) <<
-                "/HZ" << 10000 * (joints[JointType_FootLeft].Position.Z + KinectSettings::moffsets[0][1].v[2] + KinectSettings::troffsets.v[2]) <<
-                "/MX" << 10000 * (joints[JointType_FootRight].Position.X + KinectSettings::moffsets[0][0].v[0] + KinectSettings::troffsets.v[0]) <<
-                "/MY" << 10000 * (joints[JointType_FootRight].Position.Y + KinectSettings::moffsets[0][0].v[1] + KinectSettings::troffsets.v[1]) <<
-                "/MZ" << 10000 * (joints[JointType_FootRight].Position.Z + KinectSettings::moffsets[0][0].v[2] + KinectSettings::troffsets.v[2]) <<
-                "/PX" << 10000 * (joints[JointType_SpineBase].Position.X + KinectSettings::moffsets[0][2].v[0] + KinectSettings::troffsets.v[0]) <<
-                "/PY" << 10000 * (joints[JointType_SpineBase].Position.Y + KinectSettings::moffsets[0][2].v[1] + KinectSettings::troffsets.v[1]) <<
-                "/PZ" << 10000 * (joints[JointType_SpineBase].Position.Z + KinectSettings::moffsets[0][2].v[2] + KinectSettings::troffsets.v[2]) <<
-                "/HRX" << 10000 * (trotation[0].v[0] + KinectSettings::moffsets[1][1].v[0]) * M_PI / 180 <<
-                "/HRY" << 10000 * (trotation[0].v[1] + KinectSettings::moffsets[1][1].v[1]) * M_PI / 180 <<
-                "/HRZ" << 10000 * (trotation[0].v[2] + KinectSettings::moffsets[1][1].v[2]) * M_PI / 180 <<
-                "/MRX" << 10000 * (trotation[1].v[0] + KinectSettings::moffsets[1][0].v[0]) * M_PI / 180 <<
-                "/MRY" << 10000 * (trotation[1].v[1] + KinectSettings::moffsets[1][0].v[1]) * M_PI / 180 <<
-                "/MRZ" << 10000 * (trotation[1].v[2] + KinectSettings::moffsets[1][0].v[2]) * M_PI / 180 <<
-                "/PRX" << 10000 * (trotation[2].v[0] + KinectSettings::moffsets[1][2].v[0]) * M_PI / 180 <<
-                "/PRY" << 10000 * (trotation[2].v[1] + KinectSettings::moffsets[1][2].v[1]) * M_PI / 180 <<
-                "/PRZ" << 10000 * (trotation[2].v[2] + KinectSettings::moffsets[1][2].v[2]) * M_PI / 180 <<
-                "/WRW" << 10000 * (0) << "/"; //DEPRECATED: GLM_ROTATE SCREWED UP WITH > 99
+            if (!flip) {
+                S << "HX" << 10000 * (joints[JointType_FootLeft].Position.X + KinectSettings::moffsets[0][1].v[0] + KinectSettings::troffsets.v[0]) <<
+                    "/HY" << 10000 * (joints[JointType_FootLeft].Position.Y + KinectSettings::moffsets[0][1].v[1] + KinectSettings::troffsets.v[1]) <<
+                    "/HZ" << 10000 * (joints[JointType_FootLeft].Position.Z + KinectSettings::moffsets[0][1].v[2] + KinectSettings::troffsets.v[2]) <<
+                    "/MX" << 10000 * (joints[JointType_FootRight].Position.X + KinectSettings::moffsets[0][0].v[0] + KinectSettings::troffsets.v[0]) <<
+                    "/MY" << 10000 * (joints[JointType_FootRight].Position.Y + KinectSettings::moffsets[0][0].v[1] + KinectSettings::troffsets.v[1]) <<
+                    "/MZ" << 10000 * (joints[JointType_FootRight].Position.Z + KinectSettings::moffsets[0][0].v[2] + KinectSettings::troffsets.v[2]) <<
+                    "/PX" << 10000 * (joints[JointType_SpineBase].Position.X + KinectSettings::moffsets[0][2].v[0] + KinectSettings::troffsets.v[0]) <<
+                    "/PY" << 10000 * (joints[JointType_SpineBase].Position.Y + KinectSettings::moffsets[0][2].v[1] + KinectSettings::troffsets.v[1]) <<
+                    "/PZ" << 10000 * (joints[JointType_SpineBase].Position.Z + KinectSettings::moffsets[0][2].v[2] + KinectSettings::troffsets.v[2]) <<
+                    "/HRX" << 10000 * (trotation[0].v[0] + KinectSettings::moffsets[1][1].v[0]) * M_PI / 180 <<
+                    "/HRY" << 10000 * (trotation[0].v[1] + KinectSettings::moffsets[1][1].v[1]) * M_PI / 180 <<
+                    "/HRZ" << 10000 * (trotation[0].v[2] + KinectSettings::moffsets[1][1].v[2]) * M_PI / 180 <<
+                    "/MRX" << 10000 * (trotation[1].v[0] + KinectSettings::moffsets[1][0].v[0]) * M_PI / 180 <<
+                    "/MRY" << 10000 * (trotation[1].v[1] + KinectSettings::moffsets[1][0].v[1]) * M_PI / 180 <<
+                    "/MRZ" << 10000 * (trotation[1].v[2] + KinectSettings::moffsets[1][0].v[2]) * M_PI / 180 <<
+                    "/PRX" << 10000 * (trotation[2].v[0] + KinectSettings::moffsets[1][2].v[0]) * M_PI / 180 <<
+                    "/PRY" << 10000 * (trotation[2].v[1] + KinectSettings::moffsets[1][2].v[1]) * M_PI / 180 <<
+                    "/PRZ" << 10000 * (trotation[2].v[2] + KinectSettings::moffsets[1][2].v[2]) * M_PI / 180 <<
+                    "/WRW" << 10000 * (0) << "/"; //DEPRECATED: GLM_ROTATE SCREWED UP WITH > 99
+            }
+            else {
+                trotation[0].v[1] = 180;
+                trotation[1].v[1] = 180;
+                trotation[2].v[1] = 180;
+
+                S << "HX" << 10000 * (joints[JointType_FootRight].Position.X + KinectSettings::moffsets[0][1].v[0] + KinectSettings::troffsets.v[0]) <<
+                    "/HY" << 10000 * (joints[JointType_FootRight].Position.Y + KinectSettings::moffsets[0][1].v[1] + KinectSettings::troffsets.v[1]) <<
+                    "/HZ" << 10000 * (joints[JointType_FootRight].Position.Z + KinectSettings::moffsets[0][1].v[2] + KinectSettings::troffsets.v[2]) <<
+                    "/MX" << 10000 * (joints[JointType_FootLeft].Position.X + KinectSettings::moffsets[0][0].v[0] + KinectSettings::troffsets.v[0]) <<
+                    "/MY" << 10000 * (joints[JointType_FootLeft].Position.Y + KinectSettings::moffsets[0][0].v[1] + KinectSettings::troffsets.v[1]) <<
+                    "/MZ" << 10000 * (joints[JointType_FootLeft].Position.Z + KinectSettings::moffsets[0][0].v[2] + KinectSettings::troffsets.v[2]) <<
+                    "/PX" << 10000 * (joints[JointType_SpineBase].Position.X + KinectSettings::moffsets[0][2].v[0] + KinectSettings::troffsets.v[0]) <<
+                    "/PY" << 10000 * (joints[JointType_SpineBase].Position.Y + KinectSettings::moffsets[0][2].v[1] + KinectSettings::troffsets.v[1]) <<
+                    "/PZ" << 10000 * (joints[JointType_SpineBase].Position.Z + KinectSettings::moffsets[0][2].v[2] + KinectSettings::troffsets.v[2]) <<
+                    "/HRX" << 10000 * (trotation[0].v[0] + KinectSettings::moffsets[1][1].v[0]) * M_PI / 180 <<
+                    "/HRY" << 10000 * (trotation[0].v[1] + KinectSettings::moffsets[1][1].v[1]) * M_PI / 180 <<
+                    "/HRZ" << 10000 * (trotation[0].v[2] + KinectSettings::moffsets[1][1].v[2]) * M_PI / 180 <<
+                    "/MRX" << 10000 * (trotation[1].v[0] + KinectSettings::moffsets[1][0].v[0]) * M_PI / 180 <<
+                    "/MRY" << 10000 * (trotation[1].v[1] + KinectSettings::moffsets[1][0].v[1]) * M_PI / 180 <<
+                    "/MRZ" << 10000 * (trotation[1].v[2] + KinectSettings::moffsets[1][0].v[2]) * M_PI / 180 <<
+                    "/PRX" << 10000 * (trotation[2].v[0] + KinectSettings::moffsets[1][2].v[0]) * M_PI / 180 <<
+                    "/PRY" << 10000 * (trotation[2].v[1] + KinectSettings::moffsets[1][2].v[1]) * M_PI / 180 <<
+                    "/PRZ" << 10000 * (trotation[2].v[2] + KinectSettings::moffsets[1][2].v[2]) * M_PI / 180 <<
+                    "/WRW" << 10000 * (0) << "/"; //DEPRECATED: GLM_ROTATE SCREWED UP WITH > 99
+            }
+
         }
 
         return S.str();
