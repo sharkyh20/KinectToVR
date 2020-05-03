@@ -9,7 +9,7 @@
 #include "VRHelper.h"
 
 #include <openvr_math.h>
-
+#include <Eigen/Geometry>
 #include <vrinputemulator.h>
 
 #include <cereal/archives/json.hpp>
@@ -29,22 +29,31 @@ struct VirtualHipSettings {
 
     VirtualHipMode hipMode = VirtualHipMode::Standing;
     
-    double positionLatency = 0.05; // Seconds. How far behind the tracked point should the hips be so that they don't instantly follow every tiny movement
+    double positionLatency = 0.00; // Seconds. How far behind the tracked point should the hips be so that they don't instantly follow every tiny movement
+    bool rtcalib = false;
 
+    bool astartk = false;
+    bool astarth = false;
+    bool astartt = false;
+    float tryawst;
+    int autosver = 1;
 
     // --- Standing Settings ---
     bool positionFollowsHMDLean = false; // Determines whether the virtual hips in standing mode will stay above the foot trackers, or interpolate between the HMD and foot trackers on a direct slant
-    double heightFromHMD = 0.72; // Meters. Hips are by default projected downwards from the HMD, by 72cm (adjustable by user)
+    float hmdegree = 0.0;
+    float tdegree = 3;
+    double heightFromHMD = 0.00; // Meters. Hips are by default projected downwards from the HMD, by 72cm (adjustable by user)
     bool positionAccountsForFootTrackers = false; // If false, Hip tracker always stays bolted to directly under the HMD with no horizontal shift
-
+    Eigen::Matrix<float, 3, 3> rcR_matT;
+    Eigen::Matrix<float, 3, 1> rcT_matT;
 
     // --- Sitting Settings ---
-    double sittingMaxHeightThreshold = 0.95; // Meters. Under this height, mode is sitting
+    double sittingMaxHeightThreshold = 0.00; // Meters. Under this height, mode is sitting
     
 
     // --- Lying Settings
-    double hipThickness = 0.03; // Meters. Essentially how wide the hips are, so that when lying down, they are put slightly above the ground
-    double lyingMaxHeightThreshold = 0.5; // Meters. Under this height, mode is lying
+    double hipThickness = 0.00; // Meters. Essentially how wide the hips are, so that when lying down, they are put slightly above the ground
+    double lyingMaxHeightThreshold = 0.00; // Meters. Under this height, mode is lying
 
     template<class Archive>
     void serialize(Archive & archive)
@@ -55,6 +64,16 @@ struct VirtualHipSettings {
             CEREAL_NVP(followHmdPitchRotation),
             CEREAL_NVP(hipMode),
             CEREAL_NVP(positionFollowsHMDLean),
+            CEREAL_NVP(hmdegree),
+            CEREAL_NVP(tdegree),
+            CEREAL_NVP(astartk),
+            CEREAL_NVP(astartt),
+            CEREAL_NVP(autosver),
+            CEREAL_NVP(astarth),
+            CEREAL_NVP(tryawst),
+            CEREAL_NVP(rcR_matT),
+            CEREAL_NVP(rtcalib),
+            CEREAL_NVP(rcT_matT),
             CEREAL_NVP(heightFromHMD),
             CEREAL_NVP(positionAccountsForFootTrackers),
             CEREAL_NVP(sittingMaxHeightThreshold),
@@ -66,16 +85,16 @@ struct VirtualHipSettings {
 
 namespace VirtualHips {
     VirtualHipSettings settings;
-    static const std::wstring settingsConfig = L"virtualHips.cfg";
+    static const std::wstring settingsConfig = L"ConfigSettings.cfg";
     void saveSettings() {
         std::ofstream os(KVR::fileToDirPath(settingsConfig));
         if (os.fail()) {
             //FAIL!!!
-            LOG(ERROR) << "ERROR: COULD NOT WRITE TO VIRTUAL HIPS CONFIG FILE\n";
+            LOG(ERROR) << "ERROR: COULD NOT WRITE TO SETTINGS FILE\n";
         }
         else {
             cereal::JSONOutputArchive archive(os);
-            LOG(INFO) << "Attempted to save virtual hip settings to file";
+            LOG(INFO) << "Attempted to save settings to file";
             try {
                 archive(
                     CEREAL_NVP(settings)
@@ -90,10 +109,10 @@ namespace VirtualHips {
     void retrieveSettings() {
         std::ifstream is(KVR::fileToDirPath(settingsConfig));
 
-        LOG(INFO) << "Attempted to load virtual hip settings at " << KVR::fileToDirPath(settingsConfig);
+        LOG(INFO) << "Attempted to load settings at " << KVR::fileToDirPath(settingsConfig);
 
         if (is.fail()) {
-            LOG(ERROR) << "Virtual Hip settings file could not be found, generating a new one...";
+            LOG(ERROR) << "Settings file could not be found, generating a new one...";
             saveSettings();
         }
         else {
@@ -101,9 +120,24 @@ namespace VirtualHips {
             try {
                 cereal::JSONInputArchive archive(is);
                 archive(CEREAL_NVP(settings));
+                KinectSettings::hroffset = settings.hmdegree;
+                KinectSettings::cpoints = settings.tdegree;
+                
+                KinectSettings::R_matT = settings.rcR_matT;
+                KinectSettings::T_matT = settings.rcT_matT;
+
+                KinectSettings::huoffsets.v[0] = settings.heightFromHMD;
+                KinectSettings::huoffsets.v[1] = settings.sittingMaxHeightThreshold;
+                KinectSettings::huoffsets.v[2] = settings.lyingMaxHeightThreshold;
+
+                KinectSettings::rtcalibrated = settings.rtcalib;
+                KinectSettings::tryaw = settings.tryawst;
+
+                LOG(INFO) << settings.tryawst << '\n' << settings.rcR_matT << '\n' << KinectSettings::tryaw << '\n' << KinectSettings::R_matT << '\n';
+
             }
             catch (cereal::Exception e) {
-                LOG(ERROR) << settingsConfig << "VIRTUAL HIP FILE LOAD JSON ERROR: " << e.what();
+                LOG(ERROR) << settingsConfig << "SETTINGS FILE LOAD JSON ERROR: " << e.what();
             }
         }
     }
@@ -127,8 +161,6 @@ public:
 
         vr::TrackedDevicePose_t devicePose[vr::k_unMaxTrackedDeviceCount];
         m_VRSystem->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, 0, devicePose, vr::k_unMaxTrackedDeviceCount);
-
-        updateVirtualDeviceList();
 
         for (int i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i) {
             // If device virtual, skip
@@ -211,7 +243,7 @@ private:
     uint32_t virtualHipsLocalId = 420;
     
     void initVirtualHips() {
-        LOG(INFO) << "Initialising Virtual Hips...";
+        LOG(INFO) << "Reading Strings...";
         VirtualHips::retrieveSettings();
 
         KVR::TrackedDeviceInputData data = defaultDeviceData(virtualHipsLocalId);

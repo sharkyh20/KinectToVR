@@ -23,32 +23,32 @@
     <ProjectGuid>{0DE92959-9B87-4FB6-809E-1D95B49D57B1}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>KinectV2Process</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -138,7 +138,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NOMINMAX;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)SFMLProject\inc\;$(SolutionDir)\external\boost_1_63_0\;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\inputEmulator\;$(SolutionDir)external\glew\;$(SolutionDir)external\easylogging\src;$(SolutionDir)external\sfml\include;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\include;$(KINECTSDK20_DIR)inc;$(SolutionDir)external\PSMoveService\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)SFMLProject\inc\;$(SolutionDir)external\external\boost_1_63_0;$(SolutionDir)external\eigen-3.3.7;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\inputEmulator\;$(SolutionDir)external\glew\;$(SolutionDir)external\easylogging\src;$(SolutionDir)external\sfml\include;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\include;$(KINECTSDK20_DIR)inc;$(SolutionDir)external\PSMoveService\include</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
@@ -146,7 +146,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)lib;$(SolutionDir)\external\boost_1_63_0\lib64-msvc-14.0;$(SolutionDir)external\openvr\lib\win64;$(SolutionDir)external\inputemulator\;$(SolutionDir)external\glew\;$(SolutionDir)external\sfml\lib\release;$(SolutionDir)external\sfgui\;$(SolutionDir)external\opencv\lib;$(KINECTSDK20_DIR)lib\x64;$(SolutionDir)external\PSMoveService\lib;$(SolutionDir)external\KVRlib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib;$(SolutionDir)external\external\boost_1_63_0\lib64-msvc-14.0;$(SolutionDir)external\boost_1_72_0\lib64-msvc-14.2;$(SolutionDir)external\openvr\lib\win64;$(SolutionDir)external\inputemulator\;$(SolutionDir)external\glew\;$(SolutionDir)external\sfml\lib\release;$(SolutionDir)external\sfgui\;$(SolutionDir)external\opencv\lib;$(KINECTSDK20_DIR)lib\x64;$(SolutionDir)external\PSMoveService\lib;$(SolutionDir)external\KVRlib</AdditionalLibraryDirectories>
       <AdditionalDependencies>openvr_api.lib;libvrinputemulator.lib;OpenGL32.lib;glew32.lib;sfml-audio.lib;sfml-graphics.lib;sfml-window.lib;sfml-system.lib;sfgui.lib;KinectToVR.lib;Kinect20.lib;opencv_world341.lib;PSMoveClient_CAPI.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

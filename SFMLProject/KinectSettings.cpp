@@ -68,6 +68,27 @@ namespace KinectSettings {
     vr::HmdQuaternion_t kinectRepRotation{0,0,0,0};  //TEMP
     vr::HmdVector3d_t kinectRadRotation{0,0,0};
     vr::HmdVector3d_t kinectRepPosition{0,0,0};
+	vr::HmdVector3d_t moffsets[2][3] = { {{0, 0, 0}, { 0,0,0 }, { 0,0,0 }}, {{0, 0, 0}, { 0,0,0 }, { 0,0,0 }} };
+    vr::HmdVector3d_t hoffsets{ 0,0,0 };
+    vr::HmdVector3d_t huoffsets{ 0,0,0 };
+    vr::HmdVector3d_t troffsets{ 0,0,0 };
+    float hroffset = 0;
+    float troffset = 0;
+
+    Eigen::Matrix<float, 3, 3> R_matT;
+    Eigen::Matrix<float, 3, 1> T_matT;
+    bool ismatrixcalibrated = false;
+    bool rtcalibrated = false;
+
+    float tryaw = 0.0;
+
+    int cpoints = 3;
+
+    vr::HmdQuaternion_t hmdquat{ 1,0,0,0 };
+
+    vr::HmdVector3d_t mposes[3] = { {0,0,0},{0,0,0},{0,0,0} };
+
+    bool headtracked = false;
     bool sensorConfigChanged = true; // First time used, it's config has changed internally
 
     bool adjustingKinectRepresentationRot = false;
@@ -90,8 +111,8 @@ namespace KinectSettings {
             
             using namespace KinectSettings;
             using namespace SFMLsettings;
-            float rot[3] = { 0,0,0 };
-            float pos[3] = { 0,0,0 };
+            float rot[3][3] = { {0,0,0},{0,0,0},{0,0,0} };
+            float pos[3][3] = { {0,0,0},{0,0,0},{0,0,0} };
             double hipHeight = 0;
             float fontScale = 12.f;
             
@@ -106,8 +127,15 @@ namespace KinectSettings {
             catch(cereal::RapidJSONException & e){
                 LOG(ERROR) << "CONFIG FILE LOAD JSON ERROR: " << e.what();
             }
-            kinectRadRotation = { rot[0], rot[1], rot[2] };
-            kinectRepPosition = { pos[0], pos[1], pos[2] };
+
+            moffsets[0][0] = { pos[0][0], pos[0][1], pos[0][2] };
+            moffsets[0][1] = { pos[1][0], pos[1][1], pos[1][2] };
+            moffsets[0][2] = { pos[2][0], pos[2][1], pos[2][2] };
+
+            moffsets[1][0] = { rot[0][0], rot[0][1], rot[0][2] };
+            moffsets[1][1] = { rot[1][0], rot[1][1], rot[1][2] };
+            moffsets[1][2] = { rot[2][0], rot[2][1], rot[2][2] };
+
             hipRoleHeightAdjust = hipHeight;
             KinectSettings::sensorConfigChanged = true;
         }
@@ -122,11 +150,16 @@ namespace KinectSettings {
         else {
             using namespace KinectSettings;
             using namespace SFMLsettings;
-            vr::HmdVector3d_t rot = kinectRadRotation;
-            float kRotation[3] = { rot.v[0], rot.v[1] , rot.v[2] };
+            float kRotation[3][3] = { 
+                {moffsets[1][0].v[0], moffsets[1][0].v[1], moffsets[1][0].v[2]}, 
+                {moffsets[1][1].v[0], moffsets[1][1].v[1], moffsets[1][1].v[2]}, 
+                {moffsets[1][2].v[0], moffsets[1][2].v[1], moffsets[1][2].v[2]}, };
 
-            vr::HmdVector3d_t pos = kinectRepPosition;
-            float kPosition[3] = { pos.v[0], pos.v[1] , pos.v[2] };
+            float kPosition[3][3] = {
+                {moffsets[0][0].v[0], moffsets[0][0].v[1], moffsets[0][0].v[2]},
+                {moffsets[0][1].v[0], moffsets[0][1].v[1], moffsets[0][1].v[2]},
+                {moffsets[0][2].v[0], moffsets[0][2].v[1], moffsets[0][2].v[2]}, };
+
             cereal::JSONOutputArchive archive(os);
             LOG(INFO) << "Attempted to save config settings to file";
             try {

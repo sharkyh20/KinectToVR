@@ -2,8 +2,6 @@
 #include "KinectToVR.h"
 #include "VRHelper.h"
 
-
-
 #include "KinectSettings.h"
 #include "VRController.h"
 #include "VRHelper.h"
@@ -40,6 +38,7 @@
 #include "wtypes.h"
 #include <Windows.h>
 
+#pragma comment(lib, "Ws2_32.lib")
 
 using namespace KVR;
 
@@ -172,17 +171,13 @@ vr::HmdQuaternion_t kinectQuaternionFromRads() {
 }
 void attemptIEmulatorConnection(vrinputemulator::VRInputEmulator & inputEmulator, GUIHandler & guiRef) {
     try {
-        LOG(INFO) << "Attempting InputEmulator connection...";
-        inputEmulator.connect();
-        LOG_IF(inputEmulator.isConnected(), INFO) << "InputEmulator connected successfully!";
+        LOG(INFO) << "Input Emulator is not needed...";
     }
-    catch (vrinputemulator::vrinputemulator_connectionerror & e) {
-        guiRef.updateEmuStatusLabelError(e);
-        LOG(ERROR) << "Attempted connection to Input Emulator" << std::to_string(e.errorcode) + " " + e.what() + "\n\n Is SteamVR open and InputEmulator installed?";
-    }
+	catch (std::exception e) {
+	}
 }
-void updateTrackerInitGuiSignals(vrinputemulator::VRInputEmulator &inputEmulator, GUIHandler &guiRef, std::vector<KVR::KinectTrackedDevice> & v_trackers, vr::IVRSystem * & m_VRsystem) {
-    if (inputEmulator.isConnected()) {
+void updateTrackerInitGuiSignals(vrinputemulator::VRInputEmulator& inputEmulator, GUIHandler& guiRef, std::vector<KVR::KinectTrackedDevice>& v_trackers, vr::IVRSystem*& m_VRsystem) {
+    if (inputEmulator.isConnected() || true) {
         guiRef.setTrackerButtonSignals(inputEmulator, v_trackers, m_VRsystem);
         guiRef.updateEmuStatusLabelSuccess();
     }
@@ -215,6 +210,10 @@ void limitVRFramerate(double &endFrameMilliseconds)
     //SFMLsettings::debugDisplayTextStream << "deviateMilli: " << deltaDeviationMilliseconds << '\n';
     //SFMLsettings::debugDisplayTextStream << "POST endTimeMilli: " << endFrameMilliseconds << '\n';
     //SFMLsettings::debugDisplayTextStream << "FPS End = " << 1000.0 / endFrameMilliseconds << '\n';
+}
+
+void updatenormaltrackers() {
+
 }
 
 void processLoop(KinectHandlerBase& kinect) {
@@ -259,7 +258,7 @@ void processLoop(KinectHandlerBase& kinect) {
     //Initialise InputEmu and Trackers
     std::vector<KVR::KinectTrackedDevice> v_trackers{};
     vrinputemulator::VRInputEmulator inputEmulator;
-    attemptIEmulatorConnection(inputEmulator, guiRef);
+    //attemptIEmulatorConnection(inputEmulator, guiRef);
 
 
     VRcontroller rightController(vr::TrackedControllerRole_RightHand);
@@ -479,7 +478,8 @@ void processLoop(KinectHandlerBase& kinect) {
             for (auto & tracker : v_trackers) {
                 tracker.update();
             }
-            
+
+            renderWindow.clear();
             kinect.drawKinectData(renderWindow);
         }
         //std::vector<uint32_t> virtualDeviceIndexes;
@@ -557,15 +557,32 @@ void spawnAndConnectHandTrackers(vrinputemulator::VRInputEmulator & inputE, std:
 }
 void spawnDefaultLowerBodyTrackers(vrinputemulator::VRInputEmulator & inputE, std::vector<KVR::KinectTrackedDevice>& v_trackers)
 {
-    spawnAndConnectTracker(inputE, v_trackers, KinectSettings::leftFootJointWithRotation, KinectSettings::leftFootJointWithoutRotation, KVR::KinectDeviceRole::LeftFoot);
-    spawnAndConnectTracker(inputE, v_trackers, KinectSettings::rightFootJointWithRotation, KinectSettings::rightFootJointWithoutRotation, KVR::KinectDeviceRole::RightFoot);
-    spawnAndConnectTracker(inputE, v_trackers, KVR::KinectJointType::SpineBase, KVR::KinectJointType::SpineMid, KVR::KinectDeviceRole::Hip);
+    WSADATA WSAData;
+    SOCKET server;
+    SOCKADDR_IN addr;
+
+    WSAStartup(MAKEWORD(2, 0), &WSAData);
+    server = socket(AF_INET, SOCK_STREAM, 0);
+
+    addr.sin_addr.s_addr = inet_addr("127.0.0.1"); // replace the ip with your futur server ip address. If server AND client are running on the same computer, you can use the local ip 127.0.0.1
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(5782);
+
+    connect(server, (SOCKADDR*)&addr, sizeof(addr));
+    using namespace std;
+	//std::cout << "Connected to server!" << std::endl;
+
+	//char buffer[1024] = { 'N', 'A', 'N', 'D', 'E', 'M', 'O', };
+    //send(server, buffer, sizeof(buffer), 0);
+
+    closesocket(server);
+    WSACleanup();
 }
 
 void spawnAndConnectKinectTracker(vrinputemulator::VRInputEmulator &inputE, std::vector<KVR::KinectTrackedDevice> &v_trackers)
 {
-    KVR::KinectTrackedDevice kinectTrackerRef(inputE, TrackingPoolManager::kinectSensorGID, TrackingPoolManager::kinectSensorGID, KVR::KinectDeviceRole::KinectSensor);
+    /*KVR::KinectTrackedDevice kinectTrackerRef(inputE, TrackingPoolManager::kinectSensorGID, TrackingPoolManager::kinectSensorGID, KVR::KinectDeviceRole::KinectSensor);
     kinectTrackerRef.init(inputE);
     setKinectTrackerProperties(inputE, kinectTrackerRef.deviceId);
-    v_trackers.push_back(kinectTrackerRef);
+    v_trackers.push_back(kinectTrackerRef);*/
 }

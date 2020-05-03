@@ -5,6 +5,7 @@
 #include <SFML\Graphics\Text.hpp>
 #include <string>
 #include <sstream>
+#include <Eigen/Geometry>
 
 #include "KinectJoint.h"
 
@@ -25,7 +26,7 @@ namespace KinectSettings {
     extern KVR::KinectJointType rightFootJointWithoutRotation;
 
     extern bool userChangingZero;
-
+    extern bool headtracked;
     extern float g_TrackedBoneThickness;
     extern float g_InferredBoneThickness;
     extern float g_JointThickness;
@@ -39,7 +40,7 @@ namespace KinectSettings {
     extern double kinectToVRScale;
 
     extern double hipRoleHeightAdjust;
-
+    extern float tryaw;
 
     //Need to delete later (Merge should sort it)
     extern int leftHandPlayspaceMovementButton;
@@ -58,7 +59,25 @@ namespace KinectSettings {
     extern vr::HmdQuaternion_t kinectRepRotation;
     extern vr::HmdVector3d_t kinectRadRotation;
     extern vr::HmdVector3d_t kinectRepPosition;
+    extern vr::HmdVector3d_t moffsets[2][3];
+    extern vr::HmdVector3d_t hoffsets;
+    extern vr::HmdVector3d_t huoffsets;
+    extern vr::HmdVector3d_t troffsets;
+	extern float hroffset;
+	extern float troffset;
+	extern vr::HmdQuaternion_t hmdquat;
+
+    extern Eigen::Matrix<float, 3, 3> R_matT;
+    extern Eigen::Matrix<float, 3, 1> T_matT;
+    extern bool ismatrixcalibrated;
+
+    extern int cpoints;
+    extern bool rtcalibrated;
+
+    extern float hmdegree;
     extern bool sensorConfigChanged;
+
+    extern vr::HmdVector3d_t mposes[3];
 
     extern bool adjustingKinectRepresentationRot;
     extern bool adjustingKinectRepresentationPos;

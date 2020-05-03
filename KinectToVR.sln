@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2027
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30002.166
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KinectToVR", "SFMLProject\SFMLProject.vcxproj", "{9E612475-CF0A-4384-969A-3C01C9543935}"
 EndProject
@@ -14,15 +14,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KinectV2Process", "KinectV2
 	ProjectSection(ProjectDependencies) = postProject
 		{9E612475-CF0A-4384-969A-3C01C9543935} = {9E612475-CF0A-4384-969A-3C01C9543935}
 	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SFGUI Scale Test", "SFGUI Scale Test\SFGUI Scale Test.vcxproj", "{7D1AE0DE-7859-428C-A80F-8CE6BDFCDA41}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KinectlessProcess", "KinectlessProcess\KinectlessProcess.vcxproj", "{94958977-BDCC-4799-9B7E-D43D3C8AB51B}"
-	ProjectSection(ProjectDependencies) = postProject
-		{9E612475-CF0A-4384-969A-3C01C9543935} = {9E612475-CF0A-4384-969A-3C01C9543935}
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Boost6005BugFixApplier", "Boost6005BugFixApplier\Boost6005BugFixApplier.vcxproj", "{37E5DD70-E1A1-46BD-A3FF-60D61A291F57}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -56,30 +47,6 @@ Global
 		{0DE92959-9B87-4FB6-809E-1D95B49D57B1}.Release|x64.Build.0 = Release|x64
 		{0DE92959-9B87-4FB6-809E-1D95B49D57B1}.Release|x86.ActiveCfg = Release|Win32
 		{0DE92959-9B87-4FB6-809E-1D95B49D57B1}.Release|x86.Build.0 = Release|Win32
-		{7D1AE0DE-7859-428C-A80F-8CE6BDFCDA41}.Debug|x64.ActiveCfg = Debug|x64
-		{7D1AE0DE-7859-428C-A80F-8CE6BDFCDA41}.Debug|x64.Build.0 = Debug|x64
-		{7D1AE0DE-7859-428C-A80F-8CE6BDFCDA41}.Debug|x86.ActiveCfg = Debug|Win32
-		{7D1AE0DE-7859-428C-A80F-8CE6BDFCDA41}.Debug|x86.Build.0 = Debug|Win32
-		{7D1AE0DE-7859-428C-A80F-8CE6BDFCDA41}.Release|x64.ActiveCfg = Release|x64
-		{7D1AE0DE-7859-428C-A80F-8CE6BDFCDA41}.Release|x64.Build.0 = Release|x64
-		{7D1AE0DE-7859-428C-A80F-8CE6BDFCDA41}.Release|x86.ActiveCfg = Release|Win32
-		{7D1AE0DE-7859-428C-A80F-8CE6BDFCDA41}.Release|x86.Build.0 = Release|Win32
-		{94958977-BDCC-4799-9B7E-D43D3C8AB51B}.Debug|x64.ActiveCfg = Debug|x64
-		{94958977-BDCC-4799-9B7E-D43D3C8AB51B}.Debug|x64.Build.0 = Debug|x64
-		{94958977-BDCC-4799-9B7E-D43D3C8AB51B}.Debug|x86.ActiveCfg = Debug|Win32
-		{94958977-BDCC-4799-9B7E-D43D3C8AB51B}.Debug|x86.Build.0 = Debug|Win32
-		{94958977-BDCC-4799-9B7E-D43D3C8AB51B}.Release|x64.ActiveCfg = Release|x64
-		{94958977-BDCC-4799-9B7E-D43D3C8AB51B}.Release|x64.Build.0 = Release|x64
-		{94958977-BDCC-4799-9B7E-D43D3C8AB51B}.Release|x86.ActiveCfg = Release|Win32
-		{94958977-BDCC-4799-9B7E-D43D3C8AB51B}.Release|x86.Build.0 = Release|Win32
-		{37E5DD70-E1A1-46BD-A3FF-60D61A291F57}.Debug|x64.ActiveCfg = Debug|x64
-		{37E5DD70-E1A1-46BD-A3FF-60D61A291F57}.Debug|x64.Build.0 = Debug|x64
-		{37E5DD70-E1A1-46BD-A3FF-60D61A291F57}.Debug|x86.ActiveCfg = Debug|Win32
-		{37E5DD70-E1A1-46BD-A3FF-60D61A291F57}.Debug|x86.Build.0 = Debug|Win32
-		{37E5DD70-E1A1-46BD-A3FF-60D61A291F57}.Release|x64.ActiveCfg = Release|x64
-		{37E5DD70-E1A1-46BD-A3FF-60D61A291F57}.Release|x64.Build.0 = Release|x64
-		{37E5DD70-E1A1-46BD-A3FF-60D61A291F57}.Release|x86.ActiveCfg = Release|Win32
-		{37E5DD70-E1A1-46BD-A3FF-60D61A291F57}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
