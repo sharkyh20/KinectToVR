@@ -40,6 +40,16 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 KinectToVR is based on GPL v3, so you need to follow it.     
 Although, all changes that i made, go to CreativeCommons.    
 
+## Re-implementation plan:
+* Add: foot rotation, calibration fix - look at svr front, MORE TRACKERS, change 3dm's
+* Re-add psmoveservice supprt: for body trackers and controllers (body trackers, just like now but using some weird calibration script and controllers using existing ArduVR and soft_knuckles files [BIG thanx to spayne!!!])
+* Add diy index controllers support - ArduVR: everything's fine by now so it only needs some rewrite around C#+XAML -> C++
+
+## Changed so far:
+* Calibration method - now it's even shorter than d4vr's one!
+* Trackers implementation - K2 is now static openvr driver
+* You don't need (or don't want..) to know what was changed except upper.
+
 ## Acknowledgments
 * TripingPC for running the community in my absence and providing updated guides to get it running in 2020
 * matzman666 - for the VR InputEmulator that makes this possible
