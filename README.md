@@ -1,8 +1,8 @@
 # KinectToVR
 An open-source PARTIAL hook for VRInputEmulator to enable foot and hip tracking with the Kinect.   
-It currently allows for the hips, left foot and right foot to be tracked with the skeletal positions from the Kinect.   
-Their positions are updated to a driver, that run soft-trackers: it's somehow better solution that IE, 
-but it still needs some work and general improvments.   
+It currently allows for the hips, left foot and right foot to be tracked with the skeletal positions from the Kinect.    
+Their positions are updated to a driver, that run soft-trackers: it's somehow better solution that IE,      
+but it still needs some work and general improvments.    
 Also, now K2VR can track your head! (using mod inputemulator dll)
 
 # Where has the dev been?
