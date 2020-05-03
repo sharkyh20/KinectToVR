@@ -1,14 +1,18 @@
 # KinectToVR
-An open-source hook for VRInputEmulator to enable foot and hip tracking with the Kinect.
-It currently allows for the hips, left foot and right foot to be tracked with the skeletal positions from the Kinect. Their positions are updated to a virtual tracker from the OpenVR Input Emulator in order to translate it into VR games.
+An open-source PARTIAL hook for VRInputEmulator to enable foot and hip tracking with the Kinect.   
+It currently allows for the hips, left foot and right foot to be tracked with the skeletal positions from the Kinect.   
+Their positions are updated to a driver, that run soft-trackers: it's somehow better solution that IE, 
+but it still needs some work and general improvments.   
+Also, now K2VR can track your head! (using mod inputemulator dll)
 
 # Where has the dev been?
 [->Watching this video shall explain all.<-](https://www.youtube.com/watch?v=6ZwE7Bl7hbc)
 
-## Getting Started - Users - https://triping.stream/kinect
-Take a look at the fantastic webpage TripingPC made for the project: https://triping.stream/kinect
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-## *The Official Discord is [here](https://discord.gg/Mu28W4N) (Australian timezone, though)*
+## Getting Started - Users
+I think 'normal' users will not use exactly this release,    
+but if you like, unpack everything and run register batch file.   
+
+## *The Official Discord is [here](https://discord.gg/Mu28W4N)
 
 ## Supporting the Project
 If you'd prefer to donate to charity in my stead, I recommend [Doctors Without Borders](https://donate.doctorswithoutborders.org/onetime.cfm)
@@ -30,7 +34,9 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 ## License
 
-This project is licensed under the GPL v3 License - see the [LICENSE.md](LICENSE.md) file for details
+~~This project is licensed under the GPL v3 License - see the [LICENSE.md](LICENSE.md) file for details~~
+KinectToVR is based on GPL v3, so you need to follow it.     
+Although, all changes that i made, go to CreativeCommons.    
 
 ## Acknowledgments
 * TripingPC for running the community in my absence and providing updated guides to get it running in 2020
