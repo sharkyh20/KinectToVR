@@ -11,6 +11,8 @@ Also, now K2VR can track your head! (using mod inputemulator dll)
 ## Getting Started - Users
 I think 'normal' users will not use exactly this release,    
 but if you like, unpack everything and run register batch file.   
+Then you need to replace your ie dll with that provided in release.    
+(ONLY needed when you plan to use head tracking)
 
 ## *The Official Discord is [here](https://discord.gg/Mu28W4N)
 
@@ -34,7 +36,7 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 ## License
 
-~~This project is licensed under the GPL v3 License - see the [LICENSE.md](LICENSE.md) file for details~~
+~~This project is licensed under the GPL v3 License - see the [LICENSE.md](LICENSE.md) file for details~~     
 KinectToVR is based on GPL v3, so you need to follow it.     
 Although, all changes that i made, go to CreativeCommons.    
 
@@ -45,7 +47,7 @@ Although, all changes that i made, go to CreativeCommons.
 * Omnifinity - [for his project showing how to get HMD positions, and matrix math](https://github.com/Omnifinity/OpenVR-Tracking-Example/)
 * Tons of stackoverflow posts and steam community pages that helped me learn how to glue this together
 
-## Author's note
+## First author's note
 This was my first actual project and I've had a lot of 'fun' and fun getting it to work. I'm still learning C++ and programming concepts, so I feel that this has helped a great deal where reading from a book really can't. Thank you for being patient enough to read this all the way to the end and I hope my code is not too atrocious.
 
 As always, feedback is appreciated so that I can learn and improve my skills.
