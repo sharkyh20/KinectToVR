@@ -348,10 +348,10 @@ vr::EVRInitError FakeTracker::Activate(vr::TrackedDeviceIndex_t index)
 	vr::VRProperties()->SetStringProperty(_props, vr::Prop_NamedIconPathDeviceAlertLow_String, "{htc}/icons/tracker_status_ready_low.b4bfb144.png");
 	vr::VRProperties()->SetStringProperty(_props, vr::Prop_NamedIconPathDeviceReady_String, "{htc}/icons/tracker_status_ready.b4bfb144.png");
 	
-	if (dest == "HFOOT") {
-		vr::VRSettings()->SetString(vr::k_pch_Trackers_Section, "/devices/KinectToVR/Puck_HFOOT", "TrackerRole_LeftFoot");
+	if (dest == "LFOOT") {
+		vr::VRSettings()->SetString(vr::k_pch_Trackers_Section, std::string("/devices/KinectToVR/" + _serial).c_str(), "TrackerRole_LeftFoot");
 	}
-	if (dest == "MFOOT") {
+	if (dest == "RFOOT") {
 		vr::VRSettings()->SetString(vr::k_pch_Trackers_Section, std::string("/devices/KinectToVR/" + _serial).c_str(), "TrackerRole_RightFoot");
 	}
 	if (dest == "HIP") {
