@@ -261,8 +261,8 @@ void processLoop(KinectHandlerBase& kinect) {
     //attemptIEmulatorConnection(inputEmulator, guiRef);
 
 
-    VRcontroller rightController(vr::TrackedControllerRole_RightHand);
-    VRcontroller leftController(vr::TrackedControllerRole_LeftHand);
+    /*VRcontroller rightController(vr::TrackedControllerRole_RightHand);
+    VRcontroller leftController(vr::TrackedControllerRole_LeftHand);*/
 
     LOG(INFO) << "Attempting connection to vrsystem.... ";    // DEBUG
     vr::EVRInitError eError = vr::VRInitError_None;
@@ -280,16 +280,26 @@ void processLoop(KinectHandlerBase& kinect) {
         // Set origins so that proper offsets for each coordinate system can be found
         KinectSettings::trackingOrigin = m_VRSystem->GetRawZeroPoseToStandingAbsoluteTrackingPose();
         KinectSettings::trackingOriginPosition = GetVRPositionFromMatrix(KinectSettings::trackingOrigin);
-        LOG(INFO) << "SteamVR Tracking Origin for Input Emulator: " << KinectSettings::trackingOriginPosition.v[0] << ", " << KinectSettings::trackingOriginPosition.v[1] << ", " << KinectSettings::trackingOriginPosition.v[2];
+        double yaw = std::atan2(KinectSettings::trackingOrigin.m[0][2], KinectSettings::trackingOrigin.m[2][2]);
+        if (yaw < 0.0) {
+            yaw = 2 * M_PI + yaw;
+        }
+        KinectSettings::svrhmdyaw = yaw;
+
+        LOG(INFO) << "SteamVR Tracking Origin for Input Emulator: " << 
+            KinectSettings::trackingOriginPosition.v[0] << ", " << 
+            KinectSettings::trackingOriginPosition.v[1] << ", " << 
+            KinectSettings::trackingOriginPosition.v[2] << ", " << 
+            KinectSettings::svrhmdyaw << "RAD";
 
         guiRef.setVRSceneChangeButtonSignal(m_VRSystem);
         updateTrackerInitGuiSignals(inputEmulator, guiRef, v_trackers, m_VRSystem);
         setTrackerRolesInVRSettings();
         VRInput::initialiseVRInput();
     
-        leftController.Connect(m_VRSystem);
-        rightController.Connect(m_VRSystem);
-        guiRef.setReconnectControllerButtonSignal(leftController, rightController, m_VRSystem);
+        /*leftController.Connect(m_VRSystem);
+        rightController.Connect(m_VRSystem);*/
+        //guiRef.setReconnectControllerButtonSignal(leftController, rightController, m_VRSystem);
 
         // Todo: implement binding system
         guiRef.loadK2VRIntoBindingsMenu(m_VRSystem);
@@ -420,14 +430,14 @@ void processLoop(KinectHandlerBase& kinect) {
 
         //Update VR Components
         if (eError == vr::VRInitError_None) {
-            rightController.update(deltaT);
-            leftController.update(deltaT);
+            /*rightController.update(deltaT);
+            leftController.update(deltaT);*/
             updateHMDPosAndRot(m_VRSystem);
 
             VRInput::updateVRInput();
 
             // EWWWWWWWWW -------------
-            if (VRInput::legacyInputModeEnabled) {
+            /*if (VRInput::legacyInputModeEnabled) {
                 using namespace VRInput;
                 moveHorizontallyData.bActive = true;
                 auto leftStickValues = leftController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad);
@@ -442,7 +452,7 @@ void processLoop(KinectHandlerBase& kinect) {
                 confirmCalibrationData.bActive = true;
                 auto triggerDown = leftController.GetTriggerDown() || rightController.GetTriggerDown();
                 confirmCalibrationData.bState = triggerDown;
-            }
+            }*/
             // -------------------------
         }
 

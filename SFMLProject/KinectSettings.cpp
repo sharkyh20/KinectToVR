@@ -27,7 +27,7 @@ namespace KinectSettings {
 
     bool isKinectDrawn = false;
     bool isSkeletonDrawn = false;
-
+    float svrhmdyaw = 0;
     bool ignoreInferredPositions = false;
     bool ignoreRotationSmoothing = false;
 

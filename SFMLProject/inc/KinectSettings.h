@@ -24,7 +24,7 @@ namespace KinectSettings {
     extern KVR::KinectJointType rightFootJointWithRotation;
     extern KVR::KinectJointType leftFootJointWithoutRotation;
     extern KVR::KinectJointType rightFootJointWithoutRotation;
-
+    extern float svrhmdyaw;
     extern bool userChangingZero;
     extern bool headtracked;
     extern float g_TrackedBoneThickness;

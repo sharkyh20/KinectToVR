@@ -1856,6 +1856,18 @@ public:
                     ispose.vecPosition[1] = position.v[1] - KinectSettings::trackingOriginPosition.v[1];
                     ispose.vecPosition[2] = position.v[2] - KinectSettings::trackingOriginPosition.v[2];
 
+                    Eigen::AngleAxisd rollAngle(0.f, Eigen::Vector3d::UnitZ());
+                    Eigen::AngleAxisd yawAngle(-KinectSettings::svrhmdyaw, Eigen::Vector3d::UnitY());
+                    Eigen::AngleAxisd pitchAngle(0.f, Eigen::Vector3d::UnitX());
+
+                    Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
+
+                    Eigen::Vector3d in(ispose.vecPosition[0], ispose.vecPosition[1], ispose.vecPosition[2]);
+                    Eigen::Vector3d out = q * in;
+
+                    ispose.vecPosition[0] = out(0);
+                    ispose.vecPosition[1] = out(1);
+                    ispose.vecPosition[2] = out(2);
 
                     for (auto i = 0; i < 3; i++)ihpose.v[i] = KinectSettings::mposes[0].v[i];
                     TrackersCalibButton->SetLabel(std::string("-- Position captured: Point " + boost::lexical_cast<std::string>(ipoint) + " --").c_str());
