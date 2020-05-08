@@ -11,6 +11,7 @@
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/glm.hpp>
 #include <eigen-3.3.7/Eigen/Geometry>
+#include <vector>
 
 vr::DriverPose_t FakeTracker::dlpose;
 vr::DriverPose_t dlposeh;
@@ -99,6 +100,7 @@ FakeTracker::FakeTracker(std::string argv) :
 	dlposep.vecPosition[0] = 0;
 	dlposep.vecPosition[1] = 0;
 	dlposep.vecPosition[2] = 0;
+
 }
 
 std::shared_ptr<FakeTracker> FakeTracker::make_new(std::string destination)
@@ -167,7 +169,7 @@ void FakeTracker::pipedl(FakeTracker* pthis) {
 
 
 		HANDLE pipeOf = CreateNamedPipe(TEXT("\\\\.\\pipe\\LogPipeTracker"), PIPE_ACCESS_INBOUND | PIPE_ACCESS_OUTBOUND, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE, 1, 1024, 1024, 120 * 1000, NULL);
-		
+
 
 		char OfD[1024];
 		DWORD Of = DWORD();
@@ -237,29 +239,20 @@ void FakeTracker::pipedl(FakeTracker* pthis) {
 			dlposep.vecPosition[2] = prt.z + (float)nstr(OfS, "POZ") / (float)10000;
 			dlposep.qRotation = pquat;
 		}
-		
+
+		if (pthis->dest == "LFOOT") {
+			pthis->set_pose(dlposeh);
+
+		}
+		else if (pthis->dest == "RFOOT") {
+			pthis->set_pose(dlposem);
+
+		}
+		else if (pthis->dest == "HIP") {
+			pthis->set_pose(dlposep);
+		}
+
 		std::this_thread::sleep_for(std::chrono::milliseconds(27));
-	}
-}
-
-void FakeTracker::upr(FakeTracker* pthis) {
-	while (1) {
-		pthis->set_pose(dlposem);
-		std::this_thread::sleep_for(std::chrono::milliseconds(31));
-	}
-}
-
-void FakeTracker::upl(FakeTracker* pthis) {
-	while (1) {
-		pthis->set_pose(dlposeh);
-		std::this_thread::sleep_for(std::chrono::milliseconds(31));
-	}
-}
-
-void FakeTracker::uph(FakeTracker* pthis) {
-	while (1) {
-		pthis->set_pose(dlposep);
-		std::this_thread::sleep_for(std::chrono::milliseconds(31));
 	}
 }
 
@@ -310,20 +303,6 @@ vr::EVRInitError FakeTracker::Activate(vr::TrackedDeviceIndex_t index)
 	_index = index;
 	std::thread* t1 = new std::thread(pipedl, this);
 
-	if (dest == "LFOOT") {
-		std::thread* th = new std::thread(upr, this);
-
-	}
-	else if (dest == "RFOOT") {
-		std::thread* tm = new std::thread(upl, this);
-
-	}
-	else if (dest == "HIP") {
-		std::thread* tp = new std::thread(uph, this);
-
-	}
-
-	
 	// Get the properties handle for our controller
 	_props = vr::VRProperties()->TrackedDeviceToPropertyContainer(_index);
 
