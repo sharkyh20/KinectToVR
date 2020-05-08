@@ -138,7 +138,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NOMINMAX;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\PSMoveService;$(SolutionDir)external\opencv\include;$(ProjectDir)/inc;$(SolutionDir)external\eigen-3.3.7;$(SolutionDir)external\Glew;$(SolutionDir)external\InputEmulator\;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\SFML\include;$(SolutionDir)external\sfgui;C:\Users\AkaYa!\Desktop\boost_1_72_0;$(SolutionDir)external\easylogging\src;$(SolutionDir)SFMLProject\inc\;%(AdditionalIncludeDirectories);$(KINECTSDK10_DIR)inc;$(SolutionDir)external\PSMoveService\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\PSMoveService;$(SolutionDir)external\opencv\include;$(ProjectDir)/inc;$(SolutionDir)external\glm_glm;$(SolutionDir)external\eigen-3.3.7;$(SolutionDir)external\Glew;$(SolutionDir)external\InputEmulator\;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\SFML\include;$(SolutionDir)external\sfgui;C:\Users\AkaYa!\Desktop\boost_1_72_0;$(SolutionDir)external\easylogging\src;$(SolutionDir)SFMLProject\inc\;%(AdditionalIncludeDirectories);$(KINECTSDK10_DIR)inc;$(SolutionDir)external\PSMoveService\include</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
@@ -158,6 +158,7 @@
     <ClInclude Include="KinectOrientationFilter.h" />
     <ClInclude Include="KinectV1Handler.h" />
     <ClInclude Include="KinectV1Includes.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
@@ -170,6 +171,12 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="KinectV1Process.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\favicon.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "VectorMath.h"
 #include <SFML\System\Vector3.hpp>
+#include <glm/glm.hpp>
 #include <math.h>
 #include <string>
 namespace KMath {
@@ -11,6 +12,9 @@ namespace KMath {
     std::string to_string(sf::Vector3f v) {
         return std::to_string(v.x) + ", " + std::to_string(v.y) + ", " + std::to_string(v.z);
     }
+
+    glm::vec3 defaultUpVector() { return glm::vec3(0, 1, 0); }
+    glm::vec3 defaultForwardVector() { return glm::vec3(0, 0, -1); }
 
     sf::Vector3f cross(sf::Vector3f v1, sf::Vector3f v2) {
         float x = (v1.y * v2.z) - (v1.z*v2.y);

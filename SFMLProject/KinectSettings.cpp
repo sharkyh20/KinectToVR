@@ -9,17 +9,17 @@
 #include <cereal/types/base_class.hpp>
 #include <cereal/archives/binary.hpp>
 #include <cereal/types/common.hpp>
+#include <boost/interprocess/managed_shared_memory.hpp>
 
 #include <iostream>
 #include <fstream>
 
 #include "wtypes.h"
+
 #include <Windows.h>
 #include <codecvt>
 
 #include <openvr_math.h>
-
-
 
 namespace KinectSettings {
     std::wstring const CFG_NAME(L"KinectToVR.cfg");
@@ -30,7 +30,7 @@ namespace KinectSettings {
     float svrhmdyaw = 0;
     bool ignoreInferredPositions = false;
     bool ignoreRotationSmoothing = false;
-
+    float ardroffset = 0.f;
     // The joints which actually have rotation change based on the kinect
     // Each kinect type should set these in their process beginning
     // These would be the defaults for the V1
@@ -50,7 +50,7 @@ namespace KinectSettings {
 
     const int kinectV2Height = 1920;
     const int kinectV2Width = 1080;
-
+    bool rtconcalib = false;
     double kinectToVRScale = 1;
     double hipRoleHeightAdjust = 0.0;   // in metres up - applied post-scale
                                         //Need to delete later (Merge should sort it)
@@ -76,6 +76,7 @@ namespace KinectSettings {
     float hroffset = 0;
     float troffset = 0;
 
+    vr::HmdVector3d_t hauoffset{ 0,0,0 }, mauoffset{ 0,0,0 };
     Eigen::Matrix<float, 3, 3> R_matT;
     Eigen::Matrix<float, 3, 1> T_matT;
     bool ismatrixcalibrated = false;
@@ -96,6 +97,44 @@ namespace KinectSettings {
     bool adjustingKinectRepresentationPos = false;
     void updateKinectQuaternion() {
         KinectSettings::kinectRepRotation = vrmath::quaternionFromYawPitchRoll(KinectSettings::kinectRadRotation.v[1], KinectSettings::kinectRadRotation.v[0], KinectSettings::kinectRadRotation.v[2]);
+    }
+
+    void sendtoipc(vr::HmdVector3d_t kinectposes[3], vr::HmdVector3d_t kinectrots[3]/*, vr::HmdVector3d_t kinectoffsets[3]*/) {
+        using namespace boost::interprocess;
+
+        shared_memory_object::remove("trackers_shm");
+        managed_shared_memory managed_shm(open_or_create, "trackers_shm", 1024);
+
+		managed_shm.construct<float>("LeftFootX")(kinectposes[0].v[0]);
+		managed_shm.construct<float>("LeftFootY")(kinectposes[0].v[1]);
+		managed_shm.construct<float>("LeftFootZ")(kinectposes[0].v[2]);
+		managed_shm.construct<float>("RightFootX")(kinectposes[1].v[0]);
+		managed_shm.construct<float>("RightFootY")(kinectposes[1].v[1]);
+		managed_shm.construct<float>("RightFootZ")(kinectposes[1].v[2]);
+		managed_shm.construct<float>("HipsX")(kinectposes[2].v[0]);
+		managed_shm.construct<float>("HipsY")(kinectposes[2].v[1]);
+		managed_shm.construct<float>("HipsZ")(kinectposes[2].v[2]);
+
+        /*managed_shm.construct<float>("LeftFootRotX")(kinectrots[0].v[0]);
+        managed_shm.construct<float>("LeftFootRotY")(kinectrots[0].v[1]);
+        managed_shm.construct<float>("LeftFootRotZ")(kinectrots[0].v[2]);
+        managed_shm.construct<float>("RightFootRotX")(kinectrots[1].v[0]);
+        managed_shm.construct<float>("RightFootRotY")(kinectrots[1].v[1]);
+        managed_shm.construct<float>("RightFootRotZ")(kinectrots[1].v[2]);
+        managed_shm.construct<float>("HipsRotX")(kinectrots[2].v[0]);
+        managed_shm.construct<float>("HipsRotY")(kinectrots[2].v[1]);
+        managed_shm.construct<float>("HipsRotZ")(kinectrots[2].v[2]);*/
+
+        /*managed_shm.construct<float>("LeftFootOffsetX")(kinectoffsets[0].v[0]);
+        managed_shm.construct<float>("LeftFootOffsetY")(kinectoffsets[0].v[1]);
+        managed_shm.construct<float>("LeftFootOffsetZ")(kinectoffsets[0].v[2]);
+        managed_shm.construct<float>("RightFootOffsetX")(kinectoffsets[1].v[0]);
+        managed_shm.construct<float>("RightFootOffsetY")(kinectoffsets[1].v[1]);
+        managed_shm.construct<float>("RightFootOffsetZ")(kinectoffsets[1].v[2]);
+        managed_shm.construct<float>("HipsOffsetX")(kinectoffsets[2].v[0]);
+        managed_shm.construct<float>("HipsOffsetY")(kinectoffsets[2].v[1]);
+        managed_shm.construct<float>("HipsOffsetZ")(kinectoffsets[2].v[2]);*/
+
     }
 
     void serializeKinectSettings() {

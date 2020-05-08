@@ -1,6 +1,19 @@
 #include "stdafx.h"
 #include "KinectV1Handler.h"
-
+#include <boost/exception/diagnostic_information.hpp> 
+#include <boost/exception_ptr.hpp> 
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/transform2.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/detail/type_vec3.hpp>
+#include <glm/detail/type_vec4.hpp>
+#include <glm/detail/type_vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/gtc/quaternion.hpp> 
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 #include "glew.h"
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
@@ -11,6 +24,7 @@
 #include <KinectJoint.h>
 #include <Eigen/Geometry>
 #include <math.h>
+#include "VectorMath.h"
 
  void KinectV1Handler::initOpenGL() {
     LOG(INFO) << "Attempted to initialise OpenGL";
@@ -420,20 +434,20 @@ void KinectV1Handler::getKinectRGBData() {
     void KinectV1Handler::updateSkeletalData() {
         if (kinectSensor->NuiSkeletonGetNextFrame(0, &skeletonFrame) >= 0) {
             NUI_TRANSFORM_SMOOTH_PARAMETERS params;
-            /*
+            
             params.fCorrection = .25f;
             params.fJitterRadius = .4f;
             params.fMaxDeviationRadius = .25f;
             params.fPrediction = .25f;
             params.fSmoothing = .25f;
-            //*/
-            ///*
+            
+            /*
             params.fSmoothing = .25f;
             params.fCorrection = .25f;
             params.fMaxDeviationRadius = .05f;
             params.fJitterRadius = 0.03f;
             params.fPrediction = .25f;
-            //*/
+            */
             kinectSensor->NuiTransformSmooth(&skeletonFrame, &params);   //Smooths jittery tracking
 
             for (int i = 0; i < NUI_SKELETON_COUNT; ++i) {
@@ -449,52 +463,86 @@ void KinectV1Handler::getKinectRGBData() {
                     break;
                 }
             }
-
+            
             KinectSettings::mposes[0].v[0] = jointPositions[convertJoint(KVR::KinectJointType::Head)].x;
             KinectSettings::mposes[0].v[1] = jointPositions[convertJoint(KVR::KinectJointType::Head)].y;
             KinectSettings::mposes[0].v[2] = jointPositions[convertJoint(KVR::KinectJointType::Head)].z;
 
             vr::HmdVector3d_t trotation[3] = { {0,0,0},{0,0,0},{0,0,0} };
 
+#pragma region PipeSeup
+
             HANDLE pipeTracker = CreateFile(TEXT("\\\\.\\pipe\\LogPipeTracker"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
             HANDLE pipeSan = CreateFile(TEXT("\\\\.\\pipe\\LogPipeSan"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+            HANDLE pipeLeft = CreateFile(TEXT("\\\\.\\pipe\\LogPipeNi"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+            HANDLE pipeRight = CreateFile(TEXT("\\\\.\\pipe\\LogPipeIchi"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+            HANDLE pipeLeftRot = CreateFile(TEXT("\\\\.\\pipe\\LogPipeNiRot"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+            HANDLE pipeRightRot = CreateFile(TEXT("\\\\.\\pipe\\LogPipeIchiRot"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+
+#pragma endregion
 
             DWORD numWritten;
+
+#pragma region TrackerIPC
+
+			float yaw = KinectSettings::hmdYaw * 180 / M_PI;
+			float facing = yaw - KinectSettings::tryaw;
+
+			if (facing < 25 && facing > -25)flip = false;
+			if (facing < -155 && facing > -205)flip = true;
 
             std::string TrackerS = [&]()->std::string {
                 std::stringstream S;
 
                 using PointSet = Eigen::Matrix<float, 3, Eigen::Dynamic>;
 
-                float yaw = KinectSettings::hmdYaw * 180 / M_PI;
-                float facing = yaw - KinectSettings::tryaw;
-                
-                if (facing < 25 && facing > -25)flip = false;
-                if (facing < -155 && facing > -205)flip = true;
+#pragma region Rotation_Hips
+
+                glm::vec3 hipLeft(jointPositions[convertJoint(KVR::KinectJointType::HipLeft)].x, jointPositions[convertJoint(KVR::KinectJointType::HipLeft)].y, jointPositions[convertJoint(KVR::KinectJointType::HipLeft)].z), 
+                    hipRight(jointPositions[convertJoint(KVR::KinectJointType::HipRight)].x, jointPositions[convertJoint(KVR::KinectJointType::HipRight)].y, jointPositions[convertJoint(KVR::KinectJointType::HipRight)].z);
+
+                glm::quat hipsRot = glm::lookAt(hipLeft, hipRight, glm::vec3(0.0f, 1.0f, 0.0f));
+                glm::vec3 hipsRotRad = glm::eulerAngles(hipsRot);
+                trotation[2].v[1] = -((hipsRotRad.y * 180.f / M_PI) + 90.f);
+#pragma endregion
+#pragma region Rotation_Ankles
+
+				glm::vec3 ankle[2] = { glm::vec3(jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].x, jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].y, jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].z),
+				    glm::vec3(jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].x, jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].y, jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].z) };
+
+                glm::vec3 foot[2] = { glm::vec3(jointPositions[convertJoint(KVR::KinectJointType::FootLeft)].x, jointPositions[convertJoint(KVR::KinectJointType::FootLeft)].y, jointPositions[convertJoint(KVR::KinectJointType::FootLeft)].z),
+                    glm::vec3(jointPositions[convertJoint(KVR::KinectJointType::FootRight)].x, jointPositions[convertJoint(KVR::KinectJointType::FootRight)].y, jointPositions[convertJoint(KVR::KinectJointType::FootRight)].z) };
+
+                glm::quat ankleRot[2] = { glm::lookAt(ankle[0], foot[0], glm::vec3(0.0f, 1.0f, 0.0f)), glm::lookAt(ankle[1], foot[1], glm::vec3(0.0f, 1.0f, 0.0f)) };
+                glm::vec3 ankleRotRad[2] = { glm::eulerAngles(ankleRot[0]), glm::eulerAngles(ankleRot[1]) };
+
+                trotation[0].v[1] = -(ankleRotRad[0].y * 180.f / M_PI);
+                trotation[1].v[1] = -(ankleRotRad[1].y * 180.f / M_PI);
+#pragma endregion
 
                 if (KinectSettings::rtcalibrated) {
                     Eigen::Vector3f Hf, Mf, Hp;
                     if (!flip) {
-                        Hf(0) = jointPositions[convertJoint(KVR::KinectJointType::FootLeft)].x;
-                        Hf(1) = jointPositions[convertJoint(KVR::KinectJointType::FootLeft)].y;
-                        Hf(2) = jointPositions[convertJoint(KVR::KinectJointType::FootLeft)].z;
+                        Hf(0) = jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].x;
+                        Hf(1) = jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].y;
+                        Hf(2) = jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].z;
 
-                        Mf(0) = jointPositions[convertJoint(KVR::KinectJointType::FootRight)].x;
-                        Mf(1) = jointPositions[convertJoint(KVR::KinectJointType::FootRight)].y;
-                        Mf(2) = jointPositions[convertJoint(KVR::KinectJointType::FootRight)].z;
+                        Mf(0) = jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].x;
+                        Mf(1) = jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].y;
+                        Mf(2) = jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].z;
                     }
                     else {
-                        trotation[0].v[1] = 180;
-                        trotation[1].v[1] = 180;
-                        trotation[2].v[1] = 180;
+                        trotation[0].v[1] += 180;
+                        trotation[1].v[1] += 180;
+                        trotation[2].v[1] += 180;
 
-                        Mf(0) = jointPositions[convertJoint(KVR::KinectJointType::FootLeft)].x;
-                        Mf(1) = jointPositions[convertJoint(KVR::KinectJointType::FootLeft)].y;
-                        Mf(2) = jointPositions[convertJoint(KVR::KinectJointType::FootLeft)].z;
+                        Mf(0) = jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].x;
+                        Mf(1) = jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].y;
+                        Mf(2) = jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].z;
 
-                        Hf(0) = jointPositions[convertJoint(KVR::KinectJointType::FootRight)].x;
-                        Hf(1) = jointPositions[convertJoint(KVR::KinectJointType::FootRight)].y;
-                        Hf(2) = jointPositions[convertJoint(KVR::KinectJointType::FootRight)].z;
+                        Hf(0) = jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].x;
+                        Hf(1) = jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].y;
+                        Hf(2) = jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].z;
                     }
 
                     Hp(0) = jointPositions[convertJoint(KVR::KinectJointType::SpineBase)].x;
@@ -527,12 +575,12 @@ void KinectV1Handler::getKinectRGBData() {
                 }
                 else {
                     if (!flip) {
-                        S << "HX" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::FootLeft)].x + KinectSettings::moffsets[0][1].v[0] + KinectSettings::troffsets.v[0]) <<
-                            "/HY" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::FootLeft)].y + KinectSettings::moffsets[0][1].v[1] + KinectSettings::troffsets.v[1]) <<
-                            "/HZ" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::FootLeft)].z + KinectSettings::moffsets[0][1].v[2] + KinectSettings::troffsets.v[2]) <<
-                            "/MX" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::FootRight)].x + KinectSettings::moffsets[0][0].v[0] + KinectSettings::troffsets.v[0]) <<
-                            "/MY" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::FootRight)].y + KinectSettings::moffsets[0][0].v[1] + KinectSettings::troffsets.v[1]) <<
-                            "/MZ" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::FootRight)].z + KinectSettings::moffsets[0][0].v[2] + KinectSettings::troffsets.v[2]) <<
+                        S << "HX" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].x + KinectSettings::moffsets[0][1].v[0] + KinectSettings::troffsets.v[0]) <<
+                            "/HY" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].y + KinectSettings::moffsets[0][1].v[1] + KinectSettings::troffsets.v[1]) <<
+                            "/HZ" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].z + KinectSettings::moffsets[0][1].v[2] + KinectSettings::troffsets.v[2]) <<
+                            "/MX" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].x + KinectSettings::moffsets[0][0].v[0] + KinectSettings::troffsets.v[0]) <<
+                            "/MY" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].y + KinectSettings::moffsets[0][0].v[1] + KinectSettings::troffsets.v[1]) <<
+                            "/MZ" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].z + KinectSettings::moffsets[0][0].v[2] + KinectSettings::troffsets.v[2]) <<
                             "/PX" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::SpineBase)].x + KinectSettings::moffsets[0][2].v[0] + KinectSettings::troffsets.v[0]) <<
                             "/PY" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::SpineBase)].y + KinectSettings::moffsets[0][2].v[1] + KinectSettings::troffsets.v[1]) <<
                             "/PZ" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::SpineBase)].z + KinectSettings::moffsets[0][2].v[2] + KinectSettings::troffsets.v[2]) <<
@@ -548,16 +596,16 @@ void KinectV1Handler::getKinectRGBData() {
                             "/WRW" << 10000 * (0) << "/"; //DEPRECATED: GLM_ROTATE SCREWED UP WITH > 99
                     }
                     else {
-                        trotation[0].v[1] = 180;
-                        trotation[1].v[1] = 180;
-                        trotation[2].v[1] = 180;
+                        trotation[0].v[1] += 180;
+                        trotation[1].v[1] += 180;
+                        trotation[2].v[1] += 180;
 
-                        S << "HX" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::FootRight)].x + KinectSettings::moffsets[0][1].v[0] + KinectSettings::troffsets.v[0]) <<
-                            "/HY" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::FootRight)].y + KinectSettings::moffsets[0][1].v[1] + KinectSettings::troffsets.v[1]) <<
-                            "/HZ" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::FootRight)].z + KinectSettings::moffsets[0][1].v[2] + KinectSettings::troffsets.v[2]) <<
-                            "/MX" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::FootLeft)].x + KinectSettings::moffsets[0][0].v[0] + KinectSettings::troffsets.v[0]) <<
-                            "/MY" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::FootLeft)].y + KinectSettings::moffsets[0][0].v[1] + KinectSettings::troffsets.v[1]) <<
-                            "/MZ" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::FootLeft)].z + KinectSettings::moffsets[0][0].v[2] + KinectSettings::troffsets.v[2]) <<
+                        S << "HX" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].x + KinectSettings::moffsets[0][1].v[0] + KinectSettings::troffsets.v[0]) <<
+                            "/HY" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].y + KinectSettings::moffsets[0][1].v[1] + KinectSettings::troffsets.v[1]) <<
+                            "/HZ" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].z + KinectSettings::moffsets[0][1].v[2] + KinectSettings::troffsets.v[2]) <<
+                            "/MX" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].x + KinectSettings::moffsets[0][0].v[0] + KinectSettings::troffsets.v[0]) <<
+                            "/MY" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].y + KinectSettings::moffsets[0][0].v[1] + KinectSettings::troffsets.v[1]) <<
+                            "/MZ" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].z + KinectSettings::moffsets[0][0].v[2] + KinectSettings::troffsets.v[2]) <<
                             "/PX" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::SpineBase)].x + KinectSettings::moffsets[0][2].v[0] + KinectSettings::troffsets.v[0]) <<
                             "/PY" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::SpineBase)].y + KinectSettings::moffsets[0][2].v[1] + KinectSettings::troffsets.v[1]) <<
                             "/PZ" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::SpineBase)].z + KinectSettings::moffsets[0][2].v[2] + KinectSettings::troffsets.v[2]) <<
@@ -576,6 +624,8 @@ void KinectV1Handler::getKinectRGBData() {
 
                 return S.str();
             }();
+
+#pragma endregion
 
 			std::string HedoS = [&]()->std::string {
 				std::stringstream S;
@@ -600,17 +650,184 @@ void KinectV1Handler::getKinectRGBData() {
 				return S.str();
 			}();
 
+			std::string RightS = [&]()->std::string {
+				std::stringstream S;
+
+				if (KinectSettings::rtconcalib) {
+					using PointSet = Eigen::Matrix<float, 3, Eigen::Dynamic>;
+
+					Eigen::Vector3f Hf, Ef;
+					if (!flip) {
+						Hf(0) = jointPositions[convertJoint(KVR::KinectJointType::HandRight)].x;
+						Hf(1) = jointPositions[convertJoint(KVR::KinectJointType::HandRight)].y;
+						Hf(2) = jointPositions[convertJoint(KVR::KinectJointType::HandRight)].z;
+						Ef(0) = jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].x;
+						Ef(1) = jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].y;
+						Ef(2) = jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].z;
+					}
+					else {
+						trotation[0].v[1] = 180;
+						trotation[1].v[1] = 180;
+						trotation[2].v[1] = 180;
+
+						Hf(0) = jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].x;
+						Hf(1) = jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].y;
+						Hf(2) = jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].z;
+						Ef(0) = jointPositions[convertJoint(KVR::KinectJointType::ElbowLeft)].x;
+						Ef(1) = jointPositions[convertJoint(KVR::KinectJointType::ElbowLeft)].y;
+						Ef(2) = jointPositions[convertJoint(KVR::KinectJointType::ElbowLeft)].z;
+					}
+
+					PointSet Hf2 = (KinectSettings::R_matT * Hf).colwise() + KinectSettings::T_matT;
+					PointSet Mf2 = (KinectSettings::R_matT * Ef).colwise() + KinectSettings::T_matT;
+
+					S << "X" << 10000 * (Hf(0) + KinectSettings::hoffsets.v[0]) <<
+						"/Y" << 10000 * (Hf(1) + KinectSettings::hoffsets.v[1]) <<
+						"/Z" << 10000 * (Hf(2) + KinectSettings::hoffsets.v[2]) <<
+						"/EX" << 10000 * (Ef(0) + KinectSettings::hoffsets.v[0]) <<
+						"/EY" << 10000 * (Ef(1) + KinectSettings::hoffsets.v[1]) <<
+						"/EZ" << 10000 * (Ef(2) + KinectSettings::hoffsets.v[2]) << "/";
+				}
+                else {
+                    if (!flip) {
+                        S << "X" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandRight)].x + KinectSettings::hoffsets.v[0]) <<
+                            "/Y" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandRight)].y + KinectSettings::hoffsets.v[1]) <<
+                            "/Z" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandRight)].z + KinectSettings::hoffsets.v[2]) <<
+                            "/EX" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].x + KinectSettings::hoffsets.v[0]) <<
+                            "/EY" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].y + KinectSettings::hoffsets.v[1]) <<
+                            "/EZ" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].z + KinectSettings::hoffsets.v[2]) << "/";
+                    }
+                    else {
+                        S << "X" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].x + KinectSettings::hoffsets.v[0]) <<
+                            "/Y" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].y + KinectSettings::hoffsets.v[1]) <<
+                            "/Z" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].z + KinectSettings::hoffsets.v[2]) <<
+                            "/EX" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowLeft)].x + KinectSettings::hoffsets.v[0]) <<
+                            "/EY" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowLeft)].y + KinectSettings::hoffsets.v[1]) <<
+                            "/EZ" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowLeft)].z + KinectSettings::hoffsets.v[2]) << "/";
+                    }
+                }
+
+				return S.str();
+			}();
+
+            std::string LeftS = [&]()->std::string {
+                std::stringstream S;
+
+                if (KinectSettings::rtconcalib) {
+                    using PointSet = Eigen::Matrix<float, 3, Eigen::Dynamic>;
+
+                    Eigen::Vector3f Hf, Ef;
+                    if (flip) {
+                        Hf(0) = jointPositions[convertJoint(KVR::KinectJointType::HandRight)].x;
+                        Hf(1) = jointPositions[convertJoint(KVR::KinectJointType::HandRight)].y;
+                        Hf(2) = jointPositions[convertJoint(KVR::KinectJointType::HandRight)].z;
+                        Ef(0) = jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].x;
+                        Ef(1) = jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].y;
+                        Ef(2) = jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].z;
+                    }
+                    else {
+                        trotation[0].v[1] = 180;
+                        trotation[1].v[1] = 180;
+                        trotation[2].v[1] = 180;
+
+                        Hf(0) = jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].x;
+                        Hf(1) = jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].y;
+                        Hf(2) = jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].z;
+                        Ef(0) = jointPositions[convertJoint(KVR::KinectJointType::ElbowLeft)].x;
+                        Ef(1) = jointPositions[convertJoint(KVR::KinectJointType::ElbowLeft)].y;
+                        Ef(2) = jointPositions[convertJoint(KVR::KinectJointType::ElbowLeft)].z;
+                    }
+
+                    PointSet Hf2 = (KinectSettings::R_matT * Hf).colwise() + KinectSettings::T_matT;
+                    PointSet Mf2 = (KinectSettings::R_matT * Ef).colwise() + KinectSettings::T_matT;
+
+                    S << "X" << 10000 * (Hf(0) + KinectSettings::hoffsets.v[0]) <<
+                        "/Y" << 10000 * (Hf(1) + KinectSettings::hoffsets.v[1]) <<
+                        "/Z" << 10000 * (Hf(2) + KinectSettings::hoffsets.v[2]) <<
+                        "/EX" << 10000 * (Ef(0) + KinectSettings::hoffsets.v[0]) <<
+                        "/EY" << 10000 * (Ef(1) + KinectSettings::hoffsets.v[1]) <<
+                        "/EZ" << 10000 * (Ef(2) + KinectSettings::hoffsets.v[2]) << "/";
+                }
+                else {
+                    if (flip) {
+                        S << "X" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandRight)].x + KinectSettings::hoffsets.v[0]) <<
+                            "/Y" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandRight)].y + KinectSettings::hoffsets.v[1]) <<
+                            "/Z" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandRight)].z + KinectSettings::hoffsets.v[2]) <<
+                            "/EX" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].x + KinectSettings::hoffsets.v[0]) <<
+                            "/EY" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].y + KinectSettings::hoffsets.v[1]) <<
+                            "/EZ" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].z + KinectSettings::hoffsets.v[2]) << "/";
+                    }
+                    else {
+                        S << "X" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].x + KinectSettings::hoffsets.v[0]) <<
+                            "/Y" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].y + KinectSettings::hoffsets.v[1]) <<
+                            "/Z" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].z + KinectSettings::hoffsets.v[2]) <<
+                            "/EX" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowLeft)].x + KinectSettings::hoffsets.v[0]) <<
+                            "/EY" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowLeft)].y + KinectSettings::hoffsets.v[1]) <<
+                            "/EZ" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowLeft)].z + KinectSettings::hoffsets.v[2]) << "/";
+                    }
+                }
+
+                return S.str();
+            }();
+
+            std::string RotS = [&]()->std::string {
+                std::stringstream S;
+
+                if (KinectSettings::rtconcalib) {
+
+                    Eigen::Vector3f Hf, Ef;
+                    if (flip) {
+                        S << "X" << 0.f <<
+                            "/Y" << 10000 * KinectSettings::tryaw * 180 / M_PI <<
+                            "/Z" << 10000 * 0.f << "/";
+                    }
+                    else {
+                        S << "X" << 0.f <<
+                            "/Y" << 10000 * ((KinectSettings::tryaw * 180 / M_PI) + 180.f) <<
+                            "/Z" << 0.f << "/";
+                    }
+                }
+                else {
+                    if (flip) {
+                        S << "X" << 0.f <<
+                            "/Y" << 0.f <<
+                            "/Z" << 0.f << "/";
+                    }
+                    else {
+                        S << "X" << 0.f <<
+                            "/Y" << 180.f <<
+                            "/Z" << 0.f << "/";
+                    }
+                }
+
+                return S.str();
+            }();
+
             char TrackerD[1024];
             char HedoD[1024];
+            char RightD[1024];
+            char LeftD[1024];
+            char RotD[1024];
 
             strcpy_s(TrackerD, TrackerS.c_str());
             strcpy_s(HedoD, HedoS.c_str());
+            strcpy_s(RightD, RightS.c_str());
+            strcpy_s(LeftD, LeftS.c_str());
+            strcpy_s(RotD, RotS.c_str());
 
             WriteFile(pipeTracker, TrackerD, sizeof(TrackerD), &numWritten, NULL);
             WriteFile(pipeSan, HedoD, sizeof(HedoD), &numWritten, NULL);
+            WriteFile(pipeRight, RightD, sizeof(RightD), &numWritten, NULL);
+            WriteFile(pipeLeft, LeftD, sizeof(LeftD), &numWritten, NULL);
+            WriteFile(pipeLeftRot, RotD, sizeof(RotD), &numWritten, NULL);
+            WriteFile(pipeRightRot, RotD, sizeof(RotD), &numWritten, NULL);
 
             CloseHandle(pipeTracker);
             CloseHandle(pipeSan);
+            CloseHandle(pipeRight);
+            CloseHandle(pipeLeft);
+            CloseHandle(pipeLeftRot);
+            CloseHandle(pipeRightRot);
 
             //std::cout << 
             

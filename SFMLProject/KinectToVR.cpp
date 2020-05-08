@@ -1,3 +1,4 @@
+#include <boost/asio.hpp>
 #include "stdafx.h"
 #include "KinectToVR.h"
 #include "VRHelper.h"
@@ -36,6 +37,8 @@
 // Windows last because of the great and holy Microsoft
 // ... and their ability to cause compiler errors with macros
 #include "wtypes.h"
+
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
 #pragma comment(lib, "Ws2_32.lib")
@@ -266,11 +269,10 @@ void processLoop(KinectHandlerBase& kinect) {
 
     LOG(INFO) << "Attempting connection to vrsystem.... ";    // DEBUG
     vr::EVRInitError eError = vr::VRInitError_None;
-    vr::IVRSystem *m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Background);
+    vr::IVRSystem *m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Overlay);
 
     LOG_IF(eError != vr::VRInitError_None, ERROR) << "IVRSystem could not be initialised: EVRInitError Code " << (int)eError;
 
-    
     // INPUT BINDING TEMPORARY --------------------------------
     // Warn about non-english file path, as openvr can only take ASCII chars
     verifyDefaultFilePath();

@@ -47,6 +47,9 @@ struct VirtualHipSettings {
     Eigen::Matrix<float, 3, 3> rcR_matT;
     Eigen::Matrix<float, 3, 1> rcT_matT;
 
+    Eigen::Matrix<float, 3, 1> hauoffset_s;
+    Eigen::Matrix<float, 3, 1> mauoffset_s;
+
     // --- Sitting Settings ---
     double sittingMaxHeightThreshold = 0.00; // Meters. Under this height, mode is sitting
     
@@ -67,6 +70,8 @@ struct VirtualHipSettings {
             CEREAL_NVP(hmdegree),
             CEREAL_NVP(tdegree),
             CEREAL_NVP(astartk),
+            CEREAL_NVP(hauoffset_s),
+            CEREAL_NVP(mauoffset_s),
             CEREAL_NVP(astartt),
             CEREAL_NVP(autosver),
             CEREAL_NVP(astarth),

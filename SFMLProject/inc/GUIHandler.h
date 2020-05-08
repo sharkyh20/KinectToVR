@@ -1,20 +1,21 @@
 ﻿#pragma once
-
+#include <boost/asio.hpp>
+#include <boost/lexical_cast.hpp>
 #include "VRController.h"
-
+#include <atlbase.h>
 #include "KinectSettings.h"
 #include "KinectHandlerBase.h"
 #include "KinectTrackedDevice.h"
 #include "KinectJoint.h"
 #include "ColorTracker.h"
 #include "VRHelper.h"
-
+#include <TlHelp32.h>
 #include "TrackingMethod.h"
 #include "DeviceHandler.h"
 #include "PSMoveHandler.h"
 #include "VRDeviceHandler.h"
-#include <boost/thread.hpp>
-#include <boost/lexical_cast.hpp>
+#include <ShellAPI.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
@@ -22,6 +23,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 #include <Eigen/Geometry>
+
+#include <locale>
+#include <codecvt>
+#include <string>
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Window/Mouse.hpp>
@@ -96,7 +101,8 @@ private:
 public:
 
     GUIHandler() {
-        guiWindow->SetTitle("KinectToVR: a0.6 Prime-R");
+        guiWindow->SetTitle("KinectToVR: a0.6 Prime-R: Call it maybe!");
+        
 
         setDefaultSignals();
 
@@ -108,11 +114,11 @@ public:
         packElementsIntoVirtualHipsBox();
         setRequisitions();
 
-        mainNotebook->AppendPage(mainGUIBox, sfg::Label::Create("KinectToVR"));
+        mainNotebook->AppendPage(mainGUIBox, sfg::Label::Create(" Body Trackers "));
         //mainNotebook->AppendPage(advancedTrackerBox, sfg::Label::Create("Adv. Trackers"));
-        mainNotebook->AppendPage(calibrationBox, sfg::Label::Create("Calibration"));
-        //mainNotebook->AppendPage(trackingMethodBox, sfg::Label::Create("Advanced"));
-        mainNotebook->AppendPage(virtualHipsBox, sfg::Label::Create("Head Tracking"));
+        mainNotebook->AppendPage(calibrationBox, sfg::Label::Create(" Calibration "));
+        mainNotebook->AppendPage(controllersBox, sfg::Label::Create(" Arduino "));
+        mainNotebook->AppendPage(virtualHipsBox, sfg::Label::Create(" Head Tracking "));
 
 
         guiWindow->Add(mainNotebook);
@@ -830,8 +836,34 @@ public:
     }
     void setKinectButtonSignal(KinectHandlerBase& kinect) {
         reconKinectButton->GetSignal(sfg::Widget::OnLeftClick).Connect([&kinect] {
-            kinect.initialise();
-            });
+			kinect.initialise();
+			});
+
+		refreshcomports->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
+			wchar_t lpTargetPath[5000];
+			comportbox1->Clear();
+			comportbox2->Clear();
+
+			for (int i = 0; i < 255; i++) // checking ports from COM0 to COM255
+			{
+				std::wstring str = L"COM" + std::to_wstring(i); // converting to COM0, COM1, COM2
+				DWORD res = QueryDosDevice(str.c_str(), lpTargetPath, 5000);
+
+				// Test the return value and error if any
+				if (res != 0) //QueryDosDevice returns zero if it didn't find an object
+				{
+					comportbox1->AppendItem(str);
+					comportbox2->AppendItem(str);
+					//std::cout << str << ": " << lpTargetPath << std::endl;
+				}
+				if (::GetLastError() == ERROR_INSUFFICIENT_BUFFER)
+				{
+				}
+			}
+
+            comportbox1->SelectItem(0);
+            comportbox2->SelectItem(1);
+			});
     }
     void spawnAndConnectTracker(vrinputemulator::VRInputEmulator& inputE, std::vector<KVR::KinectTrackedDevice>& v_trackers, TempTracker t_tracker)
     {
@@ -1415,6 +1447,32 @@ public:
 
     }
 
+    void refreshcom() {
+        wchar_t lpTargetPath[5000];
+        comportbox1->Clear();
+        comportbox2->Clear();
+
+        for (int i = 0; i < 255; i++) // checking ports from COM0 to COM255
+        {
+            std::wstring str = L"COM" + std::to_wstring(i); // converting to COM0, COM1, COM2
+            DWORD res = QueryDosDevice(str.c_str(), lpTargetPath, 5000);
+
+            // Test the return value and error if any
+            if (res != 0) //QueryDosDevice returns zero if it didn't find an object
+            {
+                comportbox1->AppendItem(str);
+                comportbox2->AppendItem(str);
+                //std::cout << str << ": " << lpTargetPath << std::endl;
+            }
+            if (::GetLastError() == ERROR_INSUFFICIENT_BUFFER)
+            {
+            }
+        }
+
+        comportbox1->SelectItem(0);
+        comportbox2->SelectItem(1);
+    }
+
     void setHipScaleBox() {
         auto HipLabel = sfg::Label::Create("Vertical Hip Adjustment (metres)");
         HipScale->SetDigits(3);
@@ -1427,14 +1485,104 @@ public:
         //trackingMethodBox->Pack(InitiateColorTrackingButton);
         //trackingMethodBox->Pack(DestroyColorTrackingButton);
 
-        trackingMethodBox->Pack(TrackingMethodLabel);
+        controllersBox->Pack(sfg::Label::Create("-- Choose COMs on which are connected Your Arduinos --"));
+        controllersBox->Pack(sfg::Label::Create("KinectToVR will try to handle index controllers using ArduVR driver and Your two Arduino gloves"));
+        controllersBox->Pack(sfg::Label::Create(" "));
 
-        sfg::Box::Ptr horizontalPSMBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
+        /*sfg::Box::Ptr horizontalPSMBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
         horizontalPSMBox->Pack(StartPSMoveHandler);
         horizontalPSMBox->Pack(StopPSMoveHandler);
-        horizontalPSMBox->Pack(PSMoveHandlerLabel);
+        horizontalPSMBox->Pack(PSMoveHandlerLabel);*/
 
-        trackingMethodBox->Pack(horizontalPSMBox);
+        sfg::Box::Ptr vbox0 = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 1.f);
+        sfg::Box::Ptr vbox1 = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 1.f);
+        sfg::Box::Ptr vbox2 = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 1.f);
+
+        sfg::Box::Ptr horcombox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
+
+        vbox0->Pack(sfg::Label::Create("-- Left COM Port --"));
+        vbox0->Pack(comportbox1);
+        vbox1->Pack(sfg::Label::Create("-- Right COM Port --"));
+        vbox1->Pack(comportbox2);
+        vbox2->Pack(sfg::Label::Create("-- Refresh COMs --"));
+        vbox2->Pack(refreshcomports);
+
+        horcombox->Pack(vbox0);
+        horcombox->Pack(vbox1);
+        horcombox->Pack(vbox2);
+
+        controllersBox->Pack(horcombox);
+        refreshcom();
+
+        sfg::Box::Ptr horbox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
+
+        horbox->Pack(startarduvr);
+        horbox->Pack(stoparduvr);
+        controllersBox->Pack(horbox);
+
+        stoparduvr->SetState(sfg::Widget::State::INSENSITIVE);
+        startarduvr->SetState(sfg::Widget::State::NORMAL);
+
+
+        auto offsets = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.5f);
+        auto xhoffset = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.5f);
+        auto yhoffset = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.5f);
+        auto zhoffset = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.5f);
+        auto xhoffset1 = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.5f);
+        auto yhoffset1 = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.5f);
+        auto zhoffset1 = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.5f);
+
+        auto xoffset = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
+        xoffset->Pack(sfg::Label::Create("-- X Offset (meters) --"));
+        xoffset->Pack(sfg::Label::Create(" "));
+        xhoffset->Pack(sfg::Label::Create("Left-Con"));
+        xhoffset->Pack(sfg::Label::Create("Right-Con"));
+        xhoffset1->Pack(arduhx);
+        xhoffset1->Pack(ardumx);
+        xoffset->Pack(xhoffset);
+        xoffset->Pack(xhoffset1);
+        xoffset->Pack(sfg::Label::Create(" "));
+
+        auto yoffset = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
+        yoffset->Pack(sfg::Label::Create("-- Y Offset (meters) --"));
+        yoffset->Pack(sfg::Label::Create(" "));
+        yhoffset->Pack(sfg::Label::Create("Left-Con"));
+        yhoffset->Pack(sfg::Label::Create("Right-Con"));
+        yhoffset1->Pack(arduhy);
+        yhoffset1->Pack(ardumy);
+        yoffset->Pack(yhoffset);
+        yoffset->Pack(yhoffset1);
+        yoffset->Pack(sfg::Label::Create(" "));
+
+        auto zoffset = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
+        zoffset->Pack(sfg::Label::Create("-- Z Offset (meters) --"));
+        zoffset->Pack(sfg::Label::Create(" "));
+        zhoffset->Pack(sfg::Label::Create("Left-Con"));
+        zhoffset->Pack(sfg::Label::Create("Right-Con"));
+        zhoffset1->Pack(arduhz);
+        zhoffset1->Pack(ardumz);
+        zoffset->Pack(zhoffset);
+        zoffset->Pack(zhoffset1);
+        zoffset->Pack(sfg::Label::Create(" "));
+
+
+        offsets->Pack(xoffset);
+        offsets->Pack(yoffset);
+        offsets->Pack(zoffset);
+
+        controllersBox->Pack(sfg::Label::Create(" "));
+        controllersBox->Pack(offsets);
+
+
+
+
+
+
+
+
+
+
+
     }
 
     void updateDeviceLists() {
@@ -1692,6 +1840,30 @@ public:
         return std::make_tuple(R, t);
     }
 
+    void killProcessByName(const char* filename)
+    {
+        USES_CONVERSION;
+        HANDLE hSnapShot = CreateToolhelp32Snapshot(TH32CS_SNAPALL, NULL);
+        PROCESSENTRY32 pEntry;
+        pEntry.dwSize = sizeof(pEntry);
+        BOOL hRes = Process32First(hSnapShot, &pEntry);
+        while (hRes)
+        {
+            if (strcmp(W2A(pEntry.szExeFile), filename) == 0)
+            {
+                HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, 0,
+                    (DWORD)pEntry.th32ProcessID);
+                if (hProcess != NULL)
+                {
+                    TerminateProcess(hProcess, 9);
+                    CloseHandle(hProcess);
+                }
+            }
+            hRes = Process32Next(hSnapShot, &pEntry);
+        }
+        CloseHandle(hSnapShot);
+    }
+
     void setVirtualHipsBoxSignals() {
         using namespace VirtualHips;
 
@@ -1700,6 +1872,14 @@ public:
         TDegreeButton->SetDigits(0);
         VirtualHipSittingThreshold->SetDigits(2);
         VirtualHipLyingThreshold->SetDigits(2);
+
+        arduhx->SetDigits(2);
+        arduhy->SetDigits(2);
+        arduhz->SetDigits(2);
+
+        ardumx->SetDigits(2);
+        ardumy->SetDigits(2);
+        ardumz->SetDigits(2);
 
         VirtualHipUseHMDYawButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
             settings.followHmdYawRotation = (VirtualHipUseHMDYawButton->IsActive());
@@ -1753,6 +1933,57 @@ public:
 
             });
 
+        startarduvr->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
+            
+
+            using namespace boost::asio;
+            using ip::tcp;
+            using std::string;
+
+            boost::asio::io_service io_service;
+            //socket creation
+            tcp::socket socket(io_service);
+            //connection
+            socket.connect(tcp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"), 5741));
+            // request/message from client
+
+            const string msg = "Hello from Client!\n";
+            boost::system::error_code error;
+            boost::asio::write(socket, boost::asio::buffer(msg), error);
+            if (!error) {
+                LOG(INFO) << "Client sent message!";
+            }
+            else {
+                LOG(INFO) << "(Ignore) send failed: " << error.message();
+            }
+
+            // getting response from server
+            boost::asio::streambuf receive_buffer;
+            boost::asio::read(socket, receive_buffer, boost::asio::transfer_all(), error);
+            if (error && error != boost::asio::error::eof) {
+                LOG(INFO) << "(Ignore) receive failed: " << error.message();
+            }
+            else {
+                const char* data = boost::asio::buffer_cast<const char*>(receive_buffer.data());
+            }
+
+
+            ShellExecute(NULL, _T("open"), _T("avr_hhost.exe"), NULL, NULL, SW_HIDE);
+            ShellExecute(NULL, _T("open"), _T("avr_mhost.exe"), NULL, NULL, SW_HIDE);
+
+
+            stoparduvr->SetState(sfg::Widget::State::NORMAL);
+            startarduvr->SetState(sfg::Widget::State::INSENSITIVE);
+            });
+
+        stoparduvr->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
+            killProcessByName("avr_hhost.exe");
+            killProcessByName("avr_mhost.exe");
+
+            stoparduvr->SetState(sfg::Widget::State::INSENSITIVE);
+            startarduvr->SetState(sfg::Widget::State::NORMAL);
+            });
+
         if (settings.astartt) {
             AutoStartTrackers->SetLabel("Initialise trackers automatically CURRENT: YES");
         }
@@ -1778,6 +2009,39 @@ public:
             KinectSettings::huoffsets.v[0] = VirtualHipHeightFromHMDButton->GetValue();
             }
         );
+
+        arduhx->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
+            settings.hauoffset_s(0) = arduhx->GetValue();
+            KinectSettings::hauoffset.v[0] = arduhx->GetValue();
+            }
+        );
+        arduhy->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
+            settings.hauoffset_s(1) = arduhx->GetValue();
+            KinectSettings::hauoffset.v[1] = arduhx->GetValue();
+            }
+        );
+        arduhz->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
+            settings.hauoffset_s(2) = arduhx->GetValue();
+            KinectSettings::hauoffset.v[2] = arduhx->GetValue();
+            }
+        );
+
+        arduhx->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
+            settings.mauoffset_s(0) = ardumx->GetValue();
+            KinectSettings::mauoffset.v[0] = ardumx->GetValue();
+            }
+        );
+        arduhy->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
+            settings.mauoffset_s(1) = ardumx->GetValue();
+            KinectSettings::mauoffset.v[1] = ardumx->GetValue();
+            }
+        );
+        arduhz->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
+            settings.mauoffset_s(2) = ardumx->GetValue();
+            KinectSettings::mauoffset.v[2] = ardumx->GetValue();
+            }
+        );
+
         DegreeButton->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
             settings.hmdegree = DegreeButton->GetValue();
             KinectSettings::hroffset = DegreeButton->GetValue();
@@ -1994,6 +2258,14 @@ public:
         DegreeButton->SetValue(settings.hmdegree);
         TDegreeButton->SetValue(settings.tdegree);
 
+        arduhx->SetValue(0.f);
+        arduhy->SetValue(0.f);
+        arduhz->SetValue(0.f);
+
+        ardumx->SetValue(0.f);
+        ardumy->SetValue(0.f);
+        ardumz->SetValue(0.f);
+
         VirtualHipFollowHMDLean->SetActive(settings.positionFollowsHMDLean);
 
         VirtualHipSittingThreshold->SetValue(settings.sittingMaxHeightThreshold);
@@ -2087,8 +2359,11 @@ private:
     sfg::Box::Ptr mainGUIBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
     sfg::Box::Ptr calibrationBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
     sfg::Box::Ptr advancedTrackerBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
-    sfg::Box::Ptr trackingMethodBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
+    sfg::Box::Ptr controllersBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
     sfg::Box::Ptr virtualHipsBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
+
+    sfg::ComboBox::Ptr comportbox1 = sfg::ComboBox::Create();
+    sfg::ComboBox::Ptr comportbox2 = sfg::ComboBox::Create();
 
     sfg::Adjustment::Ptr fontSizeAdjustment = sfg::Adjustment::Create();
     sfg::Label::Ptr FontSizeScaleLabel = sfg::Label::Create("(WARNING, LAGS ON CHANGE) Font Size: ");
@@ -2111,6 +2386,9 @@ private:
     sfg::Button::Ptr AutoStartHeadTracking= sfg::Button::Create("Start head tracking on launch");
     sfg::Button::Ptr AutoStartKinectToVR = sfg::Button::Create("Launch K2 automatically with SteamVR");
 
+    sfg::Button::Ptr refreshcomports = sfg::Button::Create("Refresh");
+    sfg::Button::Ptr startarduvr = sfg::Button::Create("Re/Initialise ArduVR controllers");
+    sfg::Button::Ptr stoparduvr = sfg::Button::Create("Stop Polling input for controllers");
 
     //Zeroing
     sfg::Label::Ptr KinectRotLabel = sfg::Label::Create("Calibrate the rotation of the Kinect sensor with the controller thumbsticks. Press the trigger to confirm.");
@@ -2225,6 +2503,14 @@ private:
 
     sfg::SpinButton::Ptr VirtualHipHeightFromHMDButton = sfg::SpinButton::Create(sfg::Adjustment::Create(VirtualHips::settings.heightFromHMD, -1000.f, 1000.f, 0.01f));
     sfg::CheckButton::Ptr VirtualHipFollowHMDLean = sfg::CheckButton::Create("Follow HMD Lean");
+
+    sfg::SpinButton::Ptr arduhx = sfg::SpinButton::Create(sfg::Adjustment::Create(VirtualHips::settings.heightFromHMD, -1000.f, 1000.f, 0.01f));
+    sfg::SpinButton::Ptr arduhy = sfg::SpinButton::Create(sfg::Adjustment::Create(VirtualHips::settings.heightFromHMD, -1000.f, 1000.f, 0.01f));
+    sfg::SpinButton::Ptr arduhz = sfg::SpinButton::Create(sfg::Adjustment::Create(VirtualHips::settings.heightFromHMD, -1000.f, 1000.f, 0.01f));
+
+    sfg::SpinButton::Ptr ardumx = sfg::SpinButton::Create(sfg::Adjustment::Create(VirtualHips::settings.heightFromHMD, -1000.f, 1000.f, 0.01f));
+    sfg::SpinButton::Ptr ardumy = sfg::SpinButton::Create(sfg::Adjustment::Create(VirtualHips::settings.heightFromHMD, -1000.f, 1000.f, 0.01f));
+    sfg::SpinButton::Ptr ardumz = sfg::SpinButton::Create(sfg::Adjustment::Create(VirtualHips::settings.heightFromHMD, -1000.f, 1000.f, 0.01f));
 
     sfg::SpinButton::Ptr DegreeButton = sfg::SpinButton::Create(sfg::Adjustment::Create(VirtualHips::settings.heightFromHMD, -360.f, 360.f, 0.01f));
     sfg::SpinButton::Ptr TDegreeButton = sfg::SpinButton::Create(sfg::Adjustment::Create(VirtualHips::settings.heightFromHMD, 2, 11, 1.f));

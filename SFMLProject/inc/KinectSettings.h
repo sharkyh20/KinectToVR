@@ -31,13 +31,13 @@ namespace KinectSettings {
     extern float g_InferredBoneThickness;
     extern float g_JointThickness;
     extern float hmdYaw;
-
+    extern float ardroffset;
     extern const int kinectHeight;
     extern const int kinectWidth;
 
     extern const int kinectV2Height;
     extern const int kinectV2Width;
-
+    extern bool rtconcalib;
     extern double kinectToVRScale;
 
     extern double hipRoleHeightAdjust;
@@ -55,7 +55,7 @@ namespace KinectSettings {
     extern vr::HmdMatrix34_t trackingOrigin;
     extern vr::HmdVector3d_t trackingOriginPosition; // Input Emulator is by default offset from this - so 0,0,0 in IE is really these coords
     extern vr::HmdVector3d_t secondaryTrackingOriginOffset; // Demonic offset, actual origin unknown. Probably evil and trying to destroy everything I love.
-
+    extern vr::HmdVector3d_t hauoffset, mauoffset;
 
     extern vr::HmdQuaternion_t kinectRepRotation;
     extern vr::HmdVector3d_t kinectRadRotation;
@@ -86,6 +86,7 @@ namespace KinectSettings {
 
     extern std::string KVRversion;
 
+    void sendtoipc(vr::HmdVector3d_t kinectposes[3], vr::HmdVector3d_t kinectrots[3]/*, vr::HmdVector3d_t kinectoffsets[3]*/);
     void serializeKinectSettings();
     void writeKinectSettings();
 }

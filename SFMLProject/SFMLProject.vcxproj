@@ -107,7 +107,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>NOMINMAX;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;_DEBUG;_CONSOLE;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(IncludePath);$(ProjectDir)inc;$(SolutionDir)external\cereal\include;$(SolutionDir)external\inputemulator\;$(SolutionDir)external\openvr\headers\;$(SolutionDir)external\inputemulator\third-party\boost_1_63_0;$(SolutionDir)external\SFML\include\;$(SolutionDir)external\glew\;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\boost_1_63_0;$(SolutionDir)external\easylogging\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ShowIncludes>true</ShowIncludes>
       <ForcedIncludeFiles>
@@ -155,12 +155,12 @@ xcopy /s /y /i /e "$(SolutionDir)/driver" "$(TargetDir)/driver"</Command>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level1</WarningLevel>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NOMINMAX;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(IncludePath);$(ProjectDir)inc;$(SolutionDir)external\eigen-3.3.7;$(SolutionDir)external\glm_glm\;$(SolutionDir)external\cereal\include;$(SolutionDir)external\inputemulator\;$(SolutionDir)external\openvr\headers\;$(SolutionDir)external\inputemulator\third-party\boost_1_63_0;$(SolutionDir)external\SFML\include\;$(SolutionDir)external\glew\;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;C:\Users\AkaYa!\Desktop\boost_1_72_0;$(SolutionDir)external\easylogging\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NOMINMAX;NDEBUG;_CONSOLE;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(IncludePath);$(ProjectDir)inc;$(SolutionDir)external\eigen-3.3.7;$(SolutionDir)external\glm_glm\;$(SolutionDir)external\cereal\include;$(SolutionDir)external\inputemulator\;$(SolutionDir)external\openvr\headers\;$(SolutionDir)external\inputemulator\third-party\boost_1_63_0;$(SolutionDir)external\SFML\include\;$(SolutionDir)external\glew\;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;C:\Users\AkaYa!\Desktop\boost_1_72_0;$(SolutionDir)external\easylogging\src;$(ProjectDir)asiolib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ForcedIncludeFiles>%(ForcedIncludeFiles)</ForcedIncludeFiles>
@@ -184,6 +184,10 @@ xcopy /s /y /i /e "$(SolutionDir)/driver" "$(TargetDir)/driver"</Command>
       <Command>
       </Command>
     </CustomBuildStep>
+    <Lib>
+      <AdditionalLibraryDirectories>$(ProjectDir)asiolib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
