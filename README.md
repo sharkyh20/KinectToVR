@@ -1,8 +1,8 @@
 # KinectToVR
-KinectToVR is a synregic combination of head tracking (yes, it's free),
-full body trackers and controllers support, that finally gives you software
-to track your body that is free, won't crash and doesn't need some weird inputemulator to basic work.
-(It still needs it, modified, for head tracking, if you like to do so)
+KinectToVR is a synregic combination of head tracking (yes, it's free),    
+full body trackers and controllers support, that finally gives you software    
+to track your body that is free, won't crash and doesn't need some weird inputemulator to basic work.    
+(It still needs it, modified, for head tracking, if you like to do so)    
 
 ## Getting Started - Users
 Download release, unpack somewhere on dektop and run \[register_driver.bat]    
