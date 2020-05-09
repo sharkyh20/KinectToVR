@@ -45,4 +45,5 @@ Although, all changes that i made, go to CreativeCommons.
 * There is not need to have any controllers to calibration (you have, but it's only information)
 * Synergic calibration - all at once (except when you're using head tracking)
 * Deleted unused parts of program - psmoves and some weirdo stuff
+* Added app icon - you want to have it!
 * more and more..
