@@ -23,7 +23,7 @@ Although, all changes that i made, go to CreativeCommons.
 * Calibration method - now it's even shorter than d4vr's one!
 * Trackers implementation - K2 is now static openvr driver
 * Head Tracking - yes, you can use this for tracking your head (AND NOT GET 'DIZZY')
-* Controllers - ArduVR emulates index controllers with your arduino (more info at https://project.arduvr.rf.gd)
+* Controllers - ArduVR emulates index controllers with your arduino (more info at https://ovr.ayakimi.rf.gd)
 * Icons of trackers - they're pucks, aren't they?
 * Flip - kinect now works even if you are back to it
 * Automatical spawn of trackers
