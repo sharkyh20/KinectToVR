@@ -101,7 +101,7 @@ private:
 public:
 
     GUIHandler() {
-        guiWindow->SetTitle("KinectToVR: a0.6 Prime-R: Call it maybe!");
+        guiWindow->SetTitle("KinectToVR: a0.7.0 RR: It's strong enough!");
         
 
         setDefaultSignals();
@@ -875,6 +875,18 @@ public:
         v_trackers.push_back(device);
     }
 
+    std::wstring s2ws(const std::string& s)
+    {
+        int len;
+        int slength = (int)s.length() + 1;
+        len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0);
+        wchar_t* buf = new wchar_t[len];
+        MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, buf, len);
+        std::wstring r(buf);
+        delete[] buf;
+        return r;
+    }
+
     void setTrackerButtonSignals(vrinputemulator::VRInputEmulator& inputE, std::vector<KVR::KinectTrackedDevice>& v_trackers, vr::IVRSystem*& m_VRSystem) {
         calibrateOffsetButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &inputE, &v_trackers, &m_VRSystem] {
             // WARNING, SUPER HACKY!!!
@@ -1005,11 +1017,68 @@ public:
 				});
 		}
 
-        TrackerLastInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers, &inputE] {
-            if (!retrieveLastSpawnedTrackers()) {
-                return; // Don't actually spawn the trackers, as they will likely crash
-            }
-            TrackerLastInitButton->SetLabel("Trackers Initialised");
+        if (VirtualHips::settings.astarta) {
+
+            
+            comportbox1->Clear();
+            comportbox1->AppendItem(VirtualHips::settings.comph);
+            comportbox1->SelectItem(0);
+
+            comportbox2->Clear();
+            comportbox2->AppendItem(VirtualHips::settings.compm);
+            comportbox2->SelectItem(0);
+
+			try {
+				using namespace boost::asio;
+				using ip::tcp;
+				using std::string;
+
+				boost::asio::io_service io_service;
+				//socket creation
+				tcp::socket socket(io_service);
+				//connection
+				socket.connect(tcp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"), 5741));
+				// request/message from client
+
+				const string msg = "Hello from Client!\n";
+				boost::system::error_code error;
+				boost::asio::write(socket, boost::asio::buffer(msg), error);
+				if (!error) {
+					LOG(INFO) << "Client sent message!";
+				}
+				else {
+					LOG(INFO) << "(Ignore) send failed: " << error.message();
+				}
+
+				// getting response from server
+				boost::asio::streambuf receive_buffer;
+				boost::asio::read(socket, receive_buffer, boost::asio::transfer_all(), error);
+				if (error && error != boost::asio::error::eof) {
+					LOG(INFO) << "(Ignore) receive failed: " << error.message();
+				}
+				else {
+					const char* data = boost::asio::buffer_cast<const char*>(receive_buffer.data());
+				}
+			}
+			catch (boost::exception const &e) {}
+			catch (std::exception e) {}
+
+			ShellExecute(NULL, _T("open"), _T("avr_hhost.exe"), s2ws(VirtualHips::settings.comph).c_str(), NULL, SW_HIDE);
+			ShellExecute(NULL, _T("open"), _T("avr_mhost.exe"), s2ws(VirtualHips::settings.compm).c_str(), NULL, SW_HIDE);
+
+
+			stoparduvr->SetState(sfg::Widget::State::NORMAL);
+			startarduvr->SetState(sfg::Widget::State::INSENSITIVE);
+            comportbox1->SetState(sfg::Widget::State::INSENSITIVE);
+            comportbox2->SetState(sfg::Widget::State::INSENSITIVE);
+            refreshcomports->SetState(sfg::Widget::State::INSENSITIVE);
+		}
+
+		TrackerLastInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers, &inputE] {
+			if (!retrieveLastSpawnedTrackers()) {
+				return; // Don't actually spawn the trackers, as they will likely crash
+			}
+			TrackerLastInitButton->SetLabel("Trackers Initialised");
             if (TrackersToBeInitialised.empty()) {
                 spawnDefaultLowerBodyTrackers(inputE, v_trackers);
                 spawnAndConnectKinectTracker(inputE, v_trackers);
@@ -1486,7 +1555,8 @@ public:
         //trackingMethodBox->Pack(DestroyColorTrackingButton);
 
         controllersBox->Pack(sfg::Label::Create("-- Choose COMs on which are connected Your Arduinos --"));
-        controllersBox->Pack(sfg::Label::Create("KinectToVR will try to handle index controllers using ArduVR driver and Your two Arduino gloves"));
+        controllersBox->Pack(sfg::Label::Create("Program will try to handle index controllers using ArduVR driver and Your two Arduino gloves"));
+        controllersBox->Pack(sfg::Label::Create("-- Calibrate using trackers tab (you will have all at once) --"));
         controllersBox->Pack(sfg::Label::Create(" "));
 
         /*sfg::Box::Ptr horizontalPSMBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
@@ -1497,8 +1567,6 @@ public:
         sfg::Box::Ptr vbox0 = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 1.f);
         sfg::Box::Ptr vbox1 = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 1.f);
         sfg::Box::Ptr vbox2 = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 1.f);
-
-        sfg::Box::Ptr horcombox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
 
         vbox0->Pack(sfg::Label::Create("-- Left COM Port --"));
         vbox0->Pack(comportbox1);
@@ -1572,7 +1640,7 @@ public:
 
         controllersBox->Pack(sfg::Label::Create(" "));
         controllersBox->Pack(offsets);
-
+        controllersBox->Pack(AutoStartArduVR);
 
 
 
@@ -1933,47 +2001,66 @@ public:
 
             });
 
+        AutoStartArduVR->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
+            settings.astarta = !settings.astarta;
+            if (settings.astarta) {
+                AutoStartArduVR->SetLabel("Start ArduVR on launch CURRENT: YES");
+            }
+            else {
+                AutoStartArduVR->SetLabel("Start ArduVR on launch CURRENT: NO");
+            }
+
+            });
+
         startarduvr->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
             
+            try {
+                using namespace boost::asio;
+                using ip::tcp;
+                using std::string;
 
-            using namespace boost::asio;
-            using ip::tcp;
-            using std::string;
+                boost::asio::io_service io_service;
+                //socket creation
+                tcp::socket socket(io_service);
+                //connection
+                socket.connect(tcp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"), 5741));
+                // request/message from client
 
-            boost::asio::io_service io_service;
-            //socket creation
-            tcp::socket socket(io_service);
-            //connection
-            socket.connect(tcp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"), 5741));
-            // request/message from client
+                const string msg = "Hello from Client!\n";
+                boost::system::error_code error;
+                boost::asio::write(socket, boost::asio::buffer(msg), error);
+                if (!error) {
+                    LOG(INFO) << "Client sent message!";
+                }
+                else {
+                    LOG(INFO) << "(Ignore) send failed: " << error.message();
+                }
 
-            const string msg = "Hello from Client!\n";
-            boost::system::error_code error;
-            boost::asio::write(socket, boost::asio::buffer(msg), error);
-            if (!error) {
-                LOG(INFO) << "Client sent message!";
+                // getting response from server
+                boost::asio::streambuf receive_buffer;
+                boost::asio::read(socket, receive_buffer, boost::asio::transfer_all(), error);
+                if (error && error != boost::asio::error::eof) {
+                    LOG(INFO) << "(Ignore) receive failed: " << error.message();
+                }
+                else {
+                    const char* data = boost::asio::buffer_cast<const char*>(receive_buffer.data());
+                }
             }
-            else {
-                LOG(INFO) << "(Ignore) send failed: " << error.message();
-            }
+            catch (boost::exception const &e) {}
+            catch (std::exception e) {}
 
-            // getting response from server
-            boost::asio::streambuf receive_buffer;
-            boost::asio::read(socket, receive_buffer, boost::asio::transfer_all(), error);
-            if (error && error != boost::asio::error::eof) {
-                LOG(INFO) << "(Ignore) receive failed: " << error.message();
-            }
-            else {
-                const char* data = boost::asio::buffer_cast<const char*>(receive_buffer.data());
-            }
+            ShellExecute(NULL, _T("open"), _T("avr_hhost.exe"), s2ws(comportbox1->GetSelectedText()).c_str(), NULL, SW_HIDE);
+            ShellExecute(NULL, _T("open"), _T("avr_mhost.exe"), s2ws(comportbox2->GetSelectedText()).c_str(), NULL, SW_HIDE);
 
+            settings.comph = comportbox1->GetSelectedText();
+            settings.compm = comportbox2->GetSelectedText();
 
-            ShellExecute(NULL, _T("open"), _T("avr_hhost.exe"), NULL, NULL, SW_HIDE);
-            ShellExecute(NULL, _T("open"), _T("avr_mhost.exe"), NULL, NULL, SW_HIDE);
-
-
+            VirtualHips::saveSettings();
             stoparduvr->SetState(sfg::Widget::State::NORMAL);
             startarduvr->SetState(sfg::Widget::State::INSENSITIVE);
+            comportbox1->SetState(sfg::Widget::State::INSENSITIVE);
+            comportbox2->SetState(sfg::Widget::State::INSENSITIVE);
+            refreshcomports->SetState(sfg::Widget::State::INSENSITIVE);
             });
 
         stoparduvr->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
@@ -1982,6 +2069,9 @@ public:
 
             stoparduvr->SetState(sfg::Widget::State::INSENSITIVE);
             startarduvr->SetState(sfg::Widget::State::NORMAL);
+            comportbox1->SetState(sfg::Widget::State::NORMAL);
+            comportbox2->SetState(sfg::Widget::State::NORMAL);
+            refreshcomports->SetState(sfg::Widget::State::NORMAL);
             });
 
         if (settings.astartt) {
@@ -2002,6 +2092,12 @@ public:
         else {
             AutoStartHeadTracking->SetLabel("Start head tracking on launch CURRENT: NO");
         }
+        if (settings.astarta) {
+            AutoStartArduVR->SetLabel("Start ArduVR on launch CURRENT: YES");
+        }
+        else {
+            AutoStartArduVR->SetLabel("Start ArduVR on launch CURRENT: NO");
+        }
 
 
         VirtualHipHeightFromHMDButton->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
@@ -2013,32 +2109,38 @@ public:
         arduhx->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
             settings.hauoffset_s(0) = arduhx->GetValue();
             KinectSettings::hauoffset.v[0] = arduhx->GetValue();
+            VirtualHips::saveSettings();
             }
         );
         arduhy->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
-            settings.hauoffset_s(1) = arduhx->GetValue();
-            KinectSettings::hauoffset.v[1] = arduhx->GetValue();
+            settings.hauoffset_s(1) = arduhy->GetValue();
+            KinectSettings::hauoffset.v[1] = arduhy->GetValue();
+            VirtualHips::saveSettings();
             }
         );
         arduhz->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
-            settings.hauoffset_s(2) = arduhx->GetValue();
-            KinectSettings::hauoffset.v[2] = arduhx->GetValue();
+            settings.hauoffset_s(2) = arduhz->GetValue();
+            KinectSettings::hauoffset.v[2] = arduhz->GetValue();
+            VirtualHips::saveSettings();
             }
         );
 
-        arduhx->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
+        ardumx->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
             settings.mauoffset_s(0) = ardumx->GetValue();
             KinectSettings::mauoffset.v[0] = ardumx->GetValue();
+            VirtualHips::saveSettings();
             }
         );
-        arduhy->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
-            settings.mauoffset_s(1) = ardumx->GetValue();
-            KinectSettings::mauoffset.v[1] = ardumx->GetValue();
+        ardumy->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
+            settings.mauoffset_s(1) = ardumy->GetValue();
+            KinectSettings::mauoffset.v[1] = ardumy->GetValue();
+            VirtualHips::saveSettings();
             }
         );
-        arduhz->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
-            settings.mauoffset_s(2) = ardumx->GetValue();
-            KinectSettings::mauoffset.v[2] = ardumx->GetValue();
+        ardumz->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this] {
+            settings.mauoffset_s(2) = ardumz->GetValue();
+            KinectSettings::mauoffset.v[2] = ardumz->GetValue();
+            VirtualHips::saveSettings();
             }
         );
 
@@ -2258,13 +2360,13 @@ public:
         DegreeButton->SetValue(settings.hmdegree);
         TDegreeButton->SetValue(settings.tdegree);
 
-        arduhx->SetValue(0.f);
-        arduhy->SetValue(0.f);
-        arduhz->SetValue(0.f);
+        arduhx->SetValue(settings.hauoffset_s(0));
+        arduhy->SetValue(settings.hauoffset_s(1));
+        arduhz->SetValue(settings.hauoffset_s(2));
 
-        ardumx->SetValue(0.f);
-        ardumy->SetValue(0.f);
-        ardumz->SetValue(0.f);
+        ardumx->SetValue(settings.mauoffset_s(0));
+        ardumy->SetValue(settings.mauoffset_s(1));
+        ardumz->SetValue(settings.mauoffset_s(2));
 
         VirtualHipFollowHMDLean->SetActive(settings.positionFollowsHMDLean);
 
@@ -2385,6 +2487,8 @@ private:
     sfg::Button::Ptr AutoStartTrackers = sfg::Button::Create("Initialise trackers automatically");
     sfg::Button::Ptr AutoStartHeadTracking= sfg::Button::Create("Start head tracking on launch");
     sfg::Button::Ptr AutoStartKinectToVR = sfg::Button::Create("Launch K2 automatically with SteamVR");
+    sfg::Button::Ptr AutoStartArduVR = sfg::Button::Create("Start ArduVR with SteamVR");
+    sfg::Box::Ptr horcombox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
 
     sfg::Button::Ptr refreshcomports = sfg::Button::Create("Refresh");
     sfg::Button::Ptr startarduvr = sfg::Button::Create("Re/Initialise ArduVR controllers");

@@ -681,29 +681,29 @@ void KinectV1Handler::getKinectRGBData() {
 					PointSet Hf2 = (KinectSettings::R_matT * Hf).colwise() + KinectSettings::T_matT;
 					PointSet Mf2 = (KinectSettings::R_matT * Ef).colwise() + KinectSettings::T_matT;
 
-					S << "X" << 10000 * (Hf(0) + KinectSettings::hoffsets.v[0]) <<
-						"/Y" << 10000 * (Hf(1) + KinectSettings::hoffsets.v[1]) <<
-						"/Z" << 10000 * (Hf(2) + KinectSettings::hoffsets.v[2]) <<
-						"/EX" << 10000 * (Ef(0) + KinectSettings::hoffsets.v[0]) <<
-						"/EY" << 10000 * (Ef(1) + KinectSettings::hoffsets.v[1]) <<
-						"/EZ" << 10000 * (Ef(2) + KinectSettings::hoffsets.v[2]) << "/";
+					S << "X" << 10000 * (Hf(0) + KinectSettings::hoffsets.v[0] + KinectSettings::mauoffset.v[0]) <<
+						"/Y" << 10000 * (Hf(1) + KinectSettings::hoffsets.v[1] + KinectSettings::mauoffset.v[1]) <<
+						"/Z" << 10000 * (Hf(2) + KinectSettings::hoffsets.v[2] + KinectSettings::mauoffset.v[2]) <<
+						"/EX" << 10000 * (Ef(0) + KinectSettings::hoffsets.v[0] + KinectSettings::mauoffset.v[0]) <<
+						"/EY" << 10000 * (Ef(1) + KinectSettings::hoffsets.v[1] + KinectSettings::mauoffset.v[1]) <<
+						"/EZ" << 10000 * (Ef(2) + KinectSettings::hoffsets.v[2] + KinectSettings::mauoffset.v[2]) << "/";
 				}
                 else {
                     if (!flip) {
-                        S << "X" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandRight)].x + KinectSettings::hoffsets.v[0]) <<
-                            "/Y" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandRight)].y + KinectSettings::hoffsets.v[1]) <<
-                            "/Z" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandRight)].z + KinectSettings::hoffsets.v[2]) <<
-                            "/EX" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].x + KinectSettings::hoffsets.v[0]) <<
-                            "/EY" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].y + KinectSettings::hoffsets.v[1]) <<
-                            "/EZ" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].z + KinectSettings::hoffsets.v[2]) << "/";
+                        S << "X" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandRight)].x + KinectSettings::hoffsets.v[0] + KinectSettings::mauoffset.v[0]) <<
+                            "/Y" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandRight)].y + KinectSettings::hoffsets.v[1] + KinectSettings::mauoffset.v[1]) <<
+                            "/Z" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandRight)].z + KinectSettings::hoffsets.v[2] + KinectSettings::mauoffset.v[2]) <<
+                            "/EX" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].x + KinectSettings::hoffsets.v[0] + KinectSettings::mauoffset.v[0]) <<
+                            "/EY" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].y + KinectSettings::hoffsets.v[1] + KinectSettings::mauoffset.v[1]) <<
+                            "/EZ" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].z + KinectSettings::hoffsets.v[2] + KinectSettings::mauoffset.v[2]) << "/";
                     }
                     else {
-                        S << "X" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].x + KinectSettings::hoffsets.v[0]) <<
-                            "/Y" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].y + KinectSettings::hoffsets.v[1]) <<
-                            "/Z" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].z + KinectSettings::hoffsets.v[2]) <<
-                            "/EX" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowLeft)].x + KinectSettings::hoffsets.v[0]) <<
-                            "/EY" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowLeft)].y + KinectSettings::hoffsets.v[1]) <<
-                            "/EZ" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowLeft)].z + KinectSettings::hoffsets.v[2]) << "/";
+                        S << "X" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].x + KinectSettings::hoffsets.v[0] + KinectSettings::mauoffset.v[0]) <<
+                            "/Y" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].y + KinectSettings::hoffsets.v[1] + KinectSettings::mauoffset.v[1]) <<
+                            "/Z" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].z + KinectSettings::hoffsets.v[2] + KinectSettings::mauoffset.v[2]) <<
+                            "/EX" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowLeft)].x + KinectSettings::hoffsets.v[0] + KinectSettings::mauoffset.v[0]) <<
+                            "/EY" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowLeft)].y + KinectSettings::hoffsets.v[1] + KinectSettings::mauoffset.v[1]) <<
+                            "/EZ" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowLeft)].z + KinectSettings::hoffsets.v[2] + KinectSettings::mauoffset.v[2]) << "/";
                     }
                 }
 
@@ -741,29 +741,29 @@ void KinectV1Handler::getKinectRGBData() {
                     PointSet Hf2 = (KinectSettings::R_matT * Hf).colwise() + KinectSettings::T_matT;
                     PointSet Mf2 = (KinectSettings::R_matT * Ef).colwise() + KinectSettings::T_matT;
 
-                    S << "X" << 10000 * (Hf(0) + KinectSettings::hoffsets.v[0]) <<
-                        "/Y" << 10000 * (Hf(1) + KinectSettings::hoffsets.v[1]) <<
-                        "/Z" << 10000 * (Hf(2) + KinectSettings::hoffsets.v[2]) <<
-                        "/EX" << 10000 * (Ef(0) + KinectSettings::hoffsets.v[0]) <<
-                        "/EY" << 10000 * (Ef(1) + KinectSettings::hoffsets.v[1]) <<
-                        "/EZ" << 10000 * (Ef(2) + KinectSettings::hoffsets.v[2]) << "/";
+                    S << "X" << 10000 * (Hf(0) + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
+                        "/Y" << 10000 * (Hf(1) + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
+                        "/Z" << 10000 * (Hf(2) + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) <<
+                        "/EX" << 10000 * (Ef(0) + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
+                        "/EY" << 10000 * (Ef(1) + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
+                        "/EZ" << 10000 * (Ef(2) + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) << "/";
                 }
                 else {
                     if (flip) {
-                        S << "X" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandRight)].x + KinectSettings::hoffsets.v[0]) <<
-                            "/Y" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandRight)].y + KinectSettings::hoffsets.v[1]) <<
-                            "/Z" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandRight)].z + KinectSettings::hoffsets.v[2]) <<
-                            "/EX" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].x + KinectSettings::hoffsets.v[0]) <<
-                            "/EY" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].y + KinectSettings::hoffsets.v[1]) <<
-                            "/EZ" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].z + KinectSettings::hoffsets.v[2]) << "/";
+                        S << "X" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandRight)].x + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
+                            "/Y" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandRight)].y + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
+                            "/Z" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandRight)].z + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) <<
+                            "/EX" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].x + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
+                            "/EY" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].y + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
+                            "/EZ" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].z + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) << "/";
                     }
                     else {
-                        S << "X" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].x + KinectSettings::hoffsets.v[0]) <<
-                            "/Y" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].y + KinectSettings::hoffsets.v[1]) <<
-                            "/Z" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].z + KinectSettings::hoffsets.v[2]) <<
-                            "/EX" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowLeft)].x + KinectSettings::hoffsets.v[0]) <<
-                            "/EY" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowLeft)].y + KinectSettings::hoffsets.v[1]) <<
-                            "/EZ" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowLeft)].z + KinectSettings::hoffsets.v[2]) << "/";
+                        S << "X" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].x + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
+                            "/Y" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].y + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
+                            "/Z" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].z + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) <<
+                            "/EX" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowLeft)].x + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
+                            "/EY" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowLeft)].y + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
+                            "/EZ" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowLeft)].z + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) << "/";
                     }
                 }
 

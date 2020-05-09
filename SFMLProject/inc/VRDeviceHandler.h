@@ -46,10 +46,10 @@ struct VirtualHipSettings {
     bool positionAccountsForFootTrackers = false; // If false, Hip tracker always stays bolted to directly under the HMD with no horizontal shift
     Eigen::Matrix<float, 3, 3> rcR_matT;
     Eigen::Matrix<float, 3, 1> rcT_matT;
-
+    bool astarta = false;
     Eigen::Matrix<float, 3, 1> hauoffset_s;
     Eigen::Matrix<float, 3, 1> mauoffset_s;
-
+    std::string comph, compm;
     // --- Sitting Settings ---
     double sittingMaxHeightThreshold = 0.00; // Meters. Under this height, mode is sitting
     
@@ -70,9 +70,12 @@ struct VirtualHipSettings {
             CEREAL_NVP(hmdegree),
             CEREAL_NVP(tdegree),
             CEREAL_NVP(astartk),
+            CEREAL_NVP(comph),
+            CEREAL_NVP(compm),
             CEREAL_NVP(hauoffset_s),
             CEREAL_NVP(mauoffset_s),
             CEREAL_NVP(astartt),
+            CEREAL_NVP(astarta),
             CEREAL_NVP(autosver),
             CEREAL_NVP(astarth),
             CEREAL_NVP(tryawst),
@@ -136,9 +139,17 @@ namespace VirtualHips {
                 KinectSettings::huoffsets.v[2] = settings.lyingMaxHeightThreshold;
 
                 KinectSettings::rtcalibrated = settings.rtcalib;
-                KinectSettings::tryaw = settings.tryawst;
+				KinectSettings::tryaw = settings.tryawst;
 
-                LOG(INFO) << settings.tryawst << '\n' << settings.rcR_matT << '\n' << KinectSettings::tryaw << '\n' << KinectSettings::R_matT << '\n';
+				KinectSettings::hauoffset.v[0] = settings.hauoffset_s(0);
+				KinectSettings::hauoffset.v[1] = settings.hauoffset_s(1);
+				KinectSettings::hauoffset.v[2] = settings.hauoffset_s(2);
+
+				KinectSettings::mauoffset.v[0] = settings.mauoffset_s(0);
+				KinectSettings::mauoffset.v[1] = settings.mauoffset_s(1);
+				KinectSettings::mauoffset.v[2] = settings.mauoffset_s(2);
+
+				LOG(INFO) << settings.tryawst << '\n' << settings.rcR_matT << '\n' << KinectSettings::tryaw << '\n' << KinectSettings::R_matT << '\n';
 
             }
             catch (cereal::Exception e) {
