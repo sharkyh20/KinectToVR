@@ -161,15 +161,14 @@ void FakeTracker::pipedl(FakeTracker* pthis) {
 		//dlpose.vecPosition[1] = 1 + 0.5 * std::cos(time_since_epoch_seconds);;
 		//dlpose.vecPosition[2] = -2;// +2 * std::cos(time_since_epoch_seconds);
 
-
 		// Update the velocity
 		//_pose.vecVelocity[0] = (_pose.vecPosition[0] - previous_position[0]) / pose_time_delta_seconds;
 		//_pose.vecVelocity[1] = (_pose.vecPosition[1] - previous_position[1]) / pose_time_delta_seconds;
 		//_pose.vecVelocity[2] = (_pose.vecPosition[2] - previous_position[2]) / pose_time_delta_seconds;
 
+		vr::DriverPose_t dlposeh_bak = dlposeh;
 
 		HANDLE pipeOf = CreateNamedPipe(TEXT("\\\\.\\pipe\\LogPipeTracker"), PIPE_ACCESS_INBOUND | PIPE_ACCESS_OUTBOUND, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE, 1, 1024, 1024, 120 * 1000, NULL);
-
 
 		char OfD[1024];
 		DWORD Of = DWORD();
@@ -218,31 +217,26 @@ void FakeTracker::pipedl(FakeTracker* pthis) {
 		vr::HmdQuaternion_t mquat = { rotmconv.w(), rotmconv.x(), rotmconv.y(), rotmconv.z() };
 		vr::HmdQuaternion_t pquat = { rotpconv.w(), rotpconv.x(), rotpconv.y(), rotpconv.z() };
 
-		if (dlposeh.vecPosition[0] != 0 && dlposeh.vecPosition[1] != 0 && dlposeh.vecPosition[2] != 0) {
-			glm::vec3 hrt = glm::rotateY(glm::vec4(glm::vec3(dlposeh.vecPosition[0], dlposeh.vecPosition[1], dlposeh.vecPosition[2]), 1), glm::f32(glm::radians(rof)));
-			dlposeh.vecPosition[0] = hrt.x + (float)nstr(OfS, "HOX") / (float)10000;
-			dlposeh.vecPosition[1] = hrt.y + (float)nstr(OfS, "HOY") / (float)10000;
-			dlposeh.vecPosition[2] = hrt.z + (float)nstr(OfS, "HOZ") / (float)10000;
-			dlposeh.qRotation = hquat;
-		}
-		if (dlposem.vecPosition[0] != 0 && dlposem.vecPosition[1] != 0 && dlposem.vecPosition[2] != 0) {
-			glm::vec3 mrt = glm::rotateY(glm::vec4(glm::vec3(dlposem.vecPosition[0], dlposem.vecPosition[1], dlposem.vecPosition[2]), 1), glm::f32(glm::radians(rof)));
-			dlposem.vecPosition[0] = mrt.x + (float)nstr(OfS, "MOX") / (float)10000;
-			dlposem.vecPosition[1] = mrt.y + (float)nstr(OfS, "MOY") / (float)10000;
-			dlposem.vecPosition[2] = mrt.z + (float)nstr(OfS, "MOZ") / (float)10000;
-			dlposem.qRotation = mquat;
-		}
-		if (dlposep.vecPosition[0] != 0 && dlposep.vecPosition[1] != 0 && dlposep.vecPosition[2] != 0) {
-			glm::vec3 prt = glm::rotateY(glm::vec4(glm::vec3(dlposep.vecPosition[0], dlposep.vecPosition[1], dlposep.vecPosition[2]), 1), glm::f32(glm::radians(rof)));
-			dlposep.vecPosition[0] = prt.x + (float)nstr(OfS, "POX") / (float)10000;
-			dlposep.vecPosition[1] = prt.y + (float)nstr(OfS, "POY") / (float)10000;
-			dlposep.vecPosition[2] = prt.z + (float)nstr(OfS, "POZ") / (float)10000;
-			dlposep.qRotation = pquat;
-		}
+		glm::vec3 hrt = glm::rotateY(glm::vec4(glm::vec3(dlposeh.vecPosition[0], dlposeh.vecPosition[1], dlposeh.vecPosition[2]), 1), glm::f32(glm::radians(rof)));
+		dlposeh.vecPosition[0] = hrt.x + (float)nstr(OfS, "HOX") / (float)10000;
+		dlposeh.vecPosition[1] = hrt.y + (float)nstr(OfS, "HOY") / (float)10000;
+		dlposeh.vecPosition[2] = hrt.z + (float)nstr(OfS, "HOZ") / (float)10000;
+		dlposeh.qRotation = hquat;
+
+		glm::vec3 mrt = glm::rotateY(glm::vec4(glm::vec3(dlposem.vecPosition[0], dlposem.vecPosition[1], dlposem.vecPosition[2]), 1), glm::f32(glm::radians(rof)));
+		dlposem.vecPosition[0] = mrt.x + (float)nstr(OfS, "MOX") / (float)10000;
+		dlposem.vecPosition[1] = mrt.y + (float)nstr(OfS, "MOY") / (float)10000;
+		dlposem.vecPosition[2] = mrt.z + (float)nstr(OfS, "MOZ") / (float)10000;
+		dlposem.qRotation = mquat;
+
+		glm::vec3 prt = glm::rotateY(glm::vec4(glm::vec3(dlposep.vecPosition[0], dlposep.vecPosition[1], dlposep.vecPosition[2]), 1), glm::f32(glm::radians(rof)));
+		dlposep.vecPosition[0] = prt.x + (float)nstr(OfS, "POX") / (float)10000;
+		dlposep.vecPosition[1] = prt.y + (float)nstr(OfS, "POY") / (float)10000;
+		dlposep.vecPosition[2] = prt.z + (float)nstr(OfS, "POZ") / (float)10000;
+		dlposep.qRotation = pquat;
 
 		if (pthis->dest == "LFOOT") {
 			pthis->set_pose(dlposeh);
-
 		}
 		else if (pthis->dest == "RFOOT") {
 			pthis->set_pose(dlposem);
@@ -252,7 +246,8 @@ void FakeTracker::pipedl(FakeTracker* pthis) {
 			pthis->set_pose(dlposep);
 		}
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(27));
+		vr::VRServerDriverHost()->TrackedDevicePoseUpdated(pthis->_index, pthis->_pose, sizeof(vr::DriverPose_t));
+		//std::this_thread::sleep_for(std::chrono::milliseconds(7));
 	}
 }
 
@@ -283,7 +278,7 @@ void FakeTracker::update()
 	// If we are still tracking, update openvr with our new pose data
 	if (_index != vr::k_unTrackedDeviceIndexInvalid)
 	{
-		vr::VRServerDriverHost()->TrackedDevicePoseUpdated(_index, _pose, sizeof(vr::DriverPose_t));
+		/*vr::VRServerDriverHost()->TrackedDevicePoseUpdated(_index, _pose, sizeof(vr::DriverPose_t));*/
 	}
 
 }
@@ -382,3 +377,4 @@ void FakeTracker::set_dest(std::string new_dest)
 {
 	dest = new_dest;
 }
+
