@@ -6,7 +6,10 @@ to track your body that is free, won't crash and doesn't need some weird inputem
 
 ## Getting Started - Users
 Download release, unpack somewhere on dektop and run \[register_driver.bat]    
-You can run kinecttovr or steamvr - from time to time it will work by launching only k2, then vr will start sutomatically.    
+You can run kinecttovr or steamvr - from time to time it will work by launching only k2, then vr will start sutomatically.     
+If you are using head tracking, please backup your inputemulator dll and replace it with one provided in release.    
+In any other ways, don't do it. You just don't need to change, etc.    
+(OVRIE dll is located at SteamVR/drivers/00vrinputemulator/bin/win64/)    
     
 Full body calibration:    
 - Step 1: stand somewhere - upright or something like that    
