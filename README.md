@@ -5,7 +5,20 @@ to track your body that is free, won't crash and doesn't need some weird inputem
 (It still needs it, modified, for head tracking, if you like to do so)
 
 ## Getting Started - Users
-Download release, unpack somewhere on dektop and run \[register_driver.bat]
+Download release, unpack somewhere on dektop and run \[register_driver.bat]    
+You can run kinecttovr or steamvr - from time to time it will work by launching only k2, then vr will start sutomatically.    
+    
+Full body calibration:    
+- Step 1: stand somewhere - upright or something like that    
+- Step 2: stand somewhere else - maybe on left    
+- Step 3: stand somewhere else - go back and crouch or fly    
+- Step 4: stand at your playspace origin and look at kinect - this will orientate trackers    
+     
+Controllers calibration:    
+- Controllers use full body calibration variables    
+    
+Head tracking calibration:    
+- Just look at kinect    
 
 ## *The Official Discord is [here](https://discord.gg/Mu28W4N)
 ## *The Unofficial Discord is [here](https://discord.gg/9kJgxeH)
