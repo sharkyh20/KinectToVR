@@ -503,7 +503,8 @@ void KinectV1Handler::getKinectRGBData() {
 
                 glm::quat hipsRot = glm::lookAt(hipLeft, hipRight, glm::vec3(0.0f, 1.0f, 0.0f));
                 glm::vec3 hipsRotRad = glm::eulerAngles(hipsRot);
-                trotation[2].v[1] = -((hipsRotRad.y * 180.f / M_PI) + 90.f);
+                trotation[2].v[1] = -((hipsRotRad.y * 180.f / M_PI) + 90.f) + 180.f;
+
 #pragma endregion
 #pragma region Rotation_Ankles
 

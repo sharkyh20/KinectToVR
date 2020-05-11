@@ -12,6 +12,7 @@
 #include "../hooks/IVRServerDriverHost005Hooks.h"
 #include "../hooks/IVRControllerComponent001Hooks.h"
 #include "../hooks/IVRDriverInput001Hooks.h"
+#include "kalman.hpp"
 
 #undef WIN32_LEAN_AND_MEAN
 #undef NOSOUND
@@ -512,10 +513,46 @@ void pipeof() {
 		OVRX = glm::radians((float)nstr(OfS, "RX") / (float)10000);
 		OVRY = glm::radians((float)nstr(OfS, "RY") / (float)10000);
 		OVRZ = glm::radians((float)nstr(OfS, "RZ") / (float)10000);
+
 	}
 }
 
 void pipenrot() {
+
+	int n = 3; // Number of states
+	int m = 1; // Number of measurements
+
+	double dt = 1.0 / 30; // Time step
+
+	Eigen::MatrixXd A(n, n); // System dynamics matrix
+	Eigen::MatrixXd C(m, n); // Output matrix
+	Eigen::MatrixXd Q(n, n); // Process noise covariance
+	Eigen::MatrixXd R(m, m); // Measurement noise covariance
+	Eigen::MatrixXd P(n, n); // Estimate error covariance
+
+	// Discrete LTI projectile motion, measuring position only
+	A << 1, dt, 0, 0, 1, dt, 0, 0, 1;
+	C << 1, 0, 0;
+
+	// Reasonable covariance matrices
+	Q << .05, .05, .0, .05, .05, .0, .0, .0, .0;
+	R << 5;
+	P << .1, .1, .1, .1, 10000, 10, .1, 10, 100;
+
+	// Construct the filter
+	KalmanFilter posef[3] = { KalmanFilter(dt, A, C, Q, R, P), KalmanFilter(dt, A, C, Q, R, P), KalmanFilter(dt, A, C, Q, R, P) };
+
+	Eigen::VectorXd x0(n);
+	x0 << 0.f, 0.f, 0.f;
+
+	for (int i = 0; i < 3; i++) {
+		posef[i].init(0.f, x0);
+	}
+
+	double t[3] = { 0,0,0 };
+	Eigen::VectorXd y[3] = { Eigen::VectorXd(m), Eigen::VectorXd(m), Eigen::VectorXd(m) };
+
+
 	while (1) {
 		HANDLE pipeIchi = CreateNamedPipe(TEXT("\\\\.\\pipe\\LogPipeSan"), PIPE_ACCESS_INBOUND | PIPE_ACCESS_OUTBOUND, PIPE_WAIT, 1, 1024, 1024, 120 * 1000, NULL);
 		if (pipeIchi == INVALID_HANDLE_VALUE)
@@ -549,6 +586,19 @@ void pipenrot() {
 
 		glm::vec3 normal = glm::rotateY(glm::vec4(rp, 1), glm::f32(glm::radians(OVR)));
 
+		/*vr::HmdVector3d_t kalmanpose{ normal.x, normal.y, normal.z };
+
+		for (int i = 0; i < 3; i++) {
+			t[i] += dt;
+			y[i] << kalmanpose.v[i];
+			posef[i].update(y[i]);
+			kalmanpose.v[i] = posef[i].state().x();
+		}
+
+		ServerDriver::nposT.v[0] = kalmanpose.v[0];
+		ServerDriver::nposT.v[1] = kalmanpose.v[1];
+		ServerDriver::nposT.v[2] = kalmanpose.v[2];*/
+
 		ServerDriver::nposT.v[0] = normal.x;
 		ServerDriver::nposT.v[1] = normal.y;
 		ServerDriver::nposT.v[2] = normal.z;
@@ -572,9 +622,9 @@ void DeviceManipulationHandle::RunFrame() {
 		th = std::thread(pipenrot);
 		thf = std::thread(pipeof);
 
-		ServerDriver::nposT.v[0] = 1.0;
-		ServerDriver::nposT.v[1] = -1.5;
-		ServerDriver::nposT.v[2] = 0.1;
+		ServerDriver::nposT.v[0] = 0.0;
+		ServerDriver::nposT.v[1] = 0.0;
+		ServerDriver::nposT.v[2] = 0.0;
 
 		initialized = true;
 	}

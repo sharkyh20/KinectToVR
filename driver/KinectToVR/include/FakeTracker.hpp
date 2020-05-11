@@ -96,14 +96,14 @@ public:
 	/// <param name="new_pose">New device pose</param>
 	virtual void set_pose(vr::DriverPose_t new_pose);
 	virtual void set_dest(std::string new_dest);
-
+	
 	FakeTracker(std::string argv);
 
 private:
 	// Private constructor so the only way to instantiate the class is via the make_new function.
 	
 	static void pipedl(FakeTracker* pthis);
-	static void upl(FakeTracker* pthis), upr(FakeTracker* pthis), uph(FakeTracker* pthis);
+	static void poseset(FakeTracker* pthis);
 
 	// Stores the openvr supplied device index.
 	vr::TrackedDeviceIndex_t _index;

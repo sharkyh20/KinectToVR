@@ -10,16 +10,24 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/glm.hpp>
+#include <boost/lexical_cast.hpp>
 #include <eigen-3.3.7/Eigen/Geometry>
+#include "kalman/kalman.hpp"
 #include <vector>
+#include <fstream>
 
 vr::DriverPose_t FakeTracker::dlpose;
 vr::DriverPose_t dlposeh;
 vr::DriverPose_t dlposem;
 vr::DriverPose_t dlposep;
+
 using namespace Eigen;
 
 std::chrono::milliseconds FakeTracker::dlpose_timestamp;
+void Log(const std::string& text) {
+	std::ofstream log("C:\\log.txt", std::ofstream::app | std::ofstream::out);
+	log << text << std::endl;
+}
 
 FakeTracker::FakeTracker(std::string argv) : 
 	_pose( {0} )
@@ -142,7 +150,12 @@ int nstr(std::string s, const char* whatc) {
 }
 
 void FakeTracker::pipedl(FakeTracker* pthis) {
+
+	std::clock_t current_ticks, delta_ticks;
+	clock_t fps = 0;
+	
 	while (1) {
+		current_ticks = clock();
 
 		//// Update time delta (for working out velocity)
 		//std::chrono::milliseconds time_since_epoch = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
@@ -166,8 +179,6 @@ void FakeTracker::pipedl(FakeTracker* pthis) {
 		//_pose.vecVelocity[1] = (_pose.vecPosition[1] - previous_position[1]) / pose_time_delta_seconds;
 		//_pose.vecVelocity[2] = (_pose.vecPosition[2] - previous_position[2]) / pose_time_delta_seconds;
 
-		vr::DriverPose_t dlposeh_bak = dlposeh;
-
 		HANDLE pipeOf = CreateNamedPipe(TEXT("\\\\.\\pipe\\LogPipeTracker"), PIPE_ACCESS_INBOUND | PIPE_ACCESS_OUTBOUND, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE, 1, 1024, 1024, 120 * 1000, NULL);
 
 		char OfD[1024];
@@ -178,9 +189,7 @@ void FakeTracker::pipedl(FakeTracker* pthis) {
 
 		//DisconnectNamedPipe(pipeOf);
 		CloseHandle(pipeOf);
-
 		std::string OfS = OfD;
-		float rof = (float)nstr(OfS, "WRW") / (float)10000;
 
 		dlposeh.vecPosition[0] = (float)nstr(OfS, "HX") / (float)10000;
 		dlposeh.vecPosition[1] = (float)nstr(OfS, "HY") / (float)10000;
@@ -202,85 +211,143 @@ void FakeTracker::pipedl(FakeTracker* pthis) {
 		float vproty = (float)nstr(OfS, "PRY") / (float)10000;
 		float vprotz = (float)nstr(OfS, "PRZ") / (float)10000;
 
-		Quaternionf rothconv, rotmconv, rotpconv;
-		rothconv = AngleAxisf(vhrotx, Vector3f::UnitX())
-			* AngleAxisf(vhroty, Vector3f::UnitY())
-			* AngleAxisf(vhrotz, Vector3f::UnitZ());
-		rotmconv = AngleAxisf(vmrotx, Vector3f::UnitX())
-			* AngleAxisf(vmroty, Vector3f::UnitY())
-			* AngleAxisf(vmrotz, Vector3f::UnitZ());
-		rotpconv = AngleAxisf(vprotx, Vector3f::UnitX())
-			* AngleAxisf(vproty, Vector3f::UnitY())
-			* AngleAxisf(vprotz, Vector3f::UnitZ());
-
-		vr::HmdQuaternion_t hquat = { rothconv.w(), rothconv.x(), rothconv.y(), rothconv.z() };
-		vr::HmdQuaternion_t mquat = { rotmconv.w(), rotmconv.x(), rotmconv.y(), rotmconv.z() };
-		vr::HmdQuaternion_t pquat = { rotpconv.w(), rotpconv.x(), rotpconv.y(), rotpconv.z() };
-
-		glm::vec3 hrt = glm::rotateY(glm::vec4(glm::vec3(dlposeh.vecPosition[0], dlposeh.vecPosition[1], dlposeh.vecPosition[2]), 1), glm::f32(glm::radians(rof)));
-		dlposeh.vecPosition[0] = hrt.x + (float)nstr(OfS, "HOX") / (float)10000;
-		dlposeh.vecPosition[1] = hrt.y + (float)nstr(OfS, "HOY") / (float)10000;
-		dlposeh.vecPosition[2] = hrt.z + (float)nstr(OfS, "HOZ") / (float)10000;
-		dlposeh.qRotation = hquat;
-
-		glm::vec3 mrt = glm::rotateY(glm::vec4(glm::vec3(dlposem.vecPosition[0], dlposem.vecPosition[1], dlposem.vecPosition[2]), 1), glm::f32(glm::radians(rof)));
-		dlposem.vecPosition[0] = mrt.x + (float)nstr(OfS, "MOX") / (float)10000;
-		dlposem.vecPosition[1] = mrt.y + (float)nstr(OfS, "MOY") / (float)10000;
-		dlposem.vecPosition[2] = mrt.z + (float)nstr(OfS, "MOZ") / (float)10000;
-		dlposem.qRotation = mquat;
-
-		glm::vec3 prt = glm::rotateY(glm::vec4(glm::vec3(dlposep.vecPosition[0], dlposep.vecPosition[1], dlposep.vecPosition[2]), 1), glm::f32(glm::radians(rof)));
-		dlposep.vecPosition[0] = prt.x + (float)nstr(OfS, "POX") / (float)10000;
-		dlposep.vecPosition[1] = prt.y + (float)nstr(OfS, "POY") / (float)10000;
-		dlposep.vecPosition[2] = prt.z + (float)nstr(OfS, "POZ") / (float)10000;
-		dlposep.qRotation = pquat;
-
 		if (pthis->dest == "LFOOT") {
-			pthis->set_pose(dlposeh);
+			Quaternionf rothconv = AngleAxisf(vhrotx, Vector3f::UnitX())
+				* AngleAxisf(vhroty, Vector3f::UnitY())
+				* AngleAxisf(vhrotz, Vector3f::UnitZ());
+			vr::HmdQuaternion_t hquat = { rothconv.w(), rothconv.x(), rothconv.y(), rothconv.z() };
+			dlposeh.vecPosition[0] += (float)nstr(OfS, "HOX") / (float)10000;
+			dlposeh.vecPosition[1] += (float)nstr(OfS, "HOY") / (float)10000;
+			dlposeh.vecPosition[2] += (float)nstr(OfS, "HOZ") / (float)10000;
+			dlposeh.qRotation = hquat;
 		}
 		else if (pthis->dest == "RFOOT") {
-			pthis->set_pose(dlposem);
+			Quaternionf rotmconv = AngleAxisf(vmrotx, Vector3f::UnitX())
+				* AngleAxisf(vmroty, Vector3f::UnitY())
+				* AngleAxisf(vmrotz, Vector3f::UnitZ());
+			vr::HmdQuaternion_t mquat = { rotmconv.w(), rotmconv.x(), rotmconv.y(), rotmconv.z() };
+			dlposem.vecPosition[0] += (float)nstr(OfS, "MOX") / (float)10000;
+			dlposem.vecPosition[1] += (float)nstr(OfS, "MOY") / (float)10000;
+			dlposem.vecPosition[2] += (float)nstr(OfS, "MOZ") / (float)10000;
+			dlposem.qRotation = mquat;
+		}
+		else if (pthis->dest == "HIP") {
+			Quaternionf rotpconv = AngleAxisf(vprotx, Vector3f::UnitX())
+				* AngleAxisf(vproty, Vector3f::UnitY())
+				* AngleAxisf(vprotz, Vector3f::UnitZ());
+			vr::HmdQuaternion_t pquat = { rotpconv.w(), rotpconv.x(), rotpconv.y(), rotpconv.z() };
+			dlposep.vecPosition[0] += (float)nstr(OfS, "POX") / (float)10000;
+			dlposep.vecPosition[1] += (float)nstr(OfS, "POY") / (float)10000;
+			dlposep.vecPosition[2] += (float)nstr(OfS, "POZ") / (float)10000;
+			dlposep.qRotation = pquat;
+		}
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(3));
+
+		delta_ticks = clock() - current_ticks;
+		if (delta_ticks > 0)
+			fps = CLOCKS_PER_SEC / delta_ticks;
+		//Log(boost::lexical_cast<std::string>(fps));
+	}
+}
+
+void FakeTracker::poseset(FakeTracker* pthis) {
+
+	int n = 3; // Number of states
+	int m = 1; // Number of measurements
+
+	double dt = 1.0 / 30; // Time step
+
+	Eigen::MatrixXd A(n, n); // System dynamics matrix
+	Eigen::MatrixXd C(m, n); // Output matrix
+	Eigen::MatrixXd Q(n, n); // Process noise covariance
+	Eigen::MatrixXd R(m, m); // Measurement noise covariance
+	Eigen::MatrixXd P(n, n); // Estimate error covariance
+
+	// Discrete LTI projectile motion, measuring position only
+	A << 1, dt, 0, 0, 1, dt, 0, 0, 1;
+	C << 1, 0, 0;
+
+	// Reasonable covariance matrices
+	Q << .05, .05, .0, .05, .05, .0, .0, .0, .0;
+	R << 5;
+	P << .1, .1, .1, .1, 10000, 10, .1, 10, 100;
+
+	// Construct the filter
+	KalmanFilter posef[3][3] = { 
+		{ KalmanFilter(dt, A, C, Q, R, P), KalmanFilter(dt, A, C, Q, R, P), KalmanFilter(dt, A, C, Q, R, P) },
+		{ KalmanFilter(dt, A, C, Q, R, P), KalmanFilter(dt, A, C, Q, R, P), KalmanFilter(dt, A, C, Q, R, P) },
+		{ KalmanFilter(dt, A, C, Q, R, P), KalmanFilter(dt, A, C, Q, R, P), KalmanFilter(dt, A, C, Q, R, P) } };
+
+	Eigen::VectorXd x0(n);
+	x0 << 0.f, 0.f, 0.f;
+
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			posef[i][j].init(0.f, x0);
+		}
+	}
+
+	double t[3][3] = { { 0,0,0 }, { 0,0,0 }, { 0,0,0 } };
+	Eigen::VectorXd y[3][3] = { 
+		{ Eigen::VectorXd(m), Eigen::VectorXd(m), Eigen::VectorXd(m) },
+		{ Eigen::VectorXd(m), Eigen::VectorXd(m), Eigen::VectorXd(m) },
+		{ Eigen::VectorXd(m), Eigen::VectorXd(m), Eigen::VectorXd(m) } };
+
+	while (1) {
+
+		if (pthis->dest == "LFOOT") {
+			vr::DriverPose_t tmpdlposeh = dlposeh;
+
+			for (int i = 0; i < 3; i++) {
+				t[0][i] += dt;
+				y[0][i] << tmpdlposeh.vecPosition[i];
+				posef[0][i].update(y[0][i]);
+				tmpdlposeh.vecPosition[i] = posef[0][i].state().x();
+			}
+
+			vr::VRServerDriverHost()->TrackedDevicePoseUpdated(pthis->_index, tmpdlposeh, sizeof(vr::DriverPose_t));
+
+		}
+		else if (pthis->dest == "RFOOT") {
+			vr::DriverPose_t tmpdlposem = dlposem;
+
+			for (int i = 0; i < 3; i++) {
+				t[1][i] += dt;
+				y[1][i] << tmpdlposem.vecPosition[i];
+				posef[1][i].update(y[1][i]);
+				tmpdlposem.vecPosition[i] = posef[1][i].state().x();
+			}
+
+			vr::VRServerDriverHost()->TrackedDevicePoseUpdated(pthis->_index, tmpdlposem, sizeof(vr::DriverPose_t));
 
 		}
 		else if (pthis->dest == "HIP") {
-			pthis->set_pose(dlposep);
+			vr::DriverPose_t tmpdlposep = dlposep;
+
+			for (int i = 0; i < 3; i++) {
+				t[2][i] += dt;
+				y[2][i] << tmpdlposep.vecPosition[i];
+				posef[2][i].update(y[2][i]);
+				tmpdlposep.vecPosition[i] = posef[2][i].state().x();
+			}
+
+			vr::VRServerDriverHost()->TrackedDevicePoseUpdated(pthis->_index, tmpdlposep, sizeof(vr::DriverPose_t));
+
 		}
 
-		vr::VRServerDriverHost()->TrackedDevicePoseUpdated(pthis->_index, pthis->_pose, sizeof(vr::DriverPose_t));
-		//std::this_thread::sleep_for(std::chrono::milliseconds(7));
+		std::this_thread::sleep_for(std::chrono::milliseconds(5));
+
 	}
 }
 
 void FakeTracker::update()
 {
-	//// Update time delta (for working out velocity)
-	//std::chrono::milliseconds time_since_epoch = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
-	//double time_since_epoch_seconds = time_since_epoch.count() / 1000.0;
-	//double pose_time_delta_seconds = (time_since_epoch - _pose_timestamp).count() / 1000.0;
-
-	//// Update pose timestamp
-	//_pose_timestamp = time_since_epoch;
-
-	//// Copy the previous position data
-	//double previous_position[3] = { 0 };
-	//std::copy(std::begin(_pose.vecPosition), std::end(_pose.vecPosition), std::begin(previous_position));
-
-	//// Update the position with our new data
-	//_pose.vecPosition[0] = 0.5 * std::sin(time_since_epoch_seconds);
-	//_pose.vecPosition[1] = 1 + 0.5 * std::cos(time_since_epoch_seconds);;
-	//_pose.vecPosition[2] = -2;// +2 * std::cos(time_since_epoch_seconds);
-
-	//// Update the velocity
-	////_pose.vecVelocity[0] = (_pose.vecPosition[0] - previous_position[0]) / pose_time_delta_seconds;
-	////_pose.vecVelocity[1] = (_pose.vecPosition[1] - previous_position[1]) / pose_time_delta_seconds;
-	////_pose.vecVelocity[2] = (_pose.vecPosition[2] - previous_position[2]) / pose_time_delta_seconds;
-
-	// If we are still tracking, update openvr with our new pose data
-	if (_index != vr::k_unTrackedDeviceIndexInvalid)
-	{
-		/*vr::VRServerDriverHost()->TrackedDevicePoseUpdated(_index, _pose, sizeof(vr::DriverPose_t));*/
-	}
-
+	/*     _
+	   .__(.)< (MEOW)
+		\___)
+	~~~~~~~~~~~~~~~~~~
+	*/
 }
 
 vr::TrackedDeviceIndex_t FakeTracker::get_index() const
@@ -297,6 +364,7 @@ vr::EVRInitError FakeTracker::Activate(vr::TrackedDeviceIndex_t index)
 	// Save the device index
 	_index = index;
 	std::thread* t1 = new std::thread(pipedl, this);
+	std::thread* t2 = new std::thread(poseset, this);
 
 	// Get the properties handle for our controller
 	_props = vr::VRProperties()->TrackedDeviceToPropertyContainer(_index);
@@ -331,6 +399,11 @@ vr::EVRInitError FakeTracker::Activate(vr::TrackedDeviceIndex_t index)
 	if (dest == "HIP") {
 		vr::VRSettings()->SetString(vr::k_pch_Trackers_Section, std::string("/devices/KinectToVR/" + _serial).c_str(), "TrackerRole_Waist");
 	}
+
+	std::ofstream log("C:\\log.txt");
+	Log("KinecToVR tracker Activated! Objectt SVR ID: " + boost::lexical_cast<std::string>(_index));
+	Log("SteamVR tracker serial number:  " + boost::lexical_cast<std::string>(_serial));
+	Log("SteamVR tracker identification number:  " + boost::lexical_cast<std::string>("/devices/KinectToVR/" + _serial));
 
 	return vr::VRInitError_None;
 }

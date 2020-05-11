@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\devicemanipulation\kalman.cpp" />
     <ClCompile Include="src\dllmain.cpp" />
     <ClCompile Include="src\hooks\ITrackedDeviceServerDriver005Hooks.cpp" />
     <ClCompile Include="src\hooks\IVRControllerComponent001Hooks.cpp" />
@@ -40,6 +41,7 @@
   <ItemGroup>
     <ClInclude Include="src\com\shm\driver_ipc_shm.h" />
     <ClInclude Include="src\devicemanipulation\DeviceManipulationHandle.h" />
+    <ClInclude Include="src\devicemanipulation\kalman.hpp" />
     <ClInclude Include="src\hooks\ITrackedDeviceServerDriver005Hooks.h" />
     <ClInclude Include="src\hooks\IVRControllerComponent001Hooks.h" />
     <ClInclude Include="src\hooks\IVRDriverContextHooks.h" />
