@@ -6,7 +6,6 @@
 #include <string>
 #include <sstream>
 #include <Eigen/Geometry>
-
 #include "KinectJoint.h"
 
 enum class KinectVersion {

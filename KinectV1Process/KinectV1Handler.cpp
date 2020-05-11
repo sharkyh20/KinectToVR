@@ -516,8 +516,23 @@ void KinectV1Handler::getKinectRGBData() {
                 glm::quat ankleRot[2] = { glm::lookAt(ankle[0], foot[0], glm::vec3(0.0f, 1.0f, 0.0f)), glm::lookAt(ankle[1], foot[1], glm::vec3(0.0f, 1.0f, 0.0f)) };
                 glm::vec3 ankleRotRad[2] = { glm::eulerAngles(ankleRot[0]), glm::eulerAngles(ankleRot[1]) };
 
-                trotation[0].v[1] = -(ankleRotRad[0].y * 180.f / M_PI);
-                trotation[1].v[1] = -(ankleRotRad[1].y * 180.f / M_PI);
+				/*trotation[0].v[1] = -(ankleRotRad[0].y * 180.f / M_PI);
+				trotation[1].v[1] = -(ankleRotRad[1].y * 180.f / M_PI);*/
+				glm::quat anklrot[2] = { 
+                    glm::quat(
+					    boneOrientations[convertJoint(KVR::KinectJointType::AnkleLeft)].absoluteRotation.rotationQuaternion.w,
+					    boneOrientations[convertJoint(KVR::KinectJointType::AnkleLeft)].absoluteRotation.rotationQuaternion.x,
+					    boneOrientations[convertJoint(KVR::KinectJointType::AnkleLeft)].absoluteRotation.rotationQuaternion.y,
+					    boneOrientations[convertJoint(KVR::KinectJointType::AnkleLeft)].absoluteRotation.rotationQuaternion.z),
+					glm::quat(
+						boneOrientations[convertJoint(KVR::KinectJointType::AnkleRight)].absoluteRotation.rotationQuaternion.w,
+					    boneOrientations[convertJoint(KVR::KinectJointType::AnkleRight)].absoluteRotation.rotationQuaternion.x,
+					    boneOrientations[convertJoint(KVR::KinectJointType::AnkleRight)].absoluteRotation.rotationQuaternion.y,
+					    boneOrientations[convertJoint(KVR::KinectJointType::AnkleRight)].absoluteRotation.rotationQuaternion.z) };
+
+                trotation[0] = vr::HmdVector3d_t{ double(glm::eulerAngles(anklrot[0]).x * 180 / M_PI) + 180.f, -double(glm::eulerAngles(anklrot[0]).y * 180 / M_PI), double(glm::eulerAngles(anklrot[0]).z * 180 / M_PI) };
+                trotation[1] = vr::HmdVector3d_t{ double(glm::eulerAngles(anklrot[1]).x * 180 / M_PI) + 180.f, -double(glm::eulerAngles(anklrot[1]).y * 180 / M_PI), double(glm::eulerAngles(anklrot[1]).z * 180 / M_PI) };
+
 #pragma endregion
 
                 if (KinectSettings::rtcalibrated) {
