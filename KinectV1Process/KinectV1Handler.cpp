@@ -529,8 +529,12 @@ void KinectV1Handler::getKinectRGBData() {
 					    boneOrientations[convertJoint(KVR::KinectJointType::AnkleRight)].absoluteRotation.rotationQuaternion.y,
 					    boneOrientations[convertJoint(KVR::KinectJointType::AnkleRight)].absoluteRotation.rotationQuaternion.z) };
 
-                trotation[0] = vr::HmdVector3d_t{ double(glm::eulerAngles(footrot[0]).x * 180 / M_PI) + 180.f, -double(ankleRotRad[0].y * 180.f / M_PI), double(glm::eulerAngles(footrot[0]).z * 180 / M_PI) };
-                trotation[1] = vr::HmdVector3d_t{ double(glm::eulerAngles(footrot[1]).x * 180 / M_PI) + 180.f, -double(ankleRotRad[1].y * 180.f / M_PI), double(glm::eulerAngles(footrot[1]).z * 180 / M_PI) };
+                trotation[0] = vr::HmdVector3d_t{ double(glm::eulerAngles(footrot[0]).x * 180 / M_PI) + 180.f, 
+                    -double(ankleRotRad[0].y * 180.f / M_PI), 
+                    double(glm::eulerAngles(footrot[0]).z * 180 / M_PI) };
+                trotation[1] = vr::HmdVector3d_t{ double(glm::eulerAngles(footrot[1]).x * 180 / M_PI) + 180.f, 
+                    -double(ankleRotRad[1].y * 180.f / M_PI), 
+                    double(glm::eulerAngles(footrot[1]).z * 180 / M_PI) };
 
 #pragma endregion
 
