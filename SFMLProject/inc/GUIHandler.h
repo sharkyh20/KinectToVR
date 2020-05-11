@@ -101,7 +101,7 @@ private:
 public:
 
     GUIHandler() {
-        guiWindow->SetTitle("KinectToVR: a0.7.0 RR: It's strong enough!");
+        guiWindow->SetTitle("KinectToVR: a0.7.2 RR: Gotcha!");
         
 
         setDefaultSignals();

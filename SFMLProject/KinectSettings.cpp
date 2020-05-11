@@ -23,7 +23,7 @@
 
 namespace KinectSettings {
     std::wstring const CFG_NAME(L"KinectToVR.cfg");
-    std::string KVRversion = "a0.7.0 - Static SVR Driver";
+    std::string KVRversion = "a0.7.2 - Static SVR Driver";
 
     bool isKinectDrawn = false;
     bool isSkeletonDrawn = false;
