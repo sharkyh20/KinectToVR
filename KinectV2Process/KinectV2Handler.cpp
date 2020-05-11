@@ -495,7 +495,8 @@ void KinectV2Handler::updateSkeletalFilters() {
 
         glm::quat hipsRot = glm::lookAt(hipLeft, hipRight, glm::vec3(0.0f, 1.0f, 0.0f));
         glm::vec3 hipsRotRad = glm::eulerAngles(hipsRot);
-        trotation[2].v[1] = -((hipsRotRad.y * 180.f / M_PI) + 90.f);
+        trotation[2].v[1] = -((hipsRotRad.y * 180.f / M_PI) + 90.f) + 180.f;
+
 #pragma endregion
 #pragma region Rotation_Ankles
 
@@ -507,9 +508,27 @@ void KinectV2Handler::updateSkeletalFilters() {
 
         glm::quat ankleRot[2] = { glm::lookAt(ankle[0], foot[0], glm::vec3(0.0f, 1.0f, 0.0f)), glm::lookAt(ankle[1], foot[1], glm::vec3(0.0f, 1.0f, 0.0f)) };
         glm::vec3 ankleRotRad[2] = { glm::eulerAngles(ankleRot[0]), glm::eulerAngles(ankleRot[1]) };
+        
+        
+        glm::quat footrot[2] = {
+            glm::quat(
+                jointOrientations[JointType_AnkleLeft].Orientation.w,
+                jointOrientations[JointType_AnkleLeft].Orientation.x,
+                jointOrientations[JointType_AnkleLeft].Orientation.y,
+                jointOrientations[JointType_AnkleLeft].Orientation.z),
+            glm::quat(
+                jointOrientations[JointType_AnkleRight].Orientation.w,
+                jointOrientations[JointType_AnkleRight].Orientation.x,
+                jointOrientations[JointType_AnkleRight].Orientation.y,
+                jointOrientations[JointType_AnkleRight].Orientation.z) };
 
-        trotation[0].v[1] = -(ankleRotRad[0].y * 180.f / M_PI);
-        trotation[1].v[1] = -(ankleRotRad[1].y * 180.f / M_PI);
+        trotation[0] = vr::HmdVector3d_t{ double(glm::eulerAngles(footrot[0]).x * 180 / M_PI) + 180.f,
+            -double(ankleRotRad[0].y * 180.f / M_PI),
+            double(glm::eulerAngles(footrot[0]).z * 180 / M_PI) };
+        trotation[1] = vr::HmdVector3d_t{ double(glm::eulerAngles(footrot[1]).x * 180 / M_PI) + 180.f,
+            -double(ankleRotRad[1].y * 180.f / M_PI),
+            double(glm::eulerAngles(footrot[1]).z * 180 / M_PI) };
+
 #pragma endregion
 
         if (KinectSettings::rtcalibrated) {
