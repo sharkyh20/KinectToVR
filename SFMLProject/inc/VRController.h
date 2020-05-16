@@ -9,7 +9,7 @@
 
 class VRcontroller {
 public:
-    VRcontroller( vr::ETrackedControllerRole role)
+    VRcontroller(vr::ETrackedControllerRole role)
         : 
         triggerDeadzone(0.4f),
         triggerOn(false),
@@ -50,7 +50,7 @@ public:
                     prevState_ = state_;
                 }
                 UpdateTrigger();
-                UpdateHapticPulse();
+                //UpdateHapticPulse();
             }
             
         }

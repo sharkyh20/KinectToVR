@@ -449,9 +449,11 @@ void KinectV1Handler::getKinectRGBData() {
             params.fPrediction = .25f;
             */
             kinectSensor->NuiTransformSmooth(&skeletonFrame, &params);   //Smooths jittery tracking
+            NUI_SKELETON_DATA data;
 
             for (int i = 0; i < NUI_SKELETON_COUNT; ++i) {
                 NUI_SKELETON_TRACKING_STATE trackingState = skeletonFrame.SkeletonData[i].eTrackingState;
+                data = skeletonFrame.SkeletonData[i];
 
                 if (NUI_SKELETON_TRACKED == trackingState)
                 {
@@ -464,10 +466,14 @@ void KinectV1Handler::getKinectRGBData() {
                 }
             }
             
+            KinectSettings::mposes[1].v[0] = jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].x;
+            KinectSettings::mposes[1].v[1] = jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].y;
+            KinectSettings::mposes[1].v[2] = jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].z;
+            
             KinectSettings::mposes[0].v[0] = jointPositions[convertJoint(KVR::KinectJointType::Head)].x;
             KinectSettings::mposes[0].v[1] = jointPositions[convertJoint(KVR::KinectJointType::Head)].y;
             KinectSettings::mposes[0].v[2] = jointPositions[convertJoint(KVR::KinectJointType::Head)].z;
-
+            
             vr::HmdVector3d_t trotation[3] = { {0,0,0},{0,0,0},{0,0,0} };
 
 #pragma region PipeSeup
@@ -498,12 +504,16 @@ void KinectV1Handler::getKinectRGBData() {
 
 #pragma region Rotation_Hips
 
-                glm::vec3 hipLeft(jointPositions[convertJoint(KVR::KinectJointType::HipLeft)].x, jointPositions[convertJoint(KVR::KinectJointType::HipLeft)].y, jointPositions[convertJoint(KVR::KinectJointType::HipLeft)].z), 
-                    hipRight(jointPositions[convertJoint(KVR::KinectJointType::HipRight)].x, jointPositions[convertJoint(KVR::KinectJointType::HipRight)].y, jointPositions[convertJoint(KVR::KinectJointType::HipRight)].z);
+                glm::quat hipsrot =
+                    glm::quat(
+                        boneOrientations[convertJoint(KVR::KinectJointType::SpineBase)].absoluteRotation.rotationQuaternion.w,
+                        boneOrientations[convertJoint(KVR::KinectJointType::AnkleLeft)].absoluteRotation.rotationQuaternion.x,
+                        boneOrientations[convertJoint(KVR::KinectJointType::AnkleLeft)].absoluteRotation.rotationQuaternion.y,
+                        boneOrientations[convertJoint(KVR::KinectJointType::AnkleLeft)].absoluteRotation.rotationQuaternion.z);
 
-                glm::quat hipsRot = glm::lookAt(hipLeft, hipRight, glm::vec3(0.0f, 1.0f, 0.0f));
-                glm::vec3 hipsRotRad = glm::eulerAngles(hipsRot);
-                trotation[2].v[1] = -((hipsRotRad.y * 180.f / M_PI) + 90.f);
+                trotation[2] = vr::HmdVector3d_t{ /*double(glm::eulerAngles(hipsrot).x * 180 / M_PI) + 180.f*/ 0.f,
+                    double(glm::eulerAngles(hipsrot).y * 180 / M_PI),
+                    double(glm::eulerAngles(hipsrot).z * 180 / M_PI) };
 
 #pragma endregion
 #pragma region Rotation_Ankles
@@ -530,12 +540,22 @@ void KinectV1Handler::getKinectRGBData() {
 					    boneOrientations[convertJoint(KVR::KinectJointType::AnkleRight)].absoluteRotation.rotationQuaternion.y,
 					    boneOrientations[convertJoint(KVR::KinectJointType::AnkleRight)].absoluteRotation.rotationQuaternion.z) };
 
-                trotation[0] = vr::HmdVector3d_t{ double(glm::eulerAngles(footrot[0]).x * 180 / M_PI) + 180.f, 
-                    -double(ankleRotRad[0].y * 180.f / M_PI), 
-                    double(glm::eulerAngles(footrot[0]).z * 180 / M_PI) };
-                trotation[1] = vr::HmdVector3d_t{ double(glm::eulerAngles(footrot[1]).x * 180 / M_PI) + 180.f, 
-                    -double(ankleRotRad[1].y * 180.f / M_PI), 
-                    double(glm::eulerAngles(footrot[1]).z * 180 / M_PI) };
+                if (!flip) {
+                    trotation[0] = vr::HmdVector3d_t{ double(glm::eulerAngles(footrot[0]).x * 180 / M_PI) + 180.f,
+                        -double(ankleRotRad[0].y * 180.f / M_PI),
+                        double(glm::eulerAngles(footrot[0]).z * 180 / M_PI) };
+                    trotation[1] = vr::HmdVector3d_t{ double(glm::eulerAngles(footrot[1]).x * 180 / M_PI) + 180.f,
+                        -double(ankleRotRad[1].y * 180.f / M_PI),
+                        double(glm::eulerAngles(footrot[1]).z * 180 / M_PI) };
+                }
+                else {
+                    trotation[1] = vr::HmdVector3d_t{ -double(glm::eulerAngles(footrot[0]).x * 180 / M_PI) + 180.f,
+                        double(ankleRotRad[0].y * 180.f / M_PI),
+                        -double(glm::eulerAngles(footrot[0]).z * 180 / M_PI) };
+                    trotation[0] = vr::HmdVector3d_t{ -double(glm::eulerAngles(footrot[1]).x * 180 / M_PI) + 180.f,
+                        double(ankleRotRad[1].y * 180.f / M_PI),
+                        -double(glm::eulerAngles(footrot[1]).z * 180 / M_PI) };
+                }
 
 #pragma endregion
 
@@ -769,6 +789,22 @@ void KinectV1Handler::getKinectRGBData() {
                 }
                 else {
                     if (flip) {
+                        /*Eigen::AngleAxisd rollAngle(0.f, Eigen::Vector3d::UnitZ());
+                        Eigen::AngleAxisd yawAngle(KinectSettings::hroffset * M_PI / 180, Eigen::Vector3d::UnitY());
+                        Eigen::AngleAxisd pitchAngle(0.f, Eigen::Vector3d::UnitX());
+                        Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
+                        Eigen::Vector3d hin(jointPositions[convertJoint(KVR::KinectJointType::HandRight)].x,
+                            jointPositions[convertJoint(KVR::KinectJointType::HandRight)].y,
+                            jointPositions[convertJoint(KVR::KinectJointType::HandRight)].z);
+
+                        Eigen::Vector3d hout = q * hin;
+
+                        Eigen::Vector3d ein(jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].x,
+                            jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].y,
+                            jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].z);
+
+                        Eigen::Vector3d eout = q * ein;*/
+
                         S << "X" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandRight)].x + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
                             "/Y" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandRight)].y + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
                             "/Z" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandRight)].z + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) <<
@@ -777,6 +813,22 @@ void KinectV1Handler::getKinectRGBData() {
                             "/EZ" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].z + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) << "/";
                     }
                     else {
+                        /*Eigen::AngleAxisd rollAngle(0.f, Eigen::Vector3d::UnitZ());
+                        Eigen::AngleAxisd yawAngle(KinectSettings::hroffset* M_PI / 180, Eigen::Vector3d::UnitY());
+                        Eigen::AngleAxisd pitchAngle(0.f, Eigen::Vector3d::UnitX());
+                        Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
+                        Eigen::Vector3d hin(jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].x,
+                            jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].y,
+                            jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].z);
+
+                        Eigen::Vector3d hout = q * hin;
+
+                        Eigen::Vector3d ein(jointPositions[convertJoint(KVR::KinectJointType::ElbowLeft)].x,
+                            jointPositions[convertJoint(KVR::KinectJointType::ElbowLeft)].y,
+                            jointPositions[convertJoint(KVR::KinectJointType::ElbowLeft)].z);
+
+                        Eigen::Vector3d eout = q * ein;*/
+
                         S << "X" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].x + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
                             "/Y" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].y + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
                             "/Z" << 10000 * (jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].z + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) <<

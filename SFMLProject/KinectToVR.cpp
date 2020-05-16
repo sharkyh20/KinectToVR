@@ -172,16 +172,9 @@ void attemptInitialiseDebugDisplay(sf::Font &font, sf::Text &debugText) {
 vr::HmdQuaternion_t kinectQuaternionFromRads() {
     return vrmath::quaternionFromYawPitchRoll(KinectSettings::kinectRadRotation.v[1], KinectSettings::kinectRadRotation.v[0], KinectSettings::kinectRadRotation.v[2]);
 }
-void attemptIEmulatorConnection(vrinputemulator::VRInputEmulator & inputEmulator, GUIHandler & guiRef) {
-    try {
-        LOG(INFO) << "Input Emulator is not needed...";
-    }
-	catch (std::exception e) {
-	}
-}
-void updateTrackerInitGuiSignals(vrinputemulator::VRInputEmulator& inputEmulator, GUIHandler& guiRef, std::vector<KVR::KinectTrackedDevice>& v_trackers, vr::IVRSystem*& m_VRsystem) {
-    if (inputEmulator.isConnected() || true) {
-        guiRef.setTrackerButtonSignals(inputEmulator, v_trackers, m_VRsystem);
+void updateTrackerInitGuiSignals(GUIHandler& guiRef, std::vector<KVR::KinectTrackedDevice>& v_trackers, vr::IVRSystem*& m_VRsystem) {
+    if (true) {
+        guiRef.setTrackerButtonSignals(v_trackers, m_VRsystem);
         guiRef.updateEmuStatusLabelSuccess();
     }
     else {
@@ -191,10 +184,6 @@ void updateTrackerInitGuiSignals(vrinputemulator::VRInputEmulator& inputEmulator
 
 void limitVRFramerate(double &endFrameMilliseconds)
 {
-    // Framerate limiting - as SFML only has 90 FPS when window in focus X-X
-    // Strange bugs occurred before, with the render window framerate being
-    // *sometimes* tied to the VR update. With this, it fixes it at 90,
-    // and 30 for the GUI - as it should be (GUI uses a lot of CPU to update)
     static unsigned int FPS = 90;
 
     double deltaDeviationMilliseconds;
@@ -210,9 +199,6 @@ void limitVRFramerate(double &endFrameMilliseconds)
     else {
         endFrameMilliseconds += deltaDeviationMilliseconds;
     }
-    //SFMLsettings::debugDisplayTextStream << "deviateMilli: " << deltaDeviationMilliseconds << '\n';
-    //SFMLsettings::debugDisplayTextStream << "POST endTimeMilli: " << endFrameMilliseconds << '\n';
-    //SFMLsettings::debugDisplayTextStream << "FPS End = " << 1000.0 / endFrameMilliseconds << '\n';
 }
 
 void updatenormaltrackers() {
@@ -260,12 +246,10 @@ void processLoop(KinectHandlerBase& kinect) {
 
     //Initialise InputEmu and Trackers
     std::vector<KVR::KinectTrackedDevice> v_trackers{};
-    vrinputemulator::VRInputEmulator inputEmulator;
-    //attemptIEmulatorConnection(inputEmulator, guiRef);
 
+    //VRcontroller rightController(vr::TrackedControllerRole_RightHand);
+    //VRcontroller leftController(vr::TrackedControllerRole_LeftHand);
 
-    /*VRcontroller rightController(vr::TrackedControllerRole_RightHand);
-    VRcontroller leftController(vr::TrackedControllerRole_LeftHand);*/
 
     LOG(INFO) << "Attempting connection to vrsystem.... ";    // DEBUG
     vr::EVRInitError eError = vr::VRInitError_None;
@@ -288,20 +272,19 @@ void processLoop(KinectHandlerBase& kinect) {
         }
         KinectSettings::svrhmdyaw = yaw;
 
-        LOG(INFO) << "SteamVR Tracking Origin for Input Emulator: " << 
+        LOG(INFO) << "SteamVR Tracking Origin for Driver Relative: " << 
             KinectSettings::trackingOriginPosition.v[0] << ", " << 
             KinectSettings::trackingOriginPosition.v[1] << ", " << 
             KinectSettings::trackingOriginPosition.v[2] << ", " << 
             KinectSettings::svrhmdyaw << "RAD";
 
         guiRef.setVRSceneChangeButtonSignal(m_VRSystem);
-        updateTrackerInitGuiSignals(inputEmulator, guiRef, v_trackers, m_VRSystem);
+        updateTrackerInitGuiSignals(guiRef, v_trackers, m_VRSystem);
         setTrackerRolesInVRSettings();
-        VRInput::initialiseVRInput();
+        //VRInput::initialiseVRInput();
     
-        /*leftController.Connect(m_VRSystem);
-        rightController.Connect(m_VRSystem);*/
-        //guiRef.setReconnectControllerButtonSignal(leftController, rightController, m_VRSystem);
+        //leftController.Connect(m_VRSystem);
+        //rightController.Connect(m_VRSystem);
 
         // Todo: implement binding system
         guiRef.loadK2VRIntoBindingsMenu(m_VRSystem);
@@ -339,16 +322,8 @@ void processLoop(KinectHandlerBase& kinect) {
 
     IMU_RotationMethod rotMethod;
     v_trackingMethods.push_back(std::make_unique<IMU_RotationMethod>(rotMethod));
-    /*
-    ColorTracker mainColorTracker(KinectSettings::kinectV2Width, KinectSettings::kinectV2Height);
-    v_trackingMethods.push_back(mainColorTracker);
-    */
 
-    // Physical Device Handlers
-    // Ideally, nothing should be spawned in code, and everything done by user input
-    // This means that these Handlers are spawned in the GuiHandler, and each updated in the vector automatically
-    
-    VRDeviceHandler vrDeviceHandler(m_VRSystem, inputEmulator);
+    VRDeviceHandler vrDeviceHandler(m_VRSystem);
     if (eError == vr::VRInitError_None)
         vrDeviceHandler.initialise();
 
@@ -432,11 +407,22 @@ void processLoop(KinectHandlerBase& kinect) {
 
         //Update VR Components
         if (eError == vr::VRInitError_None) {
-            /*rightController.update(deltaT);
-            leftController.update(deltaT);*/
+            //rightController.update(deltaT);
+            //leftController.update(deltaT);
             updateHMDPosAndRot(m_VRSystem);
 
-            VRInput::updateVRInput();
+            try {
+                vr::TrackedDeviceIndex_t hID = m_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
+                vr::TrackedDevicePose_t trackedDevicePose[vr::k_unMaxTrackedDeviceCount];
+                m_VRSystem->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, trackedDevicePose, vr::k_unMaxTrackedDeviceCount);
+                //std::cout << trackedDevicePose[hID].mDeviceToAbsoluteTracking.m[0][3] << ' ' << trackedDevicePose[hID].mDeviceToAbsoluteTracking.m[1][3] << ' ' << trackedDevicePose[hID].mDeviceToAbsoluteTracking.m[2][3] << '\n';
+
+                KinectSettings::controllersPose[0] = trackedDevicePose[hID];
+            }
+            catch (std::exception e) {}
+
+            //KinectSettings::controllersPose[0] = leftController.getPose();
+            //KinectSettings::controllersPose[1] = rightController.getPose();
 
             // EWWWWWWWWW -------------
             /*if (VRInput::legacyInputModeEnabled) {
@@ -494,18 +480,6 @@ void processLoop(KinectHandlerBase& kinect) {
             renderWindow.clear();
             kinect.drawKinectData(renderWindow);
         }
-        //std::vector<uint32_t> virtualDeviceIndexes;
-        //for (KinectTrackedDevice d : v_trackers) {
-        //    vrinputemulator::VirtualDeviceInfo info = inputEmulator.getVirtualDeviceInfo(d.deviceId);
-        //    virtualDeviceIndexes.push_back(info.openvrDeviceId); // needs to be converted into openvr's id - as inputEmulator has it's own Id's starting from zero
-        //}
-
-
-        //playspaceMovementAdjuster.update(leftController, rightController, virtualDeviceIndexes);
-
-        ///renderWindow.pushGLStates();
-
-
 
         // Draw GUI
         updateHMDPosAndRot(m_VRSystem);
@@ -521,9 +495,6 @@ void processLoop(KinectHandlerBase& kinect) {
         //limitVRFramerate(endTimeMilliseconds);
         debugText.setString(SFMLsettings::debugDisplayTextStream.str());
         renderWindow.draw(debugText);
-
-
-        //renderWindow.popGLStates();
 
         renderWindow.resetGLStates();
         //End Frame
@@ -546,56 +517,28 @@ void processLoop(KinectHandlerBase& kinect) {
     }
 }
 
-void spawnAndConnectTracker(vrinputemulator::VRInputEmulator & inputE, std::vector<KVR::KinectTrackedDevice>& v_trackers, uint32_t posDevice_gId,
-    uint32_t rotDevice_gId, KVR::KinectDeviceRole role)
+void spawnDefaultLowerBodyTrackers()
 {
-    KVR::KinectTrackedDevice device(inputE, posDevice_gId, rotDevice_gId, role);
-    device.init(inputE);
-    v_trackers.push_back(device);
-}
-void spawnAndConnectTracker(vrinputemulator::VRInputEmulator & inputE, std::vector<KVR::KinectTrackedDevice>& v_trackers, KVR::KinectJointType mainJoint, KVR::KinectJointType secondaryJoint, KVR::KinectDeviceRole role)
-{
-    uint32_t mainGID = TrackingPoolManager::globalDeviceIDFromJoint(mainJoint);
-    uint32_t secondaryGID = TrackingPoolManager::globalDeviceIDFromJoint(secondaryJoint);
-    KVR::KinectTrackedDevice device(inputE, mainGID, mainGID, role); // The secondary joint is a fallback, and is used for rotation/freezing calculations
-    device.joint0 = mainJoint;
-    device.joint1 = secondaryJoint;
-    device.init(inputE);
-    v_trackers.push_back(device);
-}
+    std::thread* activate = new std::thread([] {
+        WSADATA WSAData;
+        SOCKET server;
+        SOCKADDR_IN addr;
 
-void spawnAndConnectHandTrackers(vrinputemulator::VRInputEmulator & inputE, std::vector<KVR::KinectTrackedDevice>& v_trackers) {
-    spawnAndConnectTracker(inputE, v_trackers, KVR::KinectJointType::WristLeft, KVR::KinectJointType::HandLeft, KVR::KinectDeviceRole::LeftHand);
-    spawnAndConnectTracker(inputE, v_trackers, KVR::KinectJointType::WristRight, KVR::KinectJointType::HandRight, KVR::KinectDeviceRole::RightHand);
-}
-void spawnDefaultLowerBodyTrackers(vrinputemulator::VRInputEmulator & inputE, std::vector<KVR::KinectTrackedDevice>& v_trackers)
-{
-    WSADATA WSAData;
-    SOCKET server;
-    SOCKADDR_IN addr;
+        WSAStartup(MAKEWORD(2, 0), &WSAData);
+        server = socket(AF_INET, SOCK_STREAM, 0);
 
-    WSAStartup(MAKEWORD(2, 0), &WSAData);
-    server = socket(AF_INET, SOCK_STREAM, 0);
+        addr.sin_addr.s_addr = inet_addr("127.0.0.1"); // replace the ip with your futur server ip address. If server AND client are running on the same computer, you can use the local ip 127.0.0.1
+        addr.sin_family = AF_INET;
+        addr.sin_port = htons(5782);
 
-    addr.sin_addr.s_addr = inet_addr("127.0.0.1"); // replace the ip with your futur server ip address. If server AND client are running on the same computer, you can use the local ip 127.0.0.1
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(5782);
+        connect(server, (SOCKADDR*)&addr, sizeof(addr));
+        using namespace std;
+        //std::cout << "Connected to server!" << std::endl;
 
-    connect(server, (SOCKADDR*)&addr, sizeof(addr));
-    using namespace std;
-	//std::cout << "Connected to server!" << std::endl;
+        //char buffer[1024] = { 'N', 'A', 'N', 'D', 'E', 'M', 'O', };
+        //send(server, buffer, sizeof(buffer), 0);
 
-	//char buffer[1024] = { 'N', 'A', 'N', 'D', 'E', 'M', 'O', };
-    //send(server, buffer, sizeof(buffer), 0);
-
-    closesocket(server);
-    WSACleanup();
-}
-
-void spawnAndConnectKinectTracker(vrinputemulator::VRInputEmulator &inputE, std::vector<KVR::KinectTrackedDevice> &v_trackers)
-{
-    /*KVR::KinectTrackedDevice kinectTrackerRef(inputE, TrackingPoolManager::kinectSensorGID, TrackingPoolManager::kinectSensorGID, KVR::KinectDeviceRole::KinectSensor);
-    kinectTrackerRef.init(inputE);
-    setKinectTrackerProperties(inputE, kinectTrackerRef.deviceId);
-    v_trackers.push_back(kinectTrackerRef);*/
+        closesocket(server);
+        WSACleanup();
+    });
 }

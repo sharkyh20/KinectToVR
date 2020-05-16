@@ -33,7 +33,7 @@ namespace KinectSettings {
     extern float ardroffset;
     extern const int kinectHeight;
     extern const int kinectWidth;
-
+    extern bool legacy;
     extern const int kinectV2Height;
     extern const int kinectV2Width;
     extern bool rtconcalib;
@@ -47,7 +47,8 @@ namespace KinectSettings {
     extern int rightHandPlayspaceMovementButton;
     extern int leftFootPlayspaceMovementButton;
     extern int rightFootPlayspaceMovementButton;
-
+    extern vr::TrackedDevicePose_t controllersPose[2];
+    
     extern vr::HmdVector3d_t hmdPosition; 
     extern vr::HmdQuaternion_t hmdRotation;
     extern vr::HmdMatrix34_t hmdAbsoluteTracking;

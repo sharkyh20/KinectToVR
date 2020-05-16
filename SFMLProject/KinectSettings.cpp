@@ -23,7 +23,7 @@
 
 namespace KinectSettings {
     std::wstring const CFG_NAME(L"KinectToVR.cfg");
-    std::string KVRversion = "a0.7.2 - Static SVR Driver";
+    std::string KVRversion = "a0.7.1 EX";
 
     bool isKinectDrawn = false;
     bool isSkeletonDrawn = false;
@@ -40,7 +40,7 @@ namespace KinectSettings {
     KVR::KinectJointType rightFootJointWithoutRotation = KVR::KinectJointType::AnkleRight;
 
     bool userChangingZero = false;
-
+    bool legacy = false;
     float g_TrackedBoneThickness = 6.0f;
     float g_InferredBoneThickness = 1.5f;
     float g_JointThickness = 4.0f;
@@ -76,6 +76,7 @@ namespace KinectSettings {
     float hroffset = 0;
     float troffset = 0;
 
+    vr::TrackedDevicePose_t controllersPose[2];
     vr::HmdVector3d_t hauoffset{ 0,0,0 }, mauoffset{ 0,0,0 };
     Eigen::Matrix<float, 3, 3> R_matT;
     Eigen::Matrix<float, 3, 1> T_matT;

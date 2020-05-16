@@ -163,9 +163,8 @@ class VRDeviceHandler : public DeviceHandler {
     // Updates the tracking pool with data from the 
     // non-IE SteamVR devices - e.g. head position/rotation
 public:
-    VRDeviceHandler(vr::IVRSystem* &g_VRSystem, vrinputemulator::VRInputEmulator &inputEmulator)
-    : m_VRSystem(g_VRSystem),
-        m_inputEmulator(inputEmulator)
+    VRDeviceHandler(vr::IVRSystem* &g_VRSystem)
+    : m_VRSystem(g_VRSystem)
     {
 
     }
@@ -241,16 +240,16 @@ public:
     }
 
     void updateVirtualDeviceList() {
-        int virtualDeviceCount = m_inputEmulator.getVirtualDeviceCount();
-        std::fill(virtualDevices, virtualDevices + vr::k_unMaxTrackedDeviceCount, false);
-        for (int i = 0; i < virtualDeviceCount; ++i) {
-            vrinputemulator::VirtualDeviceInfo info = m_inputEmulator.getVirtualDeviceInfo(i);
-            virtualDevices[info.openvrDeviceId] = true;
-        }
+        //int virtualDeviceCount = m_inputEmulator.getVirtualDeviceCount();
+        //std::fill(virtualDevices, virtualDevices + vr::k_unMaxTrackedDeviceCount, false);
+        //for (int i = 0; i < virtualDeviceCount; ++i) {
+        //    vrinputemulator::VirtualDeviceInfo info = m_inputEmulator.getVirtualDeviceInfo(i);
+        //    virtualDevices[info.openvrDeviceId] = true;
+        //}
     }
 private:
     vr::IVRSystem* &m_VRSystem;
-    vrinputemulator::VRInputEmulator & m_inputEmulator;
+    //vrinputemulator::VRInputEmulator & m_inputEmulator;
 
     int virtualDeviceCount = 0;
     bool virtualDevices[vr::k_unMaxTrackedDeviceCount]{ false };

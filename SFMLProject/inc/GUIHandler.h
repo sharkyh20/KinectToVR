@@ -101,7 +101,7 @@ private:
 public:
 
     GUIHandler() {
-        guiWindow->SetTitle("KinectToVR: a0.7.2 RR: Gotcha!");
+        guiWindow->SetTitle("");
         
 
         setDefaultSignals();
@@ -116,7 +116,7 @@ public:
 
         mainNotebook->AppendPage(mainGUIBox, sfg::Label::Create(" Body Trackers "));
         //mainNotebook->AppendPage(advancedTrackerBox, sfg::Label::Create("Adv. Trackers"));
-        mainNotebook->AppendPage(calibrationBox, sfg::Label::Create(" Calibration "));
+        mainNotebook->AppendPage(calibrationBox, sfg::Label::Create(" Calibration Offsets "));
         mainNotebook->AppendPage(controllersBox, sfg::Label::Create(" Arduino "));
         mainNotebook->AppendPage(virtualHipsBox, sfg::Label::Create(" Head Tracking "));
 
@@ -887,8 +887,8 @@ public:
         return r;
     }
 
-    void setTrackerButtonSignals(vrinputemulator::VRInputEmulator& inputE, std::vector<KVR::KinectTrackedDevice>& v_trackers, vr::IVRSystem*& m_VRSystem) {
-        calibrateOffsetButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &inputE, &v_trackers, &m_VRSystem] {
+    void setTrackerButtonSignals(std::vector<KVR::KinectTrackedDevice>& v_trackers, vr::IVRSystem*& m_VRSystem) {
+        calibrateOffsetButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers, &m_VRSystem] {
             // WARNING, SUPER HACKY!!!
             // Spawn device which sets it's vec position to 0
             vr::DriverPose_t pose = defaultReadyDriverPose();
@@ -902,21 +902,21 @@ public:
             v_trackers[0].nextUpdatePoseIsSet = false;
             v_trackers[0].setPoseForNextUpdate(pose, true);
             // Get it's VR ID
-            auto info = inputE.getVirtualDeviceInfo(0);
-            uint32_t vrID = info.openvrDeviceId;
+            //auto info = inputE.getVirtualDeviceInfo(0);
+            //uint32_t vrID = info.openvrDeviceId;
             // Get it's absolute tracking, set the secondary offset to that
 
-            v_trackers[0].update(pose);
+            //v_trackers[0].update(pose);
 
-            vr::TrackedDevicePose_t devicePose[vr::k_unMaxTrackedDeviceCount];
-            m_VRSystem->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, 0, devicePose, vr::k_unMaxTrackedDeviceCount);
+            //vr::TrackedDevicePose_t devicePose[vr::k_unMaxTrackedDeviceCount];
+            //m_VRSystem->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, 0, devicePose, vr::k_unMaxTrackedDeviceCount);
 
-            KinectSettings::secondaryTrackingOriginOffset = GetVRPositionFromMatrix(devicePose[vrID].mDeviceToAbsoluteTracking);
-            LOG(INFO) << "SET THE SECONDARY OFFSET TO " << KinectSettings::secondaryTrackingOriginOffset.v[0] << ", " << KinectSettings::secondaryTrackingOriginOffset.v[1] << ", " << KinectSettings::secondaryTrackingOriginOffset.v[2];
+            //KinectSettings::secondaryTrackingOriginOffset = GetVRPositionFromMatrix(devicePose[vrID].mDeviceToAbsoluteTracking);
+            //LOG(INFO) << "SET THE SECONDARY OFFSET TO " << KinectSettings::secondaryTrackingOriginOffset.v[0] << ", " << KinectSettings::secondaryTrackingOriginOffset.v[1] << ", " << KinectSettings::secondaryTrackingOriginOffset.v[2];
 
             });
 
-        TrackerInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers, &inputE] {
+        TrackerInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers] {
             /*
             bool reuseLastTrackers = true;
             if (reuseLastTrackers) {
@@ -928,10 +928,7 @@ public:
             }
             */
             TrackerInitButton->SetLabel("Trackers Initialised");
-            if (TrackersToBeInitialised.empty()) {
-                spawnDefaultLowerBodyTrackers(inputE, v_trackers);
-                spawnAndConnectKinectTracker(inputE, v_trackers);
-            }
+            spawnDefaultLowerBodyTrackers();
 
             showPostTrackerInitUI();
 
@@ -943,6 +940,7 @@ public:
             TrackersConfigSaveButton->Show(true);
             TrackersCalibButton->Show(true);
             //TrackersCalibSButton->Show(true);
+            legacycalibbutton->Show(true);
 
             AutoStartTrackers->Show(true);
             //AutoStartKinectToVR->Show(true);
@@ -953,35 +951,27 @@ public:
 
 
         if(VirtualHips::settings.astartt) {
-            /*
-            bool reuseLastTrackers = true;
-            if (reuseLastTrackers) {
-                LOG(INFO) << "SPAWNING TRACKERS FROM LAST OPEN, MAY BE ISSUES";
 
-                // Load Last Set of trackers used
+            std::thread* st = new std::thread([this] {
+                std::this_thread::sleep_for(std::chrono::seconds(7));
+                TrackerInitButton->SetLabel("Trackers Initialised");
+                spawnDefaultLowerBodyTrackers();
 
-                // Spawn
-            }
-            */
-            TrackerInitButton->SetLabel("Trackers Initialised");
-            if (TrackersToBeInitialised.empty()) {
-                spawnDefaultLowerBodyTrackers(inputE, v_trackers);
-                spawnAndConnectKinectTracker(inputE, v_trackers);
-            }
+                showPostTrackerInitUI();
 
-            showPostTrackerInitUI();
+                TrackerInitButton->SetState(sfg::Widget::State::INSENSITIVE);
+                TrackerLastInitButton->SetState(sfg::Widget::State::INSENSITIVE);
 
-            TrackerInitButton->SetState(sfg::Widget::State::INSENSITIVE);
-            TrackerLastInitButton->SetState(sfg::Widget::State::INSENSITIVE);
+                modeTitleBox110->Show(true);
+                TDegreeButton->SetValue(KinectSettings::cpoints);
+                TrackersConfigSaveButton->Show(true);
+                TrackersCalibButton->Show(true);
+                //TrackersCalibSButton->Show(true);
+                legacycalibbutton->Show(true);
 
-            modeTitleBox110->Show(true);
-            TDegreeButton->SetValue(KinectSettings::cpoints);
-            TrackersConfigSaveButton->Show(true);
-            TrackersCalibButton->Show(true);
-            //TrackersCalibSButton->Show(true);
-
-            AutoStartTrackers->Show(true);
-            //AutoStartKinectToVR->Show(true);
+                AutoStartTrackers->Show(true);
+                //AutoStartKinectToVR->Show(true);
+                });
         }
 
 		if (VirtualHips::settings.astarth) {
@@ -1028,40 +1018,42 @@ public:
             comportbox2->AppendItem(VirtualHips::settings.compm);
             comportbox2->SelectItem(0);
 
-			try {
-				using namespace boost::asio;
-				using ip::tcp;
-				using std::string;
+            std::thread* activate = new std::thread([] {
+                try {
+                    using namespace boost::asio;
+                    using ip::tcp;
+                    using std::string;
 
-				boost::asio::io_service io_service;
-				//socket creation
-				tcp::socket socket(io_service);
-				//connection
-				socket.connect(tcp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"), 5741));
-				// request/message from client
+                    boost::asio::io_service io_service;
+                    //socket creation
+                    tcp::socket socket(io_service);
+                    //connection
+                    socket.connect(tcp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"), 5741));
+                    // request/message from client
 
-				const string msg = "Hello from Client!\n";
-				boost::system::error_code error;
-				boost::asio::write(socket, boost::asio::buffer(msg), error);
-				if (!error) {
-					LOG(INFO) << "Client sent message!";
-				}
-				else {
-					LOG(INFO) << "(Ignore) send failed: " << error.message();
-				}
+                    const string msg = "Hello from Client!\n";
+                    boost::system::error_code error;
+                    boost::asio::write(socket, boost::asio::buffer(msg), error);
+                    if (!error) {
+                        LOG(INFO) << "Client sent message!";
+                    }
+                    else {
+                        LOG(INFO) << "(Ignore) send failed: " << error.message();
+                    }
 
-				// getting response from server
-				boost::asio::streambuf receive_buffer;
-				boost::asio::read(socket, receive_buffer, boost::asio::transfer_all(), error);
-				if (error && error != boost::asio::error::eof) {
-					LOG(INFO) << "(Ignore) receive failed: " << error.message();
-				}
-				else {
-					const char* data = boost::asio::buffer_cast<const char*>(receive_buffer.data());
-				}
-			}
-			catch (boost::exception const &e) {}
-			catch (std::exception e) {}
+                    // getting response from server
+                    boost::asio::streambuf receive_buffer;
+                    boost::asio::read(socket, receive_buffer, boost::asio::transfer_all(), error);
+                    if (error && error != boost::asio::error::eof) {
+                        LOG(INFO) << "(Ignore) receive failed: " << error.message();
+                    }
+                    else {
+                        const char* data = boost::asio::buffer_cast<const char*>(receive_buffer.data());
+                    }
+                }
+                catch (boost::exception const& e) {}
+                catch (std::exception e) {}
+            });
 
 			ShellExecute(NULL, _T("open"), _T("avr_hhost.exe"), s2ws(VirtualHips::settings.comph).c_str(), NULL, SW_HIDE);
 			ShellExecute(NULL, _T("open"), _T("avr_mhost.exe"), s2ws(VirtualHips::settings.compm).c_str(), NULL, SW_HIDE);
@@ -1074,45 +1066,12 @@ public:
             refreshcomports->SetState(sfg::Widget::State::INSENSITIVE);
 		}
 
-		TrackerLastInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers, &inputE] {
+		TrackerLastInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers] {
 			if (!retrieveLastSpawnedTrackers()) {
 				return; // Don't actually spawn the trackers, as they will likely crash
 			}
 			TrackerLastInitButton->SetLabel("Trackers Initialised");
-            if (TrackersToBeInitialised.empty()) {
-                spawnDefaultLowerBodyTrackers(inputE, v_trackers);
-                spawnAndConnectKinectTracker(inputE, v_trackers);
-            }
-            else {
-                TrackingPoolManager::leftFootDevicePosGID = k_invalidTrackerID;
-                TrackingPoolManager::rightFootDevicePosGID = k_invalidTrackerID;
-                TrackingPoolManager::leftFootDeviceRotGID = k_invalidTrackerID;
-                TrackingPoolManager::rightFootDeviceRotGID = k_invalidTrackerID;
-
-                for (TempTracker tracker : TrackersToBeInitialised) {
-                    spawnAndConnectTracker(inputE, v_trackers, tracker);
-
-                    if (tracker.data.role == KVR::KinectDeviceRole::LeftFoot) {
-                        TrackingPoolManager::leftFootDevicePosGID = tracker.data.positionGlobalDeviceId;
-                        TrackingPoolManager::leftFootDeviceRotGID = tracker.data.rotationGlobalDeviceId;
-                    }
-                    if (tracker.data.role == KVR::KinectDeviceRole::RightFoot) {
-                        TrackingPoolManager::rightFootDevicePosGID = tracker.data.positionGlobalDeviceId;
-                        TrackingPoolManager::rightFootDeviceRotGID = tracker.data.rotationGlobalDeviceId;
-                    }
-
-                    if (tracker.data.isController) {
-                        setDeviceProperty(inputE, v_trackers.back().deviceId, vr::Prop_DeviceClass_Int32, "int32", "2"); // Device Class: Controller
-                        if (tracker.data.role == KVR::KinectDeviceRole::LeftHand) {
-                            setDeviceProperty(inputE, v_trackers.back().deviceId, vr::Prop_ControllerRoleHint_Int32, "int32", "1"); // ControllerRole Left
-                        }
-                        else if (tracker.data.role == KVR::KinectDeviceRole::RightHand) {
-                            setDeviceProperty(inputE, v_trackers.back().deviceId, vr::Prop_ControllerRoleHint_Int32, "int32", "2"); // ControllerRole Right
-                        }
-                    }
-                }
-                saveLastSpawnedTrackers(TrackersToBeInitialised);
-            }
+            spawnDefaultLowerBodyTrackers();
 
             showPostTrackerInitUI();
 
@@ -1465,8 +1424,27 @@ public:
 
         mainGUIBox->Pack(reconKinectButton);
         mainGUIBox->Pack(TrackerInitButton);
-        //mainGUIBox->Pack(TrackerLastInitButton);
-        //mainGUIBox->Pack(InstructionsLabel);
+
+
+
+
+
+        sfg::Box::Ptr horizontalPSMBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
+        horizontalPSMBox->Pack(StartPSMoveHandler);
+        horizontalPSMBox->Pack(StopPSMoveHandler);
+        //mainGUIBox->Pack(horizontalPSMBox);
+
+
+
+
+
+
+
+
+
+
+
+
 
         //setHipScaleBox();
         mainGUIBox->Pack(ShowSkeletonButton);
@@ -1486,6 +1464,9 @@ public:
 
         mainGUIBox->Pack(TrackersCalibButton);
         TrackersCalibButton->Show(false);
+
+        mainGUIBox->Pack(legacycalibbutton);
+        legacycalibbutton->Show(false);
 
         sfg::Box::Ptr astartbox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
 
@@ -1558,11 +1539,6 @@ public:
         controllersBox->Pack(sfg::Label::Create("Program will try to handle index controllers using ArduVR driver and Your two Arduino gloves"));
         controllersBox->Pack(sfg::Label::Create("-- Calibrate using trackers tab (you will have all at once) --"));
         controllersBox->Pack(sfg::Label::Create(" "));
-
-        /*sfg::Box::Ptr horizontalPSMBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
-        horizontalPSMBox->Pack(StartPSMoveHandler);
-        horizontalPSMBox->Pack(StopPSMoveHandler);
-        horizontalPSMBox->Pack(PSMoveHandlerLabel);*/
 
         sfg::Box::Ptr vbox0 = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 1.f);
         sfg::Box::Ptr vbox1 = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 1.f);
@@ -2014,40 +1990,42 @@ public:
 
         startarduvr->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
             
-            try {
-                using namespace boost::asio;
-                using ip::tcp;
-                using std::string;
+            std::thread* activate = new std::thread([] {
+                try {
+                    using namespace boost::asio;
+                    using ip::tcp;
+                    using std::string;
 
-                boost::asio::io_service io_service;
-                //socket creation
-                tcp::socket socket(io_service);
-                //connection
-                socket.connect(tcp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"), 5741));
-                // request/message from client
+                    boost::asio::io_service io_service;
+                    //socket creation
+                    tcp::socket socket(io_service);
+                    //connection
+                    socket.connect(tcp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"), 5741));
+                    // request/message from client
 
-                const string msg = "Hello from Client!\n";
-                boost::system::error_code error;
-                boost::asio::write(socket, boost::asio::buffer(msg), error);
-                if (!error) {
-                    LOG(INFO) << "Client sent message!";
-                }
-                else {
-                    LOG(INFO) << "(Ignore) send failed: " << error.message();
-                }
+                    const string msg = "Hello from Client!\n";
+                    boost::system::error_code error;
+                    boost::asio::write(socket, boost::asio::buffer(msg), error);
+                    if (!error) {
+                        LOG(INFO) << "Client sent message!";
+                    }
+                    else {
+                        LOG(INFO) << "(Ignore) send failed: " << error.message();
+                    }
 
-                // getting response from server
-                boost::asio::streambuf receive_buffer;
-                boost::asio::read(socket, receive_buffer, boost::asio::transfer_all(), error);
-                if (error && error != boost::asio::error::eof) {
-                    LOG(INFO) << "(Ignore) receive failed: " << error.message();
+                    // getting response from server
+                    boost::asio::streambuf receive_buffer;
+                    boost::asio::read(socket, receive_buffer, boost::asio::transfer_all(), error);
+                    if (error && error != boost::asio::error::eof) {
+                        LOG(INFO) << "(Ignore) receive failed: " << error.message();
+                    }
+                    else {
+                        const char* data = boost::asio::buffer_cast<const char*>(receive_buffer.data());
+                    }
                 }
-                else {
-                    const char* data = boost::asio::buffer_cast<const char*>(receive_buffer.data());
-                }
-            }
-            catch (boost::exception const &e) {}
-            catch (std::exception e) {}
+                catch (boost::exception const& e) {}
+                catch (std::exception e) {}
+            });
 
             ShellExecute(NULL, _T("open"), _T("avr_hhost.exe"), s2ws(comportbox1->GetSelectedText()).c_str(), NULL, SW_HIDE);
             ShellExecute(NULL, _T("open"), _T("avr_mhost.exe"), s2ws(comportbox2->GetSelectedText()).c_str(), NULL, SW_HIDE);
@@ -2178,171 +2156,382 @@ public:
             }
         );
 
+        legacycalibbutton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
+            KinectSettings::legacy != KinectSettings::legacy;
+            });
+
         TrackersCalibButton->GetSignal(sfg::Button::OnLeftClick).Connect([this] {
-            KinectSettings::headtracked = true;
-
-			std::thread* t1 = new std::thread([this]() {
-				vr::EVRInitError error;
-				vr::IVRSystem* system = vr::VR_Init(&error, vr::VRApplication_Background);
-				vr::TrackedDevicePose_t trackedDevicePose;
-				vr::TrackedDevicePose_t trackedControllerPose;
-				vr::VRControllerState_t controllerState;
-				vr::HmdMatrix34_t poseMatrix;
-				vr::HmdVector3_t position;
-				vr::HmdQuaternion_t quaternion;
-
-
-
-				std::vector<vr::DriverPose_t> spose;
-				std::vector<vr::HmdVector3d_t> hpose;
-
-				KinectSettings::ismatrixcalibrated = false;
+            bool isLeft = false, isRight = false;
+            TrackersCalibButton->SetState(sfg::Widget::State::INSENSITIVE);
+            
+            try {
+                vr::EVRInitError error;
+                vr::IVRSystem* csystem = vr::VR_Init(&error, vr::VRApplication_Background);
+                vr::HmdMatrix34_t cposeMatrix;
+                vr::HmdVector3_t cposition;
+                vr::HmdQuaternion_t cquaternion;
+                vr::TrackedDevicePose_t ctrackedControllerPose;
+                vr::VRControllerState_t ccontrollerState;
+                vr::VRControllerState_t cstate;
 
 
-                for (int ipoint = 1; ipoint <= KinectSettings::cpoints; ipoint++) {
-
-                    vr::DriverPose_t ispose;
-                    vr::HmdVector3d_t ihpose;
-                    
-                    std::this_thread::sleep_for(std::chrono::seconds(3));
 
 
-                    TrackersCalibButton->SetLabel(std::string("-- Prepare to calibration: Point " + boost::lexical_cast<std::string>(ipoint) + " --").c_str());
-                    std::this_thread::sleep_for(std::chrono::seconds(3));
-                    for (auto i = 7; i > 0; i--) {
-                        TrackersCalibButton->SetLabel(std::string("Point " + boost::lexical_cast<std::string>(ipoint) + ": Stand somewhere... Time left: " + boost::lexical_cast<std::string>(i) + "s").c_str());
-                        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+
+
+
+                for (vr::TrackedDeviceIndex_t unDevice = 0; unDevice < vr::k_unMaxTrackedDeviceCount; unDevice++)
+                {
+                    csystem->GetControllerState(unDevice, &cstate, sizeof(cstate));
+                    vr::ETrackedDeviceClass trackedDeviceClass = vr::VRSystem()->GetTrackedDeviceClass(unDevice);
+
+                    if (trackedDeviceClass == vr::ETrackedDeviceClass::TrackedDeviceClass_Controller) {
+
+                        vr::VRSystem()->GetControllerStateWithPose(vr::TrackingUniverseStanding, unDevice, &ccontrollerState,
+                            sizeof(ccontrollerState), &ctrackedControllerPose);
+
+                        auto trackedControllerRole = vr::VRSystem()->GetControllerRoleForTrackedDeviceIndex(unDevice);
+                        if (trackedControllerRole == vr::TrackedControllerRole_LeftHand)
+                        {
+                            isLeft = true;
+                        }
+                        else if (trackedControllerRole == vr::TrackedControllerRole_RightHand)
+                        {
+                            isRight = true;
+                        }
+
                     }
 
-
-                    vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, &trackedDevicePose, 1);
-                    position = GetPosition(trackedDevicePose.mDeviceToAbsoluteTracking);
-
-                    ispose.vecPosition[0] = position.v[0] - KinectSettings::trackingOriginPosition.v[0];
-                    ispose.vecPosition[1] = position.v[1] - KinectSettings::trackingOriginPosition.v[1];
-                    ispose.vecPosition[2] = position.v[2] - KinectSettings::trackingOriginPosition.v[2];
-
-                    Eigen::AngleAxisd rollAngle(0.f, Eigen::Vector3d::UnitZ());
-                    Eigen::AngleAxisd yawAngle(-KinectSettings::svrhmdyaw, Eigen::Vector3d::UnitY());
-                    Eigen::AngleAxisd pitchAngle(0.f, Eigen::Vector3d::UnitX());
-
-                    Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
-
-                    Eigen::Vector3d in(ispose.vecPosition[0], ispose.vecPosition[1], ispose.vecPosition[2]);
-                    Eigen::Vector3d out = q * in;
-
-                    ispose.vecPosition[0] = out(0);
-                    ispose.vecPosition[1] = out(1);
-                    ispose.vecPosition[2] = out(2);
-
-                    for (auto i = 0; i < 3; i++)ihpose.v[i] = KinectSettings::mposes[0].v[i];
-                    TrackersCalibButton->SetLabel(std::string("-- Position captured: Point " + boost::lexical_cast<std::string>(ipoint) + " --").c_str());
-                    std::this_thread::sleep_for(std::chrono::seconds(2));
-
-                    spose.push_back(ispose);
-                    hpose.push_back(ihpose);
-
-
-
                 }
+            }
+            catch (std::exception e) {}
 
-                Eigen::Matrix<float, 3, Eigen::Dynamic> spoints(3, KinectSettings::cpoints), hpoints(3, KinectSettings::cpoints);
+            /*for (vr::TrackedDeviceIndex_t unDevice = 0; unDevice < vr::k_unMaxTrackedDeviceCount; unDevice++)
+            {
+                csystem->GetControllerState(unDevice, &cstate, sizeof(cstate));
+                vr::ETrackedDeviceClass trackedDeviceClass = vr::VRSystem()->GetTrackedDeviceClass(unDevice);
 
+                if (trackedDeviceClass == vr::ETrackedDeviceClass::TrackedDeviceClass_Controller) {
 
-				for (int ipoint = 0; ipoint < KinectSettings::cpoints; ipoint++) {
+                    vr::VRSystem()->GetControllerStateWithPose(vr::TrackingUniverseStanding, unDevice, &ccontrollerState,
+                        sizeof(ccontrollerState), &ctrackedControllerPose);
+                    cposeMatrix = ctrackedControllerPose.mDeviceToAbsoluteTracking;
+                    cposition = GetPosition(ctrackedControllerPose.mDeviceToAbsoluteTracking);
+                    cquaternion = GetRotation(ctrackedControllerPose.mDeviceToAbsoluteTracking);
 
-					spoints(0, ipoint) = spose.at(ipoint).vecPosition[0];
-					spoints(1, ipoint) = spose.at(ipoint).vecPosition[1];
-					spoints(2, ipoint) = spose.at(ipoint).vecPosition[2];
+                    auto trackedControllerRole = vr::VRSystem()->GetControllerRoleForTrackedDeviceIndex(unDevice);
+                    if (trackedControllerRole == vr::TrackedControllerRole_LeftHand)
+                    {
 
+					}
+					else if (trackedControllerRole == vr::TrackedControllerRole_RightHand)
+					{
 
-					hpoints(0, ipoint) = hpose.at(ipoint).v[0];
-					hpoints(1, ipoint) = hpose.at(ipoint).v[1];
-					hpoints(2, ipoint) = hpose.at(ipoint).v[2];
+					}
 
 				}
 
-				PointSet A = hpoints, B = spoints;
+			}*/
 
-				const auto [ret_R, ret_t] = rigid_transform_3D(A, B);
 
-				std::cout << "\nHead points\n" << A << "\nSteamvr points\n" << B << "\nTranslation\n" << ret_t << "\nRotation\n" << ret_R << '\n';
 
-				PointSet B2 = (ret_R * A).colwise() + ret_t;
+			if ((!isLeft || !isRight) || KinectSettings::legacy) {
+				std::thread* t1 = new std::thread([this]() {
+					vr::EVRInitError error;
+					vr::IVRSystem* system = vr::VR_Init(&error, vr::VRApplication_Background);
+					vr::TrackedDevicePose_t trackedDevicePose;
+					vr::TrackedDevicePose_t trackedControllerPose;
+					vr::VRControllerState_t controllerState;
+					vr::HmdMatrix34_t poseMatrix;
+					vr::HmdVector3_t position;
+					vr::HmdQuaternion_t quaternion;
 
-				PointSet err = B2 - B;
-				err = err.cwiseProduct(err);
-				const float rmse = std::sqrt(err.sum() / static_cast<float>(3));
 
-				/*if (rmse < 0.01f)
-					std::cout << "\nEverything looks good!\n";
-				else
-					std::cout << "\nHmm something doesn't look right ...\n";*/
 
-				std::cout << "\nOrginal points\n" << B << "\nMy result\n" << B2 << '\n';
+					std::vector<vr::DriverPose_t> spose;
+					std::vector<vr::HmdVector3d_t> hpose;
 
-				/*Eigen::Matrix<float, 3, 1> xht;
-				xht << 0, 0, 3;
-				Eigen::Matrix<float, 3, 1> xht2 = (ret_R * xht).colwise() + ret_t;*/
+					KinectSettings::ismatrixcalibrated = false;
 
-				KinectSettings::R_matT = ret_R;
-				KinectSettings::T_matT = ret_t;
 
-                settings.rcR_matT = ret_R;
-                settings.rcT_matT = ret_t;
+					for (int ipoint = 1; ipoint <= KinectSettings::cpoints; ipoint++) {
 
-                TrackersCalibButton->SetLabel(std::string("-- Prepare to calibration: Trackers Orientation --").c_str());
-                std::this_thread::sleep_for(std::chrono::seconds(5));
-                for (auto i = 7; i > 0; i--) {
-                    TrackersCalibButton->SetLabel(std::string("Trackers Orientation: Look at Kinect... Time left: " + boost::lexical_cast<std::string>(i) + "s").c_str());
+						vr::DriverPose_t ispose;
+						vr::HmdVector3d_t ihpose;
+
+						std::this_thread::sleep_for(std::chrono::seconds(3));
+
+
+						TrackersCalibButton->SetLabel(std::string("-- Prepare to calibration: Point " + boost::lexical_cast<std::string>(ipoint) + " --").c_str());
+						std::this_thread::sleep_for(std::chrono::seconds(3));
+						for (auto i = 7; i > 0; i--) {
+							TrackersCalibButton->SetLabel(std::string("Point " + boost::lexical_cast<std::string>(ipoint) + ": Stand somewhere... Time left: " + boost::lexical_cast<std::string>(i) + "s").c_str());
+							std::this_thread::sleep_for(std::chrono::seconds(1));
+						}
+
+                        vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, &trackedDevicePose, 1);
+                        position = GetPosition(trackedDevicePose.mDeviceToAbsoluteTracking);
+
+						ispose.vecPosition[0] = position.v[0] - KinectSettings::trackingOriginPosition.v[0];
+						ispose.vecPosition[1] = position.v[1] - KinectSettings::trackingOriginPosition.v[1];
+						ispose.vecPosition[2] = position.v[2] - KinectSettings::trackingOriginPosition.v[2];
+
+						Eigen::AngleAxisd rollAngle(0.f, Eigen::Vector3d::UnitZ());
+						Eigen::AngleAxisd yawAngle(-KinectSettings::svrhmdyaw, Eigen::Vector3d::UnitY());
+						Eigen::AngleAxisd pitchAngle(0.f, Eigen::Vector3d::UnitX());
+
+						Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
+
+						Eigen::Vector3d in(ispose.vecPosition[0], ispose.vecPosition[1], ispose.vecPosition[2]);
+						Eigen::Vector3d out = q * in;
+
+						ispose.vecPosition[0] = out(0);
+						ispose.vecPosition[1] = out(1);
+						ispose.vecPosition[2] = out(2);
+
+						for (auto i = 0; i < 3; i++)ihpose.v[i] = KinectSettings::mposes[0].v[i];
+						TrackersCalibButton->SetLabel(std::string("-- Position captured: Point " + boost::lexical_cast<std::string>(ipoint) + " --").c_str());
+						std::this_thread::sleep_for(std::chrono::seconds(2));
+
+						spose.push_back(ispose);
+						hpose.push_back(ihpose);
+
+
+
+					}
+
+					Eigen::Matrix<float, 3, Eigen::Dynamic> spoints(3, KinectSettings::cpoints), hpoints(3, KinectSettings::cpoints);
+
+
+					for (int ipoint = 0; ipoint < KinectSettings::cpoints; ipoint++) {
+
+						spoints(0, ipoint) = spose.at(ipoint).vecPosition[0];
+						spoints(1, ipoint) = spose.at(ipoint).vecPosition[1];
+						spoints(2, ipoint) = spose.at(ipoint).vecPosition[2];
+
+
+						hpoints(0, ipoint) = hpose.at(ipoint).v[0];
+						hpoints(1, ipoint) = hpose.at(ipoint).v[1];
+						hpoints(2, ipoint) = hpose.at(ipoint).v[2];
+
+					}
+
+					PointSet A = hpoints, B = spoints;
+
+					const auto [ret_R, ret_t] = rigid_transform_3D(A, B);
+
+					std::cout << "\nHead points\n" << A << "\nSteamvr points\n" << B << "\nTranslation\n" << ret_t << "\nRotation\n" << ret_R << '\n';
+
+					PointSet B2 = (ret_R * A).colwise() + ret_t;
+
+					PointSet err = B2 - B;
+					err = err.cwiseProduct(err);
+					const float rmse = std::sqrt(err.sum() / static_cast<float>(3));
+
+					/*if (rmse < 0.01f)
+						std::cout << "\nEverything looks good!\n";
+					else
+						std::cout << "\nHmm something doesn't look right ...\n";*/
+
+					std::cout << "\nOrginal points\n" << B << "\nMy result\n" << B2 << '\n';
+
+					/*Eigen::Matrix<float, 3, 1> xht;
+					xht << 0, 0, 3;
+					Eigen::Matrix<float, 3, 1> xht2 = (ret_R * xht).colwise() + ret_t;*/
+
+					KinectSettings::R_matT = ret_R;
+					KinectSettings::T_matT = ret_t;
+
+					settings.rcR_matT = ret_R;
+					settings.rcT_matT = ret_t;
+
+					TrackersCalibButton->SetLabel(std::string("-- Prepare to calibration: Trackers Orientation --").c_str());
+					std::this_thread::sleep_for(std::chrono::seconds(5));
+					for (auto i = 7; i > 0; i--) {
+						TrackersCalibButton->SetLabel(std::string("Trackers Orientation: Look at Kinect... Time left: " + boost::lexical_cast<std::string>(i) + "s").c_str());
+						std::this_thread::sleep_for(std::chrono::seconds(1));
+					}
+
+					vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, &trackedDevicePose, 1);
+					quaternion = GetRotation(trackedDevicePose.mDeviceToAbsoluteTracking);
+					double yaw = std::atan2(trackedDevicePose.mDeviceToAbsoluteTracking.m[0][2], trackedDevicePose.mDeviceToAbsoluteTracking.m[2][2]),
+						yawRaw = std::atan2(trackedDevicePose.mDeviceToAbsoluteTracking.m[0][2], trackedDevicePose.mDeviceToAbsoluteTracking.m[2][2]);
+
+					Eigen::Quaternion q(quaternion.w, quaternion.x, quaternion.y, quaternion.z);
+
+					if (yawRaw < 0.0f) {
+						yawRaw += 2 * M_PI;
+					}
+					if (yaw < 0.0) {
+						yaw = 2 * M_PI + yaw;
+					}
+
+					KinectSettings::tryaw = glm::degrees(yaw);
+					settings.tryawst = glm::degrees(yaw);
+
+					KinectSettings::rtcalibrated = true;
+					settings.rtcalib = true;
+
+					TrackersCalibButton->SetLabel(std::string("-- Done! Hit me to re-calibrate! --").c_str());
+                    TrackersCalibButton->SetState(sfg::Widget::State::NORMAL);
+
+                    VirtualHips::saveSettings();
+					});
+			}
+			else if (isLeft && isRight) {
+                std::thread* t1 = new std::thread([this]() {
+
+                    vr::DriverPose_t ispose;
+                    vr::HmdVector3d_t ihpose;
+                    std::vector<vr::DriverPose_t> spose;
+                    std::vector<vr::HmdVector3d_t> hpose;
+
                     std::this_thread::sleep_for(std::chrono::seconds(1));
-                }
 
-                vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, &trackedDevicePose, 1);
-                quaternion = GetRotation(trackedDevicePose.mDeviceToAbsoluteTracking);
-                double yaw = std::atan2(trackedDevicePose.mDeviceToAbsoluteTracking.m[0][2], trackedDevicePose.mDeviceToAbsoluteTracking.m[2][2]),
-                    yawRaw = std::atan2(trackedDevicePose.mDeviceToAbsoluteTracking.m[0][2], trackedDevicePose.mDeviceToAbsoluteTracking.m[2][2]);
+                    TrackersCalibButton->SetLabel("-- You have both controllers: starting short calibration! --");
+					std::this_thread::sleep_for(std::chrono::seconds(3));
+                    TrackersCalibButton->SetLabel(std::string("-- Prepare to calibrate: You will spin around with streched left hand! --").c_str());
+                    std::this_thread::sleep_for(std::chrono::seconds(2));
 
-                Eigen::Quaternion q(quaternion.w, quaternion.x, quaternion.y, quaternion.z);
+                    for (auto i = 5; i > 0; i--) {
+                        TrackersCalibButton->SetLabel(std::string("-" + boost::lexical_cast<std::string>(i) + "- Prepare to calibrate: You will spin around with streched left hand! -" + boost::lexical_cast<std::string>(i) + "-").c_str());
+                        std::this_thread::sleep_for(std::chrono::seconds(1));
+                    }
+                    
 
-                if (yawRaw < 0.0f) {
-                    yawRaw += 2 * M_PI;
-                }
-                if (yaw < 0.0) {
-                    yaw = 2 * M_PI + yaw;
-                }
+                    for (float i = 5; i > 0; i -= 0.1) {
+                        TrackersCalibButton->SetLabel(std::string("Spin around with left hand streched! Time left: " + boost::lexical_cast<std::string>(i) + "s").c_str());
 
-                KinectSettings::tryaw = glm::degrees(yaw);
-                settings.tryawst = glm::degrees(yaw);
+                        vr::TrackedDevicePose_t trackedControllerPose;
+                        vr::HmdMatrix34_t poseMatrix;
+                        vr::HmdVector3_t position;
+                        vr::HmdQuaternion_t quaternion;
+                        vr::TrackedDeviceIndex_t controllerID;
+                        vr::VRControllerState_t state;
 
-                KinectSettings::rtcalibrated = true;
-                settings.rtcalib = true;
+                        KinectSettings::ismatrixcalibrated = false;
 
-                TrackersCalibButton->SetLabel(std::string("-- Done! Hit me to re-calibrate! --").c_str());
+                        position = GetPosition(KinectSettings::controllersPose[0].mDeviceToAbsoluteTracking);
+                        quaternion = GetRotation(KinectSettings::controllersPose[0].mDeviceToAbsoluteTracking);
 
-				});
+						ispose.vecPosition[0] = position.v[0] - KinectSettings::trackingOriginPosition.v[0];
+						ispose.vecPosition[1] = position.v[1] - KinectSettings::trackingOriginPosition.v[1];
+						ispose.vecPosition[2] = position.v[2] - KinectSettings::trackingOriginPosition.v[2];
+
+						Eigen::AngleAxisd rollAngle(0.f, Eigen::Vector3d::UnitZ());
+						Eigen::AngleAxisd yawAngle(-KinectSettings::svrhmdyaw, Eigen::Vector3d::UnitY());
+						Eigen::AngleAxisd pitchAngle(0.f, Eigen::Vector3d::UnitX());
+
+						Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
+
+						Eigen::Vector3d in(ispose.vecPosition[0], ispose.vecPosition[1], ispose.vecPosition[2]);
+						Eigen::Vector3d out = q * in;
+
+						ispose.vecPosition[0] = out(0);
+						ispose.vecPosition[1] = out(1);
+						ispose.vecPosition[2] = out(2);
+
+						for (auto i = 0; i < 3; i++)ihpose.v[i] = KinectSettings::mposes[1].v[i];
+
+						spose.push_back(ispose);
+						hpose.push_back(ihpose);
+
+                        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                    }
+
+                    Eigen::Matrix<float, 3, Eigen::Dynamic> spoints(3, 11), hpoints(3, 11);
+
+                    for (int ipoint = 0; ipoint < 11; ipoint++) {
+
+                        spoints(0, ipoint) = spose.at(ipoint).vecPosition[0];
+                        spoints(1, ipoint) = spose.at(ipoint).vecPosition[1];
+                        spoints(2, ipoint) = spose.at(ipoint).vecPosition[2];
+
+
+                        hpoints(0, ipoint) = hpose.at(ipoint).v[0];
+                        hpoints(1, ipoint) = hpose.at(ipoint).v[1];
+                        hpoints(2, ipoint) = hpose.at(ipoint).v[2];
+
+                    }
+
+                    PointSet A = hpoints, B = spoints;
+
+                    const auto [ret_R, ret_t] = rigid_transform_3D(A, B);
+
+                    std::cout << "\nController points\n" << A << "\nSteamvr points\n" << B << "\nTranslation\n" << ret_t << "\nRotation\n" << ret_R << '\n';
+
+                    PointSet B2 = (ret_R * A).colwise() + ret_t;
+
+                    PointSet err = B2 - B;
+                    err = err.cwiseProduct(err);
+                    const float rmse = std::sqrt(err.sum() / static_cast<float>(3));
+
+                    /*if (rmse < 0.01f)
+                        std::cout << "\nEverything looks good!\n";
+                    else
+                        std::cout << "\nHmm something doesn't look right ...\n";*/
+
+                    std::cout << "\nOrginal points\n" << B << "\nMy result\n" << B2 << '\n';
+
+                    /*Eigen::Matrix<float, 3, 1> xht;
+                    xht << 0, 0, 3;
+                    Eigen::Matrix<float, 3, 1> xht2 = (ret_R * xht).colwise() + ret_t;*/
+
+                    KinectSettings::R_matT = ret_R;
+                    KinectSettings::T_matT = ret_t;
+
+                    settings.rcR_matT = ret_R;
+                    settings.rcT_matT = ret_t;
+
+                    TrackersCalibButton->SetLabel(std::string("-- Prepare to calibrate: Trackers Orientation --").c_str());
+                    std::this_thread::sleep_for(std::chrono::seconds(5));
+
+                    for (auto i = 5; i > 0; i--) {
+                        TrackersCalibButton->SetLabel(std::string("-" + boost::lexical_cast<std::string>(i) + "- Prepare to calibrate: You will point at kinect with your left controller! -" + boost::lexical_cast<std::string>(i) + "-").c_str());
+                        std::this_thread::sleep_for(std::chrono::seconds(1));
+                    }
+                    for (auto i = 3; i > 0; i--) {
+                        TrackersCalibButton->SetLabel(std::string("-" + boost::lexical_cast<std::string>(i) + "- Point at kinect with your left controller! -" + boost::lexical_cast<std::string>(i) + "-").c_str());
+                        std::this_thread::sleep_for(std::chrono::seconds(1));
+                    }
+
+                    double yaw = std::atan2(KinectSettings::controllersPose[0].mDeviceToAbsoluteTracking.m[0][2], KinectSettings::controllersPose[0].mDeviceToAbsoluteTracking.m[2][2]);
+
+                    if (yaw < 0.0) {
+                        yaw = 2 * M_PI + yaw;
+                    }
+
+                    std::this_thread::sleep_for(std::chrono::seconds(1));
+
+                    KinectSettings::tryaw = glm::degrees(yaw);
+                    settings.tryawst = glm::degrees(yaw);
+
+                    KinectSettings::rtcalibrated = true;
+                    settings.rtcalib = true;
+
+                    TrackersCalibButton->SetLabel(std::string("-- Done! Hit me to re-calibrate! --").c_str());
+                    TrackersCalibButton->SetState(sfg::Widget::State::NORMAL);
+
+                    VirtualHips::saveSettings();
+                });
+			}
 
 
 
+		VirtualHips::saveSettings();
 
-			
+		});
 
-
-
-            VirtualHips::saveSettings();
-
-            }
-        );
-
-        TrackersCalibSButton->GetSignal(sfg::Button::OnLeftClick).Connect([this] {
-            KinectSettings::headtracked = true;
+		TrackersCalibSButton->GetSignal(sfg::Button::OnLeftClick).Connect([this] {
+			KinectSettings::headtracked = true;
 
 
-            VirtualHips::saveSettings();
+			VirtualHips::saveSettings();
 
-            }
-        );
-    }
+			}
+		);
+	}
 
     void loadVirtualHipSettingsIntoGUIElements()
     {
@@ -2631,6 +2820,7 @@ private:
     sfg::Button::Ptr HeadTrackingCalibButton = sfg::Button::Create("-- Calibrate: Look at Kinect and stand still --");
     sfg::Button::Ptr TrackersCalibSButton = sfg::Button::Create("-- Calibrate: Hit me to calibrate! --");
     sfg::Button::Ptr TrackersCalibButton = sfg::Button::Create("-- Calibrate: Hit me to calibrate! --");
+    sfg::CheckButton::Ptr legacycalibbutton = sfg::CheckButton::Create("Use legacy calibration method");
 
     void updateKinectStatusLabelDisconnected() {
         KinectStatusLabel->SetText("Kinect Status: ERROR KINECT NOT DETECTED");

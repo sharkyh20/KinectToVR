@@ -453,8 +453,9 @@ void KinectV2Handler::updateSkeletalFilters() {
         }
     }
 
-
-	//joints[JointType_HandRight].Position.X
+    KinectSettings::mposes[1].v[0] = joints[JointType_HandLeft].Position.X;
+    KinectSettings::mposes[1].v[1] = joints[JointType_HandLeft].Position.Y;
+    KinectSettings::mposes[1].v[2] = joints[JointType_HandLeft].Position.Z;
 
     KinectSettings::mposes[0].v[0] = joints[JointType_Head].Position.X;
     KinectSettings::mposes[0].v[1] = joints[JointType_Head].Position.Y;
@@ -495,7 +496,7 @@ void KinectV2Handler::updateSkeletalFilters() {
 
         glm::quat hipsRot = glm::lookAt(hipLeft, hipRight, glm::vec3(0.0f, 1.0f, 0.0f));
         glm::vec3 hipsRotRad = glm::eulerAngles(hipsRot);
-        trotation[2].v[1] = -((hipsRotRad.y * 180.f / M_PI) + 90.f);
+        trotation[2].v[1] = ((hipsRotRad.y * 180.f / M_PI) + 90.f) + 180.f;
 
 #pragma endregion
 #pragma region Rotation_Ankles
@@ -522,12 +523,22 @@ void KinectV2Handler::updateSkeletalFilters() {
                 jointOrientations[JointType_AnkleRight].Orientation.y,
                 jointOrientations[JointType_AnkleRight].Orientation.z) };
 
-        trotation[0] = vr::HmdVector3d_t{ double(glm::eulerAngles(footrot[0]).x * 180 / M_PI) + 180.f,
-            -double(ankleRotRad[0].y * 180.f / M_PI),
-            double(glm::eulerAngles(footrot[0]).z * 180 / M_PI) };
-        trotation[1] = vr::HmdVector3d_t{ double(glm::eulerAngles(footrot[1]).x * 180 / M_PI) + 180.f,
-            -double(ankleRotRad[1].y * 180.f / M_PI),
-            double(glm::eulerAngles(footrot[1]).z * 180 / M_PI) };
+        if (!flip) {
+            trotation[0] = vr::HmdVector3d_t{ double(glm::eulerAngles(footrot[0]).x * 180 / M_PI) + 180.f,
+                -double(ankleRotRad[0].y * 180.f / M_PI),
+                double(glm::eulerAngles(footrot[0]).z * 180 / M_PI) };
+            trotation[1] = vr::HmdVector3d_t{ double(glm::eulerAngles(footrot[1]).x * 180 / M_PI) + 180.f,
+                -double(ankleRotRad[1].y * 180.f / M_PI),
+                double(glm::eulerAngles(footrot[1]).z * 180 / M_PI) };
+        }
+        else {
+            trotation[0] = vr::HmdVector3d_t{ -double(glm::eulerAngles(footrot[0]).x * 180 / M_PI) + 180.f,
+                double(ankleRotRad[1].y * 180.f / M_PI),
+                -double(glm::eulerAngles(footrot[0]).z * 180 / M_PI) };
+            trotation[1] = vr::HmdVector3d_t{ -double(glm::eulerAngles(footrot[1]).x * 180 / M_PI) + 180.f,
+                double(ankleRotRad[0].y * 180.f / M_PI),
+                -double(glm::eulerAngles(footrot[1]).z * 180 / M_PI) };
+        }
 
 #pragma endregion
 
