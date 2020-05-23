@@ -30,10 +30,12 @@ Head tracking calibration:
 * **sharkyh20** - *Initial work* - [sharkyh20](https://github.com/sharkyh20/)
 * **naelstrof** - *Playspace Movement, General Improvements* - [naelstrof](https://github.com/naelstrof/)
 * **DJ Lukis.LT** - *Color Tracking Help, Project Management* - [lukis101](https://github.com/lukis101)
+* **コレヂャン** - *Calibration scripts, general help (korcan)*
 
 ## License
 KinectToVR is based on GPL v3, so you need to follow it.     
-Although, all changes that i made, go to CreativeCommons.    
+AND
+When you use this code you __must__ describe that it's sharky's base and my addons (you see everything that i commited anyway). You cannot use this in any paid program. Copy-pasting without describing source is also prohibited. You must not change any of files and redistribute it at your own. Also, you have to tell what you exactly changed and used, when redistributing parts of code. Furthermore, when you want to redistribute software / embed it in your own application, you are supposed to tell me this directly (akayakimi@gmail.com) or via k2vr's or arduvr's discord server, mentioning me (アカヤベキミツ). Only way above restrictions don't apply is when you fork repo and clearly tell it's forked, describe which parts you have changed. Hope you'll have fun! 
 
 ## Changed so far:
 * Calibration method - now it's even shorter than d4vr's one!
