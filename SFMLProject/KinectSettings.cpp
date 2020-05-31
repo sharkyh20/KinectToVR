@@ -504,6 +504,13 @@ namespace KinectSettings {
             std::string RightS = [&]()->std::string {
                 std::stringstream S;
 
+                if (conOption == kontororaTorakkinguOpu::k_PSMoveFull) {
+                    hHandPose = glm::vec3(hidariMove.Pose.Position.x, hidariMove.Pose.Position.y, hidariMove.Pose.Position.z);
+                    mHandPose = glm::vec3(migiMove.Pose.Position.x, migiMove.Pose.Position.y, migiMove.Pose.Position.z);
+                    hElPose = glm::vec3(0, 0, 0);
+                    mElPose = glm::vec3(0, 0, 0);
+                }
+
                 if (KinectSettings::rtcalibrated) {
                     using PointSet = Eigen::Matrix<float, 3, Eigen::Dynamic>;
 
@@ -563,6 +570,13 @@ namespace KinectSettings {
 
             std::string LeftS = [&]()->std::string {
                 std::stringstream S;
+
+                if (conOption == kontororaTorakkinguOpu::k_PSMoveFull) {
+                    hHandPose = glm::vec3(hidariMove.Pose.Position.x, hidariMove.Pose.Position.y, hidariMove.Pose.Position.z);
+                    mHandPose = glm::vec3(migiMove.Pose.Position.x, migiMove.Pose.Position.y, migiMove.Pose.Position.z);
+                    hElPose = glm::vec3(0, 0, 0);
+                    mElPose = glm::vec3(0, 0, 0);
+                }
 
                 if (KinectSettings::rtcalibrated) {
                     using PointSet = Eigen::Matrix<float, 3, Eigen::Dynamic>;
