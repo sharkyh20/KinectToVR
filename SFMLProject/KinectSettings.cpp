@@ -647,6 +647,7 @@ namespace KinectSettings {
 
                 return S.str();
             }();
+
             std::string IchiRotDatS = [&]()->std::string {
                 std::stringstream S;
                 Eigen::Quaternionf invorient =
