@@ -30,10 +30,11 @@ Head tracking calibration:
 * **sharkyh20** - *Initial work* - [sharkyh20](https://github.com/sharkyh20/)
 * **naelstrof** - *Playspace Movement, General Improvements* - [naelstrof](https://github.com/naelstrof/)
 * **DJ Lukis.LT** - *Color Tracking Help, Project Management* - [lukis101](https://github.com/lukis101)
+* **コレヂャン** - *Calibration scripts, general help (korcan)*
 
 ## License
-KinectToVR is based on GPL v3, so you need to follow it.     
-Although, all changes that i made, go to CreativeCommons.    
+KinectToVR is based on GPL v3, so you need to follow it.      
+You heard? GPL v3. Remeber this!       
 
 ## Changed so far:
 * Calibration method - now it's even shorter than d4vr's one!
