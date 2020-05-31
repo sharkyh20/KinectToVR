@@ -5,11 +5,22 @@
 #include <chrono>
 #include <cstring>
 #include <thread>
-
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/transform2.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/detail/type_vec3.hpp>
+#include <glm/detail/type_vec4.hpp>
+#include <glm/detail/type_vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/gtc/quaternion.hpp> 
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/rotate_vector.hpp>
+#include <Eigen/Dense>
 #include <PSMoveClient_CAPI.h>
 #include <ClientConstants.h>
 #include <SharedConstants.h>
-
 #include <openvr.h>
 
 #include "DeviceHandler.h"
@@ -161,6 +172,11 @@ public:
                 vr::HmdVector3d_t pos;
                 PSMVector3f pspos = controllerState.Pose.Position;
 
+                pos.v[0] = pspos.x;
+                pos.v[1] = pspos.y;
+                pos.v[2] = pspos.z;
+
+                return pos;
             }
         }
     return { 0,0,0 };
@@ -778,10 +794,11 @@ private:
             }
         }
     }
+
     void processKeyInputs() {
         if (controllerList.count == 0 || v_controllers.size() == 0) { return; }
         bool inputAvailable = false;
-        for (MoveWrapper_PSM & wrapper : v_controllers) {
+        for (MoveWrapper_PSM& wrapper : v_controllers) {
             if (wrapper.controller->ControllerType == PSMControllerType::PSMController_Move) {
                 inputAvailable = true;
             }
@@ -791,17 +808,26 @@ private:
             if (!inputAvailable) {
                 continue;
             }
-            auto & controller = wrapper.controller->ControllerState.PSMoveState;
+            auto& controller = wrapper.controller->ControllerState.PSMoveState;
             bool bStartRealignHMDTriggered =
                 (controller.StartButton == PSMButtonState_PRESSED
                     || controller.StartButton == PSMButtonState_DOWN) && (controller.SelectButton == PSMButtonState_PRESSED
                         || controller.SelectButton == PSMButtonState_DOWN);
             bool bStartVRRatioCalibrationTriggered = (
                 controller.CrossButton == PSMButtonState_PRESSED
-                
+
                 ) &&
                 (controller.CircleButton == PSMButtonState_PRESSED
                     );
+
+            KinectSettings::KVRPSMoveData[wrapper.controller->ControllerID].PSMoveData = controller;
+            KinectSettings::KVRPSMoveData[wrapper.controller->ControllerID].isValidController = true;
+
+            if (wrapper.controller->ControllerID == KinectSettings::psmh)
+                KinectSettings::hidariMove = controller;
+            if (wrapper.controller->ControllerID == KinectSettings::psmm)
+                KinectSettings::migiMove = controller;
+
             if (bStartRealignHMDTriggered) {
                 PSMVector3f controllerBallPointedUpEuler = { (float)M_PI_2, 0.0f, 0.0f };
 

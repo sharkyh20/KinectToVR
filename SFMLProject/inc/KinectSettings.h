@@ -3,22 +3,96 @@
 #include <openvr.h>
 #include <SFML/System/Vector3.hpp>
 #include <SFML\Graphics\Text.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/transform2.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/detail/type_vec3.hpp>
+#include <glm/detail/type_vec4.hpp>
+#include <glm/detail/type_vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/gtc/quaternion.hpp> 
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 #include <string>
 #include <sstream>
 #include <Eigen/Geometry>
 #include "KinectJoint.h"
+#include <PSMoveClient_CAPI.h>
 
 enum class KinectVersion {
     Version1 = 1,   //AKA Xbox 360/ Windows v1
     Version2 = 2,    //AKA Xbox One/ Windows v2
     INVALID = 404
 };
+
+enum footRotationFilterOption {
+    k_EnableOrientationFilter, ///enable all rotation filter dimensions
+    k_DisableOrientationFilter, ///disable joints rotation
+    k_EnableOrientationFilter_WithoutYaw, ///don't rotate foots in +y
+    k_EnableOrientationFilter_HeadOrientation, ///use headset orientation for foots
+};
+
+enum hipsRotationFilterOption {
+    k_EnableHipsOrientationFilter, ///enable all rotation filter dimensions
+    k_DisableHipsOrientationFilter, ///disable joint rotation
+    k_EnableHipsOrientationFilter_HeadOrientation, ///use headset orientation for hip tracker
+};
+
+static struct footRotFilter {
+    footRotationFilterOption filterOption;
+} footOrientationFilterOption;
+
+static struct hipsRotFilter {
+    hipsRotationFilterOption filterOption;
+} hipsOrientationFilterOption;
+
+enum positionalFilterOption {
+    k_EnablePositionFilter_Kalman, ///use EKF filtering for position
+	k_EnablePositionFilter_LowPass, ///use LowPass filtering for position
+    k_EnablePositionFilter_LERP, ///use Interpolation filtering for position
+    k_DisablePositionFilter, ///disable filtering for position
+};
+
+static struct posFilter {
+    positionalFilterOption filterOption;
+} positionFilterOption;
+
+enum kontororaTorakkinguOpu {
+    k_PSMoveFull,
+    k_PSMoveRot_KinectPose
+};
+
+static struct toraOpushon {
+    kontororaTorakkinguOpu trackingOption;
+} kontororaTorakkinguOpushon;
+
+enum bodiTorakkinguOpu {
+    k_PSMoveFullTracking,
+    k_PSMoveRot_KinectPoseTracking,
+    k_KinectFullTracking
+};
+
+static struct bodiToraOpushon {
+    bodiTorakkinguOpu trackingOption;
+} bodiTorakkinguOpushon;
+
 namespace KinectSettings {
+
+    static struct K2VR_PSMoveData {
+        PSMPSMove PSMoveData;
+        bool isValidController = false;
+    } KVRPSMoveData[11];
+
+    static std::vector<K2VR_PSMoveData> KVR_PSMoves;
+
+    extern PSMPSMove migiMove, hidariMove;
     extern bool isKinectDrawn;
     extern bool isSkeletonDrawn;
     extern bool ignoreInferredPositions;
     extern bool ignoreRotationSmoothing;
-
+    extern std::string opt;
     extern KVR::KinectJointType leftFootJointWithRotation;
     extern KVR::KinectJointType rightFootJointWithRotation;
     extern KVR::KinectJointType leftFootJointWithoutRotation;
@@ -38,25 +112,27 @@ namespace KinectSettings {
     extern const int kinectV2Width;
     extern bool rtconcalib;
     extern double kinectToVRScale;
-
+    extern bool initialised;
+    extern bool psmbuttons[5][10];
+    extern float conID[2];
     extern double hipRoleHeightAdjust;
     extern float tryaw;
-
+    extern int footOption, hipsOption, posOption, conOption;
     //Need to delete later (Merge should sort it)
     extern int leftHandPlayspaceMovementButton;
     extern int rightHandPlayspaceMovementButton;
     extern int leftFootPlayspaceMovementButton;
     extern int rightFootPlayspaceMovementButton;
     extern vr::TrackedDevicePose_t controllersPose[2];
-    
+    extern bool frame1;
     extern vr::HmdVector3d_t hmdPosition; 
-    extern vr::HmdQuaternion_t hmdRotation;
+    extern vr::HmdQuaternion_t hmdRotation, hmdRot;
     extern vr::HmdMatrix34_t hmdAbsoluteTracking;
     extern vr::HmdMatrix34_t trackingOrigin;
     extern vr::HmdVector3d_t trackingOriginPosition; // Input Emulator is by default offset from this - so 0,0,0 in IE is really these coords
     extern vr::HmdVector3d_t secondaryTrackingOriginOffset; // Demonic offset, actual origin unknown. Probably evil and trying to destroy everything I love.
     extern vr::HmdVector3d_t hauoffset, mauoffset;
-
+    extern int psmh, psmm;
     extern vr::HmdQuaternion_t kinectRepRotation;
     extern vr::HmdVector3d_t kinectRadRotation;
     extern vr::HmdVector3d_t kinectRepPosition;
@@ -67,11 +143,12 @@ namespace KinectSettings {
 	extern float hroffset;
 	extern float troffset;
 	extern vr::HmdQuaternion_t hmdquat;
-
+    extern bool expcalib;
+    extern bool jcalib;
     extern Eigen::Matrix<float, 3, 3> R_matT;
     extern Eigen::Matrix<float, 3, 1> T_matT;
     extern bool ismatrixcalibrated;
-
+    extern Eigen::Vector3f calorigin;
     extern int cpoints;
     extern bool rtcalibrated;
 
@@ -85,8 +162,12 @@ namespace KinectSettings {
     void updateKinectQuaternion();
 
     extern std::string KVRversion;
+    extern glm::vec3 hmdPose, hHandPose, mHandPose, hFootPose, mFootPose, hipsPose, hElPose, mElPose,
+        lastPose[3][2];
+    extern glm::quat hFootRot, mFootRot, hipsRot;
+    
+    void sendipc();
 
-    void sendtoipc(vr::HmdVector3d_t kinectposes[3], vr::HmdVector3d_t kinectrots[3]/*, vr::HmdVector3d_t kinectoffsets[3]*/);
     void serializeKinectSettings();
     void writeKinectSettings();
 }
@@ -167,6 +248,9 @@ namespace VRInput {
     // Analog Action Data
     extern vr::InputAnalogActionData_t moveHorizontallyData;
     extern vr::InputAnalogActionData_t moveVerticallyData;
+
+    extern vr::InputAnalogActionData_t trackpadpose[2];
+    extern vr::InputDigitalActionData_t confirmdatapose;
 
     bool initialiseVRInput();
     void updateVRInput();

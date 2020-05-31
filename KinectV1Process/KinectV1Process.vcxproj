@@ -89,14 +89,15 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>NOMINMAX;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\PSMoveService;$(SolutionDir)external\opencv\include;$(ProjectDir)/inc;$(SolutionDir)external\Glew;$(SolutionDir)external\InputEmulator\;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\SFML\include;$(SolutionDir)external\sfgui;$(SolutionDir)external\boost_1_63_0;$(SolutionDir)external\easylogging\src;$(SolutionDir)SFMLProject\inc\;%(AdditionalIncludeDirectories)$(ProjectDir)inc;$(SolutionDir)SFMLProject\inc\;$(SolutionDir)external\inputemulator\third-party\boost_1_63_0;$(SolutionDir)external\inputemulator\openvr\headers;$(SolutionDir)external\inputEmulator\lib_vrinputemulator\include;$(SolutionDir)external\glew\include;$(SolutionDir)external\sfml\include;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\build\include;$(KINECTSDK10_DIR)inc;$(SolutionDir)external\PSMoveService\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\PSMoveService;$(SolutionDir)external\opencv\include;$(ProjectDir)/inc;$(SolutionDir)external\glm_glm;$(SolutionDir)external\eigen-3.3.7;$(SolutionDir)external\Glew;$(SolutionDir)external\InputEmulator\;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\SFML\include;$(SolutionDir)external\sfgui;C:\Users\AkaYa!\Desktop\boost_1_72_0;$(SolutionDir)external\easylogging\src;$(SolutionDir)SFMLProject\inc\;%(AdditionalIncludeDirectories);$(KINECTSDK10_DIR)inc;$(SolutionDir)external\PSMoveService\include;C:\Users\AkaYa!\Desktop\KinectToVR-master\external\openvr\headers</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>openvr_api.lib;libvrinputemulator_d.lib;OpenGL32.lib;glew32.lib;sfml-audio-d.lib;sfml-graphics-d.lib;sfml-window-d.lib;sfml-system-d.lib;sfgui-d.lib;KinectToVR-d.lib;Kinect10.lib;opencv_world341d.lib;PSMoveClient_CAPI.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)external\opencv\lib;$(SolutionDir)\external\boost_1_63_0\lib64-msvc-14.0;$(SolutionDir)\external\Glew;$(SolutionDir)\external\InputEmulator;$(SolutionDir)\external\openvr\lib\win64\;$(SolutionDir)\external\sfGui;$(SolutionDir)\external\PSMoveService\lib;$(SolutionDir)\external\KVRlib;%(AdditionalLibraryDirectories)&gt;$(SolutionDir)lib;$(KINECTSDK10_DIR)lib\amd64;$(SolutionDir)\external\SFML\lib\debug</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\AkaYa!\Desktop\boost_1_63_0\lib64-msvc-14.0;C:\Users\AkaYa!\Desktop\boost_1_72_0\lib64-msvc-14.2;$(SolutionDir)lib;$(SolutionDir)\external\InputEmulator;$(SolutionDir)\external\openvr\lib\win64\;$(SolutionDir)\external\Glew;$(SolutionDir)external\sfml\lib\release;$(SolutionDir)external\sfgui\;$(SolutionDir)external\opencv\lib;$(KINECTSDK10_DIR)lib\amd64;$(SolutionDir)external\PSMoveService\lib;$(SolutionDir)\external\KVRlib;C:\Users\AkaYa!\Desktop\KinectToVR-master\external\openvr\lib\win64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -141,6 +142,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)external\PSMoveService;$(SolutionDir)external\opencv\include;$(ProjectDir)/inc;$(SolutionDir)external\glm_glm;$(SolutionDir)external\eigen-3.3.7;$(SolutionDir)external\Glew;$(SolutionDir)external\InputEmulator\;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\SFML\include;$(SolutionDir)external\sfgui;C:\Users\AkaYa!\Desktop\boost_1_72_0;$(SolutionDir)external\easylogging\src;$(SolutionDir)SFMLProject\inc\;%(AdditionalIncludeDirectories);$(KINECTSDK10_DIR)inc;$(SolutionDir)external\PSMoveService\include;C:\Users\AkaYa!\Desktop\KinectToVR-master\external\openvr\headers</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -148,7 +150,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>openvr_api.lib;libvrinputemulator.lib;OpenGL32.lib;glew32.lib;sfml-audio.lib;sfml-graphics.lib;sfml-window.lib;sfml-system.lib;sfgui.lib;KinectToVR.lib;Kinect10.lib;opencv_world341.lib;PSMoveClient_CAPI.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\AkaYa!\Desktop\mKinectToVR-master\external\boost_1_63_0\lib64-msvc-14.0;C:\Users\AkaYa!\Desktop\boost_1_72_0\lib64-msvc-14.2;$(SolutionDir)lib;$(SolutionDir)\external\InputEmulator;$(SolutionDir)\external\openvr\lib\win64\;$(SolutionDir)\external\Glew;$(SolutionDir)external\sfml\lib\release;$(SolutionDir)external\sfgui\;$(SolutionDir)external\opencv\lib;$(KINECTSDK10_DIR)lib\amd64;$(SolutionDir)external\PSMoveService\lib;$(SolutionDir)\external\KVRlib;C:\Users\AkaYa!\Desktop\KinectToVR-master\external\openvr\lib\win64</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\AkaYa!\Desktop\boost_1_63_0\lib64-msvc-14.0;C:\Users\AkaYa!\Desktop\boost_1_72_0\lib64-msvc-14.2;$(SolutionDir)lib;$(SolutionDir)\external\InputEmulator;$(SolutionDir)\external\openvr\lib\win64\;$(SolutionDir)\external\Glew;$(SolutionDir)external\sfml\lib\release;$(SolutionDir)external\sfgui\;$(SolutionDir)external\opencv\lib;$(KINECTSDK10_DIR)lib\amd64;$(SolutionDir)external\PSMoveService\lib;$(SolutionDir)\external\KVRlib;C:\Users\AkaYa!\Desktop\KinectToVR-master\external\openvr\lib\win64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

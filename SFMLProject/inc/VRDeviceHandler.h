@@ -14,7 +14,7 @@
 
 #include <cereal/archives/json.hpp>
 #include <cereal/cereal.hpp>
-
+#include <KinectSettings.h>
 
 enum class VirtualHipMode {
         Standing,
@@ -31,12 +31,13 @@ struct VirtualHipSettings {
     
     double positionLatency = 0.00; // Seconds. How far behind the tracked point should the hips be so that they don't instantly follow every tiny movement
     bool rtcalib = false;
-
+    Eigen::Vector3f caliborigin;
     bool astartk = false;
     bool astarth = false;
     bool astartt = false;
     float tryawst;
     int autosver = 1;
+    int footOption, hipsOption, posOption = 3, conOption;
 
     // --- Standing Settings ---
     bool positionFollowsHMDLean = false; // Determines whether the virtual hips in standing mode will stay above the foot trackers, or interpolate between the HMD and foot trackers on a direct slant
@@ -69,7 +70,12 @@ struct VirtualHipSettings {
             CEREAL_NVP(positionFollowsHMDLean),
             CEREAL_NVP(hmdegree),
             CEREAL_NVP(tdegree),
+            CEREAL_NVP(caliborigin),
             CEREAL_NVP(astartk),
+            CEREAL_NVP(footOption),
+            CEREAL_NVP(hipsOption),
+            CEREAL_NVP(posOption),
+            CEREAL_NVP(conOption),
             CEREAL_NVP(comph),
             CEREAL_NVP(compm),
             CEREAL_NVP(hauoffset_s),
@@ -149,6 +155,11 @@ namespace VirtualHips {
 				KinectSettings::mauoffset.v[1] = settings.mauoffset_s(1);
 				KinectSettings::mauoffset.v[2] = settings.mauoffset_s(2);
 
+                footOrientationFilterOption.filterOption = footRotationFilterOption(settings.footOption);
+                hipsOrientationFilterOption.filterOption = hipsRotationFilterOption(settings.hipsOption);
+                positionFilterOption.filterOption = positionalFilterOption(settings.posOption);
+
+                KinectSettings::calorigin = settings.caliborigin;
 				LOG(INFO) << settings.tryawst << '\n' << settings.rcR_matT << '\n' << KinectSettings::tryaw << '\n' << KinectSettings::R_matT << '\n';
 
             }

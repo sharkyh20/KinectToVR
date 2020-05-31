@@ -99,6 +99,16 @@ class GUIHandler {
 private:
 
 public:
+    sfg::ComboBox::Ptr coptbox = sfg::ComboBox::Create();
+    sfg::ComboBox::Ptr coptbox1 = sfg::ComboBox::Create();
+    sfg::ComboBox::Ptr foptbox = sfg::ComboBox::Create();
+
+    sfg::ComboBox::Ptr psmovebox = sfg::ComboBox::Create();
+    sfg::ComboBox::Ptr psmovebox1 = sfg::ComboBox::Create();
+
+    sfg::ComboBox::Ptr contrackingselectbox = sfg::ComboBox::Create();
+    sfg::ComboBox::Ptr bodytrackingselectbox = sfg::ComboBox::Create();
+
 
     GUIHandler() {
         guiWindow->SetTitle("");
@@ -115,9 +125,9 @@ public:
         setRequisitions();
 
         mainNotebook->AppendPage(mainGUIBox, sfg::Label::Create(" Body Trackers "));
-        //mainNotebook->AppendPage(advancedTrackerBox, sfg::Label::Create("Adv. Trackers"));
-        mainNotebook->AppendPage(calibrationBox, sfg::Label::Create(" Calibration Offsets "));
-        mainNotebook->AppendPage(controllersBox, sfg::Label::Create(" Arduino "));
+        mainNotebook->AppendPage(calibrationBox, sfg::Label::Create(" Offsets "));
+        mainNotebook->AppendPage(advancedTrackerBox, sfg::Label::Create(" Other Options "));
+        mainNotebook->AppendPage(controllersBox, sfg::Label::Create(" Controllers "));
         mainNotebook->AppendPage(virtualHipsBox, sfg::Label::Create(" Head Tracking "));
 
 
@@ -432,6 +442,13 @@ public:
             }
             });
 
+        psmovebox->GetSignal(sfg::ComboBox::OnSelect).Connect([this] {
+            KinectSettings::psmh = psmovebox->GetSelectedItem();
+            });
+
+        psmovebox1->GetSignal(sfg::ComboBox::OnSelect).Connect([this] {
+            KinectSettings::psmm = psmovebox1->GetSelectedItem();
+            });
 
         AddHandControllersToList->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
             //Add a left and right hand tracker as a controller
@@ -839,6 +856,18 @@ public:
 			kinect.initialise();
 			});
 
+        refreshpsmovesbuton->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
+            psmovebox->Clear();
+            psmovebox1->Clear();
+
+            for (int i = 0; i < 11; i++) {
+                if (KinectSettings::KVRPSMoveData[i].isValidController) {
+                    psmovebox->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
+                    psmovebox1->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
+                }
+            }
+            });
+
 		refreshcomports->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
 			wchar_t lpTargetPath[5000];
 			comportbox1->Clear();
@@ -917,33 +946,40 @@ public:
             });
 
         TrackerInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers] {
-            /*
-            bool reuseLastTrackers = true;
-            if (reuseLastTrackers) {
-                LOG(INFO) << "SPAWNING TRACKERS FROM LAST OPEN, MAY BE ISSUES";
+            if (!KinectSettings::initialised) {
+                /*
+                bool reuseLastTrackers = true;
+                if (reuseLastTrackers) {
+                    LOG(INFO) << "SPAWNING TRACKERS FROM LAST OPEN, MAY BE ISSUES";
 
-                // Load Last Set of trackers used
+                    // Load Last Set of trackers used
 
-                // Spawn
+                    // Spawn
+                }
+                */
+                TrackerInitButton->SetLabel("Trackers Initialised - Destroy Trackers");
+                spawnDefaultLowerBodyTrackers();
+
+                showPostTrackerInitUI();
+
+                TrackerLastInitButton->SetState(sfg::Widget::State::INSENSITIVE);
+
+                modeTitleBox110->Show(true);
+                TDegreeButton->SetValue(KinectSettings::cpoints);
+                TrackersConfigSaveButton->Show(true);
+                TrackersCalibButton->Show(true);
+                //TrackersCalibSButton->Show(true);
+                expcalibbutton->Show(true);
+
+                AutoStartTrackers->Show(true);
+                //AutoStartKinectToVR->Show(true);
+
+                KinectSettings::initialised = true;
             }
-            */
-            TrackerInitButton->SetLabel("Trackers Initialised");
-            spawnDefaultLowerBodyTrackers();
-
-            showPostTrackerInitUI();
-
-            TrackerInitButton->SetState(sfg::Widget::State::INSENSITIVE);
-            TrackerLastInitButton->SetState(sfg::Widget::State::INSENSITIVE);
-
-            modeTitleBox110->Show(true);
-            TDegreeButton->SetValue(KinectSettings::cpoints);
-            TrackersConfigSaveButton->Show(true);
-            TrackersCalibButton->Show(true);
-            //TrackersCalibSButton->Show(true);
-            legacycalibbutton->Show(true);
-
-            AutoStartTrackers->Show(true);
-            //AutoStartKinectToVR->Show(true);
+            else {
+                KinectSettings::initialised = false;
+                TrackerInitButton->SetLabel("**Please be in VR before hitting me!** Initialise/Respawn SteamVR Kinect Trackers - HIT ME");
+            }
             });
         // Make sure that users don't get confused and hit the spawn last button when they don't need it
         /*bool foundCachedTrackers = trackerConfigExists() ? true : false;
@@ -954,12 +990,11 @@ public:
 
             std::thread* st = new std::thread([this] {
                 std::this_thread::sleep_for(std::chrono::seconds(7));
-                TrackerInitButton->SetLabel("Trackers Initialised");
+                TrackerInitButton->SetLabel("Trackers Initialised - Destroy Trackers");
                 spawnDefaultLowerBodyTrackers();
 
                 showPostTrackerInitUI();
 
-                TrackerInitButton->SetState(sfg::Widget::State::INSENSITIVE);
                 TrackerLastInitButton->SetState(sfg::Widget::State::INSENSITIVE);
 
                 modeTitleBox110->Show(true);
@@ -967,10 +1002,12 @@ public:
                 TrackersConfigSaveButton->Show(true);
                 TrackersCalibButton->Show(true);
                 //TrackersCalibSButton->Show(true);
-                legacycalibbutton->Show(true);
+                expcalibbutton->Show(true);
 
                 AutoStartTrackers->Show(true);
                 //AutoStartKinectToVR->Show(true);
+
+                KinectSettings::initialised = true;
                 });
         }
 
@@ -1003,20 +1040,22 @@ public:
 
 					WriteFile(pipeAtama, AtamaD, sizeof(AtamaD), &Written, NULL);
 					CloseHandle(pipeAtama);
+
+                    std::this_thread::sleep_for(std::chrono::milliseconds(370));
 				}
 				});
 		}
 
         if (VirtualHips::settings.astarta) {
 
-            
+            /*
             comportbox1->Clear();
             comportbox1->AppendItem(VirtualHips::settings.comph);
             comportbox1->SelectItem(0);
 
             comportbox2->Clear();
             comportbox2->AppendItem(VirtualHips::settings.compm);
-            comportbox2->SelectItem(0);
+            comportbox2->SelectItem(0);*/
 
             std::thread* activate = new std::thread([] {
                 try {
@@ -1055,22 +1094,22 @@ public:
                 catch (std::exception e) {}
             });
 
-			ShellExecute(NULL, _T("open"), _T("avr_hhost.exe"), s2ws(VirtualHips::settings.comph).c_str(), NULL, SW_HIDE);
-			ShellExecute(NULL, _T("open"), _T("avr_mhost.exe"), s2ws(VirtualHips::settings.compm).c_str(), NULL, SW_HIDE);
+			//ShellExecute(NULL, _T("open"), _T("avr_hhost.exe"), s2ws(VirtualHips::settings.comph).c_str(), NULL, SW_HIDE);
+			//ShellExecute(NULL, _T("open"), _T("avr_mhost.exe"), s2ws(VirtualHips::settings.compm).c_str(), NULL, SW_HIDE);
 
 
-			stoparduvr->SetState(sfg::Widget::State::NORMAL);
-			startarduvr->SetState(sfg::Widget::State::INSENSITIVE);
-            comportbox1->SetState(sfg::Widget::State::INSENSITIVE);
-            comportbox2->SetState(sfg::Widget::State::INSENSITIVE);
-            refreshcomports->SetState(sfg::Widget::State::INSENSITIVE);
+			stopControllers->SetState(sfg::Widget::State::NORMAL);
+			startControllers->SetState(sfg::Widget::State::INSENSITIVE);
+            //comportbox1->SetState(sfg::Widget::State::INSENSITIVE);
+            //comportbox2->SetState(sfg::Widget::State::INSENSITIVE);
+            //refreshcomports->SetState(sfg::Widget::State::INSENSITIVE);
 		}
 
 		TrackerLastInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers] {
 			if (!retrieveLastSpawnedTrackers()) {
 				return; // Don't actually spawn the trackers, as they will likely crash
 			}
-			TrackerLastInitButton->SetLabel("Trackers Initialised");
+			TrackerLastInitButton->SetLabel("Trackers Initialised - Destroy Trackers");
             spawnDefaultLowerBodyTrackers();
 
             showPostTrackerInitUI();
@@ -1422,7 +1461,11 @@ public:
         fontSizeBox->Pack(FontSizeScale);
         mainGUIBox->Pack(fontSizeBox);
 
-        mainGUIBox->Pack(reconKinectButton);
+        auto recBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
+        recBox->Pack(reconKinectButton);
+        recBox->Pack(ReconControllersButton);
+
+        mainGUIBox->Pack(recBox);
         mainGUIBox->Pack(TrackerInitButton);
 
 
@@ -1465,8 +1508,8 @@ public:
         mainGUIBox->Pack(TrackersCalibButton);
         TrackersCalibButton->Show(false);
 
-        mainGUIBox->Pack(legacycalibbutton);
-        legacycalibbutton->Show(false);
+        mainGUIBox->Pack(expcalibbutton);
+        expcalibbutton->Show(false);
 
         sfg::Box::Ptr astartbox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
 
@@ -1535,37 +1578,24 @@ public:
         //trackingMethodBox->Pack(InitiateColorTrackingButton);
         //trackingMethodBox->Pack(DestroyColorTrackingButton);
 
-        controllersBox->Pack(sfg::Label::Create("-- Choose COMs on which are connected Your Arduinos --"));
-        controllersBox->Pack(sfg::Label::Create("Program will try to handle index controllers using ArduVR driver and Your two Arduino gloves"));
-        controllersBox->Pack(sfg::Label::Create("-- Calibrate using trackers tab (you will have all at once) --"));
-        controllersBox->Pack(sfg::Label::Create(" "));
-
-        sfg::Box::Ptr vbox0 = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 1.f);
-        sfg::Box::Ptr vbox1 = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 1.f);
-        sfg::Box::Ptr vbox2 = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 1.f);
-
-        vbox0->Pack(sfg::Label::Create("-- Left COM Port --"));
-        vbox0->Pack(comportbox1);
-        vbox1->Pack(sfg::Label::Create("-- Right COM Port --"));
-        vbox1->Pack(comportbox2);
-        vbox2->Pack(sfg::Label::Create("-- Refresh COMs --"));
-        vbox2->Pack(refreshcomports);
-
-        horcombox->Pack(vbox0);
-        horcombox->Pack(vbox1);
-        horcombox->Pack(vbox2);
-
-        controllersBox->Pack(horcombox);
-        refreshcom();
+        
 
         sfg::Box::Ptr horbox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
 
-        horbox->Pack(startarduvr);
-        horbox->Pack(stoparduvr);
+        horbox->Pack(startControllers);
+        horbox->Pack(stopControllers);
         controllersBox->Pack(horbox);
 
-        stoparduvr->SetState(sfg::Widget::State::INSENSITIVE);
-        startarduvr->SetState(sfg::Widget::State::NORMAL);
+        sfg::Box::Ptr toptbox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
+        toptbox->Pack(sfg::Label::Create("Choose configuration for controllers tracking");
+        toptbox->Pack(contrackingselectbox);
+
+        contrackingselectbox->AppendItem("Full PSMove setup");
+        contrackingselectbox->AppendItem("PSMove + Kinect tracking");
+        contrackingselectbox->SelectItem(VirtualHips::settings.conOption);
+
+        stopControllers->SetState(sfg::Widget::State::INSENSITIVE);
+        startControllers->SetState(sfg::Widget::State::NORMAL);
 
 
         auto offsets = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.5f);
@@ -1575,6 +1605,22 @@ public:
         auto xhoffset1 = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.5f);
         auto yhoffset1 = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.5f);
         auto zhoffset1 = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.5f);
+        auto controllersid = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.5f);
+        auto hidaricon = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.5f);
+        auto migicon = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.5f);
+        auto refreshcon = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.5f);
+
+
+        hidaricon->Pack(sfg::Label::Create("Left Controller ID"));
+        hidaricon->Pack(psmovebox);
+        migicon->Pack(sfg::Label::Create("Right Controller ID"));
+        migicon->Pack(psmovebox1);
+        refreshcon->Pack(refreshpsmovesbuton);
+
+        controllersid->Pack(hidaricon);
+        controllersid->Pack(migicon);
+        controllersid->Pack(refreshcon);
+        controllersBox->Pack(controllersid);
 
         auto xoffset = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
         xoffset->Pack(sfg::Label::Create("-- X Offset (meters) --"));
@@ -1609,23 +1655,13 @@ public:
         zoffset->Pack(zhoffset1);
         zoffset->Pack(sfg::Label::Create(" "));
 
-
         offsets->Pack(xoffset);
         offsets->Pack(yoffset);
         offsets->Pack(zoffset);
 
         controllersBox->Pack(sfg::Label::Create(" "));
         controllersBox->Pack(offsets);
-        controllersBox->Pack(AutoStartArduVR);
-
-
-
-
-
-
-
-
-
+        controllersBox->Pack(AutoStartControllers);
 
     }
 
@@ -1635,56 +1671,61 @@ public:
     }
 
     void packElementsIntoAdvTrackerBox() {
-        advancedTrackerBox->Pack(AddHandControllersToList);
-        advancedTrackerBox->Pack(AddLowerTrackersToList);
 
-        auto jointBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
-        jointBox->Pack(SetJointsToFootRotationButton);
-        jointBox->Pack(SetJointsToAnkleRotationButton);
-        advancedTrackerBox->Pack(jointBox);
+        advancedTrackerBox->Pack(sfg::Label::Create(" -- PSMoveSerive Handler -- "));
 
-        advancedTrackerBox->Pack(SetAllJointsRotUnfiltered);
-        advancedTrackerBox->Pack(SetAllJointsRotFiltered);
-        advancedTrackerBox->Pack(SetAllJointsRotHead);
+        sfg::Box::Ptr horizontalPSMBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
+        horizontalPSMBox->Pack(StartPSMoveHandler);
+        horizontalPSMBox->Pack(StopPSMoveHandler);
+        advancedTrackerBox->Pack(horizontalPSMBox);
+        
+        advancedTrackerBox->Pack(sfg::Label::Create(" -- Select options for orientation filter -- "));
 
-        advancedTrackerBox->Pack(TrackerList);
-        advancedTrackerBox->Pack(showJointDevicesButton);
+        auto box1 = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
+        box1->Pack(sfg::Label::Create("Choose orientation option for foot tracking"));
+        auto box2 = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
+        box2->Pack(sfg::Label::Create("Choose orientation option for hips tracking"));
+        
+        box1->Pack(coptbox);
+        box2->Pack(coptbox1);
 
-        TrackerList->Pack(TrackerListLabel);
+        coptbox->AppendItem("Enable Foot Rotation");
+        coptbox->AppendItem("Disable Foot Rotation");
+        coptbox->AppendItem("Disable Foot YAW");
+        coptbox->AppendItem("Use Head Orientation");
+        
+        coptbox1->AppendItem("Enable Hips Rotation");
+        coptbox1->AppendItem("Disable Hips Rotation");
+        coptbox1->AppendItem("Use Head Orientation");
 
-        setBonesListItems();
-        updateDeviceLists();
-        setRolesListItems(RolesList);
+        advancedTrackerBox->Pack(box1);
+        advancedTrackerBox->Pack(box2);
 
-        advancedTrackerBox->Pack(calibrateOffsetButton);
+        advancedTrackerBox->Pack(sfg::Label::Create(" -- Select options for position filter -- "));
 
-        auto positionBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
-        auto rotationBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
-        auto selectionBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
-        auto connectBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
+        auto box11 = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
+        box11->Pack(sfg::Label::Create("Choose position filter for body trackers"));
+        box11->Pack(foptbox);
 
-        //TrackerListOptionsBox->Pack(BonesList);
+        /*
+        * EKF is really nice if you are planning to stand in place
+        * Low pass filter is fot those, who have lit room and kinda bad tracking
+        * interpolation predicts kinect results so it makes you faster but
+        *    literally teleports trackers to next position, should be connected with lpf 
+        * "Magic Touch" actually disables filters, but only on k2vr side
+        *    idk how it works in normal life, but driver should detect it
+        *    and apply it's own filters (driver's source code will stay unpublished
+        *    until arduvr is officially announced and promoted)
+        */
 
-        positionBox->Pack(PositionDeviceList);
-        positionBox->Pack(identifyPosDeviceButton);
+        foptbox->AppendItem("EKalman filter - smooths your moves but floods you with soap"); //use ekf in k2vr
+        foptbox->AppendItem("Low Pass Optical filter - smooths your moves but delays a little"); //use lpf in k2vr
+        foptbox->AppendItem("Linear Interpolation - you are as fast as sonic (filter's lil tricky)"); //use glm::mix in k2vr
+        foptbox->AppendItem("Magic Touch - gives realtime results with no visible jitter"); //only this one uses driver module
 
-        rotationBox->Pack(RotationDeviceList);
-        rotationBox->Pack(identifyRotDeviceButton);
-
-        selectionBox->Pack(refreshDeviceListButton);
-        selectionBox->Pack(positionBox);
-        selectionBox->Pack(rotationBox);
-
-        connectBox->Pack(RolesList);
-        connectBox->Pack(IsControllerButton);
-        connectBox->Pack(AddTrackerToListButton);
-        connectBox->Pack(RemoveTrackerFromListButton);
-
-        TrackerListOptionsBox->Pack(selectionBox);
-        TrackerListOptionsBox->Pack(connectBox);
+        advancedTrackerBox->Pack(box11);
 
 
-        advancedTrackerBox->Pack(TrackerListOptionsBox);
     }
     void packElementsIntoCalibrationBox() {
         sfg::Box::Ptr verticalBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
@@ -1977,18 +2018,18 @@ public:
 
             });
 
-        AutoStartArduVR->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
+        AutoStartControllers->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
             settings.astarta = !settings.astarta;
             if (settings.astarta) {
-                AutoStartArduVR->SetLabel("Start ArduVR on launch CURRENT: YES");
+                AutoStartControllers->SetLabel("Start Controllers on launch CURRENT: YES");
             }
             else {
-                AutoStartArduVR->SetLabel("Start ArduVR on launch CURRENT: NO");
+                AutoStartControllers->SetLabel("Start Controllers on launch CURRENT: NO");
             }
 
             });
 
-        startarduvr->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
+        startControllers->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
             
             std::thread* activate = new std::thread([] {
                 try {
@@ -2027,29 +2068,83 @@ public:
                 catch (std::exception e) {}
             });
 
-            ShellExecute(NULL, _T("open"), _T("avr_hhost.exe"), s2ws(comportbox1->GetSelectedText()).c_str(), NULL, SW_HIDE);
-            ShellExecute(NULL, _T("open"), _T("avr_mhost.exe"), s2ws(comportbox2->GetSelectedText()).c_str(), NULL, SW_HIDE);
 
-            settings.comph = comportbox1->GetSelectedText();
-            settings.compm = comportbox2->GetSelectedText();
+
+
+            std::thread* pscon = new std::thread([this] {
+                while (1) {
+
+
+
+                    vr::HmdVector3d_t mpose = psMoveHandler.getMovePosition(0);
+                    vr::HmdVector3d_t hpose = psMoveHandler.getMovePosition(1);
+
+                    vr::HmdQuaternion_t mrotation = psMoveHandler.getMoveOrientation(0);
+                    vr::HmdQuaternion_t hrotation = psMoveHandler.getMoveOrientation(1);
+
+                    
+
+
+
+
+
+
+
+
+                }
+                });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            /*ShellExecute(NULL, _T("open"), _T("avr_hhost.exe"), s2ws(comportbox1->GetSelectedText()).c_str(), NULL, SW_HIDE);
+            ShellExecute(NULL, _T("open"), _T("avr_mhost.exe"), s2ws(comportbox2->GetSelectedText()).c_str(), NULL, SW_HIDE);*/
+
+            //settings.comph = comportbox1->GetSelectedText();
+            //settings.compm = comportbox2->GetSelectedText();
 
             VirtualHips::saveSettings();
-            stoparduvr->SetState(sfg::Widget::State::NORMAL);
-            startarduvr->SetState(sfg::Widget::State::INSENSITIVE);
-            comportbox1->SetState(sfg::Widget::State::INSENSITIVE);
-            comportbox2->SetState(sfg::Widget::State::INSENSITIVE);
-            refreshcomports->SetState(sfg::Widget::State::INSENSITIVE);
+            stopControllers->SetState(sfg::Widget::State::NORMAL);
+            startControllers->SetState(sfg::Widget::State::INSENSITIVE);
+            //comportbox1->SetState(sfg::Widget::State::INSENSITIVE);
+            //comportbox2->SetState(sfg::Widget::State::INSENSITIVE);
+            //refreshcomports->SetState(sfg::Widget::State::INSENSITIVE);
             });
 
-        stoparduvr->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
-            killProcessByName("avr_hhost.exe");
-            killProcessByName("avr_mhost.exe");
+        stopControllers->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
+            //killProcessByName("avr_hhost.exe");
+            //killProcessByName("avr_mhost.exe");
 
-            stoparduvr->SetState(sfg::Widget::State::INSENSITIVE);
-            startarduvr->SetState(sfg::Widget::State::NORMAL);
-            comportbox1->SetState(sfg::Widget::State::NORMAL);
-            comportbox2->SetState(sfg::Widget::State::NORMAL);
-            refreshcomports->SetState(sfg::Widget::State::NORMAL);
+            stopControllers->SetState(sfg::Widget::State::INSENSITIVE);
+            startControllers->SetState(sfg::Widget::State::NORMAL);
+            //comportbox1->SetState(sfg::Widget::State::NORMAL);
+            //comportbox2->SetState(sfg::Widget::State::NORMAL);
+            //refreshcomports->SetState(sfg::Widget::State::NORMAL);
             });
 
         if (settings.astartt) {
@@ -2071,10 +2166,10 @@ public:
             AutoStartHeadTracking->SetLabel("Start head tracking on launch CURRENT: NO");
         }
         if (settings.astarta) {
-            AutoStartArduVR->SetLabel("Start ArduVR on launch CURRENT: YES");
+            AutoStartControllers->SetLabel("Start Controllers on launch CURRENT: YES");
         }
         else {
-            AutoStartArduVR->SetLabel("Start ArduVR on launch CURRENT: NO");
+            AutoStartControllers->SetLabel("Start Controllers on launch CURRENT: NO");
         }
 
 
@@ -2156,87 +2251,94 @@ public:
             }
         );
 
-        legacycalibbutton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
-            KinectSettings::legacy != KinectSettings::legacy;
+        expcalibbutton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this] {
+            KinectSettings::expcalib = !KinectSettings::expcalib;
             });
 
         TrackersCalibButton->GetSignal(sfg::Button::OnLeftClick).Connect([this] {
-            bool isLeft = false, isRight = false;
             TrackersCalibButton->SetState(sfg::Widget::State::INSENSITIVE);
-            
-            try {
-                vr::EVRInitError error;
-                vr::IVRSystem* csystem = vr::VR_Init(&error, vr::VRApplication_Background);
-                vr::HmdMatrix34_t cposeMatrix;
-                vr::HmdVector3_t cposition;
-                vr::HmdQuaternion_t cquaternion;
-                vr::TrackedDevicePose_t ctrackedControllerPose;
-                vr::VRControllerState_t ccontrollerState;
-                vr::VRControllerState_t cstate;
+
+			vr::EVRInitError error;
+			vr::IVRSystem* csystem = vr::VR_Init(&error, vr::VRApplication_Background);
+			vr::HmdMatrix34_t cposeMatrix;
+			vr::HmdVector3_t cposition;
+			vr::HmdQuaternion_t cquaternion;
+			vr::TrackedDevicePose_t ctrackedControllerPose;
+			vr::VRControllerState_t ccontrollerState;
+			vr::VRControllerState_t cstate;
 
 
+			if (!KinectSettings::expcalib) {
+				std::thread* t1 = new std::thread([this]() {
 
+                    KinectSettings::rtcalibrated = true;
+                    KinectSettings::jcalib = true;
 
+                    Eigen::AngleAxisd rollAngle(0.f, Eigen::Vector3d::UnitZ());
+                    Eigen::AngleAxisd yawAngle(0.f, Eigen::Vector3d::UnitY());
+                    Eigen::AngleAxisd pitchAngle(0.f, Eigen::Vector3d::UnitX());
+                    Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
 
+                    Eigen::Matrix3d rotationMatrix = q.matrix();
+                    KinectSettings::R_matT = rotationMatrix.cast<float>();
 
+                    TrackersCalibButton->SetLabel(std::string("-- Move trackers to your body using touchpad controls. Press Tigger to confirm --").c_str());
+                    std::this_thread::sleep_for(std::chrono::seconds(1));
 
+                    while (!VRInput::confirmdatapose.bState) {
+                        KinectSettings::T_matT(0) += VRInput::trackpadpose[1].x * 0.01f;
+                        KinectSettings::T_matT(1) += VRInput::trackpadpose[0].y * 0.01f;
+                        KinectSettings::T_matT(2) += -VRInput::trackpadpose[1].y * 0.01f;
 
-                for (vr::TrackedDeviceIndex_t unDevice = 0; unDevice < vr::k_unMaxTrackedDeviceCount; unDevice++)
-                {
-                    csystem->GetControllerState(unDevice, &cstate, sizeof(cstate));
-                    vr::ETrackedDeviceClass trackedDeviceClass = vr::VRSystem()->GetTrackedDeviceClass(unDevice);
-
-                    if (trackedDeviceClass == vr::ETrackedDeviceClass::TrackedDeviceClass_Controller) {
-
-                        vr::VRSystem()->GetControllerStateWithPose(vr::TrackingUniverseStanding, unDevice, &ccontrollerState,
-                            sizeof(ccontrollerState), &ctrackedControllerPose);
-
-                        auto trackedControllerRole = vr::VRSystem()->GetControllerRoleForTrackedDeviceIndex(unDevice);
-                        if (trackedControllerRole == vr::TrackedControllerRole_LeftHand)
-                        {
-                            isLeft = true;
-                        }
-                        else if (trackedControllerRole == vr::TrackedControllerRole_RightHand)
-                        {
-                            isRight = true;
-                        }
-
+                        std::this_thread::sleep_for(std::chrono::milliseconds(5));
                     }
 
-                }
+                    std::this_thread::sleep_for(std::chrono::seconds(1));
+                    TrackersCalibButton->SetLabel(std::string("-- Warning: do not change your position (mostly hips) in further steps for best results --").c_str());
+                    std::this_thread::sleep_for(std::chrono::seconds(3));
+
+                    KinectSettings::calorigin = Eigen::Vector3f(KinectSettings::mposes[2].v[0], KinectSettings::mposes[2].v[1], KinectSettings::mposes[2].v[2]);
+                    std::this_thread::sleep_for(std::chrono::seconds(1));
+
+                    TrackersCalibButton->SetLabel(std::string("-- Orientate trackers to your body using touchpad controls. Press Trigger to confirm --").c_str());
+
+                    double yawtmp, pitchtmp;
+                    while (!VRInput::confirmdatapose.bState) {
+
+                        yawtmp += VRInput::trackpadpose[1].x * M_PI / 280.f;
+                        pitchtmp += VRInput::trackpadpose[0].y * M_PI / 280.f;
+
+                        Eigen::AngleAxisd rollAngle(0.f, Eigen::Vector3d::UnitZ());
+                        Eigen::AngleAxisd yawAngle(yawtmp, Eigen::Vector3d::UnitY());
+                        Eigen::AngleAxisd pitchAngle(pitchtmp, Eigen::Vector3d::UnitX());
+                        Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
+
+                        Eigen::Matrix3d rotationMatrix = q.matrix();
+                        KinectSettings::R_matT = rotationMatrix.cast<float>();
+
+                        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+                    }
+                    
+                    std::this_thread::sleep_for(std::chrono::seconds(1));
+
+                    settings.caliborigin = KinectSettings::calorigin;
+                    settings.rcR_matT = KinectSettings::R_matT;
+                    settings.rcT_matT = KinectSettings::T_matT;
+
+                    KinectSettings::tryaw = glm::degrees(yawtmp);
+                    settings.tryawst = glm::degrees(yawtmp);
+
+                    KinectSettings::rtcalibrated = true;
+                    settings.rtcalib = true;
+
+                    TrackersCalibButton->SetLabel(std::string("-- Done! Hit me to re-calibrate! --").c_str());
+                    TrackersCalibButton->SetState(sfg::Widget::State::NORMAL);
+
+                    VirtualHips::saveSettings();
+
+					});
             }
-            catch (std::exception e) {}
-
-            /*for (vr::TrackedDeviceIndex_t unDevice = 0; unDevice < vr::k_unMaxTrackedDeviceCount; unDevice++)
-            {
-                csystem->GetControllerState(unDevice, &cstate, sizeof(cstate));
-                vr::ETrackedDeviceClass trackedDeviceClass = vr::VRSystem()->GetTrackedDeviceClass(unDevice);
-
-                if (trackedDeviceClass == vr::ETrackedDeviceClass::TrackedDeviceClass_Controller) {
-
-                    vr::VRSystem()->GetControllerStateWithPose(vr::TrackingUniverseStanding, unDevice, &ccontrollerState,
-                        sizeof(ccontrollerState), &ctrackedControllerPose);
-                    cposeMatrix = ctrackedControllerPose.mDeviceToAbsoluteTracking;
-                    cposition = GetPosition(ctrackedControllerPose.mDeviceToAbsoluteTracking);
-                    cquaternion = GetRotation(ctrackedControllerPose.mDeviceToAbsoluteTracking);
-
-                    auto trackedControllerRole = vr::VRSystem()->GetControllerRoleForTrackedDeviceIndex(unDevice);
-                    if (trackedControllerRole == vr::TrackedControllerRole_LeftHand)
-                    {
-
-					}
-					else if (trackedControllerRole == vr::TrackedControllerRole_RightHand)
-					{
-
-					}
-
-				}
-
-			}*/
-
-
-
-			if ((!isLeft || !isRight) || KinectSettings::legacy) {
+			else {
 				std::thread* t1 = new std::thread([this]() {
 					vr::EVRInitError error;
 					vr::IVRSystem* system = vr::VR_Init(&error, vr::VRApplication_Background);
@@ -2379,143 +2481,7 @@ public:
                     VirtualHips::saveSettings();
 					});
 			}
-			else if (isLeft && isRight) {
-                std::thread* t1 = new std::thread([this]() {
-
-                    vr::DriverPose_t ispose;
-                    vr::HmdVector3d_t ihpose;
-                    std::vector<vr::DriverPose_t> spose;
-                    std::vector<vr::HmdVector3d_t> hpose;
-
-                    std::this_thread::sleep_for(std::chrono::seconds(1));
-
-                    TrackersCalibButton->SetLabel("-- You have both controllers: starting short calibration! --");
-					std::this_thread::sleep_for(std::chrono::seconds(3));
-                    TrackersCalibButton->SetLabel(std::string("-- Prepare to calibrate: You will spin around with streched left hand! --").c_str());
-                    std::this_thread::sleep_for(std::chrono::seconds(2));
-
-                    for (auto i = 5; i > 0; i--) {
-                        TrackersCalibButton->SetLabel(std::string("-" + boost::lexical_cast<std::string>(i) + "- Prepare to calibrate: You will spin around with streched left hand! -" + boost::lexical_cast<std::string>(i) + "-").c_str());
-                        std::this_thread::sleep_for(std::chrono::seconds(1));
-                    }
-                    
-
-                    for (float i = 5; i > 0; i -= 0.1) {
-                        TrackersCalibButton->SetLabel(std::string("Spin around with left hand streched! Time left: " + boost::lexical_cast<std::string>(i) + "s").c_str());
-
-                        vr::TrackedDevicePose_t trackedControllerPose;
-                        vr::HmdMatrix34_t poseMatrix;
-                        vr::HmdVector3_t position;
-                        vr::HmdQuaternion_t quaternion;
-                        vr::TrackedDeviceIndex_t controllerID;
-                        vr::VRControllerState_t state;
-
-                        KinectSettings::ismatrixcalibrated = false;
-
-                        position = GetPosition(KinectSettings::controllersPose[0].mDeviceToAbsoluteTracking);
-                        quaternion = GetRotation(KinectSettings::controllersPose[0].mDeviceToAbsoluteTracking);
-
-						ispose.vecPosition[0] = position.v[0] - KinectSettings::trackingOriginPosition.v[0];
-						ispose.vecPosition[1] = position.v[1] - KinectSettings::trackingOriginPosition.v[1];
-						ispose.vecPosition[2] = position.v[2] - KinectSettings::trackingOriginPosition.v[2];
-
-						Eigen::AngleAxisd rollAngle(0.f, Eigen::Vector3d::UnitZ());
-						Eigen::AngleAxisd yawAngle(-KinectSettings::svrhmdyaw, Eigen::Vector3d::UnitY());
-						Eigen::AngleAxisd pitchAngle(0.f, Eigen::Vector3d::UnitX());
-
-						Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
-
-						Eigen::Vector3d in(ispose.vecPosition[0], ispose.vecPosition[1], ispose.vecPosition[2]);
-						Eigen::Vector3d out = q * in;
-
-						ispose.vecPosition[0] = out(0);
-						ispose.vecPosition[1] = out(1);
-						ispose.vecPosition[2] = out(2);
-
-						for (auto i = 0; i < 3; i++)ihpose.v[i] = KinectSettings::mposes[1].v[i];
-
-						spose.push_back(ispose);
-						hpose.push_back(ihpose);
-
-                        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                    }
-
-                    Eigen::Matrix<float, 3, Eigen::Dynamic> spoints(3, 11), hpoints(3, 11);
-
-                    for (int ipoint = 0; ipoint < 11; ipoint++) {
-
-                        spoints(0, ipoint) = spose.at(ipoint).vecPosition[0];
-                        spoints(1, ipoint) = spose.at(ipoint).vecPosition[1];
-                        spoints(2, ipoint) = spose.at(ipoint).vecPosition[2];
-
-
-                        hpoints(0, ipoint) = hpose.at(ipoint).v[0];
-                        hpoints(1, ipoint) = hpose.at(ipoint).v[1];
-                        hpoints(2, ipoint) = hpose.at(ipoint).v[2];
-
-                    }
-
-                    PointSet A = hpoints, B = spoints;
-
-                    const auto [ret_R, ret_t] = rigid_transform_3D(A, B);
-
-                    std::cout << "\nController points\n" << A << "\nSteamvr points\n" << B << "\nTranslation\n" << ret_t << "\nRotation\n" << ret_R << '\n';
-
-                    PointSet B2 = (ret_R * A).colwise() + ret_t;
-
-                    PointSet err = B2 - B;
-                    err = err.cwiseProduct(err);
-                    const float rmse = std::sqrt(err.sum() / static_cast<float>(3));
-
-                    /*if (rmse < 0.01f)
-                        std::cout << "\nEverything looks good!\n";
-                    else
-                        std::cout << "\nHmm something doesn't look right ...\n";*/
-
-                    std::cout << "\nOrginal points\n" << B << "\nMy result\n" << B2 << '\n';
-
-                    /*Eigen::Matrix<float, 3, 1> xht;
-                    xht << 0, 0, 3;
-                    Eigen::Matrix<float, 3, 1> xht2 = (ret_R * xht).colwise() + ret_t;*/
-
-                    KinectSettings::R_matT = ret_R;
-                    KinectSettings::T_matT = ret_t;
-
-                    settings.rcR_matT = ret_R;
-                    settings.rcT_matT = ret_t;
-
-                    TrackersCalibButton->SetLabel(std::string("-- Prepare to calibrate: Trackers Orientation --").c_str());
-                    std::this_thread::sleep_for(std::chrono::seconds(5));
-
-                    for (auto i = 5; i > 0; i--) {
-                        TrackersCalibButton->SetLabel(std::string("-" + boost::lexical_cast<std::string>(i) + "- Prepare to calibrate: You will point at kinect with your left controller! -" + boost::lexical_cast<std::string>(i) + "-").c_str());
-                        std::this_thread::sleep_for(std::chrono::seconds(1));
-                    }
-                    for (auto i = 3; i > 0; i--) {
-                        TrackersCalibButton->SetLabel(std::string("-" + boost::lexical_cast<std::string>(i) + "- Point at kinect with your left controller! -" + boost::lexical_cast<std::string>(i) + "-").c_str());
-                        std::this_thread::sleep_for(std::chrono::seconds(1));
-                    }
-
-                    double yaw = std::atan2(KinectSettings::controllersPose[0].mDeviceToAbsoluteTracking.m[0][2], KinectSettings::controllersPose[0].mDeviceToAbsoluteTracking.m[2][2]);
-
-                    if (yaw < 0.0) {
-                        yaw = 2 * M_PI + yaw;
-                    }
-
-                    std::this_thread::sleep_for(std::chrono::seconds(1));
-
-                    KinectSettings::tryaw = glm::degrees(yaw);
-                    settings.tryawst = glm::degrees(yaw);
-
-                    KinectSettings::rtcalibrated = true;
-                    settings.rtcalib = true;
-
-                    TrackersCalibButton->SetLabel(std::string("-- Done! Hit me to re-calibrate! --").c_str());
-                    TrackersCalibButton->SetState(sfg::Widget::State::NORMAL);
-
-                    VirtualHips::saveSettings();
-                });
-			}
+			
 
 
 
@@ -2669,6 +2635,7 @@ private:
     sfg::Label::Ptr InputEmulatorStatusLabel = sfg::Label::Create();
 
     sfg::Button::Ptr reconKinectButton = sfg::Button::Create("Reconnect Kinect");
+    sfg::Button::Ptr refreshpsmovesbuton = sfg::Button::Create("Refresh");
     sfg::Button::Ptr TrackerInitButton = sfg::Button::Create("**Please be in VR before hitting me!** Initialise/Respawn SteamVR Kinect Trackers - HIT ME");
     sfg::Button::Ptr TrackerLastInitButton = sfg::Button::Create("**Please be in VR before hitting me!** Spawn same trackers as last session");
 
@@ -2676,12 +2643,12 @@ private:
     sfg::Button::Ptr AutoStartTrackers = sfg::Button::Create("Initialise trackers automatically");
     sfg::Button::Ptr AutoStartHeadTracking= sfg::Button::Create("Start head tracking on launch");
     sfg::Button::Ptr AutoStartKinectToVR = sfg::Button::Create("Launch K2 automatically with SteamVR");
-    sfg::Button::Ptr AutoStartArduVR = sfg::Button::Create("Start ArduVR with SteamVR");
+    sfg::Button::Ptr AutoStartControllers = sfg::Button::Create("Start Controllers with SteamVR");
     sfg::Box::Ptr horcombox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
 
     sfg::Button::Ptr refreshcomports = sfg::Button::Create("Refresh");
-    sfg::Button::Ptr startarduvr = sfg::Button::Create("Re/Initialise ArduVR controllers");
-    sfg::Button::Ptr stoparduvr = sfg::Button::Create("Stop Polling input for controllers");
+    sfg::Button::Ptr startControllers = sfg::Button::Create("Re/Initialise Controllers controllers");
+    sfg::Button::Ptr stopControllers = sfg::Button::Create("Stop Polling input for controllers");
 
     //Zeroing
     sfg::Label::Ptr KinectRotLabel = sfg::Label::Create("Calibrate the rotation of the Kinect sensor with the controller thumbsticks. Press the trigger to confirm.");
@@ -2820,7 +2787,7 @@ private:
     sfg::Button::Ptr HeadTrackingCalibButton = sfg::Button::Create("-- Calibrate: Look at Kinect and stand still --");
     sfg::Button::Ptr TrackersCalibSButton = sfg::Button::Create("-- Calibrate: Hit me to calibrate! --");
     sfg::Button::Ptr TrackersCalibButton = sfg::Button::Create("-- Calibrate: Hit me to calibrate! --");
-    sfg::CheckButton::Ptr legacycalibbutton = sfg::CheckButton::Create("Use legacy calibration method");
+    sfg::CheckButton::Ptr expcalibbutton = sfg::CheckButton::Create("Check me to use experimental calibration method - with HMD sampling (Check it if you don't have controllers too)");
 
     void updateKinectStatusLabelDisconnected() {
         KinectStatusLabel->SetText("Kinect Status: ERROR KINECT NOT DETECTED");

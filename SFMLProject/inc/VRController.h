@@ -49,6 +49,15 @@ public:
                 if (lastStateValid) {
                     prevState_ = state_;
                 }
+
+				if (m_HMDSystem->GetControllerRoleForTrackedDeviceIndex(controllerID) == vr::TrackedControllerRole_LeftHand) {
+					vr::TrackedDevicePose_t trackedDevicePose[vr::k_unMaxTrackedDeviceCount];
+					m_HMDSystem->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, trackedDevicePose, vr::k_unMaxTrackedDeviceCount);
+					//std::cout << trackedDevicePose[hID].mDeviceToAbsoluteTracking.m[0][3] << ' ' << trackedDevicePose[hID].mDeviceToAbsoluteTracking.m[1][3] << ' ' << trackedDevicePose[hID].mDeviceToAbsoluteTracking.m[2][3] << '\n';
+
+					KinectSettings::controllersPose[0] = trackedDevicePose[controllerID];
+				}
+
                 UpdateTrigger();
                 //UpdateHapticPulse();
             }

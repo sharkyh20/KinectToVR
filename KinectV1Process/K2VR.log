@@ -1,0 +1,271 @@
+[INFO ] 2020-05-24 14:16:37: Kinect sensor opened successfully.
+[INFO ] 2020-05-24 14:16:38: Kinect initialised successfully!
+[INFO ] 2020-05-24 14:16:38: Attempted to initialise OpenGL
+[INFO ] 2020-05-24 14:16:38: ~~~New logging session for main process begins here!~~~
+[INFO ] 2020-05-24 14:16:38: Kinect version is V1
+[INFO ] 2020-05-24 14:16:38: File Directory Path Set to C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\
+[INFO ] 2020-05-24 14:16:39: Stored window size: 1280 x 768
+[INFO ] 2020-05-24 14:16:39: Attempted CFG load: C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\KinectToVR.cfg
+
+[INFO ] 2020-05-24 14:16:39: CFG Loaded Attempted!
+[INFO ] 2020-05-24 14:16:39: Attempted to load settings at C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\ConfigSettings.cfg
+[INFO ] 2020-05-24 14:16:39: ConfigSettings.cfg load attempted!
+[INFO ] 2020-05-24 14:16:39: 0
+    0.999786  0.000288941   -0.0206919
+-0.000997983     0.999412   -0.0342648
+   0.0206699     0.034278     0.999198
+0
+    0.999786  0.000288941   -0.0206919
+-0.000997983     0.999412   -0.0342648
+   0.0206699     0.034278     0.999198
+
+[INFO ] 2020-05-24 14:16:40: Kinect Status changed to: Kinect Status: Success!
+[INFO ] 2020-05-24 14:16:40: Attempting connection to vrsystem.... 
+[INFO ] 2020-05-24 14:16:40: K2VR File Path ASCII (Valid)
+[INFO ] 2020-05-24 14:16:40: SteamVR Tracking Origin for Driver Relative: -0.273, 1.4518, -1.8265, -0RAD
+[INFO ] 2020-05-24 14:16:40: Set Tracker Roles in steamvr.vrsettings attempted...
+[INFO ] 2020-05-24 14:16:40: Successfully set tracker roles in vrsettings!
+[INFO ] 2020-05-24 14:16:40: (Workaround/Hack) Loading K2VR into bindings menu...
+[INFO ] 2020-05-24 14:16:41: (Workaround/Hack) Successfully loaded K2VR into bindings menu!
+[INFO ] 2020-05-24 14:16:41: Initialising Skeleton Tracking Method...
+[INFO ] 2020-05-24 14:16:41: Initialising VR Device Handler...
+[INFO ] 2020-05-24 14:16:41: Reading Strings...
+[INFO ] 2020-05-24 14:16:41: Attempted to load settings at C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\ConfigSettings.cfg
+[INFO ] 2020-05-24 14:16:41: ConfigSettings.cfg load attempted!
+[INFO ] 2020-05-24 14:16:41: 0
+    0.999786  0.000288941   -0.0206919
+-0.000997983     0.999412   -0.0342648
+   0.0206699     0.034278     0.999198
+0
+    0.999786  0.000288941   -0.0206919
+-0.000997983     0.999412   -0.0342648
+   0.0206699     0.034278     0.999198
+
+[INFO ] 2020-05-24 14:16:42: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:16:42: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:18:50: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:18:50: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:18:52: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:18:52: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:18:52: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:18:52: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:18:52: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:18:52: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:18:52: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:18:52: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:19:32: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:19:32: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:19:33: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:19:33: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:19:33: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:19:33: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:19:33: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:19:33: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:19:33: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:19:33: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:19:33: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:19:33: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:19:34: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:19:34: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:19:34: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:19:34: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:19:35: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:19:35: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:19:35: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:19:35: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:19:35: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:19:35: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:19:35: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:19:35: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:19:36: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:19:36: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:19:37: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:19:37: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:26:13: Kinect sensor opened successfully.
+[INFO ] 2020-05-24 14:26:14: Kinect initialised successfully!
+[INFO ] 2020-05-24 14:26:14: Attempted to initialise OpenGL
+[INFO ] 2020-05-24 14:26:14: ~~~New logging session for main process begins here!~~~
+[INFO ] 2020-05-24 14:26:14: Kinect version is V1
+[INFO ] 2020-05-24 14:26:14: File Directory Path Set to C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\
+[INFO ] 2020-05-24 14:26:16: Stored window size: 1280 x 768
+[INFO ] 2020-05-24 14:26:16: Attempted CFG load: C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\KinectToVR.cfg
+
+[INFO ] 2020-05-24 14:26:16: CFG Loaded Attempted!
+[INFO ] 2020-05-24 14:26:16: Attempted to load settings at C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\ConfigSettings.cfg
+[INFO ] 2020-05-24 14:26:16: ConfigSettings.cfg load attempted!
+[INFO ] 2020-05-24 14:26:16: 0
+    0.999786  0.000288941   -0.0206919
+-0.000997983     0.999412   -0.0342648
+   0.0206699     0.034278     0.999198
+0
+    0.999786  0.000288941   -0.0206919
+-0.000997983     0.999412   -0.0342648
+   0.0206699     0.034278     0.999198
+
+[INFO ] 2020-05-24 14:26:16: Kinect Status changed to: Kinect Status: Success!
+[INFO ] 2020-05-24 14:26:16: Attempting connection to vrsystem.... 
+[INFO ] 2020-05-24 14:26:17: K2VR File Path ASCII (Valid)
+[INFO ] 2020-05-24 14:26:17: SteamVR Tracking Origin for Driver Relative: -0.273, 1.4518, -1.8265, -0RAD
+[INFO ] 2020-05-24 14:26:17: Set Tracker Roles in steamvr.vrsettings attempted...
+[INFO ] 2020-05-24 14:26:17: Successfully set tracker roles in vrsettings!
+[INFO ] 2020-05-24 14:26:17: (Workaround/Hack) Loading K2VR into bindings menu...
+[INFO ] 2020-05-24 14:26:18: (Workaround/Hack) Successfully loaded K2VR into bindings menu!
+[INFO ] 2020-05-24 14:26:18: Initialising Skeleton Tracking Method...
+[INFO ] 2020-05-24 14:26:18: Initialising VR Device Handler...
+[INFO ] 2020-05-24 14:26:18: Reading Strings...
+[INFO ] 2020-05-24 14:26:18: Attempted to load settings at C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\ConfigSettings.cfg
+[INFO ] 2020-05-24 14:26:18: ConfigSettings.cfg load attempted!
+[INFO ] 2020-05-24 14:26:18: 0
+    0.999786  0.000288941   -0.0206919
+-0.000997983     0.999412   -0.0342648
+   0.0206699     0.034278     0.999198
+0
+    0.999786  0.000288941   -0.0206919
+-0.000997983     0.999412   -0.0342648
+   0.0206699     0.034278     0.999198
+
+[INFO ] 2020-05-24 14:26:19: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:26:19: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:26:51: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:26:51: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:26:53: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:26:53: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:26:53: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:26:53: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:26:53: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:26:53: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:26:53: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:26:53: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:26:53: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:26:53: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:26:53: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:26:53: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:27:35: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:27:35: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:27:45: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:27:45: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:27:48: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:27:48: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:27:49: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:27:49: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:27:50: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:27:50: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:27:50: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:27:50: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:28:53: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:28:53: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:28:58: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:28:58: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:28:59: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:28:59: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-24 14:29:01: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-24 14:29:01: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-25 09:48:47: Kinect sensor opened successfully.
+[INFO ] 2020-05-25 09:48:47: Kinect initialised successfully!
+[INFO ] 2020-05-25 09:48:47: Attempted to initialise OpenGL
+[INFO ] 2020-05-25 09:48:47: ~~~New logging session for main process begins here!~~~
+[INFO ] 2020-05-25 09:48:47: Kinect version is V1
+[INFO ] 2020-05-25 09:48:47: File Directory Path Set to C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\
+[INFO ] 2020-05-25 09:48:48: Stored window size: 1280 x 768
+[INFO ] 2020-05-25 09:48:48: Attempted CFG load: C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\KinectToVR.cfg
+
+[INFO ] 2020-05-25 09:48:48: CFG Loaded Attempted!
+[INFO ] 2020-05-25 09:48:49: Attempted to load settings at C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\ConfigSettings.cfg
+[INFO ] 2020-05-25 09:48:49: ConfigSettings.cfg load attempted!
+[INFO ] 2020-05-25 09:48:49: 0
+    0.999786  0.000288941   -0.0206919
+-0.000997983     0.999412   -0.0342648
+   0.0206699     0.034278     0.999198
+0
+    0.999786  0.000288941   -0.0206919
+-0.000997983     0.999412   -0.0342648
+   0.0206699     0.034278     0.999198
+
+[INFO ] 2020-05-25 09:48:49: Kinect Status changed to: Kinect Status: Success!
+[INFO ] 2020-05-25 09:48:49: Attempting connection to vrsystem.... 
+[INFO ] 2020-05-25 09:48:49: K2VR File Path ASCII (Valid)
+[INFO ] 2020-05-25 09:48:49: SteamVR Tracking Origin for Driver Relative: -0.273, 1.4518, -1.8265, -0RAD
+[INFO ] 2020-05-25 09:48:49: Set Tracker Roles in steamvr.vrsettings attempted...
+[INFO ] 2020-05-25 09:48:49: Successfully set tracker roles in vrsettings!
+[INFO ] 2020-05-25 09:48:49: (Workaround/Hack) Loading K2VR into bindings menu...
+[INFO ] 2020-05-25 09:48:49: Client sent message!
+[INFO ] 2020-05-25 09:48:49: (Ignore) receive failed: An established connection was aborted by the software in your host machine
+[INFO ] 2020-05-25 09:48:52: (Workaround/Hack) Successfully loaded K2VR into bindings menu!
+[INFO ] 2020-05-25 09:48:52: Initialising Skeleton Tracking Method...
+[INFO ] 2020-05-25 09:48:52: Initialising VR Device Handler...
+[INFO ] 2020-05-25 09:48:52: Reading Strings...
+[INFO ] 2020-05-25 09:48:52: Attempted to load settings at C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\ConfigSettings.cfg
+[INFO ] 2020-05-25 09:48:52: ConfigSettings.cfg load attempted!
+[INFO ] 2020-05-25 09:48:52: 0
+    0.999786  0.000288941   -0.0206919
+-0.000997983     0.999412   -0.0342648
+   0.0206699     0.034278     0.999198
+0
+    0.999786  0.000288941   -0.0206919
+-0.000997983     0.999412   -0.0342648
+   0.0206699     0.034278     0.999198
+
+[INFO ] 2020-05-25 09:48:53: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-25 09:48:53: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-25 09:50:33: Attempted to save config settings to file
+[INFO ] 2020-05-25 09:50:33: Attempted to save settings to file
+[INFO ] 2020-05-31 12:48:15: Kinect sensor opened successfully.
+[INFO ] 2020-05-31 12:48:15: Kinect initialised successfully!
+[INFO ] 2020-05-31 12:48:15: Attempted to initialise OpenGL
+[INFO ] 2020-05-31 12:48:15: ~~~New logging session for main process begins here!~~~
+[INFO ] 2020-05-31 12:48:15: Kinect version is V1
+[INFO ] 2020-05-31 12:48:15: File Directory Path Set to C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\
+[INFO ] 2020-05-31 12:48:18: Stored window size: 1280 x 768
+[INFO ] 2020-05-31 12:48:18: Attempted CFG load: C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\KinectToVR.cfg
+
+[INFO ] 2020-05-31 12:48:18: CFG Loaded Attempted!
+[INFO ] 2020-05-31 12:48:19: Attempted to load settings at C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\ConfigSettings.cfg
+[INFO ] 2020-05-31 12:48:19: ConfigSettings.cfg load attempted!
+[INFO ] 2020-05-31 12:48:19: 0
+           1 -0.000150621  4.37945e-05
+ 0.000150681            1  6.94096e-05
+-4.34965e-05 -6.92904e-05            1
+0
+           1 -0.000150621  4.37945e-05
+ 0.000150681            1  6.94096e-05
+-4.34965e-05 -6.92904e-05            1
+
+[INFO ] 2020-05-31 12:48:19: Kinect Status changed to: Kinect Status: Success!
+[INFO ] 2020-05-31 12:48:19: Attempting connection to vrsystem.... 
+[INFO ] 2020-05-31 12:48:19: K2VR File Path ASCII (Valid)
+[INFO ] 2020-05-31 12:48:19: SteamVR Tracking Origin for Driver Relative: -0.273, 1.4518, -1.8265, -0RAD
+[INFO ] 2020-05-31 12:48:19: Set Tracker Roles in steamvr.vrsettings attempted...
+[INFO ] 2020-05-31 12:48:19: Successfully set tracker roles in vrsettings!
+[INFO ] 2020-05-31 12:48:19: (Workaround/Hack) Loading K2VR into bindings menu...
+[INFO ] 2020-05-31 12:48:20: (Workaround/Hack) Successfully loaded K2VR into bindings menu!
+[INFO ] 2020-05-31 12:48:20: Initialising Skeleton Tracking Method...
+[INFO ] 2020-05-31 12:48:20: Initialising VR Device Handler...
+[INFO ] 2020-05-31 12:48:20: Reading Strings...
+[INFO ] 2020-05-31 12:48:20: Attempted to load settings at C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\ConfigSettings.cfg
+[INFO ] 2020-05-31 12:48:20: ConfigSettings.cfg load attempted!
+[INFO ] 2020-05-31 12:48:20: 0
+           1 -0.000150621  4.37945e-05
+ 0.000150681            1  6.94096e-05
+-4.34965e-05 -6.92904e-05            1
+0
+           1 -0.000150621  4.37945e-05
+ 0.000150681            1  6.94096e-05
+-4.34965e-05 -6.92904e-05            1
+
+[INFO ] 2020-05-31 12:48:21: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-31 12:48:21: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-31 12:48:27: PSMoveConsoleClient::startup() - Failed to initialize the client network manager
+[ERROR] 2020-05-31 12:48:27: Failed to startup the PSMoveClient. Check if PSMoveService is running...
+[INFO ] 2020-05-31 12:48:30: PSMoveConsoleClient::startup() - Initialized client version - 0.9-alpha 9.0.0
+[INFO ] 2020-05-31 12:48:30: Attempted tracking system load: C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\psmove.tracking
+
+[INFO ] 2020-05-31 12:48:30: psmoveTracking Load Attempted!
+[INFO ] 2020-05-31 12:48:30: PSM_GetControllerList returned General Success Result
+[INFO ] 2020-05-31 12:48:30: Found 2 controllers.
+[INFO ] 2020-05-31 12:48:30:   Controller ID: 0 is a PSMove
+[INFO ] 2020-05-31 12:48:30:   Controller ID: 1 is a PSMove
+[INFO ] 2020-05-31 12:48:30: PSM_GetTrackerList returned General Error Result
+[INFO ] 2020-05-31 12:48:30: Found 0 trackers.
+[INFO ] 2020-05-31 12:48:30: Found 0 HMDs.
+[INFO ] 2020-05-31 12:48:30: Controller 0 has battery level: ~60%
+[INFO ] 2020-05-31 12:48:30: Controller 1 has battery level: ~40%

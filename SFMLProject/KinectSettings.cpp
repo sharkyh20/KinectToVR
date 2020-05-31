@@ -10,7 +10,9 @@
 #include <cereal/archives/binary.hpp>
 #include <cereal/types/common.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
-
+#include <LowPassFilter.h>
+#include <EKF_Filter.h>
+#include <MathEigen.h>
 #include <iostream>
 #include <fstream>
 
@@ -24,10 +26,11 @@
 namespace KinectSettings {
     std::wstring const CFG_NAME(L"KinectToVR.cfg");
     std::string KVRversion = "a0.7.1 EX";
-
+    bool psmbuttons[5][10];
     bool isKinectDrawn = false;
     bool isSkeletonDrawn = false;
     float svrhmdyaw = 0;
+    int psmh, psmm;
     bool ignoreInferredPositions = false;
     bool ignoreRotationSmoothing = false;
     float ardroffset = 0.f;
@@ -39,14 +42,40 @@ namespace KinectSettings {
     KVR::KinectJointType leftFootJointWithoutRotation = KVR::KinectJointType::AnkleLeft;
     KVR::KinectJointType rightFootJointWithoutRotation = KVR::KinectJointType::AnkleRight;
 
+    PSMPSMove migiMove, hidariMove;
+    bool initialised = false;
     bool userChangingZero = false;
     bool legacy = false;
     float g_TrackedBoneThickness = 6.0f;
     float g_InferredBoneThickness = 1.5f;
     float g_JointThickness = 4.0f;
-
+    std::string opt = "";
     const int kinectHeight = 640;
     const int kinectWidth = 480;
+    bool expcalib = false;
+    bool frame1 = true;
+    int footOption, hipsOption, posOption = 2, conOption;
+
+    float map(float value, float start1, float stop1, float start2, float stop2) {
+        return(start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1)));
+    }
+    glm::vec3 joybk[2];
+    template<class T>
+    const T& constrain(const T& x, const T& a, const T& b) {
+        if (x < a) {
+            return a;
+        }
+        else if (b < x) {
+            return b;
+        }
+        else
+            return x;
+    }
+
+    glm::vec3 hmdPose, hHandPose, mHandPose, hFootPose, mFootPose, hipsPose, hElPose, mElPose,
+        lastPose[3][2];
+    glm::quat hFootRot, mFootRot, hipsRot;
+    vr::HmdQuaternion_t hmdRot;
 
     const int kinectV2Height = 1920;
     const int kinectV2Width = 1080;
@@ -59,6 +88,7 @@ namespace KinectSettings {
     int leftFootPlayspaceMovementButton = 0;
     int rightFootPlayspaceMovementButton = 0;
     float hmdYaw = 0;
+    float conID[2] = { 0, 1 };
 
     vr::HmdVector3d_t hmdPosition = { 0,0,0 };
     vr::HmdQuaternion_t hmdRotation = { 0,0,0,0 };
@@ -75,7 +105,7 @@ namespace KinectSettings {
     vr::HmdVector3d_t troffsets{ 0,0,0 };
     float hroffset = 0;
     float troffset = 0;
-
+    Eigen::Vector3f calorigin;
     vr::TrackedDevicePose_t controllersPose[2];
     vr::HmdVector3d_t hauoffset{ 0,0,0 }, mauoffset{ 0,0,0 };
     Eigen::Matrix<float, 3, 3> R_matT;
@@ -84,7 +114,7 @@ namespace KinectSettings {
     bool rtcalibrated = false;
 
     float tryaw = 0.0;
-
+    bool jcalib;
     int cpoints = 3;
 
     vr::HmdQuaternion_t hmdquat{ 1,0,0,0 };
@@ -99,43 +129,640 @@ namespace KinectSettings {
     void updateKinectQuaternion() {
         KinectSettings::kinectRepRotation = vrmath::quaternionFromYawPitchRoll(KinectSettings::kinectRadRotation.v[1], KinectSettings::kinectRadRotation.v[0], KinectSettings::kinectRadRotation.v[2]);
     }
+//first is cutoff in hz (multiplied per 2PI) and second is our framerate about 100 fps
+    bool flip;
+    PSMQuatf offset[2];
+    Eigen::Quaternionf quatf[2];
+    glm::vec3 joy[2] = { glm::vec3(0, 0, 0), glm::vec3(0, 0, 0) };
 
-    void sendtoipc(vr::HmdVector3d_t kinectposes[3], vr::HmdVector3d_t kinectrots[3]/*, vr::HmdVector3d_t kinectoffsets[3]*/) {
-        using namespace boost::interprocess;
+    void sendipc() {
+        LowPassFilter lowPassFilter[3][3] = {
+            {LowPassFilter(7.1, 0.005),LowPassFilter(7.1, 0.005),LowPassFilter(7.1, 0.005) },
+            {LowPassFilter(7.1, 0.005),LowPassFilter(7.1, 0.005),LowPassFilter(7.1, 0.005) },
+            {LowPassFilter(7.1, 0.005),LowPassFilter(7.1, 0.005),LowPassFilter(7.1, 0.005) }
+        };
 
-        shared_memory_object::remove("trackers_shm");
-        managed_shared_memory managed_shm(open_or_create, "trackers_shm", 1024);
+        int n = 3, m = 1; // Number of measurements & statements
+        double dt = 1.0 / 30, t[3][3] = { { 0,0,0 }, { 0,0,0 }, { 0,0,0 } };
+        Eigen::MatrixXd A(n, n), C(m, n), Q(n, n), R(m, m), P(n, n);
 
-		managed_shm.construct<float>("LeftFootX")(kinectposes[0].v[0]);
-		managed_shm.construct<float>("LeftFootY")(kinectposes[0].v[1]);
-		managed_shm.construct<float>("LeftFootZ")(kinectposes[0].v[2]);
-		managed_shm.construct<float>("RightFootX")(kinectposes[1].v[0]);
-		managed_shm.construct<float>("RightFootY")(kinectposes[1].v[1]);
-		managed_shm.construct<float>("RightFootZ")(kinectposes[1].v[2]);
-		managed_shm.construct<float>("HipsX")(kinectposes[2].v[0]);
-		managed_shm.construct<float>("HipsY")(kinectposes[2].v[1]);
-		managed_shm.construct<float>("HipsZ")(kinectposes[2].v[2]);
+        A << 1, dt, 0, 0, 1, dt, 0, 0, 1;
+        C << 1, 0, 0;
 
-        /*managed_shm.construct<float>("LeftFootRotX")(kinectrots[0].v[0]);
-        managed_shm.construct<float>("LeftFootRotY")(kinectrots[0].v[1]);
-        managed_shm.construct<float>("LeftFootRotZ")(kinectrots[0].v[2]);
-        managed_shm.construct<float>("RightFootRotX")(kinectrots[1].v[0]);
-        managed_shm.construct<float>("RightFootRotY")(kinectrots[1].v[1]);
-        managed_shm.construct<float>("RightFootRotZ")(kinectrots[1].v[2]);
-        managed_shm.construct<float>("HipsRotX")(kinectrots[2].v[0]);
-        managed_shm.construct<float>("HipsRotY")(kinectrots[2].v[1]);
-        managed_shm.construct<float>("HipsRotZ")(kinectrots[2].v[2]);*/
+        Q << .05, .05, .0, .05, .05, .0, .0, .0, .0;
+        R << 5;
+        P << .1, .1, .1, .1, 10000, 10, .1, 10, 100;
 
-        /*managed_shm.construct<float>("LeftFootOffsetX")(kinectoffsets[0].v[0]);
-        managed_shm.construct<float>("LeftFootOffsetY")(kinectoffsets[0].v[1]);
-        managed_shm.construct<float>("LeftFootOffsetZ")(kinectoffsets[0].v[2]);
-        managed_shm.construct<float>("RightFootOffsetX")(kinectoffsets[1].v[0]);
-        managed_shm.construct<float>("RightFootOffsetY")(kinectoffsets[1].v[1]);
-        managed_shm.construct<float>("RightFootOffsetZ")(kinectoffsets[1].v[2]);
-        managed_shm.construct<float>("HipsOffsetX")(kinectoffsets[2].v[0]);
-        managed_shm.construct<float>("HipsOffsetY")(kinectoffsets[2].v[1]);
-        managed_shm.construct<float>("HipsOffsetZ")(kinectoffsets[2].v[2]);*/
+        KalmanFilter posef[3][3] = {
+            { KalmanFilter(dt, A, C, Q, R, P), KalmanFilter(dt, A, C, Q, R, P), KalmanFilter(dt, A, C, Q, R, P) },
+            { KalmanFilter(dt, A, C, Q, R, P), KalmanFilter(dt, A, C, Q, R, P), KalmanFilter(dt, A, C, Q, R, P) },
+            { KalmanFilter(dt, A, C, Q, R, P), KalmanFilter(dt, A, C, Q, R, P), KalmanFilter(dt, A, C, Q, R, P) } };
 
+        Eigen::VectorXd x0(n);
+        x0 << 0.f, 0.f, 0.f;
+
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                posef[i][j].init(0.f, x0);
+            }
+        }
+
+        Eigen::VectorXd y[3][3] = {
+            { Eigen::VectorXd(m), Eigen::VectorXd(m), Eigen::VectorXd(m) },
+            { Eigen::VectorXd(m), Eigen::VectorXd(m), Eigen::VectorXd(m) },
+            { Eigen::VectorXd(m), Eigen::VectorXd(m), Eigen::VectorXd(m) } };
+
+        while (true) {
+            auto t1 = std::chrono::high_resolution_clock::now();
+
+            KinectSettings::mposes[2].v[0] = hipsPose.x;
+            KinectSettings::mposes[2].v[1] = hipsPose.y;
+            KinectSettings::mposes[2].v[2] = hipsPose.z;
+            KinectSettings::mposes[1].v[0] = hHandPose.x;
+            KinectSettings::mposes[1].v[1] = hHandPose.y;
+            KinectSettings::mposes[1].v[2] = hHandPose.z;
+            KinectSettings::mposes[0].v[0] = hmdPose.x;
+            KinectSettings::mposes[0].v[1] = hmdPose.y;
+            KinectSettings::mposes[0].v[2] = hmdPose.z;
+
+            const glm::vec3 posePrev[3] = { hFootPose,mFootPose,hipsPose };
+            const glm::vec3 poseLast[3] = { lastPose[0][0],lastPose[1][0],lastPose[2][0] };
+            const glm::vec3 poseLerp[3] = { glm::mix(posePrev[0], poseLast[0], 0.3f),
+                glm::mix(posePrev[1], poseLast[1], 0.3f),
+                glm::mix(posePrev[2], poseLast[2], 0.3f) };
+            glm::vec3 poseFiltered[3] = { glm::vec3(0,0,0),glm::vec3(0,0,0),glm::vec3(0,0,0) };
+
+            if (posOption == positionalFilterOption::k_DisablePositionFilter) {
+                poseFiltered[0] = hFootPose;
+                poseFiltered[1] = mFootPose;
+                poseFiltered[2] = hipsPose;
+            }
+            else if (posOption == positionalFilterOption::k_EnablePositionFilter_LERP) {
+                poseFiltered[0] = poseLerp[0];
+                poseFiltered[1] = poseLerp[1];
+                poseFiltered[2] = poseLerp[2];
+            }
+            else if (posOption == positionalFilterOption::k_EnablePositionFilter_LowPass) {
+                poseFiltered[0] = glm::vec3(lowPassFilter[0][0].update(hFootPose.x),
+                    lowPassFilter[0][1].update(hFootPose.y), lowPassFilter[0][2].update(hFootPose.z));
+                poseFiltered[1] = glm::vec3(lowPassFilter[1][0].update(mFootPose.x),
+                    lowPassFilter[1][1].update(mFootPose.y), lowPassFilter[1][2].update(mFootPose.z));
+                poseFiltered[2] = glm::vec3(lowPassFilter[2][0].update(hipsPose.x),
+                    lowPassFilter[2][1].update(hipsPose.y), lowPassFilter[2][2].update(hipsPose.z));
+            }
+            else if (posOption == positionalFilterOption::k_EnablePositionFilter_Kalman) {
+
+                for (int i = 0; i < 3; i++) {
+                    t[0][i] += dt;
+                    switch (i) {
+                    case 0:
+                        y[0][i] << hFootPose.x;
+                        posef[0][i].update(y[0][i]);
+                        poseFiltered[0].x = posef[0][i].state().x();
+                        break;
+                    case 1:
+                        y[0][i] << hFootPose.y;
+                        posef[0][i].update(y[0][i]);
+                        poseFiltered[0].y = posef[0][i].state().x();
+                        break;
+                    case 2:
+                        y[0][i] << hFootPose.z;
+                        posef[0][i].update(y[0][i]);
+                        poseFiltered[0].z = posef[0][i].state().x();
+                        break;
+                    }
+                }
+
+                for (int i = 0; i < 3; i++) {
+                    t[1][i] += dt;
+                    switch (i) {
+                    case 0:
+                        y[1][i] << mFootPose.x;
+                        posef[1][i].update(y[1][i]);
+                        poseFiltered[1].x = posef[1][i].state().x();
+                        break;
+                    case 1:
+                        y[1][i] << mFootPose.y;
+                        posef[1][i].update(y[1][i]);
+                        poseFiltered[1].y = posef[1][i].state().x();
+                        break;
+                    case 2:
+                        y[1][i] << mFootPose.z;
+                        posef[1][i].update(y[1][i]);
+                        poseFiltered[1].z = posef[1][i].state().x();
+                        break;
+                    }
+                }
+
+                for (int i = 0; i < 3; i++) {
+                    t[2][i] += dt;
+                    switch (i) {
+                    case 0:
+                        y[2][i] << hipsPose.x;
+                        posef[2][i].update(y[2][i]);
+                        poseFiltered[2].x = posef[2][i].state().x();
+                        break;
+                    case 1:
+                        y[2][i] << hipsPose.y;
+                        posef[2][i].update(y[2][i]);
+                        poseFiltered[2].y = posef[2][i].state().x();
+                        break;
+                    case 2:
+                        y[2][i] << hipsPose.z;
+                        posef[2][i].update(y[2][i]);
+                        poseFiltered[2].z = posef[2][i].state().x();
+                        break;
+                    }
+                }
+
+            }
+
+            PSMPSMove hidariKontorora = hidariMove, migiKontorora = migiMove;
+
+            //if (KVR_PSMoves.size() >= 1) {
+            //    hidariKontorora = KVR_PSMoves.at(psmh).PSMoveData;
+            //}
+            //if (KVR_PSMoves.size() >= 2) {
+            //    migiKontorora = KVR_PSMoves.at(psmm).PSMoveData;
+            //}
+
+            if (migiKontorora.SelectButton == PSMButtonState_DOWN) //we are recentering right psmove with select button
+                offset[0] = migiKontorora.Pose.Orientation;        //quaterion for further offset maths
+
+            if (hidariKontorora.SelectButton == PSMButtonState_DOWN) //we are recentering right psmove with select button
+                offset[1] = hidariKontorora.Pose.Orientation;        //quaterion for further offset maths
+
+            vr::HmdVector3d_t trotation[3] = { {0,0,0},{0,0,0},{0,0,0} };
+            using PointSet = Eigen::Matrix<float, 3, Eigen::Dynamic>;
+
+            float yaw = KinectSettings::hmdYaw * 180 / M_PI;
+            float facing = yaw - KinectSettings::tryaw;
+
+            if (facing < 25 && facing > -25)flip = false;
+            if (facing < -155 && facing > -205)flip = true;
+
+            std::string TrackerS = [&]()->std::string {
+                std::stringstream S;
+
+                if (hipsOption == hipsRotationFilterOption::k_EnableHipsOrientationFilter) {
+                    if (!flip) {
+                        trotation[2] = vr::HmdVector3d_t{ double(glm::eulerAngles(hipsRot).x * 180 / M_PI) + 180.f,
+                        -double(glm::eulerAngles(hipsRot).y * 180 / M_PI),
+                        double(glm::eulerAngles(hipsRot).z * 180 / M_PI) + 180.f };
+                    }
+                    else
+                    {
+                        trotation[2] = vr::HmdVector3d_t{ -double(glm::eulerAngles(hipsRot).x * 180 / M_PI) + 180.f,
+                        double(glm::eulerAngles(hipsRot).y * 180 / M_PI),
+                        -double(glm::eulerAngles(hipsRot).z * 180 / M_PI) + 180.f };
+					}
+				}
+				else if (hipsOption == hipsRotationFilterOption::k_EnableHipsOrientationFilter_HeadOrientation) {
+					trotation[2] = vr::HmdVector3d_t{ glm::eulerAngles(glm::quat(hmdRot.w,hmdRot.x,hmdRot.y,hmdRot.z)).x,
+					glm::eulerAngles(glm::quat(hmdRot.w,hmdRot.x,hmdRot.y,hmdRot.z)).y,
+					glm::eulerAngles(glm::quat(hmdRot.w,hmdRot.x,hmdRot.y,hmdRot.z)).z };
+				}
+                else if (hipsOption == hipsRotationFilterOption::k_DisableHipsOrientationFilter) {
+                    trotation[2] = vr::HmdVector3d_t{ 0,0,0 };
+                }
+
+                glm::quat footrot[2] = { hFootRot, mFootRot };
+                if (footOption == footRotationFilterOption::k_EnableOrientationFilter) {
+                    if (!flip) {
+                        trotation[0] = vr::HmdVector3d_t{ double(glm::eulerAngles(footrot[0]).x * 180 / M_PI) + 180.f,
+                            double(glm::eulerAngles(footrot[0]).y * 180 / M_PI),
+                            double(glm::eulerAngles(footrot[0]).z * 180 / M_PI) };
+                        trotation[1] = vr::HmdVector3d_t{ double(glm::eulerAngles(footrot[1]).x * 180 / M_PI) + 180.f,
+                            double(glm::eulerAngles(footrot[0]).y * 180 / M_PI),
+                            double(glm::eulerAngles(footrot[1]).z * 180 / M_PI) };
+                    }
+                    else {
+                        trotation[1] = vr::HmdVector3d_t{ -double(glm::eulerAngles(footrot[0]).x * 180 / M_PI) + 180.f,
+                            -double(glm::eulerAngles(footrot[0]).y * 180 / M_PI),
+                            -double(glm::eulerAngles(footrot[0]).z * 180 / M_PI) };
+                        trotation[0] = vr::HmdVector3d_t{ -double(glm::eulerAngles(footrot[1]).x * 180 / M_PI) + 180.f,
+                            -double(glm::eulerAngles(footrot[0]).y * 180 / M_PI),
+                            -double(glm::eulerAngles(footrot[1]).z * 180 / M_PI) };
+                    }
+                }
+                else if (footOption == footRotationFilterOption::k_EnableOrientationFilter_WithoutYaw) {
+                    if (!flip) {
+                        trotation[0] = vr::HmdVector3d_t{ double(glm::eulerAngles(footrot[0]).x * 180 / M_PI) + 180.f,
+                            0.f,
+                            double(glm::eulerAngles(footrot[0]).z * 180 / M_PI) };
+                        trotation[1] = vr::HmdVector3d_t{ double(glm::eulerAngles(footrot[1]).x * 180 / M_PI) + 180.f,
+                            0.f,
+                            double(glm::eulerAngles(footrot[1]).z * 180 / M_PI) };
+                    }
+                    else {
+                        trotation[1] = vr::HmdVector3d_t{ -double(glm::eulerAngles(footrot[0]).x * 180 / M_PI) + 180.f,
+                            0.f,
+                            -double(glm::eulerAngles(footrot[0]).z * 180 / M_PI) };
+                        trotation[0] = vr::HmdVector3d_t{ -double(glm::eulerAngles(footrot[1]).x * 180 / M_PI) + 180.f,
+                            0.f,
+                            -double(glm::eulerAngles(footrot[1]).z * 180 / M_PI) };
+                    }
+                }
+                else if (footOption == footRotationFilterOption::k_DisableOrientationFilter) {
+                    trotation[0] = vr::HmdVector3d_t{ 0,0,0 };
+                    trotation[1] = vr::HmdVector3d_t{ 0,0,0 };
+                }
+                else if (footOption == footRotationFilterOption::k_EnableOrientationFilter_HeadOrientation) {
+                    trotation[0] = vr::HmdVector3d_t{ glm::eulerAngles(glm::quat(hmdRot.w,hmdRot.x,hmdRot.y,hmdRot.z)).x,
+                    glm::eulerAngles(glm::quat(hmdRot.w,hmdRot.x,hmdRot.y,hmdRot.z)).y,
+                    glm::eulerAngles(glm::quat(hmdRot.w,hmdRot.x,hmdRot.y,hmdRot.z)).z };
+
+                    trotation[1] = vr::HmdVector3d_t{ glm::eulerAngles(glm::quat(hmdRot.w,hmdRot.x,hmdRot.y,hmdRot.z)).x,
+                    glm::eulerAngles(glm::quat(hmdRot.w,hmdRot.x,hmdRot.y,hmdRot.z)).y,
+                    glm::eulerAngles(glm::quat(hmdRot.w,hmdRot.x,hmdRot.y,hmdRot.z)).z };
+                }
+
+                if (KinectSettings::rtcalibrated) {
+                    Eigen::Vector3f Hf, Mf, Hp;
+                    if (!flip) {
+                        Hf(0) = poseFiltered[0].x;
+                        Hf(1) = poseFiltered[0].y;
+                        Hf(2) = poseFiltered[0].z;
+
+                        Mf(0) = poseFiltered[1].x;
+                        Mf(1) = poseFiltered[1].y;
+                        Mf(2) = poseFiltered[1].z;
+                    }
+                    else {
+                        trotation[0].v[1] += 180;
+                        trotation[1].v[1] += 180;
+                        trotation[2].v[1] += 180;
+
+                        Mf(0) = poseFiltered[0].x;
+                        Mf(1) = poseFiltered[0].y;
+                        Mf(2) = poseFiltered[0].z;
+
+                        Hf(0) = poseFiltered[1].x;
+                        Hf(1) = poseFiltered[1].y;
+                        Hf(2) = poseFiltered[1].z;
+                    }
+
+                    Hp(0) = poseFiltered[2].x;
+                    Hp(1) = poseFiltered[2].y;
+                    Hp(2) = poseFiltered[2].z;
+
+                    PointSet Hf2 = (KinectSettings::R_matT * (Hf - calorigin)).colwise() + KinectSettings::T_matT + calorigin;
+                    PointSet Mf2 = (KinectSettings::R_matT * (Mf - calorigin)).colwise() + KinectSettings::T_matT + calorigin;
+                    PointSet Hp2 = (KinectSettings::R_matT * (Hp - calorigin)).colwise() + KinectSettings::T_matT + calorigin;
+
+                    S << "HX" << 10000 * (Hf2(0) + KinectSettings::moffsets[0][1].v[0] + KinectSettings::troffsets.v[0]) <<
+                        "/HY" << 10000 * (Hf2(1) + KinectSettings::moffsets[0][1].v[1] + KinectSettings::troffsets.v[1]) <<
+                        "/HZ" << 10000 * (Hf2(2) + KinectSettings::moffsets[0][1].v[2] + KinectSettings::troffsets.v[2]) <<
+                        "/MX" << 10000 * (Mf2(0) + KinectSettings::moffsets[0][0].v[0] + KinectSettings::troffsets.v[0]) <<
+                        "/MY" << 10000 * (Mf2(1) + KinectSettings::moffsets[0][0].v[1] + KinectSettings::troffsets.v[1]) <<
+                        "/MZ" << 10000 * (Mf2(2) + KinectSettings::moffsets[0][0].v[2] + KinectSettings::troffsets.v[2]) <<
+                        "/PX" << 10000 * (Hp2(0) + KinectSettings::moffsets[0][2].v[0] + KinectSettings::troffsets.v[0]) <<
+                        "/PY" << 10000 * (Hp2(1) + KinectSettings::moffsets[0][2].v[1] + KinectSettings::troffsets.v[1]) <<
+                        "/PZ" << 10000 * (Hp2(2) + KinectSettings::moffsets[0][2].v[2] + KinectSettings::troffsets.v[2]) <<
+                        "/HRX" << 10000 * (trotation[0].v[0] + KinectSettings::moffsets[1][1].v[0]) * M_PI / 180 <<
+                        "/HRY" << 10000 * (trotation[0].v[1] + KinectSettings::tryaw + KinectSettings::moffsets[1][1].v[1]) * M_PI / 180 <<
+                        "/HRZ" << 10000 * (trotation[0].v[2] + KinectSettings::moffsets[1][1].v[2]) * M_PI / 180 <<
+                        "/MRX" << 10000 * (trotation[1].v[0] + KinectSettings::moffsets[1][0].v[0]) * M_PI / 180 <<
+                        "/MRY" << 10000 * (trotation[1].v[1] + KinectSettings::tryaw + KinectSettings::moffsets[1][0].v[1]) * M_PI / 180 <<
+                        "/MRZ" << 10000 * (trotation[1].v[2] + KinectSettings::moffsets[1][0].v[2]) * M_PI / 180 <<
+                        "/PRX" << 10000 * (trotation[2].v[0] + KinectSettings::moffsets[1][2].v[0]) * M_PI / 180 <<
+                        "/PRY" << 10000 * (trotation[2].v[1] + KinectSettings::tryaw + KinectSettings::moffsets[1][2].v[1]) * M_PI / 180 <<
+                        "/PRZ" << 10000 * (trotation[2].v[2] + KinectSettings::moffsets[1][2].v[2]) * M_PI / 180 <<
+                        "/WRW" << 10000 * (0) << //DEPRECATED: GLM_ROTATE SCREWED UP WITH > 99
+                        "/ENABLED" << KinectSettings::initialised << "/";
+                }
+                else {
+                    if (!flip) {
+                        S << "HX" << 10000 * (poseFiltered[0].x + KinectSettings::moffsets[0][1].v[0] + KinectSettings::troffsets.v[0]) <<
+                            "/HY" << 10000 * (poseFiltered[0].y + KinectSettings::moffsets[0][1].v[1] + KinectSettings::troffsets.v[1]) <<
+                            "/HZ" << 10000 * (poseFiltered[0].z + KinectSettings::moffsets[0][1].v[2] + KinectSettings::troffsets.v[2]) <<
+                            "/MX" << 10000 * (poseFiltered[1].x + KinectSettings::moffsets[0][0].v[0] + KinectSettings::troffsets.v[0]) <<
+                            "/MY" << 10000 * (poseFiltered[1].y + KinectSettings::moffsets[0][0].v[1] + KinectSettings::troffsets.v[1]) <<
+                            "/MZ" << 10000 * (poseFiltered[1].z + KinectSettings::moffsets[0][0].v[2] + KinectSettings::troffsets.v[2]) <<
+                            "/PX" << 10000 * (poseFiltered[2].x + KinectSettings::moffsets[0][2].v[0] + KinectSettings::troffsets.v[0]) <<
+                            "/PY" << 10000 * (poseFiltered[2].y + KinectSettings::moffsets[0][2].v[1] + KinectSettings::troffsets.v[1]) <<
+                            "/PZ" << 10000 * (poseFiltered[2].z + KinectSettings::moffsets[0][2].v[2] + KinectSettings::troffsets.v[2]) <<
+                            "/HRX" << 10000 * (trotation[0].v[0] + KinectSettings::moffsets[1][1].v[0]) * M_PI / 180 <<
+                            "/HRY" << 10000 * (trotation[0].v[1] + KinectSettings::moffsets[1][1].v[1]) * M_PI / 180 <<
+                            "/HRZ" << 10000 * (trotation[0].v[2] + KinectSettings::moffsets[1][1].v[2]) * M_PI / 180 <<
+                            "/MRX" << 10000 * (trotation[1].v[0] + KinectSettings::moffsets[1][0].v[0]) * M_PI / 180 <<
+                            "/MRY" << 10000 * (trotation[1].v[1] + KinectSettings::moffsets[1][0].v[1]) * M_PI / 180 <<
+                            "/MRZ" << 10000 * (trotation[1].v[2] + KinectSettings::moffsets[1][0].v[2]) * M_PI / 180 <<
+                            "/PRX" << 10000 * (trotation[2].v[0] + KinectSettings::moffsets[1][2].v[0]) * M_PI / 180 <<
+                            "/PRY" << 10000 * (trotation[2].v[1] + KinectSettings::moffsets[1][2].v[1]) * M_PI / 180 <<
+                            "/PRZ" << 10000 * (trotation[2].v[2] + KinectSettings::moffsets[1][2].v[2]) * M_PI / 180 <<
+                            "/WRW" << 10000 * (0) << //DEPRECATED: GLM_ROTATE SCREWED UP WITH > 99
+                            "/ENABLED" << KinectSettings::initialised << "/";
+                    }
+                    else {
+                        trotation[0].v[1] += 180;
+                        trotation[1].v[1] += 180;
+                        trotation[2].v[1] += 180;
+
+                        S << "HX" << 10000 * (poseFiltered[1].x + KinectSettings::moffsets[0][1].v[0] + KinectSettings::troffsets.v[0]) <<
+                            "/HY" << 10000 * (poseFiltered[1].y + KinectSettings::moffsets[0][1].v[1] + KinectSettings::troffsets.v[1]) <<
+                            "/HZ" << 10000 * (poseFiltered[1].z + KinectSettings::moffsets[0][1].v[2] + KinectSettings::troffsets.v[2]) <<
+                            "/MX" << 10000 * (poseFiltered[0].x + KinectSettings::moffsets[0][0].v[0] + KinectSettings::troffsets.v[0]) <<
+                            "/MY" << 10000 * (poseFiltered[0].y + KinectSettings::moffsets[0][0].v[1] + KinectSettings::troffsets.v[1]) <<
+                            "/MZ" << 10000 * (poseFiltered[0].z + KinectSettings::moffsets[0][0].v[2] + KinectSettings::troffsets.v[2]) <<
+                            "/PX" << 10000 * (poseFiltered[2].x + KinectSettings::moffsets[0][2].v[0] + KinectSettings::troffsets.v[0]) <<
+                            "/PY" << 10000 * (poseFiltered[2].y + KinectSettings::moffsets[0][2].v[1] + KinectSettings::troffsets.v[1]) <<
+                            "/PZ" << 10000 * (poseFiltered[2].z + KinectSettings::moffsets[0][2].v[2] + KinectSettings::troffsets.v[2]) <<
+                            "/HRX" << 10000 * (trotation[0].v[0] + KinectSettings::moffsets[1][1].v[0]) * M_PI / 180 <<
+                            "/HRY" << 10000 * (trotation[0].v[1] + KinectSettings::moffsets[1][1].v[1]) * M_PI / 180 <<
+                            "/HRZ" << 10000 * (trotation[0].v[2] + KinectSettings::moffsets[1][1].v[2]) * M_PI / 180 <<
+                            "/MRX" << 10000 * (trotation[1].v[0] + KinectSettings::moffsets[1][0].v[0]) * M_PI / 180 <<
+                            "/MRY" << 10000 * (trotation[1].v[1] + KinectSettings::moffsets[1][0].v[1]) * M_PI / 180 <<
+                            "/MRZ" << 10000 * (trotation[1].v[2] + KinectSettings::moffsets[1][0].v[2]) * M_PI / 180 <<
+                            "/PRX" << 10000 * (trotation[2].v[0] + KinectSettings::moffsets[1][2].v[0]) * M_PI / 180 <<
+                            "/PRY" << 10000 * (trotation[2].v[1] + KinectSettings::moffsets[1][2].v[1]) * M_PI / 180 <<
+                            "/PRZ" << 10000 * (trotation[2].v[2] + KinectSettings::moffsets[1][2].v[2]) * M_PI / 180 <<
+                            "/WRW" << 10000 * (0) << //DEPRECATED: GLM_ROTATE SCREWED UP WITH > 99
+                            "/ENABLED" << KinectSettings::initialised << "/";
+                    }
+                }
+
+                return S.str();
+            }();
+
+            std::string HedoS = [&]()->std::string {
+                std::stringstream S;
+
+                Eigen::AngleAxisd rollAngle(0.f, Eigen::Vector3d::UnitZ());
+                Eigen::AngleAxisd yawAngle(KinectSettings::hroffset * M_PI / 180, Eigen::Vector3d::UnitY());
+                Eigen::AngleAxisd pitchAngle(0.f, Eigen::Vector3d::UnitX());
+                Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
+                Eigen::Vector3d in(hmdPose.x, hmdPose.y, hmdPose.z);
+                Eigen::Vector3d out = q * in;
+
+                S << "X" << 10000 * (out(0) + KinectSettings::hoffsets.v[0]) <<
+                    "/Y" << 10000 * (out(1) + KinectSettings::hoffsets.v[1]) <<
+                    "/Z" << 10000 * (out(2) + KinectSettings::hoffsets.v[2]) << "/";
+                return S.str();
+            }();
+
+            std::string RightS = [&]()->std::string {
+                std::stringstream S;
+
+                if (KinectSettings::rtcalibrated) {
+                    using PointSet = Eigen::Matrix<float, 3, Eigen::Dynamic>;
+
+                    Eigen::Vector3f Hf, Ef;
+                    if (!flip) {
+                        Hf(0) = mHandPose.x;
+                        Hf(1) = mHandPose.y;
+                        Hf(2) = mHandPose.z;
+                        Ef(0) = mElPose.x;
+                        Ef(1) = mElPose.y;
+                        Ef(2) = mElPose.z;
+                    }
+                    else {
+                        trotation[0].v[1] = 180;
+                        trotation[1].v[1] = 180;
+                        trotation[2].v[1] = 180;
+
+                        Hf(0) = hHandPose.x;
+                        Hf(1) = hHandPose.y;
+                        Hf(2) = hHandPose.z;
+                        Ef(0) = hElPose.x;
+                        Ef(1) = hElPose.y;
+                        Ef(2) = hElPose.z;
+                    }
+
+                    PointSet Hf2 = (KinectSettings::R_matT * Hf).colwise() + KinectSettings::T_matT;
+                    PointSet Mf2 = (KinectSettings::R_matT * Ef).colwise() + KinectSettings::T_matT;
+
+                    S << "X" << 10000 * (Hf(0) + KinectSettings::hoffsets.v[0] + KinectSettings::mauoffset.v[0]) <<
+                        "/Y" << 10000 * (Hf(1) + KinectSettings::hoffsets.v[1] + KinectSettings::mauoffset.v[1]) <<
+                        "/Z" << 10000 * (Hf(2) + KinectSettings::hoffsets.v[2] + KinectSettings::mauoffset.v[2]) <<
+                        "/EX" << 10000 * (Ef(0) + KinectSettings::hoffsets.v[0] + KinectSettings::mauoffset.v[0]) <<
+                        "/EY" << 10000 * (Ef(1) + KinectSettings::hoffsets.v[1] + KinectSettings::mauoffset.v[1]) <<
+                        "/EZ" << 10000 * (Ef(2) + KinectSettings::hoffsets.v[2] + KinectSettings::mauoffset.v[2]) << "/";
+                }
+                else {
+                    if (!flip) {
+                        S << "X" << 10000 * (mHandPose.x + KinectSettings::hoffsets.v[0] + KinectSettings::mauoffset.v[0]) <<
+                            "/Y" << 10000 * (mHandPose.y + KinectSettings::hoffsets.v[1] + KinectSettings::mauoffset.v[1]) <<
+                            "/Z" << 10000 * (mHandPose.z + KinectSettings::hoffsets.v[2] + KinectSettings::mauoffset.v[2]) <<
+                            "/EX" << 10000 * (mElPose.x + KinectSettings::hoffsets.v[0] + KinectSettings::mauoffset.v[0]) <<
+                            "/EY" << 10000 * (mElPose.y + KinectSettings::hoffsets.v[1] + KinectSettings::mauoffset.v[1]) <<
+                            "/EZ" << 10000 * (mElPose.z + KinectSettings::hoffsets.v[2] + KinectSettings::mauoffset.v[2]) << "/";
+                    }
+                    else {
+                        S << "X" << 10000 * (hHandPose.x + KinectSettings::hoffsets.v[0] + KinectSettings::mauoffset.v[0]) <<
+                            "/Y" << 10000 * (hHandPose.y + KinectSettings::hoffsets.v[1] + KinectSettings::mauoffset.v[1]) <<
+                            "/Z" << 10000 * (hHandPose.z + KinectSettings::hoffsets.v[2] + KinectSettings::mauoffset.v[2]) <<
+                            "/EX" << 10000 * (hElPose.x + KinectSettings::hoffsets.v[0] + KinectSettings::mauoffset.v[0]) <<
+                            "/EY" << 10000 * (hElPose.y + KinectSettings::hoffsets.v[1] + KinectSettings::mauoffset.v[1]) <<
+                            "/EZ" << 10000 * (hElPose.z + KinectSettings::hoffsets.v[2] + KinectSettings::mauoffset.v[2]) << "/";
+                    }
+                }
+
+                return S.str();
+            }();
+
+            std::string LeftS = [&]()->std::string {
+                std::stringstream S;
+
+                if (KinectSettings::rtcalibrated) {
+                    using PointSet = Eigen::Matrix<float, 3, Eigen::Dynamic>;
+
+                    Eigen::Vector3f Hf, Ef;
+                    if (flip) {
+                        Hf(0) = mHandPose.x;
+                        Hf(1) = mHandPose.y;
+                        Hf(2) = mHandPose.z;
+                        Ef(0) = mElPose.x;
+                        Ef(1) = mElPose.y;
+                        Ef(2) = mElPose.z;
+                    }
+                    else {
+                        trotation[0].v[1] = 180;
+                        trotation[1].v[1] = 180;
+                        trotation[2].v[1] = 180;
+
+                        Hf(0) = hHandPose.x;
+                        Hf(1) = hHandPose.y;
+                        Hf(2) = hHandPose.z;
+                        Ef(0) = hElPose.x;
+                        Ef(1) = hElPose.y;
+                        Ef(2) = hElPose.z;
+                    }
+
+                    PointSet Hf2 = (KinectSettings::R_matT * Hf).colwise() + KinectSettings::T_matT;
+                    PointSet Mf2 = (KinectSettings::R_matT * Ef).colwise() + KinectSettings::T_matT;
+
+                    S << "X" << 10000 * (Hf(0) + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
+                        "/Y" << 10000 * (Hf(1) + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
+                        "/Z" << 10000 * (Hf(2) + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) <<
+                        "/EX" << 10000 * (Ef(0) + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
+                        "/EY" << 10000 * (Ef(1) + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
+                        "/EZ" << 10000 * (Ef(2) + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) << "/";
+                }
+                else {
+                    if (flip) {
+                        S << "X" << 10000 * (mHandPose.x + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
+                            "/Y" << 10000 * (mHandPose.y + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
+                            "/Z" << 10000 * (mHandPose.z + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) <<
+                            "/EX" << 10000 * (mElPose.x + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
+                            "/EY" << 10000 * (mElPose.y + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
+                            "/EZ" << 10000 * (mElPose.z + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) << "/";
+                    }
+                    else {
+                        S << "X" << 10000 * (hHandPose.x + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
+                            "/Y" << 10000 * (hHandPose.y + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
+                            "/Z" << 10000 * (hHandPose.z + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) <<
+                            "/EX" << 10000 * (hElPose.x + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
+                            "/EY" << 10000 * (hElPose.y + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
+                            "/EZ" << 10000 * (hElPose.z + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) << "/";
+                    }
+                }
+
+                return S.str();
+            }();
+
+            std::string IchiDatS = [&migiKontorora]()->std::string {
+                std::stringstream S;
+                S << "JX" << 10000 * (constrain(map(joy[0].z * 180 / M_PI, 70.f, -70.f, -1.f, 1.f), -1.f, 1.f)) <<
+                    "/JY" << 10000 * (constrain(map(joy[0].x * 180 / M_PI, 70.f, -70.f, -1.f, 1.f), -1.f, 1.f)) <<
+                    "/SY" << 10000 * (migiKontorora.CircleButton == PSMButtonState_DOWN) <<
+                    "/TR" << 10000 * (map(int(migiKontorora.TriggerValue), 0, 255, 0.f, 1.f)) <<
+                    "/AB" << 10000 * (migiKontorora.CrossButton == PSMButtonState_DOWN) <<
+                    "/BB" << 10000 * (migiKontorora.SquareButton == PSMButtonState_DOWN) <<
+                    "/GR" << 10000 * (migiKontorora.TriangleButton == PSMButtonState_DOWN) << "/";
+
+                return S.str();
+            }();
+            std::string IchiRotDatS = [&]()->std::string {
+                std::stringstream S;
+                Eigen::Quaternionf invorient =
+                    Eigen::Quaternionf(offset[0].w, offset[0].x, offset[0].y, offset[0].z).conjugate();
+                eigen_quaternion_normalize_with_default(invorient, Eigen::Quaternionf::Identity());
+
+                quatf[0] = invorient * Eigen::Quaternionf(
+                    migiKontorora.Pose.Orientation.w, migiKontorora.Pose.Orientation.x, migiKontorora.Pose.Orientation.y, migiKontorora.Pose.Orientation.z);
+
+                if (migiKontorora.MoveButton != PSMButtonState_DOWN) {
+                    joy[0] = glm::vec3(0, 0, 0);
+                }
+                else {
+                    joy[0] = glm::eulerAngles(glm::quat(quatf[0].w(), quatf[0].x(), quatf[0].y(), quatf[0].z()));
+                    joy[0] -= joybk[0];
+                }
+                if (migiKontorora.MoveButton == PSMButtonState_PRESSED) {
+                    joybk[0] = glm::eulerAngles(glm::quat(quatf[0].w(), quatf[0].x(), quatf[0].y(), quatf[0].z()));
+                }
+
+                S << "X" << 10000.f * quatf[0].x() <<
+                    "/Y" << 10000.f * quatf[0].y() <<
+                    "/Z" << 10000.f * quatf[0].z() <<
+                    "/W" << 10000.f * quatf[0].w() << "/";
+
+                return S.str();
+            }();
+
+            std::string NiDatS = [&hidariKontorora]()->std::string {
+                std::stringstream S;
+                S << "JX" << 10000 * (constrain(map(joy[1].z * 180 / M_PI, 70.f, -70.f, -1.f, 1.f), -1.f, 1.f)) <<
+                    "/JY" << 10000 * (constrain(map(joy[1].x * 180 / M_PI, 70.f, -70.f, -1.f, 1.f), -1.f, 1.f)) <<
+                    "/SY" << 10000 * (hidariKontorora.CrossButton == PSMButtonState_DOWN) <<
+                    "/TR" << 10000 * (map(int(hidariKontorora.TriggerValue), 0, 255, 0.f, 1.f)) <<
+                    "/AB" << 10000 * (hidariKontorora.CircleButton == PSMButtonState_DOWN) <<
+                    "/BB" << 10000 * (hidariKontorora.TriangleButton == PSMButtonState_DOWN) <<
+                    "/GR" << 10000 * (hidariKontorora.SquareButton == PSMButtonState_DOWN) << "/";
+
+                return S.str();
+            }();
+            std::string NiRotDatS = [&]()->std::string {
+                std::stringstream S;
+
+                Eigen::Quaternionf invorient =
+                    Eigen::Quaternionf(offset[1].w, offset[1].x, offset[1].y, offset[1].z).conjugate();
+                eigen_quaternion_normalize_with_default(invorient, Eigen::Quaternionf::Identity());
+
+                quatf[1] = invorient * Eigen::Quaternionf(
+                    hidariKontorora.Pose.Orientation.w, hidariKontorora.Pose.Orientation.x, hidariKontorora.Pose.Orientation.y, hidariKontorora.Pose.Orientation.z);
+
+                if (hidariKontorora.MoveButton != PSMButtonState_DOWN) {
+                    joy[1] = glm::vec3(0, 0, 0);
+                }
+                else {
+                    joy[1] = glm::eulerAngles(glm::quat(quatf[1].w(), quatf[1].x(), quatf[1].y(), quatf[1].z()));
+                    joy[1] -= joybk[1];
+                }
+                if (hidariKontorora.MoveButton == PSMButtonState_PRESSED) {
+                    joybk[1] = glm::eulerAngles(glm::quat(quatf[1].w(), quatf[1].x(), quatf[1].y(), quatf[1].z()));
+                }
+
+                S << "X" << 10000.f * quatf[1].x() <<
+                    "/Y" << 10000.f * quatf[1].y() <<
+                    "/Z" << 10000.f * quatf[1].z() <<
+                    "/W" << 10000.f * quatf[1].w() << "/";
+
+                return S.str();
+            }();
+
+            char TrackerD[1024], HedoD[1024], RightD[1024], 
+                LeftD[1024], IchiDatD[1024], 
+                IchiRotDatD[1024], NiDatD[1024], NiRotDatD[1024];
+
+            strcpy_s(TrackerD, TrackerS.c_str());
+            strcpy_s(HedoD, HedoS.c_str());
+            strcpy_s(RightD, RightS.c_str());
+            strcpy_s(LeftD, LeftS.c_str());
+            strcpy_s(IchiDatD, IchiDatS.c_str());
+            strcpy_s(IchiRotDatD, IchiRotDatS.c_str());
+            strcpy_s(NiDatD, NiDatS.c_str());
+            strcpy_s(NiRotDatD, NiRotDatS.c_str());
+
+            HANDLE pipeTracker = CreateFile(TEXT("\\\\.\\pipe\\LogPipeTracker"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+            HANDLE pipeSan = CreateFile(TEXT("\\\\.\\pipe\\LogPipeSan"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+            HANDLE pipeLeft = CreateFile(TEXT("\\\\.\\pipe\\LogPipeNi"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+            HANDLE pipeRight = CreateFile(TEXT("\\\\.\\pipe\\LogPipeIchi"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+            HANDLE pipeIchi = CreateFile(TEXT("\\\\.\\pipe\\LogPipeIchiButton"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+            HANDLE pipeIchiRot = CreateFile(TEXT("\\\\.\\pipe\\LogPipeIchiRot"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+            HANDLE pipeNi = CreateFile(TEXT("\\\\.\\pipe\\LogPipeNiButton"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+            HANDLE pipeNiRot = CreateFile(TEXT("\\\\.\\pipe\\LogPipeNiRot"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+            DWORD numWritten;
+
+            WriteFile(pipeTracker, TrackerD, sizeof(TrackerD), &numWritten, NULL);
+            WriteFile(pipeSan, HedoD, sizeof(HedoD), &numWritten, NULL);
+            WriteFile(pipeRight, RightD, sizeof(RightD), &numWritten, NULL);
+            WriteFile(pipeLeft, LeftD, sizeof(LeftD), &numWritten, NULL);
+            WriteFile(pipeIchi, IchiDatD, sizeof(IchiDatD), &numWritten, NULL);
+            WriteFile(pipeIchiRot, IchiRotDatD, sizeof(IchiRotDatD), &numWritten, NULL);
+            WriteFile(pipeNi, NiDatD, sizeof(NiDatD), &numWritten, NULL);
+            WriteFile(pipeNiRot, NiRotDatD, sizeof(NiRotDatD), &numWritten, NULL);
+
+            CloseHandle(pipeTracker);
+            CloseHandle(pipeSan);
+            CloseHandle(pipeRight);
+            CloseHandle(pipeLeft);
+            CloseHandle(pipeIchi);
+            CloseHandle(pipeIchiRot);
+            CloseHandle(pipeNi);
+            CloseHandle(pipeNiRot);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - t1).count();
+            while(duration <= 8500000.f)
+                duration = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - t1).count();
+
+        }
     }
 
     void serializeKinectSettings() {
@@ -352,6 +979,9 @@ namespace VRInput {
     // Analog Action Data
     vr::InputAnalogActionData_t moveHorizontallyData{};
     vr::InputAnalogActionData_t moveVerticallyData{};
+
+    vr::InputAnalogActionData_t trackpadpose[2]{};
+    vr::InputDigitalActionData_t confirmdatapose{};
 }
 bool VRInput::initialiseVRInput()
 {

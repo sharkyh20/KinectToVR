@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
     HWND hWnd = GetConsoleWindow();
     ShowWindow(hWnd, SW_SHOW);
 #ifndef _DEBUG 
-    ShowWindow(hWnd, SW_HIDE);
+    //ShowWindow(hWnd, SW_HIDE);
 #endif 
     KinectV1Handler kinect;
     KinectSettings::leftFootJointWithRotation = KVR::KinectJointType::AnkleLeft;

@@ -9,3 +9,6 @@
 /KinectV1Process/x64/Release
 /inputemulator/driver_vrinputemulator/src/devicemanipulation/Eigen
 /KinectV2Process/x64/Release
+/.vscode
+/KinectV1Process/x64/Debug
+/SFMLProject/x64/Debug
