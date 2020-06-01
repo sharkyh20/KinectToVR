@@ -103,6 +103,7 @@ namespace KinectSettings {
     extern float g_InferredBoneThickness;
     extern float g_JointThickness;
     extern float hmdYaw;
+    extern std::vector<int> psmindexidpsm[2];
     extern float ardroffset;
     extern const int kinectHeight;
     extern const int kinectWidth;

@@ -823,7 +823,31 @@ private:
             KinectSettings::KVRPSMoveData[wrapper.controller->ControllerID].PSMoveData = controller;
             KinectSettings::KVRPSMoveData[wrapper.controller->ControllerID].isValidController = true;
 
-            if (wrapper.controller->ControllerID == KinectSettings::psmh)
+            for (int psmid = 0; psmid < KinectSettings::psmindexidpsm[0].size(); psmid++) {
+                if(KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::psmh 
+                    && wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid))
+                    KinectSettings::hidariMove = controller;
+
+                if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::psmm
+                    && wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid))
+                    KinectSettings::migiMove = controller;
+
+
+
+                if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::psmhidari
+                    && wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid))
+                    KinectSettings::hidariashimove = controller;
+
+                if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::psmmigi
+                    && wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid))
+                    KinectSettings::migiashimove = controller;
+
+                if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::psmyobu
+                    && wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid))
+                    KinectSettings::yobumove = controller;
+            }
+
+            /*if (wrapper.controller->ControllerID == KinectSettings::psmh)
                 KinectSettings::hidariMove = controller;
             if (wrapper.controller->ControllerID == KinectSettings::psmm)
                 KinectSettings::migiMove = controller;
@@ -833,7 +857,7 @@ private:
             if (wrapper.controller->ControllerID == KinectSettings::psmmigi)
                 KinectSettings::migiashimove = controller;
             if (wrapper.controller->ControllerID == KinectSettings::psmyobu)
-                KinectSettings::yobumove = controller;
+                KinectSettings::yobumove = controller;*/
 
             if (bStartRealignHMDTriggered) {
                 PSMVector3f controllerBallPointedUpEuler = { (float)M_PI_2, 0.0f, 0.0f };

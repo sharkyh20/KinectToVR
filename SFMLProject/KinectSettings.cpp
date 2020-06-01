@@ -31,6 +31,8 @@ namespace KinectSettings {
     bool isSkeletonDrawn = false;
     float svrhmdyaw = 0;
     int psmh, psmm;
+    std::vector<int> psmindexidpsm[2];
+    
     bool ignoreInferredPositions = false;
     bool ignoreRotationSmoothing = false;
     float ardroffset = 0.f;
@@ -307,7 +309,7 @@ namespace KinectSettings {
 
             using PointSet = Eigen::Matrix<float, 3, Eigen::Dynamic>;
             float yaw = KinectSettings::hmdYaw * 180 / M_PI;
-            float facing = yaw - KinectSettings::tryaw;
+            float facing = yaw - KinectSettings::tryaw * 180 / M_PI;
 
             if (bodytrackingoption == bodiTorakkinguOpu::k_PSMoveFullTracking)
                 flip = false;
@@ -378,28 +380,23 @@ namespace KinectSettings {
                     trackerRotm = glm::quat(hmdRot.w, hmdRot.x, hmdRot.y, hmdRot.z);
                 }
 
+                glm::vec3 unofu[3] = { glm::eulerAngles(trackerRoth),glm::eulerAngles(trackerRotm),glm::eulerAngles(trackerRoty) };
+                unofu[0] += glm::vec3(moffsets[1][1].v[0] * M_PI / 180.f, moffsets[1][1].v[1] * M_PI / 180.f, moffsets[1][1].v[2] * M_PI / 180.f);
+                unofu[1] += glm::vec3(moffsets[1][0].v[0] * M_PI / 180.f, moffsets[1][0].v[1] * M_PI / 180.f, moffsets[1][0].v[2] * M_PI / 180.f);
+                unofu[2] += glm::vec3(moffsets[1][2].v[0] * M_PI / 180.f, moffsets[1][2].v[1] * M_PI / 180.f, moffsets[1][2].v[2] * M_PI / 180.f);
+                trackerRoth = unofu[0];
+                trackerRotm = unofu[1];
+                trackerRoty = unofu[2];
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                if (bodytrackingoption == bodiTorakkinguOpu::k_KinectFullTracking) {
+                    glm::vec3 unofu[3] = { glm::eulerAngles(trackerRoth),glm::eulerAngles(trackerRotm),glm::eulerAngles(trackerRoty) };
+                    unofu[0] += glm::vec3(0.f, tryaw, 0.f);
+                    unofu[1] += glm::vec3(0.f, tryaw, 0.f);
+                    unofu[2] += glm::vec3(0.f, tryaw, 0.f);
+                    trackerRoth = unofu[0];
+                    trackerRotm = unofu[1];
+                    trackerRoty = unofu[2];
+                }
 
                 if (KinectSettings::rtcalibrated) {
                     Eigen::Vector3f Hf, Mf, Hp;
@@ -413,9 +410,13 @@ namespace KinectSettings {
                         Mf(2) = poseFiltered[1].z;
                     }
                     else {
-                        /*trotation[0].v[1] += 180;
-                        trotation[1].v[1] += 180;
-                        trotation[2].v[1] += 180;*/
+                        glm::vec3 unofu[3] = { glm::eulerAngles(trackerRoth),glm::eulerAngles(trackerRotm),glm::eulerAngles(trackerRoty) };
+                        unofu[0] += glm::vec3(0.f, 180.f, 0.f);
+                        unofu[1] += glm::vec3(0.f, 180.f, 0.f);
+                        unofu[2] += glm::vec3(0.f, 180.f, 0.f);
+                        trackerRoth = unofu[0];
+                        trackerRotm = unofu[1];
+                        trackerRoty = unofu[2];
                         
                         Mf(0) = poseFiltered[0].x;
                         Mf(1) = poseFiltered[0].y;

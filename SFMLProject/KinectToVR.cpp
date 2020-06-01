@@ -335,6 +335,7 @@ void processLoop(KinectHandlerBase& kinect) {
 	guiRef.coptbox->SelectItem(VirtualHips::settings.footOption);
 	guiRef.coptbox1->SelectItem(VirtualHips::settings.hipsOption);
 	guiRef.foptbox->SelectItem(VirtualHips::settings.posOption);
+	guiRef.bodytrackingselectbox->SelectItem(VirtualHips::settings.bodyTrackingOption);
 
 	boost::thread* ipcThread = new boost::thread(KinectSettings::sendipc);
 	ipcThread->detach();
@@ -514,6 +515,11 @@ void processLoop(KinectHandlerBase& kinect) {
 
 			VirtualHips::saveSettings();
 		}
+
+		if (VirtualHips::settings.bodyTrackingOption == bodiTorakkinguOpu::k_PSMoveFullTracking)
+			guiRef.psmidbox->Show(true);
+		else
+			guiRef.psmidbox->Show(false);
 
 		KinectSettings::footOption = VirtualHips::settings.footOption;
 		KinectSettings::hipsOption = VirtualHips::settings.hipsOption;

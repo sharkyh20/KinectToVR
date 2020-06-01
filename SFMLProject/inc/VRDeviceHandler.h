@@ -163,6 +163,7 @@ namespace VirtualHips {
                 bodiTorakkinguOpushon.trackingOption = bodiTorakkinguOpu(settings.bodyTrackingOption);
 
                 KinectSettings::calorigin = settings.caliborigin;
+
 				LOG(INFO) << settings.tryawst << '\n' << settings.rcR_matT << '\n' << KinectSettings::tryaw << '\n' << KinectSettings::R_matT << '\n';
 
             }

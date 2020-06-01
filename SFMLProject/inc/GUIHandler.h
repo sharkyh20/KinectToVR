@@ -112,9 +112,10 @@ public:
     sfg::ComboBox::Ptr psmoveboxhi = sfg::ComboBox::Create();
     sfg::ComboBox::Ptr psmoveboxmi = sfg::ComboBox::Create();
     sfg::ComboBox::Ptr psmoveboxyo = sfg::ComboBox::Create();
+    sfg::Box::Ptr psmidbox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
 
     GUIHandler() {
-        guiWindow->SetTitle("");
+        guiWindow->SetTitle("KinectToVR EX alpha 0.7.1");
         
 
         setDefaultSignals();
@@ -129,7 +130,7 @@ public:
 
         mainNotebook->AppendPage(mainGUIBox, sfg::Label::Create(" Body Trackers "));
         mainNotebook->AppendPage(calibrationBox, sfg::Label::Create(" Offsets "));
-        mainNotebook->AppendPage(advancedTrackerBox, sfg::Label::Create(" Other Options "));
+        mainNotebook->AppendPage(advancedTrackerBox, sfg::Label::Create(" Tracking Options "));
         mainNotebook->AppendPage(controllersBox, sfg::Label::Create(" Controllers "));
         mainNotebook->AppendPage(virtualHipsBox, sfg::Label::Create(" Head Tracking "));
 
@@ -872,37 +873,92 @@ public:
         refreshpsmovesbuton->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
             psmovebox->Clear();
             psmovebox1->Clear();
+            psmoveboxhi->Clear();
+            psmoveboxmi->Clear();
+            psmoveboxyo->Clear();
+
+            KinectSettings::psmindexidpsm[0].clear();
+            KinectSettings::psmindexidpsm[1].clear();
 
             for (int i = 0; i < 11; i++) {
                 if (KinectSettings::KVRPSMoveData[i].isValidController) {
                     psmovebox->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
                     psmovebox1->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
+                    psmoveboxhi->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
+                    psmoveboxmi->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
+                    psmoveboxyo->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
+
+                    KinectSettings::psmindexidpsm[0].push_back(psmovebox->GetItemCount() - 1);
+                    KinectSettings::psmindexidpsm[1].push_back(i);
+
                 }
             }
-			if (psmovebox->GetItemCount() >= 1)
-				psmovebox->SelectItem(0);
-			if (psmovebox1->GetItemCount() >= 2)
-				psmovebox1->SelectItem(1);
+            if (psmovebox->GetItemCount() >= 1) {
+                psmovebox->SelectItem(0);
+                KinectSettings::psmh = 0;
+            }
+            if (psmovebox1->GetItemCount() >= 2) {
+                psmovebox1->SelectItem(1);
+                KinectSettings::psmm = 1;
+            }
+            if (psmoveboxhi->GetItemCount() >= 1) {
+                psmoveboxhi->SelectItem(0);
+                KinectSettings::psmhidari = 0;
+            }
+            if (psmoveboxmi->GetItemCount() >= 2) {
+                psmoveboxmi->SelectItem(1);
+                KinectSettings::psmmigi = 1;
+            }
+            if (psmoveboxyo->GetItemCount() >= 3) {
+                psmoveboxyo->SelectItem(2);
+                KinectSettings::psmyobu = 2;
+            }
+
             });
 
         refreshpsmovesbuton1->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
+            psmovebox->Clear();
+            psmovebox1->Clear();
             psmoveboxhi->Clear();
             psmoveboxmi->Clear();
             psmoveboxyo->Clear();
 
+            KinectSettings::psmindexidpsm[0].clear();
+            KinectSettings::psmindexidpsm[1].clear();
+
             for (int i = 0; i < 11; i++) {
                 if (KinectSettings::KVRPSMoveData[i].isValidController) {
+                    psmovebox->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
+                    psmovebox1->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
                     psmoveboxhi->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
                     psmoveboxmi->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
                     psmoveboxyo->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
+
+                    KinectSettings::psmindexidpsm[0].push_back(psmoveboxhi->GetItemCount() - 1);
+                    KinectSettings::psmindexidpsm[1].push_back(i);
                 }
 			}
-			if (psmoveboxhi->GetItemCount() >= 1)
-				psmoveboxhi->SelectItem(0);
-			if (psmoveboxmi->GetItemCount() >= 2)
-				psmoveboxmi->SelectItem(1);
-			if (psmoveboxyo->GetItemCount() >= 3)
-				psmoveboxyo->SelectItem(2);
+            if (psmovebox->GetItemCount() >= 1) {
+                psmovebox->SelectItem(0);
+                KinectSettings::psmh = 0;
+            }
+            if (psmovebox1->GetItemCount() >= 2) {
+                psmovebox1->SelectItem(1);
+                KinectSettings::psmm = 1;
+            }
+            if (psmoveboxhi->GetItemCount() >= 1) {
+                psmoveboxhi->SelectItem(0);
+                KinectSettings::psmhidari = 0;
+            }
+            if (psmoveboxmi->GetItemCount() >= 2) {
+                psmoveboxmi->SelectItem(1);
+                KinectSettings::psmmigi = 1;
+            }
+            if (psmoveboxyo->GetItemCount() >= 3) {
+                psmoveboxyo->SelectItem(2);
+                KinectSettings::psmyobu = 2;
+            }
+
 			});
 
 		refreshcomports->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
@@ -1627,6 +1683,7 @@ public:
         toptbox->Pack(sfg::Label::Create("Choose configuration for controllers tracking"));
         toptbox->Pack(contrackingselectbox);
 
+        controllersBox->Pack(toptbox);
         contrackingselectbox->AppendItem("Full PSMove setup");
         contrackingselectbox->AppendItem("PSMove + Kinect tracking");
         contrackingselectbox->SelectItem(VirtualHips::settings.conOption);
@@ -1729,7 +1786,6 @@ public:
         bodytrackingselectbox->AppendItem("Kinect body tracking");
         bodytrackingselectbox->SelectItem(VirtualHips::settings.bodyTrackingOption);
 
-        sfg::Box::Ptr psmidbox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
         sfg::Box::Ptr psmleftidbox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
         sfg::Box::Ptr psmrightidbox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
         sfg::Box::Ptr psmhipsidbox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
@@ -2376,7 +2432,7 @@ public:
 
                     TrackersCalibButton->SetLabel(std::string("-- Orientate trackers to your body using touchpad controls. Press Trigger to confirm --").c_str());
 
-                    double yawtmp, pitchtmp;
+                    double yawtmp = 0, pitchtmp = 0;
                     while (!VRInput::confirmdatapose.bState) {
 
                         yawtmp += VRInput::trackpadpose[1].x * M_PI / 280.f;
@@ -2399,14 +2455,34 @@ public:
                     settings.rcR_matT = KinectSettings::R_matT;
                     settings.rcT_matT = KinectSettings::T_matT;
 
-                    KinectSettings::tryaw = glm::degrees(yawtmp);
-                    settings.tryawst = glm::degrees(yawtmp);
+                    KinectSettings::tryaw = yawtmp;
+                    settings.tryawst = yawtmp;
 
                     KinectSettings::rtcalibrated = true;
                     settings.rtcalib = true;
 
                     TrackersCalibButton->SetLabel(std::string("-- Done! Hit me to re-calibrate! --").c_str());
                     TrackersCalibButton->SetState(sfg::Widget::State::NORMAL);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                     VirtualHips::saveSettings();
 
