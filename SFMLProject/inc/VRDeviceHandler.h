@@ -38,7 +38,7 @@ struct VirtualHipSettings {
     float tryawst;
     int autosver = 1;
     int footOption, hipsOption, posOption = 3, conOption;
-
+    int bodyTrackingOption = 1;
     // --- Standing Settings ---
     bool positionFollowsHMDLean = false; // Determines whether the virtual hips in standing mode will stay above the foot trackers, or interpolate between the HMD and foot trackers on a direct slant
     float hmdegree = 0.0;
@@ -76,6 +76,7 @@ struct VirtualHipSettings {
             CEREAL_NVP(hipsOption),
             CEREAL_NVP(posOption),
             CEREAL_NVP(conOption),
+            CEREAL_NVP(bodyTrackingOption),
             CEREAL_NVP(comph),
             CEREAL_NVP(compm),
             CEREAL_NVP(hauoffset_s),
@@ -158,6 +159,8 @@ namespace VirtualHips {
                 footOrientationFilterOption.filterOption = footRotationFilterOption(settings.footOption);
                 hipsOrientationFilterOption.filterOption = hipsRotationFilterOption(settings.hipsOption);
                 positionFilterOption.filterOption = positionalFilterOption(settings.posOption);
+                kontororaTorakkinguOpushon.trackingOption = kontororaTorakkinguOpu(settings.conOption);
+                bodiTorakkinguOpushon.trackingOption = bodiTorakkinguOpu(settings.bodyTrackingOption);
 
                 KinectSettings::calorigin = settings.caliborigin;
 				LOG(INFO) << settings.tryawst << '\n' << settings.rcR_matT << '\n' << KinectSettings::tryaw << '\n' << KinectSettings::R_matT << '\n';

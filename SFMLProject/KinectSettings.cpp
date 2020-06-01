@@ -34,6 +34,7 @@ namespace KinectSettings {
     bool ignoreInferredPositions = false;
     bool ignoreRotationSmoothing = false;
     float ardroffset = 0.f;
+    int bodytrackingoption = 1;
     // The joints which actually have rotation change based on the kinect
     // Each kinect type should set these in their process beginning
     // These would be the defaults for the V1
@@ -42,7 +43,7 @@ namespace KinectSettings {
     KVR::KinectJointType leftFootJointWithoutRotation = KVR::KinectJointType::AnkleLeft;
     KVR::KinectJointType rightFootJointWithoutRotation = KVR::KinectJointType::AnkleRight;
 
-    PSMPSMove migiMove, hidariMove;
+    PSMPSMove migiMove, hidariMove, hidariashimove, migiashimove, yobumove;
     bool initialised = false;
     bool userChangingZero = false;
     bool legacy = false;
@@ -87,6 +88,7 @@ namespace KinectSettings {
     int rightHandPlayspaceMovementButton = 0;
     int leftFootPlayspaceMovementButton = 0;
     int rightFootPlayspaceMovementButton = 0;
+    int psmmigi, psmhidari, psmyobu;
     float hmdYaw = 0;
     float conID[2] = { 0, 1 };
 
@@ -174,6 +176,17 @@ namespace KinectSettings {
 
         while (true) {
             auto t1 = std::chrono::high_resolution_clock::now();
+            glm::quat trackerRoth, trackerRotm, trackerRoty;
+
+            if (bodytrackingoption == bodiTorakkinguOpu::k_PSMoveFullTracking) {
+                hFootPose = glm::vec3(hidariashimove.Pose.Position.x, hidariashimove.Pose.Position.y, hidariashimove.Pose.Position.z);
+                mFootPose = glm::vec3(migiashimove.Pose.Position.x, migiashimove.Pose.Position.y, migiashimove.Pose.Position.z);
+                hipsPose = glm::vec3(yobumove.Pose.Position.x, yobumove.Pose.Position.y, yobumove.Pose.Position.z);
+
+                hFootRot = glm::quat(hidariashimove.Pose.Orientation.w, hidariashimove.Pose.Orientation.x, hidariashimove.Pose.Orientation.y, hidariashimove.Pose.Orientation.z);
+                mFootRot = glm::quat(migiashimove.Pose.Orientation.w, migiashimove.Pose.Orientation.x, migiashimove.Pose.Orientation.y, migiashimove.Pose.Orientation.z);
+                hipsRot = glm::quat(yobumove.Pose.Orientation.w, yobumove.Pose.Orientation.x, yobumove.Pose.Orientation.y, yobumove.Pose.Orientation.z);
+            }
 
             KinectSettings::mposes[2].v[0] = hipsPose.x;
             KinectSettings::mposes[2].v[1] = hipsPose.y;
@@ -292,90 +305,101 @@ namespace KinectSettings {
             if (hidariKontorora.SelectButton == PSMButtonState_DOWN) //we are recentering right psmove with select button
                 offset[1] = hidariKontorora.Pose.Orientation;        //quaterion for further offset maths
 
-            vr::HmdVector3d_t trotation[3] = { {0,0,0},{0,0,0},{0,0,0} };
             using PointSet = Eigen::Matrix<float, 3, Eigen::Dynamic>;
-
             float yaw = KinectSettings::hmdYaw * 180 / M_PI;
             float facing = yaw - KinectSettings::tryaw;
 
-            if (facing < 25 && facing > -25)flip = false;
-            if (facing < -155 && facing > -205)flip = true;
+            if (bodytrackingoption == bodiTorakkinguOpu::k_PSMoveFullTracking)
+                flip = false;
+            else {
+                if (facing < 25 && facing > -25)flip = false;
+                if (facing < -155 && facing > -205)flip = true;
+            }
 
             std::string TrackerS = [&]()->std::string {
                 std::stringstream S;
 
                 if (hipsOption == hipsRotationFilterOption::k_EnableHipsOrientationFilter) {
-                    if (!flip) {
-                        trotation[2] = vr::HmdVector3d_t{ double(glm::eulerAngles(hipsRot).x * 180 / M_PI) + 180.f,
-                        -double(glm::eulerAngles(hipsRot).y * 180 / M_PI),
-                        double(glm::eulerAngles(hipsRot).z * 180 / M_PI) + 180.f };
-                    }
+                    if (bodytrackingoption == bodiTorakkinguOpu::k_KinectFullTracking)
+                        trackerRoty = hipsRot;
                     else
-                    {
-                        trotation[2] = vr::HmdVector3d_t{ -double(glm::eulerAngles(hipsRot).x * 180 / M_PI) + 180.f,
-                        double(glm::eulerAngles(hipsRot).y * 180 / M_PI),
-                        -double(glm::eulerAngles(hipsRot).z * 180 / M_PI) + 180.f };
-					}
-				}
-				else if (hipsOption == hipsRotationFilterOption::k_EnableHipsOrientationFilter_HeadOrientation) {
-					trotation[2] = vr::HmdVector3d_t{ glm::eulerAngles(glm::quat(hmdRot.w,hmdRot.x,hmdRot.y,hmdRot.z)).x,
-					glm::eulerAngles(glm::quat(hmdRot.w,hmdRot.x,hmdRot.y,hmdRot.z)).y,
-					glm::eulerAngles(glm::quat(hmdRot.w,hmdRot.x,hmdRot.y,hmdRot.z)).z };
-				}
-                else if (hipsOption == hipsRotationFilterOption::k_DisableHipsOrientationFilter) {
-                    trotation[2] = vr::HmdVector3d_t{ 0,0,0 };
+                        trackerRoty = glm::quat(yobumove.Pose.Orientation.w, yobumove.Pose.Orientation.x, yobumove.Pose.Orientation.y, yobumove.Pose.Orientation.z);
                 }
+                else if (hipsOption == hipsRotationFilterOption::k_EnableHipsOrientationFilter_HeadOrientation)
+                    trackerRoty = glm::quat(hmdRot.w, hmdRot.x, hmdRot.y, hmdRot.z);
+                else if (hipsOption == hipsRotationFilterOption::k_DisableHipsOrientationFilter)
+                    trackerRoty = glm::quat(0, 0, 0, 0);
 
                 glm::quat footrot[2] = { hFootRot, mFootRot };
                 if (footOption == footRotationFilterOption::k_EnableOrientationFilter) {
-                    if (!flip) {
-                        trotation[0] = vr::HmdVector3d_t{ double(glm::eulerAngles(footrot[0]).x * 180 / M_PI) + 180.f,
-                            double(glm::eulerAngles(footrot[0]).y * 180 / M_PI),
-                            double(glm::eulerAngles(footrot[0]).z * 180 / M_PI) };
-                        trotation[1] = vr::HmdVector3d_t{ double(glm::eulerAngles(footrot[1]).x * 180 / M_PI) + 180.f,
-                            double(glm::eulerAngles(footrot[0]).y * 180 / M_PI),
-                            double(glm::eulerAngles(footrot[1]).z * 180 / M_PI) };
+                    if (bodytrackingoption == bodiTorakkinguOpu::k_KinectFullTracking) {
+                        if (!flip) {
+                            trackerRoth = hFootRot;
+                            trackerRotm = mFootRot;
+                        }
+                        else {
+                            trackerRoth = glm::inverse(hFootRot);
+                            trackerRotm = glm::inverse(mFootRot);
+                        }
                     }
                     else {
-                        trotation[1] = vr::HmdVector3d_t{ -double(glm::eulerAngles(footrot[0]).x * 180 / M_PI) + 180.f,
-                            -double(glm::eulerAngles(footrot[0]).y * 180 / M_PI),
-                            -double(glm::eulerAngles(footrot[0]).z * 180 / M_PI) };
-                        trotation[0] = vr::HmdVector3d_t{ -double(glm::eulerAngles(footrot[1]).x * 180 / M_PI) + 180.f,
-                            -double(glm::eulerAngles(footrot[0]).y * 180 / M_PI),
-                            -double(glm::eulerAngles(footrot[1]).z * 180 / M_PI) };
+                        trackerRoth = glm::quat(hidariashimove.Pose.Orientation.w, hidariashimove.Pose.Orientation.x, hidariashimove.Pose.Orientation.y, hidariashimove.Pose.Orientation.z);
+                        trackerRotm = glm::quat(migiashimove.Pose.Orientation.w, migiashimove.Pose.Orientation.x, migiashimove.Pose.Orientation.y, migiashimove.Pose.Orientation.z);
                     }
                 }
                 else if (footOption == footRotationFilterOption::k_EnableOrientationFilter_WithoutYaw) {
-                    if (!flip) {
-                        trotation[0] = vr::HmdVector3d_t{ double(glm::eulerAngles(footrot[0]).x * 180 / M_PI) + 180.f,
-                            0.f,
-                            double(glm::eulerAngles(footrot[0]).z * 180 / M_PI) };
-                        trotation[1] = vr::HmdVector3d_t{ double(glm::eulerAngles(footrot[1]).x * 180 / M_PI) + 180.f,
-                            0.f,
-                            double(glm::eulerAngles(footrot[1]).z * 180 / M_PI) };
+                    if (bodytrackingoption == bodiTorakkinguOpu::k_KinectFullTracking) {
+                        if (!flip) {
+                            glm::vec3 hwithyaw = glm::eulerAngles(hFootRot);
+                            trackerRoth = glm::quat(glm::vec3(hwithyaw.x, 0.f, hwithyaw.z));
+                            glm::vec3 mwithyaw = glm::eulerAngles(mFootRot);
+                            trackerRotm = glm::quat(glm::vec3(mwithyaw.x, 0.f, mwithyaw.z));
+                        }
+                        else {
+                            glm::vec3 hwithyaw = glm::eulerAngles(hFootRot);
+                            trackerRoth = glm::normalize(glm::inverse(glm::quat(glm::vec3(hwithyaw.x, 0.f, hwithyaw.z))));
+                            glm::vec3 mwithyaw = glm::eulerAngles(mFootRot);
+                            trackerRotm = glm::normalize(glm::inverse(glm::quat(glm::vec3(mwithyaw.x, 0.f, mwithyaw.z))));
+                        }
                     }
                     else {
-                        trotation[1] = vr::HmdVector3d_t{ -double(glm::eulerAngles(footrot[0]).x * 180 / M_PI) + 180.f,
-                            0.f,
-                            -double(glm::eulerAngles(footrot[0]).z * 180 / M_PI) };
-                        trotation[0] = vr::HmdVector3d_t{ -double(glm::eulerAngles(footrot[1]).x * 180 / M_PI) + 180.f,
-                            0.f,
-                            -double(glm::eulerAngles(footrot[1]).z * 180 / M_PI) };
+                        glm::vec3 hwithyaw = glm::eulerAngles(glm::quat(hidariashimove.Pose.Orientation.w, hidariashimove.Pose.Orientation.x, hidariashimove.Pose.Orientation.y, hidariashimove.Pose.Orientation.z));
+                        trackerRoth = glm::quat(glm::vec3(hwithyaw.x, 0.f, hwithyaw.z));
+                        glm::vec3 mwithyaw = glm::eulerAngles(glm::quat(migiashimove.Pose.Orientation.w, migiashimove.Pose.Orientation.x, migiashimove.Pose.Orientation.y, migiashimove.Pose.Orientation.z));
+                        trackerRotm = glm::quat(glm::vec3(mwithyaw.x, 0.f, mwithyaw.z));
                     }
                 }
                 else if (footOption == footRotationFilterOption::k_DisableOrientationFilter) {
-                    trotation[0] = vr::HmdVector3d_t{ 0,0,0 };
-                    trotation[1] = vr::HmdVector3d_t{ 0,0,0 };
+                    trackerRoth = glm::quat(0, 0, 0, 0);
+                    trackerRotm = glm::quat(0, 0, 0, 0);
                 }
                 else if (footOption == footRotationFilterOption::k_EnableOrientationFilter_HeadOrientation) {
-                    trotation[0] = vr::HmdVector3d_t{ glm::eulerAngles(glm::quat(hmdRot.w,hmdRot.x,hmdRot.y,hmdRot.z)).x,
-                    glm::eulerAngles(glm::quat(hmdRot.w,hmdRot.x,hmdRot.y,hmdRot.z)).y,
-                    glm::eulerAngles(glm::quat(hmdRot.w,hmdRot.x,hmdRot.y,hmdRot.z)).z };
-
-                    trotation[1] = vr::HmdVector3d_t{ glm::eulerAngles(glm::quat(hmdRot.w,hmdRot.x,hmdRot.y,hmdRot.z)).x,
-                    glm::eulerAngles(glm::quat(hmdRot.w,hmdRot.x,hmdRot.y,hmdRot.z)).y,
-                    glm::eulerAngles(glm::quat(hmdRot.w,hmdRot.x,hmdRot.y,hmdRot.z)).z };
+                    trackerRoth = glm::quat(hmdRot.w, hmdRot.x, hmdRot.y, hmdRot.z);
+                    trackerRotm = glm::quat(hmdRot.w, hmdRot.x, hmdRot.y, hmdRot.z);
                 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                 if (KinectSettings::rtcalibrated) {
                     Eigen::Vector3f Hf, Mf, Hp;
@@ -389,10 +413,10 @@ namespace KinectSettings {
                         Mf(2) = poseFiltered[1].z;
                     }
                     else {
-                        trotation[0].v[1] += 180;
+                        /*trotation[0].v[1] += 180;
                         trotation[1].v[1] += 180;
-                        trotation[2].v[1] += 180;
-
+                        trotation[2].v[1] += 180;*/
+                        
                         Mf(0) = poseFiltered[0].x;
                         Mf(1) = poseFiltered[0].y;
                         Mf(2) = poseFiltered[0].z;
@@ -419,67 +443,45 @@ namespace KinectSettings {
                         "/PX" << 10000 * (Hp2(0) + KinectSettings::moffsets[0][2].v[0] + KinectSettings::troffsets.v[0]) <<
                         "/PY" << 10000 * (Hp2(1) + KinectSettings::moffsets[0][2].v[1] + KinectSettings::troffsets.v[1]) <<
                         "/PZ" << 10000 * (Hp2(2) + KinectSettings::moffsets[0][2].v[2] + KinectSettings::troffsets.v[2]) <<
-                        "/HRX" << 10000 * (trotation[0].v[0] + KinectSettings::moffsets[1][1].v[0]) * M_PI / 180 <<
-                        "/HRY" << 10000 * (trotation[0].v[1] + KinectSettings::tryaw + KinectSettings::moffsets[1][1].v[1]) * M_PI / 180 <<
-                        "/HRZ" << 10000 * (trotation[0].v[2] + KinectSettings::moffsets[1][1].v[2]) * M_PI / 180 <<
-                        "/MRX" << 10000 * (trotation[1].v[0] + KinectSettings::moffsets[1][0].v[0]) * M_PI / 180 <<
-                        "/MRY" << 10000 * (trotation[1].v[1] + KinectSettings::tryaw + KinectSettings::moffsets[1][0].v[1]) * M_PI / 180 <<
-                        "/MRZ" << 10000 * (trotation[1].v[2] + KinectSettings::moffsets[1][0].v[2]) * M_PI / 180 <<
-                        "/PRX" << 10000 * (trotation[2].v[0] + KinectSettings::moffsets[1][2].v[0]) * M_PI / 180 <<
-                        "/PRY" << 10000 * (trotation[2].v[1] + KinectSettings::tryaw + KinectSettings::moffsets[1][2].v[1]) * M_PI / 180 <<
-                        "/PRZ" << 10000 * (trotation[2].v[2] + KinectSettings::moffsets[1][2].v[2]) * M_PI / 180 <<
+                        "/HRW" << 10000 * (trackerRoth.w) <<
+                        "/HRX" << 10000 * (trackerRoth.x) <<
+                        "/HRY" << 10000 * (trackerRoth.y) <<
+                        "/HRZ" << 10000 * (trackerRoth.z) <<
+                        "/MRW" << 10000 * (trackerRotm.w) <<
+                        "/MRX" << 10000 * (trackerRotm.x) <<
+                        "/MRY" << 10000 * (trackerRotm.y) <<
+                        "/MRZ" << 10000 * (trackerRotm.z) <<
+                        "/PRW" << 10000 * (trackerRoty.w) <<
+                        "/PRX" << 10000 * (trackerRoty.x) <<
+                        "/PRY" << 10000 * (trackerRoty.y) <<
+                        "/PRZ" << 10000 * (trackerRoty.z) <<
                         "/WRW" << 10000 * (0) << //DEPRECATED: GLM_ROTATE SCREWED UP WITH > 99
                         "/ENABLED" << KinectSettings::initialised << "/";
                 }
                 else {
-                    if (!flip) {
-                        S << "HX" << 10000 * (poseFiltered[0].x + KinectSettings::moffsets[0][1].v[0] + KinectSettings::troffsets.v[0]) <<
-                            "/HY" << 10000 * (poseFiltered[0].y + KinectSettings::moffsets[0][1].v[1] + KinectSettings::troffsets.v[1]) <<
-                            "/HZ" << 10000 * (poseFiltered[0].z + KinectSettings::moffsets[0][1].v[2] + KinectSettings::troffsets.v[2]) <<
-                            "/MX" << 10000 * (poseFiltered[1].x + KinectSettings::moffsets[0][0].v[0] + KinectSettings::troffsets.v[0]) <<
-                            "/MY" << 10000 * (poseFiltered[1].y + KinectSettings::moffsets[0][0].v[1] + KinectSettings::troffsets.v[1]) <<
-                            "/MZ" << 10000 * (poseFiltered[1].z + KinectSettings::moffsets[0][0].v[2] + KinectSettings::troffsets.v[2]) <<
-                            "/PX" << 10000 * (poseFiltered[2].x + KinectSettings::moffsets[0][2].v[0] + KinectSettings::troffsets.v[0]) <<
-                            "/PY" << 10000 * (poseFiltered[2].y + KinectSettings::moffsets[0][2].v[1] + KinectSettings::troffsets.v[1]) <<
-                            "/PZ" << 10000 * (poseFiltered[2].z + KinectSettings::moffsets[0][2].v[2] + KinectSettings::troffsets.v[2]) <<
-                            "/HRX" << 10000 * (trotation[0].v[0] + KinectSettings::moffsets[1][1].v[0]) * M_PI / 180 <<
-                            "/HRY" << 10000 * (trotation[0].v[1] + KinectSettings::moffsets[1][1].v[1]) * M_PI / 180 <<
-                            "/HRZ" << 10000 * (trotation[0].v[2] + KinectSettings::moffsets[1][1].v[2]) * M_PI / 180 <<
-                            "/MRX" << 10000 * (trotation[1].v[0] + KinectSettings::moffsets[1][0].v[0]) * M_PI / 180 <<
-                            "/MRY" << 10000 * (trotation[1].v[1] + KinectSettings::moffsets[1][0].v[1]) * M_PI / 180 <<
-                            "/MRZ" << 10000 * (trotation[1].v[2] + KinectSettings::moffsets[1][0].v[2]) * M_PI / 180 <<
-                            "/PRX" << 10000 * (trotation[2].v[0] + KinectSettings::moffsets[1][2].v[0]) * M_PI / 180 <<
-                            "/PRY" << 10000 * (trotation[2].v[1] + KinectSettings::moffsets[1][2].v[1]) * M_PI / 180 <<
-                            "/PRZ" << 10000 * (trotation[2].v[2] + KinectSettings::moffsets[1][2].v[2]) * M_PI / 180 <<
-                            "/WRW" << 10000 * (0) << //DEPRECATED: GLM_ROTATE SCREWED UP WITH > 99
-                            "/ENABLED" << KinectSettings::initialised << "/";
-                    }
-                    else {
-                        trotation[0].v[1] += 180;
-                        trotation[1].v[1] += 180;
-                        trotation[2].v[1] += 180;
-
-                        S << "HX" << 10000 * (poseFiltered[1].x + KinectSettings::moffsets[0][1].v[0] + KinectSettings::troffsets.v[0]) <<
-                            "/HY" << 10000 * (poseFiltered[1].y + KinectSettings::moffsets[0][1].v[1] + KinectSettings::troffsets.v[1]) <<
-                            "/HZ" << 10000 * (poseFiltered[1].z + KinectSettings::moffsets[0][1].v[2] + KinectSettings::troffsets.v[2]) <<
-                            "/MX" << 10000 * (poseFiltered[0].x + KinectSettings::moffsets[0][0].v[0] + KinectSettings::troffsets.v[0]) <<
-                            "/MY" << 10000 * (poseFiltered[0].y + KinectSettings::moffsets[0][0].v[1] + KinectSettings::troffsets.v[1]) <<
-                            "/MZ" << 10000 * (poseFiltered[0].z + KinectSettings::moffsets[0][0].v[2] + KinectSettings::troffsets.v[2]) <<
-                            "/PX" << 10000 * (poseFiltered[2].x + KinectSettings::moffsets[0][2].v[0] + KinectSettings::troffsets.v[0]) <<
-                            "/PY" << 10000 * (poseFiltered[2].y + KinectSettings::moffsets[0][2].v[1] + KinectSettings::troffsets.v[1]) <<
-                            "/PZ" << 10000 * (poseFiltered[2].z + KinectSettings::moffsets[0][2].v[2] + KinectSettings::troffsets.v[2]) <<
-                            "/HRX" << 10000 * (trotation[0].v[0] + KinectSettings::moffsets[1][1].v[0]) * M_PI / 180 <<
-                            "/HRY" << 10000 * (trotation[0].v[1] + KinectSettings::moffsets[1][1].v[1]) * M_PI / 180 <<
-                            "/HRZ" << 10000 * (trotation[0].v[2] + KinectSettings::moffsets[1][1].v[2]) * M_PI / 180 <<
-                            "/MRX" << 10000 * (trotation[1].v[0] + KinectSettings::moffsets[1][0].v[0]) * M_PI / 180 <<
-                            "/MRY" << 10000 * (trotation[1].v[1] + KinectSettings::moffsets[1][0].v[1]) * M_PI / 180 <<
-                            "/MRZ" << 10000 * (trotation[1].v[2] + KinectSettings::moffsets[1][0].v[2]) * M_PI / 180 <<
-                            "/PRX" << 10000 * (trotation[2].v[0] + KinectSettings::moffsets[1][2].v[0]) * M_PI / 180 <<
-                            "/PRY" << 10000 * (trotation[2].v[1] + KinectSettings::moffsets[1][2].v[1]) * M_PI / 180 <<
-                            "/PRZ" << 10000 * (trotation[2].v[2] + KinectSettings::moffsets[1][2].v[2]) * M_PI / 180 <<
-                            "/WRW" << 10000 * (0) << //DEPRECATED: GLM_ROTATE SCREWED UP WITH > 99
-                            "/ENABLED" << KinectSettings::initialised << "/";
-                    }
+					S << "HX" << 10000 * (poseFiltered[0].x + KinectSettings::moffsets[0][1].v[0] + KinectSettings::troffsets.v[0]) <<
+						"/HY" << 10000 * (poseFiltered[0].y + KinectSettings::moffsets[0][1].v[1] + KinectSettings::troffsets.v[1]) <<
+						"/HZ" << 10000 * (poseFiltered[0].z + KinectSettings::moffsets[0][1].v[2] + KinectSettings::troffsets.v[2]) <<
+						"/MX" << 10000 * (poseFiltered[1].x + KinectSettings::moffsets[0][0].v[0] + KinectSettings::troffsets.v[0]) <<
+						"/MY" << 10000 * (poseFiltered[1].y + KinectSettings::moffsets[0][0].v[1] + KinectSettings::troffsets.v[1]) <<
+						"/MZ" << 10000 * (poseFiltered[1].z + KinectSettings::moffsets[0][0].v[2] + KinectSettings::troffsets.v[2]) <<
+						"/PX" << 10000 * (poseFiltered[2].x + KinectSettings::moffsets[0][2].v[0] + KinectSettings::troffsets.v[0]) <<
+						"/PY" << 10000 * (poseFiltered[2].y + KinectSettings::moffsets[0][2].v[1] + KinectSettings::troffsets.v[1]) <<
+						"/PZ" << 10000 * (poseFiltered[2].z + KinectSettings::moffsets[0][2].v[2] + KinectSettings::troffsets.v[2]) <<
+                        "/HRW" << 10000 * (trackerRoth.w) <<
+						"/HRX" << 10000 * (trackerRoth.x) <<
+						"/HRY" << 10000 * (trackerRoth.y) <<
+						"/HRZ" << 10000 * (trackerRoth.z) <<
+                        "/MRW" << 10000 * (trackerRotm.w) <<
+                        "/MRX" << 10000 * (trackerRotm.x) <<
+						"/MRY" << 10000 * (trackerRotm.y) <<
+						"/MRZ" << 10000 * (trackerRotm.z) <<
+                        "/PRW" << 10000 * (trackerRoty.w) <<
+                        "/PRX" << 10000 * (trackerRoty.x) <<
+						"/PRY" << 10000 * (trackerRoty.y) <<
+						"/PRZ" << 10000 * (trackerRoty.z) <<
+						"/WRW" << 10000 * (0) << //DEPRECATED: GLM_ROTATE SCREWED UP WITH > 99
+						"/ENABLED" << KinectSettings::initialised << "/";
                 }
 
                 return S.str();
@@ -524,10 +526,6 @@ namespace KinectSettings {
                         Ef(2) = mElPose.z;
                     }
                     else {
-                        trotation[0].v[1] = 180;
-                        trotation[1].v[1] = 180;
-                        trotation[2].v[1] = 180;
-
                         Hf(0) = hHandPose.x;
                         Hf(1) = hHandPose.y;
                         Hf(2) = hHandPose.z;
@@ -591,10 +589,6 @@ namespace KinectSettings {
                         Ef(2) = mElPose.z;
                     }
                     else {
-                        trotation[0].v[1] = 180;
-                        trotation[1].v[1] = 180;
-                        trotation[2].v[1] = 180;
-
                         Hf(0) = hHandPose.x;
                         Hf(1) = hHandPose.y;
                         Hf(2) = hHandPose.z;

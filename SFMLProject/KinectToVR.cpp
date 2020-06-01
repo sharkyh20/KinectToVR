@@ -508,11 +508,18 @@ void processLoop(KinectHandlerBase& kinect) {
 
 			VirtualHips::saveSettings();
 		}
+		if (bodiTorakkinguOpushon.trackingOption != bodiTorakkinguOpu(guiRef.bodytrackingselectbox->GetSelectedItem())) {
+			bodiTorakkinguOpushon.trackingOption = bodiTorakkinguOpu(guiRef.bodytrackingselectbox->GetSelectedItem());
+			VirtualHips::settings.bodyTrackingOption = guiRef.bodytrackingselectbox->GetSelectedItem();
+
+			VirtualHips::saveSettings();
+		}
 
 		KinectSettings::footOption = VirtualHips::settings.footOption;
 		KinectSettings::hipsOption = VirtualHips::settings.hipsOption;
 		KinectSettings::posOption = VirtualHips::settings.posOption;
 		KinectSettings::conOption = VirtualHips::settings.conOption;
+		KinectSettings::bodytrackingoption = VirtualHips::settings.bodyTrackingOption;
 
 		//KinectSettings::footRotationFilterOption::k_EnableOrientationFilter;
 

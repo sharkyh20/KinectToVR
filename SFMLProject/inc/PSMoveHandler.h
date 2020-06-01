@@ -828,6 +828,13 @@ private:
             if (wrapper.controller->ControllerID == KinectSettings::psmm)
                 KinectSettings::migiMove = controller;
 
+            if (wrapper.controller->ControllerID == KinectSettings::psmhidari)
+                KinectSettings::hidariashimove = controller;
+            if (wrapper.controller->ControllerID == KinectSettings::psmmigi)
+                KinectSettings::migiashimove = controller;
+            if (wrapper.controller->ControllerID == KinectSettings::psmyobu)
+                KinectSettings::yobumove = controller;
+
             if (bStartRealignHMDTriggered) {
                 PSMVector3f controllerBallPointedUpEuler = { (float)M_PI_2, 0.0f, 0.0f };
 

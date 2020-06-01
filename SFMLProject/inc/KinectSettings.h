@@ -70,7 +70,6 @@ static struct toraOpushon {
 
 enum bodiTorakkinguOpu {
     k_PSMoveFullTracking,
-    k_PSMoveRot_KinectPoseTracking,
     k_KinectFullTracking
 };
 
@@ -87,7 +86,7 @@ namespace KinectSettings {
 
     static std::vector<K2VR_PSMoveData> KVR_PSMoves;
 
-    extern PSMPSMove migiMove, hidariMove;
+    extern PSMPSMove migiMove, hidariMove, hidariashimove, migiashimove, yobumove;
     extern bool isKinectDrawn;
     extern bool isSkeletonDrawn;
     extern bool ignoreInferredPositions;
@@ -118,6 +117,7 @@ namespace KinectSettings {
     extern double hipRoleHeightAdjust;
     extern float tryaw;
     extern int footOption, hipsOption, posOption, conOption;
+    extern int bodytrackingoption;
     //Need to delete later (Merge should sort it)
     extern int leftHandPlayspaceMovementButton;
     extern int rightHandPlayspaceMovementButton;
@@ -151,6 +151,7 @@ namespace KinectSettings {
     extern Eigen::Vector3f calorigin;
     extern int cpoints;
     extern bool rtcalibrated;
+    extern int psmmigi, psmhidari, psmyobu;
 
     extern float hmdegree;
     extern bool sensorConfigChanged;
