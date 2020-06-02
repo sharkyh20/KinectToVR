@@ -336,6 +336,7 @@ void processLoop(KinectHandlerBase& kinect) {
 	guiRef.coptbox1->SelectItem(VirtualHips::settings.hipsOption);
 	guiRef.foptbox->SelectItem(VirtualHips::settings.posOption);
 	guiRef.bodytrackingselectbox->SelectItem(VirtualHips::settings.bodyTrackingOption);
+	guiRef.headtrackingselectbox->SelectItem(VirtualHips::settings.headTrackingOption);
 
 	boost::thread* ipcThread = new boost::thread(KinectSettings::sendipc);
 	ipcThread->detach();
@@ -515,9 +516,9 @@ void processLoop(KinectHandlerBase& kinect) {
 
 			VirtualHips::saveSettings();
 		}
-		if (atamaTorakkinguOpushon.trackingOption != atamaTorakkinguOpu(guiRef.bodytrackingselectbox->GetSelectedItem())) {
-			atamaTorakkinguOpushon.trackingOption = atamaTorakkinguOpu(guiRef.bodytrackingselectbox->GetSelectedItem());
-			VirtualHips::settings.bodyTrackingOption = guiRef.bodytrackingselectbox->GetSelectedItem();
+		if (atamaTorakkinguOpushon.trackingOption != atamaTorakkinguOpu(guiRef.headtrackingselectbox->GetSelectedItem())) {
+			atamaTorakkinguOpushon.trackingOption = atamaTorakkinguOpu(guiRef.headtrackingselectbox->GetSelectedItem());
+			VirtualHips::settings.headTrackingOption = guiRef.headtrackingselectbox->GetSelectedItem();
 
 			VirtualHips::saveSettings();
 		}

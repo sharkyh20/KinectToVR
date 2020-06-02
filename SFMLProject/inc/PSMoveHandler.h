@@ -77,11 +77,9 @@ public:
         PSM_SetControllerRumble(controllerId, PSMControllerRumbleChannel_All, rumbleIntensity);
         LOG(INFO) << "Set rumble identify to " << on << "for controller " << controllerId;
     }
-    void flashRainbow(int id) {
+    static void flashRainbow(int id) {
         int red, green, blue;
-
-        for (int color = 0; color > 6; color++) {
-
+        for (int color = 0; color < 6; color++) {
             switch (color) {
 
             case 0:
@@ -109,7 +107,6 @@ public:
                 break;
 
             }
-
             while (r != red || g != green || b != blue) {
                 if (r < red) r += 1;
                 if (r > red) r -= 1;
@@ -120,12 +117,11 @@ public:
                 if (b < blue) b += 1;
                 if (b > blue) b -= 1;
 
-                std::this_thread::sleep_for(std::chrono::milliseconds(2));
+                PSM_SetControllerLEDOverrideColor(id, r, g, b);
+                std::this_thread::sleep_for(std::chrono::microseconds(1));
             }
-
         }
-
-
+        PSM_SetControllerLEDOverrideColor(id, 0, 0, 0);
     }
     void flashControllerBulb(int controllerId, bool on) {
         char r = 255;
@@ -879,29 +875,59 @@ private:
             KinectSettings::KVRPSMoveData[wrapper.controller->ControllerID].isValidController = true;
 
             for (int psmid = 0; psmid < KinectSettings::psmindexidpsm[0].size(); psmid++) {
-                if(KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::psmh 
-                    && wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid))
+                if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::psmh
+                    && wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid)) {
                     KinectSettings::hidariMove = controller;
+                    if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::flashnow[0] && KinectSettings::flashnow[1]) {
+                        std::thread* rb = new std::thread(flashRainbow, wrapper.controller->ControllerID);
+                        KinectSettings::flashnow[1] = false;
+                    }
+                }
 
                 if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::psmm
-                    && wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid))
+                    && wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid)) {
                     KinectSettings::migiMove = controller;
+                    if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::flashnow[0] && KinectSettings::flashnow[1]) {
+                        std::thread* rb = new std::thread(flashRainbow, wrapper.controller->ControllerID);
+                        KinectSettings::flashnow[1] = false;
+                    }
+                }
 
                 if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::psmhidari
-                    && wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid))
+                    && wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid)) {
                     KinectSettings::hidariashimove = controller;
+                    if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::flashnow[0] && KinectSettings::flashnow[1]) {
+                        std::thread* rb = new std::thread(flashRainbow, wrapper.controller->ControllerID);
+                        KinectSettings::flashnow[1] = false;
+                    }
+                }
 
                 if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::psmmigi
-                    && wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid))
+                    && wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid)) {
                     KinectSettings::migiashimove = controller;
+                    if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::flashnow[0] && KinectSettings::flashnow[1]) {
+                        std::thread* rb = new std::thread(flashRainbow, wrapper.controller->ControllerID);
+                        KinectSettings::flashnow[1] = false;
+                    }
+                }
 
                 if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::psmyobu
-                    && wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid))
+                    && wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid)) {
                     KinectSettings::yobumove = controller;
+                    if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::flashnow[0] && KinectSettings::flashnow[1]) {
+                        std::thread* rb = new std::thread(flashRainbow, wrapper.controller->ControllerID);
+                        KinectSettings::flashnow[1] = false;
+                    }
+                }
 
                 if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::psmatama
-                    && wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid))
+                    && wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid)) {
                     KinectSettings::atamamove = controller;
+                    if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::flashnow[0] && KinectSettings::flashnow[1]) {
+                        std::thread* rb = new std::thread(flashRainbow, wrapper.controller->ControllerID);
+                        KinectSettings::flashnow[1] = false;
+                    }
+                }
             }
 
             if (bStartRealignHMDTriggered) {

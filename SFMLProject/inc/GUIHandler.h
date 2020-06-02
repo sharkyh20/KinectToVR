@@ -992,6 +992,57 @@ public:
 
 			});
 
+        refreshpsmovesbuton11->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
+            psmovebox->Clear();
+            psmovebox1->Clear();
+            psmoveboxhi->Clear();
+            psmoveboxmi->Clear();
+            psmoveboxyo->Clear();
+            psmoveboxa->Clear();
+
+            KinectSettings::psmindexidpsm[0].clear();
+            KinectSettings::psmindexidpsm[1].clear();
+
+            for (int i = 0; i < 11; i++) {
+                if (KinectSettings::KVRPSMoveData[i].isValidController) {
+                    psmovebox->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
+                    psmovebox1->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
+                    psmoveboxhi->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
+                    psmoveboxmi->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
+                    psmoveboxyo->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
+                    psmoveboxa->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
+
+                    KinectSettings::psmindexidpsm[0].push_back(psmoveboxhi->GetItemCount() - 1);
+                    KinectSettings::psmindexidpsm[1].push_back(i);
+                }
+            }
+            if (psmovebox->GetItemCount() >= 1) {
+                psmovebox->SelectItem(0);
+                KinectSettings::psmh = 0;
+            }
+            if (psmovebox1->GetItemCount() >= 2) {
+                psmovebox1->SelectItem(1);
+                KinectSettings::psmm = 1;
+            }
+            if (psmoveboxhi->GetItemCount() >= 1) {
+                psmoveboxhi->SelectItem(0);
+                KinectSettings::psmhidari = 0;
+            }
+            if (psmoveboxmi->GetItemCount() >= 2) {
+                psmoveboxmi->SelectItem(1);
+                KinectSettings::psmmigi = 1;
+            }
+            if (psmoveboxyo->GetItemCount() >= 3) {
+                psmoveboxyo->SelectItem(2);
+                KinectSettings::psmyobu = 2;
+            }
+            if (psmoveboxa->GetItemCount() >= 3) {
+                psmoveboxa->SelectItem(2);
+                KinectSettings::psmatama = 0;
+            }
+
+            });
+
 		refreshcomports->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
 			wchar_t lpTargetPath[5000];
 			comportbox1->Clear();
@@ -2721,22 +2772,15 @@ public:
         virtualHipsBox->SetSpacing(0.5f);
 
         auto modeTitleBox1 = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
-        modeTitleBox1->Pack(sfg::Label::Create("-- These Offsets work only when you activated head tracking. --"));
+        modeTitleBox1->Pack(sfg::Label::Create("-- Offsets are working only when Head Tracking is activated --"));
 
-        auto modeTitleBox2 = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
-        modeTitleBox2->Pack(sfg::Label::Create("-- Offsets are absolute, that means they will offset you basing on SteamVR's worldspace! --"));
-
-
-
-
-
-
+        virtualHipsBox->Pack(modeTitleBox1);
 
 
         sfg::Box::Ptr selectoptionbox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
         selectoptionbox->Pack(sfg::Label::Create("Choose tracking option for HMD (Position only)"));
         selectoptionbox->Pack(headtrackingselectbox);
-        advancedTrackerBox->Pack(selectoptionbox);
+        virtualHipsBox->Pack(selectoptionbox);
 
         headtrackingselectbox->AppendItem("PSMove head tracking");
         headtrackingselectbox->AppendItem("Kinect head tracking");
@@ -2746,23 +2790,9 @@ public:
 
         psmidbox1->Pack(sfg::Label::Create(" -- Head PSMove ID --"));
         psmidbox1->Pack(psmoveboxa);
-        psmidbox1->Pack(refreshpsmovesbuton1);
+        psmidbox1->Pack(refreshpsmovesbuton11);
 
-        advancedTrackerBox->Pack(psmidbox1);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        virtualHipsBox->Pack(psmidbox1);
 
 
 
@@ -2794,8 +2824,6 @@ public:
         modeBox->Pack(sittingBox);
         modeBox->Pack(lyingBox);
 
-        virtualHipsBox->Pack(modeTitleBox1);
-        virtualHipsBox->Pack(modeTitleBox2);
         virtualHipsBox->Pack(modeTitleBox);
         virtualHipsBox->Pack(modeBox);
 
@@ -2864,6 +2892,7 @@ private:
     sfg::Button::Ptr reconKinectButton = sfg::Button::Create("Reconnect Kinect");
     sfg::Button::Ptr refreshpsmovesbuton = sfg::Button::Create("Refresh");
     sfg::Button::Ptr refreshpsmovesbuton1 = sfg::Button::Create("Refresh");
+    sfg::Button::Ptr refreshpsmovesbuton11 = sfg::Button::Create("Refresh");
 
     sfg::Button::Ptr TrackerInitButton = sfg::Button::Create("**Please be in VR before hitting me!** Initialise/Respawn SteamVR Kinect Trackers - HIT ME");
     sfg::Button::Ptr TrackerLastInitButton = sfg::Button::Create("**Please be in VR before hitting me!** Spawn same trackers as last session");
