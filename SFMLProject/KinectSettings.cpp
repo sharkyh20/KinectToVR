@@ -138,6 +138,7 @@ namespace KinectSettings {
     bool flip;
     PSMQuatf offset[2];
     Eigen::Quaternionf quatf[2];
+    glm::quat btrackeroffset[3];
     glm::vec3 joy[2] = { glm::vec3(0, 0, 0), glm::vec3(0, 0, 0) };
 
     void sendipc() {
@@ -308,6 +309,19 @@ namespace KinectSettings {
             if (hidariKontorora.SelectButton == PSMButtonState_DOWN) //we are recentering right psmove with select button
                 offset[1] = hidariKontorora.Pose.Orientation;        //quaterion for further offset maths
 
+
+            if(hidariashimove.SelectButton == PSMButtonState_DOWN)
+                btrackeroffset[0] = glm::quat(hidariashimove.Pose.Orientation.w, 
+                    hidariashimove.Pose.Orientation.x, hidariashimove.Pose.Orientation.y, hidariashimove.Pose.Orientation.z);
+
+            if (migiashimove.SelectButton == PSMButtonState_DOWN)
+                btrackeroffset[1] = glm::quat(migiashimove.Pose.Orientation.w,
+                    migiashimove.Pose.Orientation.x, migiashimove.Pose.Orientation.y, migiashimove.Pose.Orientation.z);
+
+            if (yobumove.SelectButton == PSMButtonState_DOWN)
+                btrackeroffset[2] = glm::quat(yobumove.Pose.Orientation.w,
+                    yobumove.Pose.Orientation.x, yobumove.Pose.Orientation.y, yobumove.Pose.Orientation.z);
+
             using PointSet = Eigen::Matrix<float, 3, Eigen::Dynamic>;
             float yaw = KinectSettings::hmdYaw * 180 / M_PI;
             float facing = yaw - KinectSettings::tryaw * 180 / M_PI;
@@ -397,6 +411,11 @@ namespace KinectSettings {
                     trackerRoth = unofu[0];
                     trackerRotm = unofu[1];
                     trackerRoty = unofu[2];
+                }
+                else {
+                    trackerRoth *= glm::normalize(glm::inverse(btrackeroffset[0]));
+                    trackerRotm *= glm::normalize(glm::inverse(btrackeroffset[1]));
+                    trackerRoty *= glm::normalize(glm::inverse(btrackeroffset[2]));
                 }
 
                 if (KinectSettings::rtcalibrated) {
