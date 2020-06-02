@@ -448,20 +448,30 @@ public:
 
         psmovebox->GetSignal(sfg::ComboBox::OnSelect).Connect([this] {
             KinectSettings::psmh = psmovebox->GetSelectedItem();
+            KinectSettings::flashnow[0] = psmovebox->GetSelectedItem();
+            KinectSettings::flashnow[1] = true;
             });
 
         psmovebox1->GetSignal(sfg::ComboBox::OnSelect).Connect([this] {
             KinectSettings::psmm = psmovebox1->GetSelectedItem();
+            KinectSettings::flashnow[0] = psmovebox1->GetSelectedItem();
+            KinectSettings::flashnow[1] = true;
             });
 
         psmoveboxhi->GetSignal(sfg::ComboBox::OnSelect).Connect([this] {
             KinectSettings::psmhidari = psmoveboxhi->GetSelectedItem();
+            KinectSettings::flashnow[0] = psmoveboxhi->GetSelectedItem();
+            KinectSettings::flashnow[1] = true;
             });
         psmoveboxmi->GetSignal(sfg::ComboBox::OnSelect).Connect([this] {
             KinectSettings::psmmigi = psmoveboxmi->GetSelectedItem();
+            KinectSettings::flashnow[0] = psmoveboxmi->GetSelectedItem();
+            KinectSettings::flashnow[1] = true;
             });
         psmoveboxyo->GetSignal(sfg::ComboBox::OnSelect).Connect([this] {
             KinectSettings::psmyobu = psmoveboxyo->GetSelectedItem();
+            KinectSettings::flashnow[0] = psmoveboxyo->GetSelectedItem();
+            KinectSettings::flashnow[1] = true;
             });
 
         AddHandControllersToList->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
@@ -925,7 +935,7 @@ public:
 
             KinectSettings::psmindexidpsm[0].clear();
             KinectSettings::psmindexidpsm[1].clear();
-
+            
             for (int i = 0; i < 11; i++) {
                 if (KinectSettings::KVRPSMoveData[i].isValidController) {
                     psmovebox->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
@@ -2161,6 +2171,8 @@ public:
 
         startControllers->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
             
+            KinectSettings::conActivated = true;
+
             std::thread* activate = new std::thread([] {
                 try {
                     using namespace boost::asio;
@@ -2269,6 +2281,8 @@ public:
         stopControllers->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
             //killProcessByName("avr_hhost.exe");
             //killProcessByName("avr_mhost.exe");
+
+            KinectSettings::conActivated = false;
 
             stopControllers->SetState(sfg::Widget::State::INSENSITIVE);
             startControllers->SetState(sfg::Widget::State::NORMAL);

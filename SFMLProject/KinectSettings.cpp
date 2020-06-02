@@ -32,7 +32,8 @@ namespace KinectSettings {
     float svrhmdyaw = 0;
     int psmh, psmm;
     std::vector<int> psmindexidpsm[2];
-    
+    int flashnow[2];
+    bool conActivated = false;
     bool ignoreInferredPositions = false;
     bool ignoreRotationSmoothing = false;
     float ardroffset = 0.f;
@@ -543,26 +544,18 @@ namespace KinectSettings {
                         "/Z" << 10000 * (Hf2(2) + KinectSettings::hoffsets.v[2] + KinectSettings::mauoffset.v[2]) <<
                         "/EX" << 10000 * (Ef(0) + KinectSettings::hoffsets.v[0] + KinectSettings::mauoffset.v[0]) <<
                         "/EY" << 10000 * (Ef(1) + KinectSettings::hoffsets.v[1] + KinectSettings::mauoffset.v[1]) <<
-                        "/EZ" << 10000 * (Ef(2) + KinectSettings::hoffsets.v[2] + KinectSettings::mauoffset.v[2]) << "/";
+                        "/EZ" << 10000 * (Ef(2) + KinectSettings::hoffsets.v[2] + KinectSettings::mauoffset.v[2]) << 
+                        "/DISABLE" << 10000 * !conActivated << "/";
                 }
-                else {
-                    if (!flip) {
-                        S << "X" << 10000 * (mHandPose.x + KinectSettings::hoffsets.v[0] + KinectSettings::mauoffset.v[0]) <<
-                            "/Y" << 10000 * (mHandPose.y + KinectSettings::hoffsets.v[1] + KinectSettings::mauoffset.v[1]) <<
-                            "/Z" << 10000 * (mHandPose.z + KinectSettings::hoffsets.v[2] + KinectSettings::mauoffset.v[2]) <<
-                            "/EX" << 10000 * (mElPose.x + KinectSettings::hoffsets.v[0] + KinectSettings::mauoffset.v[0]) <<
-                            "/EY" << 10000 * (mElPose.y + KinectSettings::hoffsets.v[1] + KinectSettings::mauoffset.v[1]) <<
-                            "/EZ" << 10000 * (mElPose.z + KinectSettings::hoffsets.v[2] + KinectSettings::mauoffset.v[2]) << "/";
-                    }
-                    else {
-                        S << "X" << 10000 * (hHandPose.x + KinectSettings::hoffsets.v[0] + KinectSettings::mauoffset.v[0]) <<
-                            "/Y" << 10000 * (hHandPose.y + KinectSettings::hoffsets.v[1] + KinectSettings::mauoffset.v[1]) <<
-                            "/Z" << 10000 * (hHandPose.z + KinectSettings::hoffsets.v[2] + KinectSettings::mauoffset.v[2]) <<
-                            "/EX" << 10000 * (hElPose.x + KinectSettings::hoffsets.v[0] + KinectSettings::mauoffset.v[0]) <<
-                            "/EY" << 10000 * (hElPose.y + KinectSettings::hoffsets.v[1] + KinectSettings::mauoffset.v[1]) <<
-                            "/EZ" << 10000 * (hElPose.z + KinectSettings::hoffsets.v[2] + KinectSettings::mauoffset.v[2]) << "/";
-                    }
-                }
+				else {
+					S << "X" << 10000 * (mHandPose.x + KinectSettings::hoffsets.v[0] + KinectSettings::mauoffset.v[0]) <<
+						"/Y" << 10000 * (mHandPose.y + KinectSettings::hoffsets.v[1] + KinectSettings::mauoffset.v[1]) <<
+						"/Z" << 10000 * (mHandPose.z + KinectSettings::hoffsets.v[2] + KinectSettings::mauoffset.v[2]) <<
+						"/EX" << 10000 * (mElPose.x + KinectSettings::hoffsets.v[0] + KinectSettings::mauoffset.v[0]) <<
+						"/EY" << 10000 * (mElPose.y + KinectSettings::hoffsets.v[1] + KinectSettings::mauoffset.v[1]) <<
+						"/EZ" << 10000 * (mElPose.z + KinectSettings::hoffsets.v[2] + KinectSettings::mauoffset.v[2]) <<
+                        "/DISABLE" << 10000 * !conActivated << "/";
+				}
 
                 return S.str();
             }();
@@ -606,26 +599,18 @@ namespace KinectSettings {
                         "/Z" << 10000 * (Hf2(2) + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) <<
                         "/EX" << 10000 * (Ef(0) + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
                         "/EY" << 10000 * (Ef(1) + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
-                        "/EZ" << 10000 * (Ef(2) + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) << "/";
+                        "/EZ" << 10000 * (Ef(2) + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) <<
+                        "/DISABLE" << 10000 * !conActivated << "/";
                 }
-                else {
-                    if (flip) {
-                        S << "X" << 10000 * (mHandPose.x + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
-                            "/Y" << 10000 * (mHandPose.y + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
-                            "/Z" << 10000 * (mHandPose.z + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) <<
-                            "/EX" << 10000 * (mElPose.x + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
-                            "/EY" << 10000 * (mElPose.y + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
-                            "/EZ" << 10000 * (mElPose.z + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) << "/";
-                    }
-                    else {
-                        S << "X" << 10000 * (hHandPose.x + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
-                            "/Y" << 10000 * (hHandPose.y + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
-                            "/Z" << 10000 * (hHandPose.z + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) <<
-                            "/EX" << 10000 * (hElPose.x + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
-                            "/EY" << 10000 * (hElPose.y + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
-                            "/EZ" << 10000 * (hElPose.z + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) << "/";
-                    }
-                }
+				else {
+					S << "X" << 10000 * (mHandPose.x + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
+						"/Y" << 10000 * (mHandPose.y + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
+						"/Z" << 10000 * (mHandPose.z + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) <<
+						"/EX" << 10000 * (mElPose.x + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
+						"/EY" << 10000 * (mElPose.y + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
+						"/EZ" << 10000 * (mElPose.z + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) <<
+						"/DISABLE" << 10000 * !conActivated << "/";
+				}
 
                 return S.str();
             }();

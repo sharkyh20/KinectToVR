@@ -29,6 +29,10 @@
 
 #define M_PI_2 1.57079632679
 
+int r = 0;
+int g = 0;
+int b = 0;
+
 class PSMoveHandler : public DeviceHandler{
     // Heavily based off of the example template program
     // test_console_CAPI.cpp in the MoveService project
@@ -795,6 +799,7 @@ private:
         }
     }
 
+    bool rb = false;
     void processKeyInputs() {
         if (controllerList.count == 0 || v_controllers.size() == 0) { return; }
         bool inputAvailable = false;
@@ -832,8 +837,6 @@ private:
                     && wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid))
                     KinectSettings::migiMove = controller;
 
-
-
                 if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::psmhidari
                     && wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid))
                     KinectSettings::hidariashimove = controller;
@@ -846,18 +849,6 @@ private:
                     && wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid))
                     KinectSettings::yobumove = controller;
             }
-
-            /*if (wrapper.controller->ControllerID == KinectSettings::psmh)
-                KinectSettings::hidariMove = controller;
-            if (wrapper.controller->ControllerID == KinectSettings::psmm)
-                KinectSettings::migiMove = controller;
-
-            if (wrapper.controller->ControllerID == KinectSettings::psmhidari)
-                KinectSettings::hidariashimove = controller;
-            if (wrapper.controller->ControllerID == KinectSettings::psmmigi)
-                KinectSettings::migiashimove = controller;
-            if (wrapper.controller->ControllerID == KinectSettings::psmyobu)
-                KinectSettings::yobumove = controller;*/
 
             if (bStartRealignHMDTriggered) {
                 PSMVector3f controllerBallPointedUpEuler = { (float)M_PI_2, 0.0f, 0.0f };

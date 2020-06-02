@@ -452,404 +452,80 @@ void KinectV2Handler::updateSkeletalFilters() {
             break;
         }
     }
+    
 
-    KinectSettings::mposes[1].v[0] = joints[JointType_HandLeft].Position.X;
-    KinectSettings::mposes[1].v[1] = joints[JointType_HandLeft].Position.Y;
-    KinectSettings::mposes[1].v[2] = joints[JointType_HandLeft].Position.Z;
+    KinectSettings::hmdPose = glm::vec3(
+        joints[JointType_Head].Position.X,
+        joints[JointType_Head].Position.Y,
+        joints[JointType_Head].Position.Z
+    );
+    KinectSettings::hHandPose = glm::vec3(
+        joints[JointType_HandLeft].Position.X,
+        joints[JointType_HandLeft].Position.Y,
+        joints[JointType_HandLeft].Position.Z
+    );
+    KinectSettings::mHandPose = glm::vec3(
+        joints[JointType_HandRight].Position.X,
+        joints[JointType_HandRight].Position.Y,
+        joints[JointType_HandRight].Position.Z
+    );
+    KinectSettings::hElPose = glm::vec3(
+        joints[JointType_ElbowLeft].Position.X,
+        joints[JointType_ElbowLeft].Position.Y,
+        joints[JointType_ElbowLeft].Position.Z
+    );
+    KinectSettings::mElPose = glm::vec3(
+        joints[JointType_ElbowRight].Position.X,
+        joints[JointType_ElbowRight].Position.Y,
+        joints[JointType_ElbowRight].Position.Z
+    );
+    KinectSettings::hFootPose = glm::vec3(
+        joints[JointType_AnkleLeft].Position.X,
+        joints[JointType_AnkleLeft].Position.Y,
+        joints[JointType_AnkleLeft].Position.Z
+    );
+    KinectSettings::mFootPose = glm::vec3(
+        joints[JointType_AnkleRight].Position.X,
+        joints[JointType_AnkleRight].Position.Y,
+        joints[JointType_AnkleRight].Position.Z
+    );
+    KinectSettings::hipsPose = glm::vec3(
+        joints[JointType_SpineBase].Position.X,
+        joints[JointType_SpineBase].Position.Y,
+        joints[JointType_SpineBase].Position.Z
+    );
+    KinectSettings::hFootRot = glm::quat(
+        jointOrientations[JointType_AnkleLeft].Orientation.w,
+        jointOrientations[JointType_AnkleLeft].Orientation.x,
+        jointOrientations[JointType_AnkleLeft].Orientation.y,
+        jointOrientations[JointType_AnkleLeft].Orientation.z
+    );
+    KinectSettings::mFootRot = glm::quat(
+        jointOrientations[JointType_AnkleRight].Orientation.w,
+        jointOrientations[JointType_AnkleRight].Orientation.x,
+        jointOrientations[JointType_AnkleRight].Orientation.y,
+        jointOrientations[JointType_AnkleRight].Orientation.z);
+    KinectSettings::hipsRot = glm::quat(
+        jointOrientations[JointType_SpineBase].Orientation.w,
+        jointOrientations[JointType_SpineBase].Orientation.x,
+        jointOrientations[JointType_SpineBase].Orientation.y,
+        jointOrientations[JointType_SpineBase].Orientation.z);
 
-    KinectSettings::mposes[0].v[0] = joints[JointType_Head].Position.X;
-    KinectSettings::mposes[0].v[1] = joints[JointType_Head].Position.Y;
-    KinectSettings::mposes[0].v[2] = joints[JointType_Head].Position.Z;
-
-    vr::HmdVector3d_t trotation[3] = { {0,0,0},{0,0,0},{0,0,0} };
-
-#pragma region PipeSeup
-
-    HANDLE pipeTracker = CreateFile(TEXT("\\\\.\\pipe\\LogPipeTracker"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
-    HANDLE pipeSan = CreateFile(TEXT("\\\\.\\pipe\\LogPipeSan"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
-    HANDLE pipeLeft = CreateFile(TEXT("\\\\.\\pipe\\LogPipeNi"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
-    HANDLE pipeRight = CreateFile(TEXT("\\\\.\\pipe\\LogPipeIchi"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
-    HANDLE pipeLeftRot = CreateFile(TEXT("\\\\.\\pipe\\LogPipeNiRot"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
-    HANDLE pipeRightRot = CreateFile(TEXT("\\\\.\\pipe\\LogPipeIchiRot"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
-
-#pragma endregion
-
-    DWORD numWritten;
-
-#pragma region TrackerIPC
-
-    float yaw = KinectSettings::hmdYaw * 180 / M_PI;
-    float facing = yaw - KinectSettings::tryaw;
-
-    if (facing < 25 && facing > -25)flip = false;
-    if (facing < -155 && facing > -205)flip = true;
-
-    std::string TrackerS = [&]()->std::string {
-        std::stringstream S;
-
-        using PointSet = Eigen::Matrix<float, 3, Eigen::Dynamic>;
-
-#pragma region Rotation_Hips
-
-        glm::vec3 hipLeft(joints[JointType_HipLeft].Position.X, joints[JointType_HipLeft].Position.Y, joints[JointType_HipLeft].Position.Z),
-            hipRight(joints[JointType_HipRight].Position.X, joints[JointType_HipRight].Position.Y, joints[JointType_HipRight].Position.Z);
-
-        glm::quat hipsRot = glm::lookAt(hipLeft, hipRight, glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::vec3 hipsRotRad = glm::eulerAngles(hipsRot);
-        trotation[2].v[1] = ((hipsRotRad.y * 180.f / M_PI) + 90.f) + 180.f;
-
-#pragma endregion
-#pragma region Rotation_Ankles
-
-        glm::vec3 ankle[2] = { glm::vec3(joints[JointType_AnkleLeft].Position.X, joints[JointType_AnkleLeft].Position.Y, joints[JointType_AnkleLeft].Position.Z),
-            glm::vec3(joints[JointType_AnkleRight].Position.X, joints[JointType_AnkleRight].Position.Y, joints[JointType_AnkleRight].Position.Z) };
-
-        glm::vec3 foot[2] = { glm::vec3(joints[JointType_FootLeft].Position.X, joints[JointType_FootLeft].Position.Y, joints[JointType_FootLeft].Position.Z),
-            glm::vec3(joints[JointType_FootRight].Position.X, joints[JointType_FootRight].Position.Y, joints[JointType_FootRight].Position.Z) };
-
-        glm::quat ankleRot[2] = { glm::lookAt(ankle[0], foot[0], glm::vec3(0.0f, 1.0f, 0.0f)), glm::lookAt(ankle[1], foot[1], glm::vec3(0.0f, 1.0f, 0.0f)) };
-        glm::vec3 ankleRotRad[2] = { glm::eulerAngles(ankleRot[0]), glm::eulerAngles(ankleRot[1]) };
-        
-        
-        glm::quat footrot[2] = {
-            glm::quat(
-                jointOrientations[JointType_AnkleLeft].Orientation.w,
-                jointOrientations[JointType_AnkleLeft].Orientation.x,
-                jointOrientations[JointType_AnkleLeft].Orientation.y,
-                jointOrientations[JointType_AnkleLeft].Orientation.z),
-            glm::quat(
-                jointOrientations[JointType_AnkleRight].Orientation.w,
-                jointOrientations[JointType_AnkleRight].Orientation.x,
-                jointOrientations[JointType_AnkleRight].Orientation.y,
-                jointOrientations[JointType_AnkleRight].Orientation.z) };
-
-        if (!flip) {
-            trotation[0] = vr::HmdVector3d_t{ double(glm::eulerAngles(footrot[0]).x * 180 / M_PI) + 180.f,
-                -double(ankleRotRad[0].y * 180.f / M_PI),
-                double(glm::eulerAngles(footrot[0]).z * 180 / M_PI) };
-            trotation[1] = vr::HmdVector3d_t{ double(glm::eulerAngles(footrot[1]).x * 180 / M_PI) + 180.f,
-                -double(ankleRotRad[1].y * 180.f / M_PI),
-                double(glm::eulerAngles(footrot[1]).z * 180 / M_PI) };
-        }
-        else {
-            trotation[0] = vr::HmdVector3d_t{ -double(glm::eulerAngles(footrot[0]).x * 180 / M_PI) + 180.f,
-                double(ankleRotRad[1].y * 180.f / M_PI),
-                -double(glm::eulerAngles(footrot[0]).z * 180 / M_PI) };
-            trotation[1] = vr::HmdVector3d_t{ -double(glm::eulerAngles(footrot[1]).x * 180 / M_PI) + 180.f,
-                double(ankleRotRad[0].y * 180.f / M_PI),
-                -double(glm::eulerAngles(footrot[1]).z * 180 / M_PI) };
-        }
-
-#pragma endregion
-
-        if (KinectSettings::rtcalibrated) {
-            Eigen::Vector3f Hf, Mf, Hp;
-            if (!flip) {
-                Hf(0) = joints[JointType_AnkleLeft].Position.X;
-                Hf(1) = joints[JointType_AnkleLeft].Position.Y;
-                Hf(2) = joints[JointType_AnkleLeft].Position.Z;
-
-                Mf(0) = joints[JointType_AnkleRight].Position.X;
-                Mf(1) = joints[JointType_AnkleRight].Position.Y;
-                Mf(2) = joints[JointType_AnkleRight].Position.Z;
-            }
-            else {
-                trotation[0].v[1] += 180;
-                trotation[1].v[1] += 180;
-                trotation[2].v[1] += 180;
-
-                Mf(0) = joints[JointType_AnkleLeft].Position.X;
-                Mf(1) = joints[JointType_AnkleLeft].Position.Y;
-                Mf(2) = joints[JointType_AnkleLeft].Position.Z;
-
-                Hf(0) = joints[JointType_AnkleRight].Position.X;
-                Hf(1) = joints[JointType_AnkleRight].Position.Y;
-                Hf(2) = joints[JointType_AnkleRight].Position.Z;
-            }
-
-            Hp(0) = joints[JointType_SpineBase].Position.X;
-            Hp(1) = joints[JointType_SpineBase].Position.Y;
-            Hp(2) = joints[JointType_SpineBase].Position.Z;
-
-            PointSet Hf2 = (KinectSettings::R_matT * Hf).colwise() + KinectSettings::T_matT;
-            PointSet Mf2 = (KinectSettings::R_matT * Mf).colwise() + KinectSettings::T_matT;
-            PointSet Hp2 = (KinectSettings::R_matT * Hp).colwise() + KinectSettings::T_matT;
-
-            S << "HX" << 10000 * (Hf2(0) + KinectSettings::moffsets[0][1].v[0] + KinectSettings::troffsets.v[0]) <<
-                "/HY" << 10000 * (Hf2(1) + KinectSettings::moffsets[0][1].v[1] + KinectSettings::troffsets.v[1]) <<
-                "/HZ" << 10000 * (Hf2(2) + KinectSettings::moffsets[0][1].v[2] + KinectSettings::troffsets.v[2]) <<
-                "/MX" << 10000 * (Mf2(0) + KinectSettings::moffsets[0][0].v[0] + KinectSettings::troffsets.v[0]) <<
-                "/MY" << 10000 * (Mf2(1) + KinectSettings::moffsets[0][0].v[1] + KinectSettings::troffsets.v[1]) <<
-                "/MZ" << 10000 * (Mf2(2) + KinectSettings::moffsets[0][0].v[2] + KinectSettings::troffsets.v[2]) <<
-                "/PX" << 10000 * (Hp2(0) + KinectSettings::moffsets[0][2].v[0] + KinectSettings::troffsets.v[0]) <<
-                "/PY" << 10000 * (Hp2(1) + KinectSettings::moffsets[0][2].v[1] + KinectSettings::troffsets.v[1]) <<
-                "/PZ" << 10000 * (Hp2(2) + KinectSettings::moffsets[0][2].v[2] + KinectSettings::troffsets.v[2]) <<
-                "/HRX" << 10000 * (trotation[0].v[0] + KinectSettings::moffsets[1][1].v[0]) * M_PI / 180 <<
-                "/HRY" << 10000 * (trotation[0].v[1] + KinectSettings::tryaw + KinectSettings::moffsets[1][1].v[1]) * M_PI / 180 <<
-                "/HRZ" << 10000 * (trotation[0].v[2] + KinectSettings::moffsets[1][1].v[2]) * M_PI / 180 <<
-                "/MRX" << 10000 * (trotation[1].v[0] + KinectSettings::moffsets[1][0].v[0]) * M_PI / 180 <<
-                "/MRY" << 10000 * (trotation[1].v[1] + KinectSettings::tryaw + KinectSettings::moffsets[1][0].v[1]) * M_PI / 180 <<
-                "/MRZ" << 10000 * (trotation[1].v[2] + KinectSettings::moffsets[1][0].v[2]) * M_PI / 180 <<
-                "/PRX" << 10000 * (trotation[2].v[0] + KinectSettings::moffsets[1][2].v[0]) * M_PI / 180 <<
-                "/PRY" << 10000 * (trotation[2].v[1] + KinectSettings::tryaw + KinectSettings::moffsets[1][2].v[1]) * M_PI / 180 <<
-                "/PRZ" << 10000 * (trotation[2].v[2] + KinectSettings::moffsets[1][2].v[2]) * M_PI / 180 <<
-                "/WRW" << 10000 * (0) << "/"; //DEPRECATED: GLM_ROTATE SCREWED UP WITH > 99
-        }
-        else {
-            if (!flip) {
-                S << "HX" << 10000 * (joints[JointType_AnkleLeft].Position.X + KinectSettings::moffsets[0][1].v[0] + KinectSettings::troffsets.v[0]) <<
-                    "/HY" << 10000 * (joints[JointType_AnkleLeft].Position.Y + KinectSettings::moffsets[0][1].v[1] + KinectSettings::troffsets.v[1]) <<
-                    "/HZ" << 10000 * (joints[JointType_AnkleLeft].Position.Z + KinectSettings::moffsets[0][1].v[2] + KinectSettings::troffsets.v[2]) <<
-                    "/MX" << 10000 * (joints[JointType_AnkleRight].Position.X + KinectSettings::moffsets[0][0].v[0] + KinectSettings::troffsets.v[0]) <<
-                    "/MY" << 10000 * (joints[JointType_AnkleRight].Position.Y + KinectSettings::moffsets[0][0].v[1] + KinectSettings::troffsets.v[1]) <<
-                    "/MZ" << 10000 * (joints[JointType_AnkleRight].Position.Z + KinectSettings::moffsets[0][0].v[2] + KinectSettings::troffsets.v[2]) <<
-                    "/PX" << 10000 * (joints[JointType_SpineBase].Position.X + KinectSettings::moffsets[0][2].v[0] + KinectSettings::troffsets.v[0]) <<
-                    "/PY" << 10000 * (joints[JointType_SpineBase].Position.Y + KinectSettings::moffsets[0][2].v[1] + KinectSettings::troffsets.v[1]) <<
-                    "/PZ" << 10000 * (joints[JointType_SpineBase].Position.Z + KinectSettings::moffsets[0][2].v[2] + KinectSettings::troffsets.v[2]) <<
-                    "/HRX" << 10000 * (trotation[0].v[0] + KinectSettings::moffsets[1][1].v[0]) * M_PI / 180 <<
-                    "/HRY" << 10000 * (trotation[0].v[1] + KinectSettings::moffsets[1][1].v[1]) * M_PI / 180 <<
-                    "/HRZ" << 10000 * (trotation[0].v[2] + KinectSettings::moffsets[1][1].v[2]) * M_PI / 180 <<
-                    "/MRX" << 10000 * (trotation[1].v[0] + KinectSettings::moffsets[1][0].v[0]) * M_PI / 180 <<
-                    "/MRY" << 10000 * (trotation[1].v[1] + KinectSettings::moffsets[1][0].v[1]) * M_PI / 180 <<
-                    "/MRZ" << 10000 * (trotation[1].v[2] + KinectSettings::moffsets[1][0].v[2]) * M_PI / 180 <<
-                    "/PRX" << 10000 * (trotation[2].v[0] + KinectSettings::moffsets[1][2].v[0]) * M_PI / 180 <<
-                    "/PRY" << 10000 * (trotation[2].v[1] + KinectSettings::moffsets[1][2].v[1]) * M_PI / 180 <<
-                    "/PRZ" << 10000 * (trotation[2].v[2] + KinectSettings::moffsets[1][2].v[2]) * M_PI / 180 <<
-                    "/WRW" << 10000 * (0) << "/"; //DEPRECATED: GLM_ROTATE SCREWED UP WITH > 99
-            }
-            else {
-                trotation[0].v[1] += 180;
-                trotation[1].v[1] += 180;
-                trotation[2].v[1] += 180;
-
-                S << "HX" << 10000 * (joints[JointType_AnkleRight].Position.X + KinectSettings::moffsets[0][1].v[0] + KinectSettings::troffsets.v[0]) <<
-                    "/HY" << 10000 * (joints[JointType_AnkleRight].Position.Y + KinectSettings::moffsets[0][1].v[1] + KinectSettings::troffsets.v[1]) <<
-                    "/HZ" << 10000 * (joints[JointType_AnkleRight].Position.Z + KinectSettings::moffsets[0][1].v[2] + KinectSettings::troffsets.v[2]) <<
-                    "/MX" << 10000 * (joints[JointType_AnkleLeft].Position.X + KinectSettings::moffsets[0][0].v[0] + KinectSettings::troffsets.v[0]) <<
-                    "/MY" << 10000 * (joints[JointType_AnkleLeft].Position.Y + KinectSettings::moffsets[0][0].v[1] + KinectSettings::troffsets.v[1]) <<
-                    "/MZ" << 10000 * (joints[JointType_AnkleLeft].Position.Z + KinectSettings::moffsets[0][0].v[2] + KinectSettings::troffsets.v[2]) <<
-                    "/PX" << 10000 * (joints[JointType_SpineBase].Position.X + KinectSettings::moffsets[0][2].v[0] + KinectSettings::troffsets.v[0]) <<
-                    "/PY" << 10000 * (joints[JointType_SpineBase].Position.Y + KinectSettings::moffsets[0][2].v[1] + KinectSettings::troffsets.v[1]) <<
-                    "/PZ" << 10000 * (joints[JointType_SpineBase].Position.Z + KinectSettings::moffsets[0][2].v[2] + KinectSettings::troffsets.v[2]) <<
-                    "/HRX" << 10000 * (trotation[0].v[0] + KinectSettings::moffsets[1][1].v[0]) * M_PI / 180 <<
-                    "/HRY" << 10000 * (trotation[0].v[1] + KinectSettings::moffsets[1][1].v[1]) * M_PI / 180 <<
-                    "/HRZ" << 10000 * (trotation[0].v[2] + KinectSettings::moffsets[1][1].v[2]) * M_PI / 180 <<
-                    "/MRX" << 10000 * (trotation[1].v[0] + KinectSettings::moffsets[1][0].v[0]) * M_PI / 180 <<
-                    "/MRY" << 10000 * (trotation[1].v[1] + KinectSettings::moffsets[1][0].v[1]) * M_PI / 180 <<
-                    "/MRZ" << 10000 * (trotation[1].v[2] + KinectSettings::moffsets[1][0].v[2]) * M_PI / 180 <<
-                    "/PRX" << 10000 * (trotation[2].v[0] + KinectSettings::moffsets[1][2].v[0]) * M_PI / 180 <<
-                    "/PRY" << 10000 * (trotation[2].v[1] + KinectSettings::moffsets[1][2].v[1]) * M_PI / 180 <<
-                    "/PRZ" << 10000 * (trotation[2].v[2] + KinectSettings::moffsets[1][2].v[2]) * M_PI / 180 <<
-                    "/WRW" << 10000 * (0) << "/"; //DEPRECATED: GLM_ROTATE SCREWED UP WITH > 99
-            }
-        }
-
-        return S.str();
-    }();
-
-#pragma endregion
-
-    std::string HedoS = [&]()->std::string {
-        std::stringstream S;
-
-        Eigen::AngleAxisd rollAngle(0.f, Eigen::Vector3d::UnitZ());
-        Eigen::AngleAxisd yawAngle(KinectSettings::hroffset * M_PI / 180, Eigen::Vector3d::UnitY());
-        Eigen::AngleAxisd pitchAngle(0.f, Eigen::Vector3d::UnitX());
-
-        Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
-
-        Eigen::Vector3d in(joints[JointType_Head].Position.X,
-            joints[JointType_Head].Position.Y,
-            joints[JointType_Head].Position.Z);
-
-        Eigen::Vector3d out = q * in;
-
-
-        S << "X" << 10000 * (out(0) + KinectSettings::hoffsets.v[0]) <<
-            "/Y" << 10000 * (out(1) + KinectSettings::hoffsets.v[1]) <<
-            "/Z" << 10000 * (out(2) + KinectSettings::hoffsets.v[2]) << "/";
-
-        return S.str();
-    }();
-
-    std::string RightS = [&]()->std::string {
-        std::stringstream S;
-
-        if (KinectSettings::rtconcalib) {
-            using PointSet = Eigen::Matrix<float, 3, Eigen::Dynamic>;
-
-            Eigen::Vector3f Hf, Ef;
-            if (!flip) {
-                Hf(0) = joints[JointType_HandRight].Position.X;
-                Hf(1) = joints[JointType_HandRight].Position.Y;
-                Hf(2) = joints[JointType_HandRight].Position.Z;
-                Ef(0) = joints[JointType_ElbowRight].Position.X;
-                Ef(1) = joints[JointType_ElbowRight].Position.Y;
-                Ef(2) = joints[JointType_ElbowRight].Position.Z;
-            }
-            else {
-                trotation[0].v[1] = 180;
-                trotation[1].v[1] = 180;
-                trotation[2].v[1] = 180;
-
-                Hf(0) = joints[JointType_HandLeft].Position.X;
-                Hf(1) = joints[JointType_HandLeft].Position.Y;
-                Hf(2) = joints[JointType_HandLeft].Position.Z;
-                Ef(0) = joints[JointType_ElbowLeft].Position.X;
-                Ef(1) = joints[JointType_ElbowLeft].Position.Y;
-                Ef(2) = joints[JointType_ElbowLeft].Position.Z;
-            }
-
-            PointSet Hf2 = (KinectSettings::R_matT * Hf).colwise() + KinectSettings::T_matT;
-            PointSet Mf2 = (KinectSettings::R_matT * Ef).colwise() + KinectSettings::T_matT;
-
-            S << "X" << 10000 * (Hf(0) + KinectSettings::hoffsets.v[0] + KinectSettings::mauoffset.v[0]) <<
-                "/Y" << 10000 * (Hf(1) + KinectSettings::hoffsets.v[1] + KinectSettings::mauoffset.v[1]) <<
-                "/Z" << 10000 * (Hf(2) + KinectSettings::hoffsets.v[2] + KinectSettings::mauoffset.v[2]) <<
-                "/EX" << 10000 * (Ef(0) + KinectSettings::hoffsets.v[0] + KinectSettings::mauoffset.v[0]) <<
-                "/EY" << 10000 * (Ef(1) + KinectSettings::hoffsets.v[1] + KinectSettings::mauoffset.v[1]) <<
-                "/EZ" << 10000 * (Ef(2) + KinectSettings::hoffsets.v[2] + KinectSettings::mauoffset.v[2]) << "/";
-        }
-        else {
-            if (!flip) {
-                S << "X" << 10000 * (joints[JointType_HandRight].Position.X + KinectSettings::hoffsets.v[0] + KinectSettings::mauoffset.v[0]) <<
-                    "/Y" << 10000 * (joints[JointType_HandRight].Position.Y + KinectSettings::hoffsets.v[1] + KinectSettings::mauoffset.v[1]) <<
-                    "/Z" << 10000 * (joints[JointType_HandRight].Position.Z + KinectSettings::hoffsets.v[2] + KinectSettings::mauoffset.v[2]) <<
-                    "/EX" << 10000 * (joints[JointType_ElbowRight].Position.X + KinectSettings::hoffsets.v[0] + KinectSettings::mauoffset.v[0]) <<
-                    "/EY" << 10000 * (joints[JointType_ElbowRight].Position.Y + KinectSettings::hoffsets.v[1] + KinectSettings::mauoffset.v[1]) <<
-                    "/EZ" << 10000 * (joints[JointType_ElbowRight].Position.Z + KinectSettings::hoffsets.v[2] + KinectSettings::mauoffset.v[2]) << "/";
-            }
-            else {
-                S << "X" << 10000 * (joints[JointType_HandLeft].Position.X + KinectSettings::hoffsets.v[0] + KinectSettings::mauoffset.v[0]) <<
-                    "/Y" << 10000 * (joints[JointType_HandLeft].Position.Y + KinectSettings::hoffsets.v[1] + KinectSettings::mauoffset.v[1]) <<
-                    "/Z" << 10000 * (joints[JointType_HandLeft].Position.Z + KinectSettings::hoffsets.v[2] + KinectSettings::mauoffset.v[2]) <<
-                    "/EX" << 10000 * (joints[JointType_ElbowLeft].Position.X + KinectSettings::hoffsets.v[0] + KinectSettings::mauoffset.v[0]) <<
-                    "/EY" << 10000 * (joints[JointType_ElbowLeft].Position.Y + KinectSettings::hoffsets.v[1] + KinectSettings::mauoffset.v[1]) <<
-                    "/EZ" << 10000 * (joints[JointType_ElbowLeft].Position.Z + KinectSettings::hoffsets.v[2] + KinectSettings::mauoffset.v[2]) << "/";
-            }
-        }
-
-        return S.str();
-    }();
-
-    std::string LeftS = [&]()->std::string {
-        std::stringstream S;
-
-        if (KinectSettings::rtconcalib) {
-            using PointSet = Eigen::Matrix<float, 3, Eigen::Dynamic>;
-
-            Eigen::Vector3f Hf, Ef;
-            if (flip) {
-                Hf(0) = joints[JointType_HandRight].Position.X;
-                Hf(1) = joints[JointType_HandRight].Position.Y;
-                Hf(2) = joints[JointType_HandRight].Position.Z;
-                Ef(0) = joints[JointType_ElbowRight].Position.X;
-                Ef(1) = joints[JointType_ElbowRight].Position.Y;
-                Ef(2) = joints[JointType_ElbowRight].Position.Z;
-            }
-            else {
-                trotation[0].v[1] = 180;
-                trotation[1].v[1] = 180;
-                trotation[2].v[1] = 180;
-
-                Hf(0) = joints[JointType_HandLeft].Position.X;
-                Hf(1) = joints[JointType_HandLeft].Position.Y;
-                Hf(2) = joints[JointType_HandLeft].Position.Z;
-                Ef(0) = joints[JointType_ElbowLeft].Position.X;
-                Ef(1) = joints[JointType_ElbowLeft].Position.Y;
-                Ef(2) = joints[JointType_ElbowLeft].Position.Z;
-            }
-
-            PointSet Hf2 = (KinectSettings::R_matT * Hf).colwise() + KinectSettings::T_matT;
-            PointSet Mf2 = (KinectSettings::R_matT * Ef).colwise() + KinectSettings::T_matT;
-
-            S << "X" << 10000 * (Hf(0) + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
-                "/Y" << 10000 * (Hf(1) + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
-                "/Z" << 10000 * (Hf(2) + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) <<
-                "/EX" << 10000 * (Ef(0) + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
-                "/EY" << 10000 * (Ef(1) + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
-                "/EZ" << 10000 * (Ef(2) + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) << "/";
-        }
-        else {
-            if (flip) {
-                S << "X" << 10000 * (joints[JointType_HandRight].Position.X + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
-                    "/Y" << 10000 * (joints[JointType_HandRight].Position.Y + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
-                    "/Z" << 10000 * (joints[JointType_HandRight].Position.Z + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) <<
-                    "/EX" << 10000 * (joints[JointType_ElbowRight].Position.X + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
-                    "/EY" << 10000 * (joints[JointType_ElbowRight].Position.Y + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
-                    "/EZ" << 10000 * (joints[JointType_ElbowRight].Position.Z + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) << "/";
-            }
-            else {
-                S << "X" << 10000 * (joints[JointType_HandLeft].Position.X + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
-                    "/Y" << 10000 * (joints[JointType_HandLeft].Position.Y + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
-                    "/Z" << 10000 * (joints[JointType_HandLeft].Position.Z + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) <<
-                    "/EX" << 10000 * (joints[JointType_ElbowLeft].Position.X + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
-                    "/EY" << 10000 * (joints[JointType_ElbowLeft].Position.Y + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
-                    "/EZ" << 10000 * (joints[JointType_ElbowLeft].Position.Z + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) << "/";
-            }
-        }
-
-        return S.str();
-    }();
-
-    std::string RotS = [&]()->std::string {
-        std::stringstream S;
-
-        if (KinectSettings::rtconcalib) {
-
-            Eigen::Vector3f Hf, Ef;
-            if (flip) {
-                S << "X" << 0.f <<
-                    "/Y" << 10000 * KinectSettings::tryaw * 180 / M_PI <<
-                    "/Z" << 10000 * 0.f << "/";
-            }
-            else {
-                S << "X" << 0.f <<
-                    "/Y" << 10000 * ((KinectSettings::tryaw * 180 / M_PI) + 180.f) <<
-                    "/Z" << 0.f << "/";
-            }
-        }
-        else {
-            if (flip) {
-                S << "X" << 0.f <<
-                    "/Y" << 0.f <<
-                    "/Z" << 0.f << "/";
-            }
-            else {
-                S << "X" << 0.f <<
-                    "/Y" << 180.f <<
-                    "/Z" << 0.f << "/";
-            }
-        }
-
-        return S.str();
-    }();
-
-    char TrackerD[1024];
-    char HedoD[1024];
-    char RightD[1024];
-    char LeftD[1024];
-    char RotD[1024];
-
-    strcpy_s(TrackerD, TrackerS.c_str());
-    strcpy_s(HedoD, HedoS.c_str());
-    strcpy_s(RightD, RightS.c_str());
-    strcpy_s(LeftD, LeftS.c_str());
-    strcpy_s(RotD, RotS.c_str());
-
-    WriteFile(pipeTracker, TrackerD, sizeof(TrackerD), &numWritten, NULL);
-    WriteFile(pipeSan, HedoD, sizeof(HedoD), &numWritten, NULL);
-    WriteFile(pipeRight, RightD, sizeof(RightD), &numWritten, NULL);
-    WriteFile(pipeLeft, LeftD, sizeof(LeftD), &numWritten, NULL);
-    WriteFile(pipeLeftRot, RotD, sizeof(RotD), &numWritten, NULL);
-    WriteFile(pipeRightRot, RotD, sizeof(RotD), &numWritten, NULL);
-
-    CloseHandle(pipeTracker);
-    CloseHandle(pipeSan);
-    CloseHandle(pipeRight);
-    CloseHandle(pipeLeft);
-    CloseHandle(pipeLeftRot);
-    CloseHandle(pipeRightRot);
+    KinectSettings::lastPose[0][0] = glm::vec3(
+        joints[JointType_AnkleLeft].Position.X,
+        joints[JointType_AnkleLeft].Position.Y,
+        joints[JointType_AnkleLeft].Position.Z
+    );
+    KinectSettings::lastPose[1][0] = glm::vec3(
+        joints[JointType_AnkleRight].Position.X,
+        joints[JointType_AnkleRight].Position.Y,
+        joints[JointType_AnkleRight].Position.Z
+    );
+    KinectSettings::lastPose[2][0] = glm::vec3(
+        joints[JointType_SpineBase].Position.X,
+        joints[JointType_SpineBase].Position.Y,
+        joints[JointType_SpineBase].Position.Z
+    );
 
 
 
