@@ -108,11 +108,15 @@ public:
 
     sfg::ComboBox::Ptr contrackingselectbox = sfg::ComboBox::Create();
     sfg::ComboBox::Ptr bodytrackingselectbox = sfg::ComboBox::Create();
+    sfg::ComboBox::Ptr headtrackingselectbox = sfg::ComboBox::Create();
+
+    sfg::ComboBox::Ptr psmoveboxa = sfg::ComboBox::Create();
 
     sfg::ComboBox::Ptr psmoveboxhi = sfg::ComboBox::Create();
     sfg::ComboBox::Ptr psmoveboxmi = sfg::ComboBox::Create();
     sfg::ComboBox::Ptr psmoveboxyo = sfg::ComboBox::Create();
     sfg::Box::Ptr psmidbox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
+    sfg::Box::Ptr psmidbox1 = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
 
     GUIHandler() {
         guiWindow->SetTitle("KinectToVR EX alpha 0.7.1");
@@ -471,6 +475,11 @@ public:
         psmoveboxyo->GetSignal(sfg::ComboBox::OnSelect).Connect([this] {
             KinectSettings::psmyobu = psmoveboxyo->GetSelectedItem();
             KinectSettings::flashnow[0] = psmoveboxyo->GetSelectedItem();
+            KinectSettings::flashnow[1] = true;
+            });
+        psmoveboxa->GetSignal(sfg::ComboBox::OnSelect).Connect([this] {
+            KinectSettings::psmatama = psmoveboxa->GetSelectedItem();
+            KinectSettings::flashnow[0] = psmoveboxa->GetSelectedItem();
             KinectSettings::flashnow[1] = true;
             });
 
@@ -886,6 +895,7 @@ public:
             psmoveboxhi->Clear();
             psmoveboxmi->Clear();
             psmoveboxyo->Clear();
+            psmoveboxa->Clear();
 
             KinectSettings::psmindexidpsm[0].clear();
             KinectSettings::psmindexidpsm[1].clear();
@@ -897,6 +907,7 @@ public:
                     psmoveboxhi->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
                     psmoveboxmi->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
                     psmoveboxyo->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
+                    psmoveboxa->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
 
                     KinectSettings::psmindexidpsm[0].push_back(psmovebox->GetItemCount() - 1);
                     KinectSettings::psmindexidpsm[1].push_back(i);
@@ -923,6 +934,10 @@ public:
                 psmoveboxyo->SelectItem(2);
                 KinectSettings::psmyobu = 2;
             }
+            if (psmoveboxa->GetItemCount() >= 3) {
+                psmoveboxa->SelectItem(2);
+                KinectSettings::psmatama = 0;
+            }
 
             });
 
@@ -932,6 +947,7 @@ public:
             psmoveboxhi->Clear();
             psmoveboxmi->Clear();
             psmoveboxyo->Clear();
+            psmoveboxa->Clear();
 
             KinectSettings::psmindexidpsm[0].clear();
             KinectSettings::psmindexidpsm[1].clear();
@@ -943,6 +959,7 @@ public:
                     psmoveboxhi->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
                     psmoveboxmi->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
                     psmoveboxyo->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
+                    psmoveboxa->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
 
                     KinectSettings::psmindexidpsm[0].push_back(psmoveboxhi->GetItemCount() - 1);
                     KinectSettings::psmindexidpsm[1].push_back(i);
@@ -967,6 +984,10 @@ public:
             if (psmoveboxyo->GetItemCount() >= 3) {
                 psmoveboxyo->SelectItem(2);
                 KinectSettings::psmyobu = 2;
+            }
+            if (psmoveboxa->GetItemCount() >= 3) {
+                psmoveboxa->SelectItem(2);
+                KinectSettings::psmatama = 0;
             }
 
 			});
@@ -1858,10 +1879,10 @@ public:
         *    until arduvr is officially announced and promoted)
         */
 
-        foptbox->AppendItem("EKalman filter - smooths your moves but floods you with soap"); //use ekf in k2vr
-        foptbox->AppendItem("Low Pass Optical filter - smooths your moves but delays a little"); //use lpf in k2vr
-        foptbox->AppendItem("Linear Interpolation - you are as fast as sonic (filter's lil tricky)"); //use glm::mix in k2vr
-        foptbox->AppendItem("Magic Touch - gives realtime results with no visible jitter"); //only this one uses driver module
+        foptbox->AppendItem("Extended Kalman filter - smooths your moves but you feel like Aqua after exiting Giant Toad"); //use ekf in k2vr
+        foptbox->AppendItem("Low Pass Optical filter - smooths jitter really well but also delays you a bit"); //use lpf in k2vr
+        foptbox->AppendItem("Linear Interpolation - you are now faster than sonic (filter's lil tricky anyway)"); //use glm::mix in k2vr
+        foptbox->AppendItem("Magic Touch - gives realtime results with no visible jitter (Default Option, literally magic)"); //only this one uses driver module
 
         advancedTrackerBox->Pack(box11);
 
@@ -2704,6 +2725,48 @@ public:
 
         auto modeTitleBox2 = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
         modeTitleBox2->Pack(sfg::Label::Create("-- Offsets are absolute, that means they will offset you basing on SteamVR's worldspace! --"));
+
+
+
+
+
+
+
+
+        sfg::Box::Ptr selectoptionbox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
+        selectoptionbox->Pack(sfg::Label::Create("Choose tracking option for HMD (Position only)"));
+        selectoptionbox->Pack(headtrackingselectbox);
+        advancedTrackerBox->Pack(selectoptionbox);
+
+        headtrackingselectbox->AppendItem("PSMove head tracking");
+        headtrackingselectbox->AppendItem("Kinect head tracking");
+        headtrackingselectbox->SelectItem(VirtualHips::settings.headTrackingOption);
+
+
+
+        psmidbox1->Pack(sfg::Label::Create(" -- Head PSMove ID --"));
+        psmidbox1->Pack(psmoveboxa);
+        psmidbox1->Pack(refreshpsmovesbuton1);
+
+        advancedTrackerBox->Pack(psmidbox1);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         auto modeTitleBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
         auto standingBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);

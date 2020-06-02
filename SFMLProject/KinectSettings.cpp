@@ -37,7 +37,7 @@ namespace KinectSettings {
     bool ignoreInferredPositions = false;
     bool ignoreRotationSmoothing = false;
     float ardroffset = 0.f;
-    int bodytrackingoption = 1;
+    int bodytrackingoption = 1, headtrackingoption = 1;
     // The joints which actually have rotation change based on the kinect
     // Each kinect type should set these in their process beginning
     // These would be the defaults for the V1
@@ -46,7 +46,7 @@ namespace KinectSettings {
     KVR::KinectJointType leftFootJointWithoutRotation = KVR::KinectJointType::AnkleLeft;
     KVR::KinectJointType rightFootJointWithoutRotation = KVR::KinectJointType::AnkleRight;
 
-    PSMPSMove migiMove, hidariMove, hidariashimove, migiashimove, yobumove;
+    PSMPSMove migiMove, hidariMove, hidariashimove, migiashimove, yobumove, atamamove;
     bool initialised = false;
     bool userChangingZero = false;
     bool legacy = false;
@@ -91,7 +91,7 @@ namespace KinectSettings {
     int rightHandPlayspaceMovementButton = 0;
     int leftFootPlayspaceMovementButton = 0;
     int rightFootPlayspaceMovementButton = 0;
-    int psmmigi, psmhidari, psmyobu;
+    int psmmigi, psmhidari, psmyobu, psmatama;
     float hmdYaw = 0;
     float conID[2] = { 0, 1 };
 

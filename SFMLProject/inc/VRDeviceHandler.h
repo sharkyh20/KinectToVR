@@ -38,7 +38,7 @@ struct VirtualHipSettings {
     float tryawst;
     int autosver = 1;
     int footOption, hipsOption, posOption = 3, conOption;
-    int bodyTrackingOption = 1;
+    int bodyTrackingOption = 1, headTrackingOption = 1;
     // --- Standing Settings ---
     bool positionFollowsHMDLean = false; // Determines whether the virtual hips in standing mode will stay above the foot trackers, or interpolate between the HMD and foot trackers on a direct slant
     float hmdegree = 0.0;
@@ -77,6 +77,7 @@ struct VirtualHipSettings {
             CEREAL_NVP(posOption),
             CEREAL_NVP(conOption),
             CEREAL_NVP(bodyTrackingOption),
+            CEREAL_NVP(headTrackingOption),
             CEREAL_NVP(comph),
             CEREAL_NVP(compm),
             CEREAL_NVP(hauoffset_s),

@@ -515,17 +515,29 @@ void processLoop(KinectHandlerBase& kinect) {
 
 			VirtualHips::saveSettings();
 		}
+		if (atamaTorakkinguOpushon.trackingOption != atamaTorakkinguOpu(guiRef.bodytrackingselectbox->GetSelectedItem())) {
+			atamaTorakkinguOpushon.trackingOption = atamaTorakkinguOpu(guiRef.bodytrackingselectbox->GetSelectedItem());
+			VirtualHips::settings.bodyTrackingOption = guiRef.bodytrackingselectbox->GetSelectedItem();
+
+			VirtualHips::saveSettings();
+		}
 
 		if (VirtualHips::settings.bodyTrackingOption == bodiTorakkinguOpu::k_PSMoveFullTracking)
 			guiRef.psmidbox->Show(true);
 		else
 			guiRef.psmidbox->Show(false);
 
+		if (VirtualHips::settings.headTrackingOption == atamaTorakkinguOpu::k_PSMoveTracking)
+			guiRef.psmidbox1->Show(true);
+		else
+			guiRef.psmidbox1->Show(false);
+
 		KinectSettings::footOption = VirtualHips::settings.footOption;
 		KinectSettings::hipsOption = VirtualHips::settings.hipsOption;
 		KinectSettings::posOption = VirtualHips::settings.posOption;
 		KinectSettings::conOption = VirtualHips::settings.conOption;
 		KinectSettings::bodytrackingoption = VirtualHips::settings.bodyTrackingOption;
+		KinectSettings::headtrackingoption = VirtualHips::settings.headTrackingOption;
 
 		//KinectSettings::footRotationFilterOption::k_EnableOrientationFilter;
 

@@ -77,6 +77,15 @@ static struct bodiToraOpushon {
     bodiTorakkinguOpu trackingOption;
 } bodiTorakkinguOpushon;
 
+enum atamaTorakkinguOpu {
+    k_PSMoveTracking,
+    k_KinectTracking
+};
+
+static struct atamaToraOpushon {
+    atamaTorakkinguOpu trackingOption;
+} atamaTorakkinguOpushon;
+
 namespace KinectSettings {
 
     static struct K2VR_PSMoveData {
@@ -86,7 +95,7 @@ namespace KinectSettings {
 
     static std::vector<K2VR_PSMoveData> KVR_PSMoves;
 
-    extern PSMPSMove migiMove, hidariMove, hidariashimove, migiashimove, yobumove;
+    extern PSMPSMove migiMove, hidariMove, hidariashimove, migiashimove, yobumove, atamamove;
     extern bool isKinectDrawn;
     extern bool isSkeletonDrawn;
     extern bool ignoreInferredPositions;
@@ -120,7 +129,7 @@ namespace KinectSettings {
     extern double hipRoleHeightAdjust;
     extern float tryaw;
     extern int footOption, hipsOption, posOption, conOption;
-    extern int bodytrackingoption;
+    extern int bodytrackingoption, headtrackingoption;
     //Need to delete later (Merge should sort it)
     extern int leftHandPlayspaceMovementButton;
     extern int rightHandPlayspaceMovementButton;
@@ -154,7 +163,7 @@ namespace KinectSettings {
     extern Eigen::Vector3f calorigin;
     extern int cpoints;
     extern bool rtcalibrated;
-    extern int psmmigi, psmhidari, psmyobu;
+    extern int psmmigi, psmhidari, psmyobu, psmatama;
 
     extern float hmdegree;
     extern bool sensorConfigChanged;
