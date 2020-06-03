@@ -335,6 +335,7 @@ void processLoop(KinectHandlerBase& kinect) {
 	guiRef.coptbox->SelectItem(VirtualHips::settings.footOption);
 	guiRef.coptbox1->SelectItem(VirtualHips::settings.hipsOption);
 	guiRef.foptbox->SelectItem(VirtualHips::settings.posOption);
+	guiRef.contrackingselectbox->SelectItem(VirtualHips::settings.conOption);
 	guiRef.bodytrackingselectbox->SelectItem(VirtualHips::settings.bodyTrackingOption);
 	guiRef.headtrackingselectbox->SelectItem(VirtualHips::settings.headTrackingOption);
 	guiRef.refreshpsms();
@@ -363,6 +364,7 @@ void processLoop(KinectHandlerBase& kinect) {
 				guiRef.desktopHandleEvents(event);
 				if (event.type == sf::Event::Closed) {
 					SFMLsettings::keepRunning = false;
+					KinectSettings::initialised = false;
 					renderWindow.close();
 					break;
 				}
