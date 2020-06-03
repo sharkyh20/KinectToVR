@@ -337,6 +337,9 @@ void processLoop(KinectHandlerBase& kinect) {
 	guiRef.foptbox->SelectItem(VirtualHips::settings.posOption);
 	guiRef.bodytrackingselectbox->SelectItem(VirtualHips::settings.bodyTrackingOption);
 	guiRef.headtrackingselectbox->SelectItem(VirtualHips::settings.headTrackingOption);
+	guiRef.refreshpsms();
+
+	//select last psm ids
 
 	boost::thread* ipcThread = new boost::thread(KinectSettings::sendipc);
 	ipcThread->detach();
@@ -427,7 +430,7 @@ void processLoop(KinectHandlerBase& kinect) {
 			VRInput::trackpadpose[0].y = rightController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad).y;
 			VRInput::trackpadpose[1].x = leftController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad).x;
 			VRInput::trackpadpose[1].y = leftController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad).y;
-			VRInput::confirmdatapose.bState = leftController.GetTriggerDown() || rightController.GetTriggerDown();
+			VRInput::confirmdatapose.bState = leftController.GetPress(vr::k_EButton_Grip) || rightController.GetPress(vr::k_EButton_Grip);
 
 			// EWWWWWWWWW -------------
 			if (VRInput::legacyInputModeEnabled) {

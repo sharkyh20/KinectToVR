@@ -324,7 +324,7 @@ namespace KinectSettings {
 
             using PointSet = Eigen::Matrix<float, 3, Eigen::Dynamic>;
             float yaw = KinectSettings::hmdYaw * 180 / M_PI;
-            float facing = yaw - KinectSettings::tryaw * 180 / M_PI;
+            float facing = yaw - KinectSettings::tryaw;
 
             if (bodytrackingoption == bodiTorakkinguOpu::k_PSMoveFullTracking)
                 flip = false;
@@ -355,8 +355,8 @@ namespace KinectSettings {
                             trackerRotm = mFootRot;
                         }
                         else {
-                            trackerRoth = glm::inverse(hFootRot);
-                            trackerRotm = glm::inverse(mFootRot);
+                            trackerRotm = glm::inverse(hFootRot);
+                            trackerRoth = glm::inverse(mFootRot);
                         }
                     }
                     else {
@@ -405,9 +405,9 @@ namespace KinectSettings {
 
                 if (bodytrackingoption == bodiTorakkinguOpu::k_KinectFullTracking) {
                     glm::vec3 unofu[3] = { glm::eulerAngles(trackerRoth),glm::eulerAngles(trackerRotm),glm::eulerAngles(trackerRoty) };
-                    unofu[0] += glm::vec3(0.f, tryaw, 0.f);
-                    unofu[1] += glm::vec3(0.f, tryaw, 0.f);
-                    unofu[2] += glm::vec3(0.f, tryaw, 0.f);
+                    unofu[0] -= glm::vec3(0.f, tryaw * M_PI / 180, 0.f);
+                    unofu[1] -= glm::vec3(0.f, tryaw * M_PI / 180, 0.f);
+                    unofu[2] -= glm::vec3(0.f, tryaw * M_PI / 180, 0.f);
                     trackerRoth = unofu[0];
                     trackerRotm = unofu[1];
                     trackerRoty = unofu[2];
@@ -431,9 +431,9 @@ namespace KinectSettings {
                     }
                     else {
                         glm::vec3 unofu[3] = { glm::eulerAngles(trackerRoth),glm::eulerAngles(trackerRotm),glm::eulerAngles(trackerRoty) };
-                        unofu[0] += glm::vec3(0.f, 180.f, 0.f);
-                        unofu[1] += glm::vec3(0.f, 180.f, 0.f);
-                        unofu[2] += glm::vec3(0.f, 180.f, 0.f);
+                        unofu[0] += glm::vec3(0.f, 180.f * M_PI / 180, 0.f);
+                        unofu[1] += glm::vec3(0.f, 180.f * M_PI / 180, 0.f);
+                        unofu[2] += glm::vec3(0.f, 180.f * M_PI / 180, 0.f);
                         trackerRoth = unofu[0];
                         trackerRotm = unofu[1];
                         trackerRoty = unofu[2];
@@ -593,21 +593,21 @@ namespace KinectSettings {
                     using PointSet = Eigen::Matrix<float, 3, Eigen::Dynamic>;
 
                     Eigen::Vector3f Hf, Ef;
-                    if (flip) {
-                        Hf(0) = mHandPose.x;
-                        Hf(1) = mHandPose.y;
-                        Hf(2) = mHandPose.z;
-                        Ef(0) = mElPose.x;
-                        Ef(1) = mElPose.y;
-                        Ef(2) = mElPose.z;
-                    }
-                    else {
+                    if (!flip) {
                         Hf(0) = hHandPose.x;
                         Hf(1) = hHandPose.y;
                         Hf(2) = hHandPose.z;
                         Ef(0) = hElPose.x;
                         Ef(1) = hElPose.y;
                         Ef(2) = hElPose.z;
+                    }
+                    else {
+                        Hf(0) = mHandPose.x;
+                        Hf(1) = mHandPose.y;
+                        Hf(2) = mHandPose.z;
+                        Ef(0) = mElPose.x;
+                        Ef(1) = mElPose.y;
+                        Ef(2) = mElPose.z;
                     }
 
                     PointSet Hf2 = (KinectSettings::R_matT * Hf).colwise() + KinectSettings::T_matT;
@@ -622,12 +622,12 @@ namespace KinectSettings {
                         "/DISABLE" << 10000 * !conActivated << "/";
                 }
 				else {
-					S << "X" << 10000 * (mHandPose.x + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
-						"/Y" << 10000 * (mHandPose.y + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
-						"/Z" << 10000 * (mHandPose.z + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) <<
-						"/EX" << 10000 * (mElPose.x + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
-						"/EY" << 10000 * (mElPose.y + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
-						"/EZ" << 10000 * (mElPose.z + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) <<
+					S << "X" << 10000 * (hHandPose.x + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
+						"/Y" << 10000 * (hHandPose.y + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
+						"/Z" << 10000 * (hHandPose.z + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) <<
+						"/EX" << 10000 * (hElPose.x + KinectSettings::hoffsets.v[0] + KinectSettings::hauoffset.v[0]) <<
+						"/EY" << 10000 * (hElPose.y + KinectSettings::hoffsets.v[1] + KinectSettings::hauoffset.v[1]) <<
+						"/EZ" << 10000 * (hElPose.z + KinectSettings::hoffsets.v[2] + KinectSettings::hauoffset.v[2]) <<
 						"/DISABLE" << 10000 * !conActivated << "/";
 				}
 
@@ -773,8 +773,9 @@ namespace KinectSettings {
 
 
             auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - t1).count();
-            while(duration <= 8500000.f)
-                duration = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - t1).count();
+            if (duration <= 9000000.f) {
+                std::this_thread::sleep_for(std::chrono::nanoseconds(9000000 - duration));
+            }
 
         }
     }

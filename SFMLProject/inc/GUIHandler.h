@@ -884,163 +884,71 @@ public:
             });
 
     }
+    void refreshpsms() {
+        psmovebox->Clear();
+        psmovebox1->Clear();
+        psmoveboxhi->Clear();
+        psmoveboxmi->Clear();
+        psmoveboxyo->Clear();
+        psmoveboxa->Clear();
+
+        KinectSettings::psmindexidpsm[0].clear();
+        KinectSettings::psmindexidpsm[1].clear();
+
+        for (int i = 0; i < 11; i++) {
+            if (KinectSettings::KVRPSMoveData[i].isValidController) {
+                psmovebox->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
+                psmovebox1->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
+                psmoveboxhi->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
+                psmoveboxmi->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
+                psmoveboxyo->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
+                psmoveboxa->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
+
+                KinectSettings::psmindexidpsm[0].push_back(psmovebox->GetItemCount() - 1);
+                KinectSettings::psmindexidpsm[1].push_back(i);
+
+            }
+        }
+        if (psmovebox->GetItemCount() >= 1) {
+            psmovebox->SelectItem(0);
+            KinectSettings::psmh = 0;
+        }
+        if (psmovebox1->GetItemCount() >= 2) {
+            psmovebox1->SelectItem(1);
+            KinectSettings::psmm = 1;
+        }
+        if (psmoveboxhi->GetItemCount() >= 1) {
+            psmoveboxhi->SelectItem(0);
+            KinectSettings::psmhidari = 0;
+        }
+        if (psmoveboxmi->GetItemCount() >= 2) {
+            psmoveboxmi->SelectItem(1);
+            KinectSettings::psmmigi = 1;
+        }
+        if (psmoveboxyo->GetItemCount() >= 3) {
+            psmoveboxyo->SelectItem(2);
+            KinectSettings::psmyobu = 2;
+        }
+        if (psmoveboxa->GetItemCount() >= 1) {
+            psmoveboxa->SelectItem(0);
+            KinectSettings::psmatama = 0;
+        }
+    }
     void setKinectButtonSignal(KinectHandlerBase& kinect) {
         reconKinectButton->GetSignal(sfg::Widget::OnLeftClick).Connect([&kinect] {
 			kinect.initialise();
 			});
 
         refreshpsmovesbuton->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
-            psmovebox->Clear();
-            psmovebox1->Clear();
-            psmoveboxhi->Clear();
-            psmoveboxmi->Clear();
-            psmoveboxyo->Clear();
-            psmoveboxa->Clear();
-
-            KinectSettings::psmindexidpsm[0].clear();
-            KinectSettings::psmindexidpsm[1].clear();
-
-            for (int i = 0; i < 11; i++) {
-                if (KinectSettings::KVRPSMoveData[i].isValidController) {
-                    psmovebox->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
-                    psmovebox1->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
-                    psmoveboxhi->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
-                    psmoveboxmi->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
-                    psmoveboxyo->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
-                    psmoveboxa->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
-
-                    KinectSettings::psmindexidpsm[0].push_back(psmovebox->GetItemCount() - 1);
-                    KinectSettings::psmindexidpsm[1].push_back(i);
-
-                }
-            }
-            if (psmovebox->GetItemCount() >= 1) {
-                psmovebox->SelectItem(0);
-                KinectSettings::psmh = 0;
-            }
-            if (psmovebox1->GetItemCount() >= 2) {
-                psmovebox1->SelectItem(1);
-                KinectSettings::psmm = 1;
-            }
-            if (psmoveboxhi->GetItemCount() >= 1) {
-                psmoveboxhi->SelectItem(0);
-                KinectSettings::psmhidari = 0;
-            }
-            if (psmoveboxmi->GetItemCount() >= 2) {
-                psmoveboxmi->SelectItem(1);
-                KinectSettings::psmmigi = 1;
-            }
-            if (psmoveboxyo->GetItemCount() >= 3) {
-                psmoveboxyo->SelectItem(2);
-                KinectSettings::psmyobu = 2;
-            }
-            if (psmoveboxa->GetItemCount() >= 3) {
-                psmoveboxa->SelectItem(2);
-                KinectSettings::psmatama = 0;
-            }
-
+            refreshpsms();
             });
 
         refreshpsmovesbuton1->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
-            psmovebox->Clear();
-            psmovebox1->Clear();
-            psmoveboxhi->Clear();
-            psmoveboxmi->Clear();
-            psmoveboxyo->Clear();
-            psmoveboxa->Clear();
-
-            KinectSettings::psmindexidpsm[0].clear();
-            KinectSettings::psmindexidpsm[1].clear();
-            
-            for (int i = 0; i < 11; i++) {
-                if (KinectSettings::KVRPSMoveData[i].isValidController) {
-                    psmovebox->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
-                    psmovebox1->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
-                    psmoveboxhi->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
-                    psmoveboxmi->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
-                    psmoveboxyo->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
-                    psmoveboxa->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
-
-                    KinectSettings::psmindexidpsm[0].push_back(psmoveboxhi->GetItemCount() - 1);
-                    KinectSettings::psmindexidpsm[1].push_back(i);
-                }
-			}
-            if (psmovebox->GetItemCount() >= 1) {
-                psmovebox->SelectItem(0);
-                KinectSettings::psmh = 0;
-            }
-            if (psmovebox1->GetItemCount() >= 2) {
-                psmovebox1->SelectItem(1);
-                KinectSettings::psmm = 1;
-            }
-            if (psmoveboxhi->GetItemCount() >= 1) {
-                psmoveboxhi->SelectItem(0);
-                KinectSettings::psmhidari = 0;
-            }
-            if (psmoveboxmi->GetItemCount() >= 2) {
-                psmoveboxmi->SelectItem(1);
-                KinectSettings::psmmigi = 1;
-            }
-            if (psmoveboxyo->GetItemCount() >= 3) {
-                psmoveboxyo->SelectItem(2);
-                KinectSettings::psmyobu = 2;
-            }
-            if (psmoveboxa->GetItemCount() >= 3) {
-                psmoveboxa->SelectItem(2);
-                KinectSettings::psmatama = 0;
-            }
-
+            refreshpsms();
 			});
 
         refreshpsmovesbuton11->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
-            psmovebox->Clear();
-            psmovebox1->Clear();
-            psmoveboxhi->Clear();
-            psmoveboxmi->Clear();
-            psmoveboxyo->Clear();
-            psmoveboxa->Clear();
-
-            KinectSettings::psmindexidpsm[0].clear();
-            KinectSettings::psmindexidpsm[1].clear();
-
-            for (int i = 0; i < 11; i++) {
-                if (KinectSettings::KVRPSMoveData[i].isValidController) {
-                    psmovebox->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
-                    psmovebox1->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
-                    psmoveboxhi->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
-                    psmoveboxmi->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
-                    psmoveboxyo->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
-                    psmoveboxa->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
-
-                    KinectSettings::psmindexidpsm[0].push_back(psmoveboxhi->GetItemCount() - 1);
-                    KinectSettings::psmindexidpsm[1].push_back(i);
-                }
-            }
-            if (psmovebox->GetItemCount() >= 1) {
-                psmovebox->SelectItem(0);
-                KinectSettings::psmh = 0;
-            }
-            if (psmovebox1->GetItemCount() >= 2) {
-                psmovebox1->SelectItem(1);
-                KinectSettings::psmm = 1;
-            }
-            if (psmoveboxhi->GetItemCount() >= 1) {
-                psmoveboxhi->SelectItem(0);
-                KinectSettings::psmhidari = 0;
-            }
-            if (psmoveboxmi->GetItemCount() >= 2) {
-                psmoveboxmi->SelectItem(1);
-                KinectSettings::psmmigi = 1;
-            }
-            if (psmoveboxyo->GetItemCount() >= 3) {
-                psmoveboxyo->SelectItem(2);
-                KinectSettings::psmyobu = 2;
-            }
-            if (psmoveboxa->GetItemCount() >= 3) {
-                psmoveboxa->SelectItem(2);
-                KinectSettings::psmatama = 0;
-            }
-
+            refreshpsms();
             });
 
 		refreshcomports->GetSignal(sfg::Widget::OnLeftClick).Connect([this] {
@@ -2498,7 +2406,7 @@ public:
                     Eigen::Matrix3d rotationMatrix = q.matrix();
                     KinectSettings::R_matT = rotationMatrix.cast<float>();
 
-                    TrackersCalibButton->SetLabel(std::string("-- Move trackers to your body using touchpad controls. Press Tigger to confirm --").c_str());
+                    TrackersCalibButton->SetLabel(std::string("-- Move trackers to your body using touchpad controls. Press Grip to confirm --").c_str());
                     std::this_thread::sleep_for(std::chrono::seconds(1));
 
                     while (!VRInput::confirmdatapose.bState) {
@@ -2516,7 +2424,7 @@ public:
                     KinectSettings::calorigin = Eigen::Vector3f(KinectSettings::mposes[2].v[0], KinectSettings::mposes[2].v[1], KinectSettings::mposes[2].v[2]);
                     std::this_thread::sleep_for(std::chrono::seconds(1));
 
-                    TrackersCalibButton->SetLabel(std::string("-- Orientate trackers to your body using touchpad controls. Press Trigger to confirm --").c_str());
+                    TrackersCalibButton->SetLabel(std::string("-- Orientate trackers to your body using touchpad controls. Press Grip to confirm --").c_str());
 
                     double yawtmp = 0, pitchtmp = 0;
                     while (!VRInput::confirmdatapose.bState) {
@@ -2591,7 +2499,9 @@ public:
 					std::vector<vr::HmdVector3d_t> hpose;
 
 					KinectSettings::ismatrixcalibrated = false;
-
+                    KinectSettings::rtcalibrated = false;
+                    KinectSettings::calorigin = Eigen::Vector3f(0, 0, 0);
+                    settings.caliborigin = KinectSettings::calorigin;
 
 					for (int ipoint = 1; ipoint <= KinectSettings::cpoints; ipoint++) {
 
@@ -2708,7 +2618,9 @@ public:
 					KinectSettings::tryaw = glm::degrees(yaw);
 					settings.tryawst = glm::degrees(yaw);
 
-					KinectSettings::rtcalibrated = true;
+                    KinectSettings::calorigin = Eigen::Vector3f(0, 0, 0);
+                    settings.caliborigin = KinectSettings::calorigin;
+                    KinectSettings::rtcalibrated = true;
 					settings.rtcalib = true;
 
 					TrackersCalibButton->SetLabel(std::string("-- Done! Hit me to re-calibrate! --").c_str());

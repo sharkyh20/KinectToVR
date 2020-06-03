@@ -269,3 +269,356 @@
 [INFO ] 2020-05-31 12:48:30: Found 0 HMDs.
 [INFO ] 2020-05-31 12:48:30: Controller 0 has battery level: ~60%
 [INFO ] 2020-05-31 12:48:30: Controller 1 has battery level: ~40%
+[INFO ] 2020-06-02 20:41:57: Kinect sensor opened successfully.
+[INFO ] 2020-06-02 20:41:58: Kinect initialised successfully!
+[INFO ] 2020-06-02 20:41:58: Attempted to initialise OpenGL
+[INFO ] 2020-06-02 20:41:58: ~~~New logging session for main process begins here!~~~
+[INFO ] 2020-06-02 20:41:58: Kinect version is V1
+[INFO ] 2020-06-02 20:41:58: File Directory Path Set to C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\
+[INFO ] 2020-06-02 20:41:59: Stored window size: 1280 x 768
+[INFO ] 2020-06-02 20:41:59: Attempted CFG load: C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\KinectToVR.cfg
+
+[INFO ] 2020-06-02 20:41:59: CFG Loaded Attempted!
+[INFO ] 2020-06-02 20:42:00: Attempted to load settings at C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\ConfigSettings.cfg
+[INFO ] 2020-06-02 20:42:00: ConfigSettings.cfg load attempted!
+[INFO ] 2020-06-02 20:42:00: 0
+0 0 0
+0 0 0
+0 0 0
+0
+0 0 0
+0 0 0
+0 0 0
+
+[INFO ] 2020-06-02 20:42:00: Kinect Status changed to: Kinect Status: Success!
+[INFO ] 2020-06-02 20:42:00: Attempting connection to vrsystem.... 
+[INFO ] 2020-06-02 20:42:00: K2VR File Path ASCII (Valid)
+[INFO ] 2020-06-02 20:42:00: SteamVR Tracking Origin for Driver Relative: -0.273, 1.4518, -1.8265, -0RAD
+[INFO ] 2020-06-02 20:42:00: Set Tracker Roles in steamvr.vrsettings attempted...
+[INFO ] 2020-06-02 20:42:00: Successfully set tracker roles in vrsettings!
+[INFO ] 2020-06-02 20:42:01: (Workaround/Hack) Loading K2VR into bindings menu...
+[INFO ] 2020-06-02 20:42:01: (Workaround/Hack) Successfully loaded K2VR into bindings menu!
+[INFO ] 2020-06-02 20:42:01: Initialising Skeleton Tracking Method...
+[INFO ] 2020-06-02 20:42:01: Initialising VR Device Handler...
+[INFO ] 2020-06-02 20:42:01: Reading Strings...
+[INFO ] 2020-06-02 20:42:01: Attempted to load settings at C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\ConfigSettings.cfg
+[INFO ] 2020-06-02 20:42:01: ConfigSettings.cfg load attempted!
+[INFO ] 2020-06-02 20:42:01: 0
+0 0 0
+0 0 0
+0 0 0
+0
+0 0 0
+0 0 0
+0 0 0
+
+[INFO ] 2020-06-02 20:42:02: PSMoveConsoleClient::startup() - Initialized client version - 0.9-alpha 9.0.0
+[INFO ] 2020-06-02 20:42:02: Attempted tracking system load: C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\psmove.tracking
+
+[INFO ] 2020-06-02 20:42:02: psmoveTracking Load Attempted!
+[INFO ] 2020-06-02 20:42:02: PSM_GetControllerList returned General Success Result
+[INFO ] 2020-06-02 20:42:02: Found 2 controllers.
+[INFO ] 2020-06-02 20:42:02:   Controller ID: 0 is a PSMove
+[INFO ] 2020-06-02 20:42:02:   Controller ID: 1 is a PSMove
+[INFO ] 2020-06-02 20:42:02: PSM_GetTrackerList returned General Error Result
+[INFO ] 2020-06-02 20:42:02: Found 0 trackers.
+[INFO ] 2020-06-02 20:42:02: Found 0 HMDs.
+[INFO ] 2020-06-02 20:42:02: Controller 0 has battery level: ~100%
+[INFO ] 2020-06-02 20:42:02: Controller 1 has battery level: ~100%
+[INFO ] 2020-06-02 20:42:28: Attempted to save settings to file
+[INFO ] 2020-06-02 20:43:15: Kinect sensor opened successfully.
+[INFO ] 2020-06-02 20:43:15: Kinect initialised successfully!
+[INFO ] 2020-06-02 20:43:15: Attempted to initialise OpenGL
+[INFO ] 2020-06-02 20:43:15: ~~~New logging session for main process begins here!~~~
+[INFO ] 2020-06-02 20:43:15: Kinect version is V1
+[INFO ] 2020-06-02 20:43:15: File Directory Path Set to C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\
+[INFO ] 2020-06-02 20:43:16: Stored window size: 1280 x 768
+[INFO ] 2020-06-02 20:43:16: Attempted CFG load: C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\KinectToVR.cfg
+
+[INFO ] 2020-06-02 20:43:16: CFG Loaded Attempted!
+[INFO ] 2020-06-02 20:43:17: Attempted to load settings at C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\ConfigSettings.cfg
+[INFO ] 2020-06-02 20:43:17: ConfigSettings.cfg load attempted!
+[INFO ] 2020-06-02 20:43:17: 0
+0 0 0
+0 0 0
+0 0 0
+0
+0 0 0
+0 0 0
+0 0 0
+
+[INFO ] 2020-06-02 20:43:17: Kinect Status changed to: Kinect Status: Success!
+[INFO ] 2020-06-02 20:43:17: Attempting connection to vrsystem.... 
+[INFO ] 2020-06-02 20:43:17: K2VR File Path ASCII (Valid)
+[INFO ] 2020-06-02 20:43:17: SteamVR Tracking Origin for Driver Relative: -0.273, 1.4518, -1.8265, -0RAD
+[INFO ] 2020-06-02 20:43:17: Set Tracker Roles in steamvr.vrsettings attempted...
+[INFO ] 2020-06-02 20:43:17: Successfully set tracker roles in vrsettings!
+[INFO ] 2020-06-02 20:43:19: (Workaround/Hack) Loading K2VR into bindings menu...
+[INFO ] 2020-06-02 20:43:20: (Workaround/Hack) Successfully loaded K2VR into bindings menu!
+[INFO ] 2020-06-02 20:43:20: Initialising Skeleton Tracking Method...
+[INFO ] 2020-06-02 20:43:20: Initialising VR Device Handler...
+[INFO ] 2020-06-02 20:43:20: Reading Strings...
+[INFO ] 2020-06-02 20:43:20: Attempted to load settings at C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\ConfigSettings.cfg
+[INFO ] 2020-06-02 20:43:20: ConfigSettings.cfg load attempted!
+[INFO ] 2020-06-02 20:43:20: 0
+0 0 0
+0 0 0
+0 0 0
+0
+0 0 0
+0 0 0
+0 0 0
+
+[INFO ] 2020-06-02 20:43:20: PSMoveConsoleClient::startup() - Initialized client version - 0.9-alpha 9.0.0
+[INFO ] 2020-06-02 20:43:20: Attempted tracking system load: C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\psmove.tracking
+
+[INFO ] 2020-06-02 20:43:20: psmoveTracking Load Attempted!
+[INFO ] 2020-06-02 20:43:20: PSM_GetControllerList returned General Success Result
+[INFO ] 2020-06-02 20:43:20: Found 2 controllers.
+[INFO ] 2020-06-02 20:43:20:   Controller ID: 0 is a PSMove
+[INFO ] 2020-06-02 20:43:20:   Controller ID: 1 is a PSMove
+[INFO ] 2020-06-02 20:43:20: PSM_GetTrackerList returned General Error Result
+[INFO ] 2020-06-02 20:43:20: Found 0 trackers.
+[INFO ] 2020-06-02 20:43:20: Found 0 HMDs.
+[INFO ] 2020-06-02 20:43:20: Controller 0 has battery level: ~100%
+[INFO ] 2020-06-02 20:43:20: Controller 1 has battery level: ~100%
+[INFO ] 2020-06-02 20:44:26: Attempted to save settings to file
+[INFO ] 2020-06-02 20:44:34: Attempted to save settings to file
+[INFO ] 2020-06-02 20:47:24: Kinect sensor opened successfully.
+[INFO ] 2020-06-02 20:47:24: Kinect initialised successfully!
+[INFO ] 2020-06-02 20:47:24: Attempted to initialise OpenGL
+[INFO ] 2020-06-02 20:47:24: ~~~New logging session for main process begins here!~~~
+[INFO ] 2020-06-02 20:47:24: Kinect version is V1
+[INFO ] 2020-06-02 20:47:24: File Directory Path Set to C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\
+[INFO ] 2020-06-02 20:47:30: Stored window size: 1280 x 768
+[INFO ] 2020-06-02 20:47:30: Attempted CFG load: C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\KinectToVR.cfg
+
+[INFO ] 2020-06-02 20:47:30: CFG Loaded Attempted!
+[INFO ] 2020-06-02 20:47:30: Attempted to load settings at C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\ConfigSettings.cfg
+[INFO ] 2020-06-02 20:47:30: ConfigSettings.cfg load attempted!
+[INFO ] 2020-06-02 20:47:30: 0
+0 0 0
+0 0 0
+0 0 0
+0
+0 0 0
+0 0 0
+0 0 0
+
+[INFO ] 2020-06-02 20:47:31: Kinect Status changed to: Kinect Status: Success!
+[INFO ] 2020-06-02 20:47:31: Attempting connection to vrsystem.... 
+[INFO ] 2020-06-02 20:47:31: K2VR File Path ASCII (Valid)
+[INFO ] 2020-06-02 20:47:31: SteamVR Tracking Origin for Driver Relative: -0.273, 1.4518, -1.8265, -0RAD
+[INFO ] 2020-06-02 20:47:31: Set Tracker Roles in steamvr.vrsettings attempted...
+[INFO ] 2020-06-02 20:47:31: Successfully set tracker roles in vrsettings!
+[INFO ] 2020-06-02 20:47:31: (Workaround/Hack) Loading K2VR into bindings menu...
+[INFO ] 2020-06-02 20:47:32: (Workaround/Hack) Successfully loaded K2VR into bindings menu!
+[INFO ] 2020-06-02 20:47:32: Initialising Skeleton Tracking Method...
+[INFO ] 2020-06-02 20:47:32: Initialising VR Device Handler...
+[INFO ] 2020-06-02 20:47:32: Reading Strings...
+[INFO ] 2020-06-02 20:47:32: Attempted to load settings at C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\ConfigSettings.cfg
+[INFO ] 2020-06-02 20:47:32: ConfigSettings.cfg load attempted!
+[INFO ] 2020-06-02 20:47:32: 0
+0 0 0
+0 0 0
+0 0 0
+0
+0 0 0
+0 0 0
+0 0 0
+
+[INFO ] 2020-06-02 20:47:32: PSMoveConsoleClient::startup() - Initialized client version - 0.9-alpha 9.0.0
+[INFO ] 2020-06-02 20:47:32: Attempted tracking system load: C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\psmove.tracking
+
+[INFO ] 2020-06-02 20:47:32: psmoveTracking Load Attempted!
+[INFO ] 2020-06-02 20:47:32: PSM_GetControllerList returned General Success Result
+[INFO ] 2020-06-02 20:47:32: Found 2 controllers.
+[INFO ] 2020-06-02 20:47:32:   Controller ID: 0 is a PSMove
+[INFO ] 2020-06-02 20:47:32:   Controller ID: 1 is a PSMove
+[INFO ] 2020-06-02 20:47:32: PSM_GetTrackerList returned General Error Result
+[INFO ] 2020-06-02 20:47:32: Found 0 trackers.
+[INFO ] 2020-06-02 20:47:32: Found 0 HMDs.
+[INFO ] 2020-06-02 20:47:33: Controller 0 has battery level: ~100%
+[INFO ] 2020-06-02 20:47:33: Controller 1 has battery level: ~100%
+[INFO ] 2020-06-02 20:47:44: Attempted to save settings to file
+[INFO ] 2020-06-02 20:47:48: Attempted to save settings to file
+[INFO ] 2020-06-02 20:48:43: Kinect sensor opened successfully.
+[INFO ] 2020-06-02 20:48:44: Kinect initialised successfully!
+[INFO ] 2020-06-02 20:48:44: Attempted to initialise OpenGL
+[INFO ] 2020-06-02 20:48:44: ~~~New logging session for main process begins here!~~~
+[INFO ] 2020-06-02 20:48:44: Kinect version is V1
+[INFO ] 2020-06-02 20:48:44: File Directory Path Set to C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\
+[INFO ] 2020-06-02 20:48:47: Stored window size: 1280 x 768
+[INFO ] 2020-06-02 20:48:47: Attempted CFG load: C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\KinectToVR.cfg
+
+[INFO ] 2020-06-02 20:48:47: CFG Loaded Attempted!
+[INFO ] 2020-06-02 20:48:48: Attempted to load settings at C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\ConfigSettings.cfg
+[INFO ] 2020-06-02 20:48:48: ConfigSettings.cfg load attempted!
+[INFO ] 2020-06-02 20:48:48: 0
+0 0 0
+0 0 0
+0 0 0
+0
+0 0 0
+0 0 0
+0 0 0
+
+[INFO ] 2020-06-02 20:48:49: Kinect Status changed to: Kinect Status: Success!
+[INFO ] 2020-06-02 20:48:49: Attempting connection to vrsystem.... 
+[INFO ] 2020-06-02 20:48:49: K2VR File Path ASCII (Valid)
+[INFO ] 2020-06-02 20:48:49: SteamVR Tracking Origin for Driver Relative: -0.273, 1.4518, -1.8265, -0RAD
+[INFO ] 2020-06-02 20:48:49: Set Tracker Roles in steamvr.vrsettings attempted...
+[INFO ] 2020-06-02 20:48:49: Successfully set tracker roles in vrsettings!
+[INFO ] 2020-06-02 20:48:49: (Workaround/Hack) Loading K2VR into bindings menu...
+[INFO ] 2020-06-02 20:48:50: (Workaround/Hack) Successfully loaded K2VR into bindings menu!
+[INFO ] 2020-06-02 20:48:50: Initialising Skeleton Tracking Method...
+[INFO ] 2020-06-02 20:48:50: Initialising VR Device Handler...
+[INFO ] 2020-06-02 20:48:50: Reading Strings...
+[INFO ] 2020-06-02 20:48:50: Attempted to load settings at C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\ConfigSettings.cfg
+[INFO ] 2020-06-02 20:48:50: ConfigSettings.cfg load attempted!
+[INFO ] 2020-06-02 20:48:50: 0
+0 0 0
+0 0 0
+0 0 0
+0
+0 0 0
+0 0 0
+0 0 0
+
+[INFO ] 2020-06-02 20:48:51: PSMoveConsoleClient::startup() - Initialized client version - 0.9-alpha 9.0.0
+[INFO ] 2020-06-02 20:48:51: Attempted tracking system load: C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\psmove.tracking
+
+[INFO ] 2020-06-02 20:48:51: psmoveTracking Load Attempted!
+[INFO ] 2020-06-02 20:48:52: PSM_GetControllerList returned General Success Result
+[INFO ] 2020-06-02 20:48:52: Found 2 controllers.
+[INFO ] 2020-06-02 20:48:52:   Controller ID: 0 is a PSMove
+[INFO ] 2020-06-02 20:48:52:   Controller ID: 1 is a PSMove
+[INFO ] 2020-06-02 20:48:52: PSM_GetTrackerList returned General Error Result
+[INFO ] 2020-06-02 20:48:52: Found 0 trackers.
+[INFO ] 2020-06-02 20:48:52: Found 0 HMDs.
+[INFO ] 2020-06-02 20:48:52: Controller 0 has battery level: ~100%
+[INFO ] 2020-06-02 20:48:52: Controller 1 has battery level: ~100%
+[INFO ] 2020-06-02 20:48:52: Attempted to save settings to file
+[INFO ] 2020-06-02 20:49:31: Attempted to save settings to file
+[INFO ] 2020-06-02 20:49:34: Attempted to save settings to file
+[INFO ] 2020-06-02 20:51:17: Kinect sensor opened successfully.
+[INFO ] 2020-06-02 20:51:22: Kinect initialised successfully!
+[INFO ] 2020-06-02 20:51:22: Attempted to initialise OpenGL
+[INFO ] 2020-06-02 20:51:22: ~~~New logging session for main process begins here!~~~
+[INFO ] 2020-06-02 20:51:22: Kinect version is V1
+[INFO ] 2020-06-02 20:51:22: File Directory Path Set to C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\
+[INFO ] 2020-06-02 20:51:25: Stored window size: 1280 x 768
+[INFO ] 2020-06-02 20:51:25: Attempted CFG load: C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\KinectToVR.cfg
+
+[INFO ] 2020-06-02 20:51:25: CFG Loaded Attempted!
+[INFO ] 2020-06-02 20:51:25: Attempted to load settings at C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\ConfigSettings.cfg
+[INFO ] 2020-06-02 20:51:25: ConfigSettings.cfg load attempted!
+[INFO ] 2020-06-02 20:51:25: 0
+0 0 0
+0 0 0
+0 0 0
+0
+0 0 0
+0 0 0
+0 0 0
+
+[INFO ] 2020-06-02 20:51:25: Kinect Status changed to: Kinect Status: Success!
+[INFO ] 2020-06-02 20:51:25: Attempting connection to vrsystem.... 
+[INFO ] 2020-06-02 20:51:26: K2VR File Path ASCII (Valid)
+[INFO ] 2020-06-02 20:51:26: SteamVR Tracking Origin for Driver Relative: -0.273, 1.4518, -1.8265, -0RAD
+[INFO ] 2020-06-02 20:51:26: Set Tracker Roles in steamvr.vrsettings attempted...
+[INFO ] 2020-06-02 20:51:26: Successfully set tracker roles in vrsettings!
+[INFO ] 2020-06-02 20:51:26: (Workaround/Hack) Loading K2VR into bindings menu...
+[INFO ] 2020-06-02 20:51:27: (Workaround/Hack) Successfully loaded K2VR into bindings menu!
+[INFO ] 2020-06-02 20:51:27: Initialising Skeleton Tracking Method...
+[INFO ] 2020-06-02 20:51:27: Initialising VR Device Handler...
+[INFO ] 2020-06-02 20:51:27: Reading Strings...
+[INFO ] 2020-06-02 20:51:27: Attempted to load settings at C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\ConfigSettings.cfg
+[INFO ] 2020-06-02 20:51:27: ConfigSettings.cfg load attempted!
+[INFO ] 2020-06-02 20:51:27: 0
+0 0 0
+0 0 0
+0 0 0
+0
+0 0 0
+0 0 0
+0 0 0
+
+[INFO ] 2020-06-02 20:51:27: PSMoveConsoleClient::startup() - Initialized client version - 0.9-alpha 9.0.0
+[INFO ] 2020-06-02 20:51:27: Attempted tracking system load: C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\psmove.tracking
+
+[INFO ] 2020-06-02 20:51:27: psmoveTracking Load Attempted!
+[INFO ] 2020-06-02 20:51:27: PSM_GetControllerList returned General Success Result
+[INFO ] 2020-06-02 20:51:27: Found 2 controllers.
+[INFO ] 2020-06-02 20:51:27:   Controller ID: 0 is a PSMove
+[INFO ] 2020-06-02 20:51:27:   Controller ID: 1 is a PSMove
+[INFO ] 2020-06-02 20:51:27: PSM_GetTrackerList returned General Error Result
+[INFO ] 2020-06-02 20:51:27: Found 0 trackers.
+[INFO ] 2020-06-02 20:51:27: Found 0 HMDs.
+[INFO ] 2020-06-02 20:51:28: Controller 0 has battery level: ~100%
+[INFO ] 2020-06-02 20:51:28: Controller 1 has battery level: ~100%
+[INFO ] 2020-06-02 20:51:28: Attempted to save settings to file
+[INFO ] 2020-06-02 20:51:32: Attempted to save settings to file
+[INFO ] 2020-06-02 20:59:44: Kinect sensor opened successfully.
+[INFO ] 2020-06-02 20:59:45: Kinect initialised successfully!
+[INFO ] 2020-06-02 20:59:45: Attempted to initialise OpenGL
+[INFO ] 2020-06-02 20:59:45: ~~~New logging session for main process begins here!~~~
+[INFO ] 2020-06-02 20:59:45: Kinect version is V1
+[INFO ] 2020-06-02 20:59:45: File Directory Path Set to C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\
+[INFO ] 2020-06-02 20:59:48: Stored window size: 1280 x 768
+[INFO ] 2020-06-02 20:59:48: Attempted CFG load: C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\KinectToVR.cfg
+
+[INFO ] 2020-06-02 20:59:48: CFG Loaded Attempted!
+[INFO ] 2020-06-02 20:59:49: Attempted to load settings at C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\ConfigSettings.cfg
+[INFO ] 2020-06-02 20:59:49: ConfigSettings.cfg load attempted!
+[INFO ] 2020-06-02 20:59:49: 0
+0 0 0
+0 0 0
+0 0 0
+0
+0 0 0
+0 0 0
+0 0 0
+
+[INFO ] 2020-06-02 20:59:50: Kinect Status changed to: Kinect Status: Success!
+[INFO ] 2020-06-02 20:59:50: Attempting connection to vrsystem.... 
+[INFO ] 2020-06-02 20:59:52: K2VR File Path ASCII (Valid)
+[INFO ] 2020-06-02 20:59:52: SteamVR Tracking Origin for Driver Relative: -0.273, 1.4518, -1.8265, -0RAD
+[INFO ] 2020-06-02 20:59:52: Set Tracker Roles in steamvr.vrsettings attempted...
+[INFO ] 2020-06-02 20:59:52: Successfully set tracker roles in vrsettings!
+[INFO ] 2020-06-02 20:59:52: (Workaround/Hack) Loading K2VR into bindings menu...
+[INFO ] 2020-06-02 20:59:54: (Workaround/Hack) Successfully loaded K2VR into bindings menu!
+[INFO ] 2020-06-02 20:59:54: Initialising Skeleton Tracking Method...
+[INFO ] 2020-06-02 20:59:54: Initialising VR Device Handler...
+[INFO ] 2020-06-02 20:59:54: Reading Strings...
+[INFO ] 2020-06-02 20:59:54: Attempted to load settings at C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\ConfigSettings.cfg
+[INFO ] 2020-06-02 20:59:54: ConfigSettings.cfg load attempted!
+[INFO ] 2020-06-02 20:59:54: 0
+0 0 0
+0 0 0
+0 0 0
+0
+0 0 0
+0 0 0
+0 0 0
+
+[INFO ] 2020-06-02 20:59:55: PSMoveConsoleClient::startup() - Initialized client version - 0.9-alpha 9.0.0
+[INFO ] 2020-06-02 20:59:55: Attempted tracking system load: C:\Users\AkaYa!\Desktop\KinectToVR-src\KinectToVR\x64\Release\psmove.tracking
+
+[INFO ] 2020-06-02 20:59:55: psmoveTracking Load Attempted!
+[INFO ] 2020-06-02 20:59:55: PSM_GetControllerList returned General Success Result
+[INFO ] 2020-06-02 20:59:55: Found 2 controllers.
+[INFO ] 2020-06-02 20:59:55:   Controller ID: 0 is a PSMove
+[INFO ] 2020-06-02 20:59:55:   Controller ID: 1 is a PSMove
+[INFO ] 2020-06-02 20:59:55: PSM_GetTrackerList returned General Error Result
+[INFO ] 2020-06-02 20:59:55: Found 0 trackers.
+[INFO ] 2020-06-02 20:59:55: Found 0 HMDs.
+[INFO ] 2020-06-02 20:59:56: Controller 0 has battery level: ~100%
+[INFO ] 2020-06-02 20:59:56: Controller 1 has battery level: ~100%
+[INFO ] 2020-06-02 21:00:01: Attempted to save settings to file
+[INFO ] 2020-06-02 21:00:03: Attempted to save settings to file
+[INFO ] 2020-06-02 21:00:06: Attempted to save settings to file
+[INFO ] 2020-06-02 21:00:46: Attempted to save settings to file
+[INFO ] 2020-06-02 21:00:55: PSMoveService attempted shutdown with PSMResult: General Success Result
+[INFO ] 2020-06-02 21:00:55: Attempted to save config settings to file
+[INFO ] 2020-06-02 21:00:55: Attempted to save settings to file
