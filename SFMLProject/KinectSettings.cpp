@@ -405,12 +405,22 @@ namespace KinectSettings {
 
                 if (bodytrackingoption == bodiTorakkinguOpu::k_KinectFullTracking) {
                     glm::vec3 unofu[3] = { glm::eulerAngles(trackerRoth),glm::eulerAngles(trackerRotm),glm::eulerAngles(trackerRoty) };
-                    unofu[0] -= glm::vec3(0.f, tryaw * M_PI / 180, 0.f);
-                    unofu[1] -= glm::vec3(0.f, tryaw * M_PI / 180, 0.f);
-                    unofu[2] -= glm::vec3(0.f, tryaw * M_PI / 180, 0.f);
-                    trackerRoth = unofu[0];
-                    trackerRotm = unofu[1];
-                    trackerRoty = unofu[2];
+                    unofu[0] += glm::vec3(0.f, tryaw * M_PI / 180, 0.f);
+                    unofu[1] += glm::vec3(0.f, tryaw * M_PI / 180, 0.f);
+                    unofu[2] += glm::vec3(0.f, tryaw * M_PI / 180, 0.f);
+                    if (flip) {
+                        unofu[0] += glm::vec3(0.f, M_PI, 0.f);
+                        unofu[1] += glm::vec3(0.f, M_PI, 0.f);
+                        unofu[2] += glm::vec3(0.f, M_PI, 0.f);
+                        trackerRoth = glm::vec3(unofu[0].x, -unofu[0].y, -unofu[0].z);
+                        trackerRotm = glm::vec3(unofu[1].x, -unofu[1].y, -unofu[1].z);
+                        trackerRoty = glm::vec3(-unofu[2].x, -unofu[2].y, -unofu[2].z);
+                    }
+                    else {
+                        trackerRoth = glm::vec3(unofu[0].x, unofu[0].y, -unofu[0].z);
+                        trackerRotm = glm::vec3(unofu[1].x, unofu[1].y, -unofu[1].z);
+                        trackerRoty = glm::vec3(unofu[2].x, unofu[2].y, -unofu[2].z);
+                    }
                 }
                 else {
                     trackerRoth *= glm::normalize(glm::inverse(btrackeroffset[0]));
@@ -430,14 +440,6 @@ namespace KinectSettings {
                         Mf(2) = poseFiltered[1].z;
                     }
                     else {
-                        glm::vec3 unofu[3] = { glm::eulerAngles(trackerRoth),glm::eulerAngles(trackerRotm),glm::eulerAngles(trackerRoty) };
-                        unofu[0] += glm::vec3(0.f, 180.f * M_PI / 180, 0.f);
-                        unofu[1] += glm::vec3(0.f, 180.f * M_PI / 180, 0.f);
-                        unofu[2] += glm::vec3(0.f, 180.f * M_PI / 180, 0.f);
-                        trackerRoth = unofu[0];
-                        trackerRotm = unofu[1];
-                        trackerRoty = unofu[2];
-                        
                         Mf(0) = poseFiltered[0].x;
                         Mf(1) = poseFiltered[0].y;
                         Mf(2) = poseFiltered[0].z;
