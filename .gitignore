@@ -13,6 +13,8 @@
 /KinectV1Process/x64/Debug
 /SFMLProject/x64/Debug
 
+/external/boost_1_74_0
+
 .github/
 
 docs/
@@ -26,3 +28,5 @@ inputemulator/
 *.cfg
 
 *.log
+
+.vs/
