@@ -12,3 +12,17 @@
 /.vscode
 /KinectV1Process/x64/Debug
 /SFMLProject/x64/Debug
+
+.github/
+
+docs/
+
+readmeimg/
+
+inputemulator/
+
+*.user
+
+*.cfg
+
+*.log

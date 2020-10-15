@@ -9,7 +9,6 @@
 
 // Logging Definitions
 INITIALIZE_EASYLOGGINGPP
-
 const char* logConfigFileName = "logging.conf";
 const char* logConfigDefault =
 "* GLOBAL:\n"
@@ -40,7 +39,7 @@ int main(int argc, char* argv[])
     HWND hWnd = GetConsoleWindow();
     ShowWindow(hWnd, SW_SHOW);
 #ifndef _DEBUG 
-    //ShowWindow(hWnd, SW_HIDE);
+    ShowWindow(hWnd, SW_HIDE);
 #endif 
     KinectV1Handler kinect;
     KinectSettings::leftFootJointWithRotation = KVR::KinectJointType::AnkleLeft;

@@ -406,9 +406,9 @@ void processLoop(KinectHandlerBase& kinect) {
 			}
 
 			//Clear ---------------------------------------
-			renderWindow.clear();
-			renderWindow.setView(mGridView);
-			renderWindow.setView(mGUIView);
+			renderWindow.clear(); /////////////////////////////////////////////////////
+			renderWindow.setView(mGridView); //////////////////////////////////////////
+			renderWindow.setView(mGUIView); ///////////////////////////////////////////
 
 			//Process -------------------------------------
 			//Update GUI
@@ -432,7 +432,7 @@ void processLoop(KinectHandlerBase& kinect) {
 			VRInput::trackpadpose[0].y = rightController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad).y;
 			VRInput::trackpadpose[1].x = leftController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad).x;
 			VRInput::trackpadpose[1].y = leftController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad).y;
-			VRInput::confirmdatapose.bState = leftController.GetPress(vr::k_EButton_Grip) || rightController.GetPress(vr::k_EButton_Grip);
+			VRInput::confirmdatapose.bState = leftController.GetTriggerDown() || rightController.GetTriggerDown();
 
 			// EWWWWWWWWW -------------
 			if (VRInput::legacyInputModeEnabled) {
@@ -457,6 +457,8 @@ void processLoop(KinectHandlerBase& kinect) {
 		for (auto& device_ptr : v_deviceHandlers) {
 			if (device_ptr->active) device_ptr->run();
 		}
+
+		renderWindow.clear(); //////////////////////////////////////////////////////
 
 		// Update Kinect Status
 		// Only needs to be updated sparingly
@@ -486,8 +488,8 @@ void processLoop(KinectHandlerBase& kinect) {
 			for (auto& tracker : v_trackers) {
 				tracker.update();
 			}
-
-			renderWindow.clear();
+			
+			//renderWindow.clear();
 			kinect.drawKinectData(renderWindow);
 		}
 
@@ -549,8 +551,10 @@ void processLoop(KinectHandlerBase& kinect) {
 
 		// Draw GUI
 		updateHMDPosAndRot(m_VRSystem);
-		renderWindow.setActive(true);
 
+		//renderWindow.clear(); //////////////////////////////////////////////////////
+
+		renderWindow.setActive(true);
 		renderWindow.setView(mGUIView);
 		guiRef.display(renderWindow);
 

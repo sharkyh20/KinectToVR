@@ -16,6 +16,11 @@
 #include <cereal/cereal.hpp>
 #include <KinectSettings.h>
 
+#include <cereal/cereal.hpp> 
+#include <cereal/archives/binary.hpp>
+#include <boost/serialization/array.hpp>
+#include <boost/serialization/split_free.hpp>
+
 enum class VirtualHipMode {
         Standing,
         Sitting,
@@ -31,7 +36,7 @@ struct VirtualHipSettings {
     
     double positionLatency = 0.00; // Seconds. How far behind the tracked point should the hips be so that they don't instantly follow every tiny movement
     bool rtcalib = false;
-    Eigen::Vector3f caliborigin;
+    
     bool astartk = false;
     bool astarth = false;
     bool astartt = false;
@@ -45,11 +50,20 @@ struct VirtualHipSettings {
     float tdegree = 3;
     double heightFromHMD = 0.00; // Meters. Hips are by default projected downwards from the HMD, by 72cm (adjustable by user)
     bool positionAccountsForFootTrackers = false; // If false, Hip tracker always stays bolted to directly under the HMD with no horizontal shift
+    
     Eigen::Matrix<float, 3, 3> rcR_matT;
-    Eigen::Matrix<float, 3, 1> rcT_matT;
-    bool astarta = false;
+	Eigen::Matrix<float, 3, 1> rcT_matT;
     Eigen::Matrix<float, 3, 1> hauoffset_s;
     Eigen::Matrix<float, 3, 1> mauoffset_s;
+    Eigen::Vector3f caliborigin;
+
+	float rcR_matT_S[3][3];
+	float rcT_matT_S[3];
+    float hauoffset_s_S[3];
+    float mauoffset_s_S[3];
+    float caliborigin_S[3];
+
+    bool astarta = false;
     std::string comph, compm;
     // --- Sitting Settings ---
     double sittingMaxHeightThreshold = 0.00; // Meters. Under this height, mode is sitting
@@ -70,7 +84,6 @@ struct VirtualHipSettings {
             CEREAL_NVP(positionFollowsHMDLean),
             CEREAL_NVP(hmdegree),
             CEREAL_NVP(tdegree),
-            CEREAL_NVP(caliborigin),
             CEREAL_NVP(astartk),
             CEREAL_NVP(footOption),
             CEREAL_NVP(hipsOption),
@@ -80,29 +93,56 @@ struct VirtualHipSettings {
             CEREAL_NVP(headTrackingOption),
             CEREAL_NVP(comph),
             CEREAL_NVP(compm),
-            CEREAL_NVP(hauoffset_s),
-            CEREAL_NVP(mauoffset_s),
             CEREAL_NVP(astartt),
             CEREAL_NVP(astarta),
             CEREAL_NVP(autosver),
             CEREAL_NVP(astarth),
             CEREAL_NVP(tryawst),
-            CEREAL_NVP(rcR_matT),
             CEREAL_NVP(rtcalib),
-            CEREAL_NVP(rcT_matT),
             CEREAL_NVP(heightFromHMD),
             CEREAL_NVP(positionAccountsForFootTrackers),
             CEREAL_NVP(sittingMaxHeightThreshold),
             CEREAL_NVP(hipThickness),
-            CEREAL_NVP(lyingMaxHeightThreshold)
+            CEREAL_NVP(lyingMaxHeightThreshold),
+
+            CEREAL_NVP(caliborigin_S),
+            CEREAL_NVP(hauoffset_s_S),
+            CEREAL_NVP(mauoffset_s_S),
+            CEREAL_NVP(rcR_matT_S),
+            CEREAL_NVP(rcT_matT_S)
         );
     }
 };
+
+void decomposeEigen(VirtualHipSettings& settings) {
+	for (int i = 0; i < 3; i++) {
+		settings.rcT_matT_S[i] = settings.rcT_matT[i];
+        settings.hauoffset_s_S[i] = settings.hauoffset_s[i];
+        settings.mauoffset_s_S[i] = settings.mauoffset_s[i];
+        settings.caliborigin_S[i] = settings.caliborigin[i];
+        for (int j = 0; j < 3; j++)
+            settings.rcR_matT_S[i][j] = settings.rcR_matT.coeff(i, j);
+    }
+}
+
+void recomposeEigen(VirtualHipSettings& settings) {
+	for (int i = 0; i < 3; i++) {
+		settings.rcT_matT[i] = settings.rcT_matT_S[i];
+		settings.hauoffset_s[i] = settings.hauoffset_s_S[i];
+		settings.mauoffset_s[i] = settings.mauoffset_s_S[i];
+		settings.caliborigin[i] = settings.caliborigin_S[i];
+		for (int j = 0; j < 3; j++)
+			settings.rcR_matT.coeffRef(i, j) = settings.rcR_matT_S[i][j];
+	}
+}
 
 namespace VirtualHips {
     VirtualHipSettings settings;
     static const std::wstring settingsConfig = L"ConfigSettings.cfg";
     void saveSettings() {
+
+        decomposeEigen(settings);
+
         std::ofstream os(KVR::fileToDirPath(settingsConfig));
         if (os.fail()) {
             //FAIL!!!
@@ -124,7 +164,6 @@ namespace VirtualHips {
     }
     void retrieveSettings() {
         std::ifstream is(KVR::fileToDirPath(settingsConfig));
-
         LOG(INFO) << "Attempted to load settings at " << KVR::fileToDirPath(settingsConfig);
 
         if (is.fail()) {
@@ -136,6 +175,9 @@ namespace VirtualHips {
             try {
                 cereal::JSONInputArchive archive(is);
                 archive(CEREAL_NVP(settings));
+
+                recomposeEigen(settings);
+
                 KinectSettings::hroffset = settings.hmdegree;
                 KinectSettings::cpoints = settings.tdegree;
                 

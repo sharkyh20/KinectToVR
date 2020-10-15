@@ -21,6 +21,9 @@
 #include <glm/gtx/rotate_vector.hpp>
 #include <thread>
 #include <chrono>
+#include <../LowPassFilter.h>
+
+LowPassFilter lowPassFilter[JointType_Count][4];
 
 HRESULT KinectV2Handler::getStatusResult()
 {
@@ -52,6 +55,12 @@ void KinectV2Handler::initialise() {
         // initialiseDepth();
         initialiseSkeleton();
         if (!initialised) throw FailedKinectInitialisation;
+
+        for (int i = 0; i < JointType_Count; i++) {
+            for (LowPassFilter filter : lowPassFilter[i]) {
+                filter = LowPassFilter(7.1, 0.005);
+            }
+        }
     }
     catch (std::exception& e) {
         LOG(ERROR) << e.what() << std::endl;
@@ -336,6 +345,9 @@ void KinectV2Handler::drawKinectImageData(sf::RenderWindow &win) {
     glVertex3f(0, SFMLsettings::m_window_height, 0.0f);
     glEnd();
 }
+Joint backup[JointType_Count];
+sf::Vector2f vbackup[JointType_Count];
+HandState lbackup = HandState_Unknown, rbackup = HandState_Unknown;
 void KinectV2Handler::drawTrackedSkeletons(sf::RenderWindow &win) {
     for (int i = 0; i < BODY_COUNT; ++i) {
         IBody* pBody = kinectBodies[i];
@@ -345,37 +357,32 @@ void KinectV2Handler::drawTrackedSkeletons(sf::RenderWindow &win) {
             HRESULT thisBodyTracked = pBody->get_IsTracked(&bTracked);
             if (SUCCEEDED(thisBodyTracked) && bTracked)
             {
-                Joint joints[JointType_Count];
-                sf::Vector2f jointPoints[JointType_Count];
-                HandState leftHandState = HandState_Unknown;
-                HandState rightHandState = HandState_Unknown;
+                lbackup = HandState_Unknown;
+                rbackup = HandState_Unknown;
 
-                pBody->get_HandLeftState(&leftHandState);
-                pBody->get_HandRightState(&rightHandState);
+                pBody->get_HandLeftState(&lbackup);
+                pBody->get_HandRightState(&rbackup);
 
-                HRESULT jointsFound = pBody->GetJoints(_countof(joints), joints);
+                HRESULT jointsFound = pBody->GetJoints(_countof(backup), backup);
                 if (SUCCEEDED(jointsFound))
                 {
-                    for (int j = 0; j < _countof(joints); ++j)
+                    for (int j = 0; j < _countof(backup); ++j)
                     {
-                        jointPoints[j] = BodyToScreen(joints[j].Position, SFMLsettings::m_window_width, SFMLsettings::m_window_height);
+                        vbackup[j] = BodyToScreen(backup[j].Position, SFMLsettings::m_window_width, SFMLsettings::m_window_height);
                     }
-
-                    if (KinectSettings::isSkeletonDrawn) {
-                        win.pushGLStates();
-                        win.resetGLStates();
-
-                        drawBody(joints, jointPoints, win);
-
-                        drawHand(leftHandState, jointPoints[JointType_HandLeft], win);
-                        drawHand(rightHandState, jointPoints[JointType_HandRight], win);
-
-                        win.popGLStates();
-                    }
-                    
                 }
             }
         }
+    }
+    if (KinectSettings::isSkeletonDrawn) {
+        win.pushGLStates();
+        win.resetGLStates();
+
+        drawBody(backup, vbackup, win);
+        drawHand(lbackup, vbackup[JointType_HandLeft], win);
+        drawHand(rbackup, vbackup[JointType_HandRight], win);
+
+        win.popGLStates();
     }
 }
 void KinectV2Handler::drawHand(HandState handState, const sf::Vector2f& handPosition, sf::RenderWindow &win)
@@ -452,8 +459,16 @@ void KinectV2Handler::updateSkeletalFilters() {
             break;
         }
     }
-    
 
+    JointOrientation jointOrientationsF[JointType_Count];
+
+    for (int i = 0; i < JointType_Count; i++) {
+        jointOrientationsF[i].Orientation.w = lowPassFilter[i][0].update(jointOrientations[i].Orientation.w);
+        jointOrientationsF[i].Orientation.x = lowPassFilter[i][1].update(jointOrientations[i].Orientation.x);
+        jointOrientationsF[i].Orientation.y = lowPassFilter[i][2].update(jointOrientations[i].Orientation.y);
+        jointOrientationsF[i].Orientation.z = lowPassFilter[i][3].update(jointOrientations[i].Orientation.z);
+    }
+    
     KinectSettings::hmdPose = glm::vec3(
         joints[JointType_Head].Position.X,
         joints[JointType_Head].Position.Y,
@@ -494,22 +509,27 @@ void KinectV2Handler::updateSkeletalFilters() {
         joints[JointType_SpineBase].Position.Y,
         joints[JointType_SpineBase].Position.Z
     );
-    KinectSettings::hFootRot = glm::quat(
-        jointOrientations[JointType_AnkleLeft].Orientation.w,
-        jointOrientations[JointType_AnkleLeft].Orientation.x,
-        jointOrientations[JointType_AnkleLeft].Orientation.y,
-        jointOrientations[JointType_AnkleLeft].Orientation.z
-    );
-    KinectSettings::mFootRot = glm::quat(
-        jointOrientations[JointType_AnkleRight].Orientation.w,
-        jointOrientations[JointType_AnkleRight].Orientation.x,
-        jointOrientations[JointType_AnkleRight].Orientation.y,
-        jointOrientations[JointType_AnkleRight].Orientation.z);
-    KinectSettings::hipsRot = glm::quat(
-        jointOrientations[JointType_SpineBase].Orientation.w,
-        jointOrientations[JointType_SpineBase].Orientation.x,
-        jointOrientations[JointType_SpineBase].Orientation.y,
-        jointOrientations[JointType_SpineBase].Orientation.z);
+
+    /* KINECT V2 ONLY: filter quaternion to be less jittery at end */
+
+	KinectSettings::hFootRot = glm::quat(
+			jointOrientationsF[JointType_AnkleLeft].Orientation.w,
+			jointOrientationsF[JointType_AnkleLeft].Orientation.x,
+			jointOrientationsF[JointType_AnkleLeft].Orientation.y,
+			jointOrientationsF[JointType_AnkleLeft].Orientation.z
+		);
+	KinectSettings::mFootRot = glm::quat(
+			jointOrientationsF[JointType_AnkleRight].Orientation.w,
+			jointOrientationsF[JointType_AnkleRight].Orientation.x,
+			jointOrientationsF[JointType_AnkleRight].Orientation.y,
+			jointOrientationsF[JointType_AnkleRight].Orientation.z
+		);
+	KinectSettings::hipsRot = glm::quat(
+			jointOrientationsF[JointType_SpineBase].Orientation.w,
+			jointOrientationsF[JointType_SpineBase].Orientation.x,
+			jointOrientationsF[JointType_SpineBase].Orientation.y,
+			jointOrientationsF[JointType_SpineBase].Orientation.z
+        );
 
     KinectSettings::lastPose[0][0] = glm::vec3(
         joints[JointType_AnkleLeft].Position.X,
@@ -696,6 +716,7 @@ void KinectV2Handler::updateKinectData() {
 void KinectV2Handler::drawBody(const Joint * pJoints, const sf::Vector2f * pJointPoints, sf::RenderWindow & window)
 {
     // Draw the bones
+    window.clear();
 
     // Torso
     drawBone(pJoints, pJointPoints, JointType_Head, JointType_Neck, window);

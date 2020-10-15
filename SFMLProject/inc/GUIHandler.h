@@ -119,7 +119,7 @@ public:
     sfg::Box::Ptr psmidbox1 = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
 
     GUIHandler() {
-        guiWindow->SetTitle("KinectToVR EX alpha 0.7.1");
+        guiWindow->SetTitle("KinectToVR EX 0.8.0");
         
 
         setDefaultSignals();
@@ -135,8 +135,8 @@ public:
         mainNotebook->AppendPage(mainGUIBox, sfg::Label::Create(" Body Trackers "));
         mainNotebook->AppendPage(calibrationBox, sfg::Label::Create(" Offsets "));
         mainNotebook->AppendPage(advancedTrackerBox, sfg::Label::Create(" Tracking Options "));
-        mainNotebook->AppendPage(controllersBox, sfg::Label::Create(" Controllers "));
-        mainNotebook->AppendPage(virtualHipsBox, sfg::Label::Create(" Head Tracking "));
+        //mainNotebook->AppendPage(controllersBox, sfg::Label::Create(" Controllers "));
+        //mainNotebook->AppendPage(virtualHipsBox, sfg::Label::Create(" Head Tracking "));
 
 
         guiWindow->Add(mainNotebook);
@@ -870,7 +870,7 @@ public:
             vr::EVRInitError eError = vr::VRInitError_None;
             vr::VR_Shutdown();
             LOG(INFO) << "(Workaround/Hack) Loading K2VR into bindings menu...";
-            m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Scene);
+            m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Overlay);
             Sleep(100); // Necessary because of SteamVR timing occasionally being too quick to change the scenes
             vr::VR_Shutdown();
             m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Background);
@@ -1061,7 +1061,7 @@ public:
             }
             else {
                 KinectSettings::initialised = false;
-                TrackerInitButton->SetLabel("**Please be in VR before hitting me!** Initialise/Respawn SteamVR Kinect Trackers - HIT ME");
+                TrackerInitButton->SetLabel("Spawn Trackers");
             }
             });
         // Make sure that users don't get confused and hit the spawn last button when they don't need it
@@ -1355,7 +1355,7 @@ public:
                     //KinectSettings::hoffsets.v[1] = 0.f;// -KinectSettings::mposes[0].v[1];
                     //KinectSettings::hoffsets.v[2] = -svrposes[0].vecPosition[2];
 
-            //HeadTrackingCalibButton->SetLabel(std::string("-- Calibrate: Look at Kinect and stand still --").c_str());
+            //HeadTrackingCalibButton->SetLabel(std::string("Calibrate: Look at Kinect and stand still").c_str());
 
             VirtualHips::saveSettings();
             }
@@ -1575,7 +1575,7 @@ public:
         //setHipScaleBox();
         mainGUIBox->Pack(ShowSkeletonButton);
 
-        modeTitleBox110->Pack(sfg::Label::Create("-- Calibration Points (Recc: 3) --"));
+        modeTitleBox110->Pack(sfg::Label::Create("Calibration Points (Reccomended: 3)"));
         modeTitleBox110->Pack(TDegreeButton);
 
         mainGUIBox->Pack(modeTitleBox110);
@@ -1707,7 +1707,7 @@ public:
         controllersBox->Pack(controllersid);
 
         auto xoffset = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
-        xoffset->Pack(sfg::Label::Create("-- X Offset (meters) --"));
+        xoffset->Pack(sfg::Label::Create("X Offset (meters)"));
         xoffset->Pack(sfg::Label::Create(" "));
         xhoffset->Pack(sfg::Label::Create("Left-Con"));
         xhoffset->Pack(sfg::Label::Create("Right-Con"));
@@ -1718,7 +1718,7 @@ public:
         xoffset->Pack(sfg::Label::Create(" "));
 
         auto yoffset = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
-        yoffset->Pack(sfg::Label::Create("-- Y Offset (meters) --"));
+        yoffset->Pack(sfg::Label::Create("Y Offset (meters)"));
         yoffset->Pack(sfg::Label::Create(" "));
         yhoffset->Pack(sfg::Label::Create("Left-Con"));
         yhoffset->Pack(sfg::Label::Create("Right-Con"));
@@ -1729,7 +1729,7 @@ public:
         yoffset->Pack(sfg::Label::Create(" "));
 
         auto zoffset = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
-        zoffset->Pack(sfg::Label::Create("-- Z Offset (meters) --"));
+        zoffset->Pack(sfg::Label::Create("Z Offset (meters)"));
         zoffset->Pack(sfg::Label::Create(" "));
         zhoffset->Pack(sfg::Label::Create("Left-Con"));
         zhoffset->Pack(sfg::Label::Create("Right-Con"));
@@ -1756,7 +1756,7 @@ public:
 
     void packElementsIntoAdvTrackerBox() {
 
-        advancedTrackerBox->Pack(sfg::Label::Create(" -- PSMoveSerive Handler -- "));
+        advancedTrackerBox->Pack(sfg::Label::Create("PSMoveSerive handler"));
 
         sfg::Box::Ptr horizontalPSMBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
         horizontalPSMBox->Pack(StartPSMoveHandler);
@@ -1765,10 +1765,10 @@ public:
 
 
 
-        advancedTrackerBox->Pack(sfg::Label::Create(" -- Body tracking option -- "));
+        advancedTrackerBox->Pack(sfg::Label::Create("Body tracking option"));
 
         sfg::Box::Ptr selectoptionbox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
-        selectoptionbox->Pack(sfg::Label::Create("Choose tracking option for trackers"));
+        selectoptionbox->Pack(sfg::Label::Create("Tracking option for body trackers"));
         selectoptionbox->Pack(bodytrackingselectbox);
         advancedTrackerBox->Pack(selectoptionbox);
 
@@ -1780,13 +1780,13 @@ public:
         sfg::Box::Ptr psmrightidbox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
         sfg::Box::Ptr psmhipsidbox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
 
-        psmleftidbox->Pack(sfg::Label::Create(" -- Left Foot tracker PSMove ID --"));
+        psmleftidbox->Pack(sfg::Label::Create("Left Foot tracker PSMove ID"));
         psmleftidbox->Pack(psmoveboxhi);
 
-        psmrightidbox->Pack(sfg::Label::Create(" -- Right Foot tracker PSMove ID --"));
+        psmrightidbox->Pack(sfg::Label::Create("Right Foot tracker PSMove ID"));
         psmrightidbox->Pack(psmoveboxmi);
 
-        psmhipsidbox->Pack(sfg::Label::Create(" -- Hips tracker PSMove ID --"));
+        psmhipsidbox->Pack(sfg::Label::Create("Hips tracker PSMove ID"));
         psmhipsidbox->Pack(psmoveboxyo);
 
 
@@ -1799,32 +1799,32 @@ public:
 
         //bodytrackingselectbox
         
-        advancedTrackerBox->Pack(sfg::Label::Create(" -- Select options for orientation filter -- "));
+        advancedTrackerBox->Pack(sfg::Label::Create("Trackers orientation filter"));
 
         auto box1 = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
-        box1->Pack(sfg::Label::Create("Choose orientation option for foot tracking"));
+        box1->Pack(sfg::Label::Create("Feet trackers orientation tracking"));
         auto box2 = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
-        box2->Pack(sfg::Label::Create("Choose orientation option for hips tracking"));
+        box2->Pack(sfg::Label::Create("Waist tracker orientation tracking"));
         
         box1->Pack(coptbox);
         box2->Pack(coptbox1);
 
-        coptbox->AppendItem("Enable Foot Rotation");
-        coptbox->AppendItem("Disable Foot Rotation");
-        coptbox->AppendItem("Disable Foot YAW");
+        coptbox->AppendItem("Enable Feet Rotation");
+        coptbox->AppendItem("Disable Feet Rotation");
+        coptbox->AppendItem("Disable Feet Yaw (+Y)");
         coptbox->AppendItem("Use Head Orientation");
         
-        coptbox1->AppendItem("Enable Hips Rotation");
-        coptbox1->AppendItem("Disable Hips Rotation");
+        coptbox1->AppendItem("Enable Waist Rotation");
+        coptbox1->AppendItem("Disable Waist Rotation");
         coptbox1->AppendItem("Use Head Orientation");
 
         advancedTrackerBox->Pack(box1);
         advancedTrackerBox->Pack(box2);
 
-        advancedTrackerBox->Pack(sfg::Label::Create(" -- Select options for position filter -- "));
+        advancedTrackerBox->Pack(sfg::Label::Create("Positional filtering options"));
 
         auto box11 = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
-        box11->Pack(sfg::Label::Create("Choose position filter for body trackers"));
+        box11->Pack(sfg::Label::Create("Positional tracking filter"));
         box11->Pack(foptbox);
 
         /*
@@ -1838,10 +1838,10 @@ public:
         *    until arduvr is officially announced and promoted)
         */
 
-        foptbox->AppendItem("Extended Kalman filter - smooths your moves but you feel like Aqua after exiting Giant Toad"); //use ekf in k2vr
-        foptbox->AppendItem("Low Pass Optical filter - smooths jitter really well but also delays you a bit"); //use lpf in k2vr
-        foptbox->AppendItem("Linear Interpolation - you are now faster than sonic (filter's lil tricky anyway)"); //use glm::mix in k2vr
-        foptbox->AppendItem("Magic Touch - gives realtime results with no visible jitter (Default Option, literally magic)"); //only this one uses driver module
+        foptbox->AppendItem("Extended Kalman filter - slow and smoothest"); //use ekf in k2vr
+        foptbox->AppendItem("Low Pass Optical filter - smooth moves, little delay"); //use lpf in k2vr
+        foptbox->AppendItem("Linear Interpolation - very fast, no smoothing"); //use glm::mix in k2vr
+        foptbox->AppendItem("No filter - normal results, no smoothing");
 
         advancedTrackerBox->Pack(box11);
 
@@ -1850,10 +1850,10 @@ public:
     void packElementsIntoCalibrationBox() {
         sfg::Box::Ptr verticalBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
 
-        verticalBox->Pack(sfg::Label::Create("This tab allows you to (manually) offset every one of your trackers. It will aeffect real calibration values, but it will not change them directly."));
+        verticalBox->Pack(sfg::Label::Create("This tab allows you to move and rotate trackers to fine tune the calibration values."));
 
-        verticalBox->Pack(sfg::Label::Create("You may need it for example when your right foot will be upper than left, etc."));
-        verticalBox->Pack(sfg::Label::Create("\n -- Rotation (relative) is in degrees and position (absolute) is declared in meters. -- \n "));
+        verticalBox->Pack(sfg::Label::Create("This is generally used to slighty adjust position and orientation of trackers."));
+        verticalBox->Pack(sfg::Label::Create("\nRotation is in degrees and position is declared in meters.\n "));
 
         auto horizontalrPosBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
         horizontalrPosBox->Pack(CalibrationrPosLabel);
@@ -2406,7 +2406,7 @@ public:
                     Eigen::Matrix3d rotationMatrix = q.matrix();
                     KinectSettings::R_matT = rotationMatrix.cast<float>();
 
-                    TrackersCalibButton->SetLabel(std::string("-- Move trackers to your body using touchpad controls. Press Grip to confirm --").c_str());
+                    TrackersCalibButton->SetLabel(std::string("Move trackers to your body using touchpad controls. Press Trigger to confirm").c_str());
                     std::this_thread::sleep_for(std::chrono::seconds(1));
 
                     while (!VRInput::confirmdatapose.bState) {
@@ -2418,13 +2418,13 @@ public:
                     }
 
                     std::this_thread::sleep_for(std::chrono::seconds(1));
-                    TrackersCalibButton->SetLabel(std::string("-- Warning: do not change your position (mostly hips) in further steps for best results --").c_str());
+                    TrackersCalibButton->SetLabel(std::string("Warning: Stand Still...").c_str());
                     std::this_thread::sleep_for(std::chrono::seconds(3));
 
                     KinectSettings::calorigin = Eigen::Vector3f(KinectSettings::mposes[2].v[0], KinectSettings::mposes[2].v[1], KinectSettings::mposes[2].v[2]);
                     std::this_thread::sleep_for(std::chrono::seconds(1));
 
-                    TrackersCalibButton->SetLabel(std::string("-- Orientate trackers to your body using touchpad controls. Press Grip to confirm --").c_str());
+                    TrackersCalibButton->SetLabel(std::string("Orientate trackers to your body using touchpad controls. Press Trigger to confirm").c_str());
 
                     double yawtmp = 0, pitchtmp = 0;
                     while (!VRInput::confirmdatapose.bState) {
@@ -2455,7 +2455,7 @@ public:
                     KinectSettings::rtcalibrated = true;
                     settings.rtcalib = true;
 
-                    TrackersCalibButton->SetLabel(std::string("-- Done! Hit me to re-calibrate! --").c_str());
+                    TrackersCalibButton->SetLabel(std::string("Done! Hit me to re-calibrate!").c_str());
                     TrackersCalibButton->SetState(sfg::Widget::State::NORMAL);
 
 
@@ -2511,9 +2511,9 @@ public:
 						std::this_thread::sleep_for(std::chrono::seconds(3));
 
 
-						TrackersCalibButton->SetLabel(std::string("-- Prepare to calibration: Point " + boost::lexical_cast<std::string>(ipoint) + " --").c_str());
-						std::this_thread::sleep_for(std::chrono::seconds(3));
-						for (auto i = 7; i > 0; i--) {
+						TrackersCalibButton->SetLabel(std::string("Get ready to calibrate: Point " + boost::lexical_cast<std::string>(ipoint) + "").c_str());
+						std::this_thread::sleep_for(std::chrono::seconds(1));
+						for (auto i = 3; i >= 0; i--) {
 							TrackersCalibButton->SetLabel(std::string("Point " + boost::lexical_cast<std::string>(ipoint) + ": Stand somewhere... Time left: " + boost::lexical_cast<std::string>(i) + "s").c_str());
 							std::this_thread::sleep_for(std::chrono::seconds(1));
 						}
@@ -2539,7 +2539,7 @@ public:
 						ispose.vecPosition[2] = out(2);
 
 						for (auto i = 0; i < 3; i++)ihpose.v[i] = KinectSettings::mposes[0].v[i];
-						TrackersCalibButton->SetLabel(std::string("-- Position captured: Point " + boost::lexical_cast<std::string>(ipoint) + " --").c_str());
+						TrackersCalibButton->SetLabel(std::string("Position captured: Point " + boost::lexical_cast<std::string>(ipoint) + "").c_str());
 						std::this_thread::sleep_for(std::chrono::seconds(2));
 
 						spose.push_back(ispose);
@@ -2594,10 +2594,10 @@ public:
 					settings.rcR_matT = ret_R;
 					settings.rcT_matT = ret_t;
 
-					TrackersCalibButton->SetLabel(std::string("-- Prepare to calibration: Trackers Orientation --").c_str());
-					std::this_thread::sleep_for(std::chrono::seconds(5));
-					for (auto i = 7; i > 0; i--) {
-						TrackersCalibButton->SetLabel(std::string("Trackers Orientation: Look at Kinect... Time left: " + boost::lexical_cast<std::string>(i) + "s").c_str());
+					TrackersCalibButton->SetLabel(std::string("Prepare to calibration: Tracker Orientation").c_str());
+					std::this_thread::sleep_for(std::chrono::seconds(1));
+					for (auto i = 3; i >= 0; i--) {
+						TrackersCalibButton->SetLabel(std::string("Tracker Orientation: Look at Kinect... Time left: " + boost::lexical_cast<std::string>(i) + "s").c_str());
 						std::this_thread::sleep_for(std::chrono::seconds(1));
 					}
 
@@ -2623,7 +2623,7 @@ public:
                     KinectSettings::rtcalibrated = true;
 					settings.rtcalib = true;
 
-					TrackersCalibButton->SetLabel(std::string("-- Done! Hit me to re-calibrate! --").c_str());
+					TrackersCalibButton->SetLabel(std::string("Done! Hit me to re-calibrate!").c_str());
                     TrackersCalibButton->SetState(sfg::Widget::State::NORMAL);
 
                     VirtualHips::saveSettings();
@@ -2684,7 +2684,7 @@ public:
         virtualHipsBox->SetSpacing(0.5f);
 
         auto modeTitleBox1 = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
-        modeTitleBox1->Pack(sfg::Label::Create("-- Offsets are working only when Head Tracking is activated --"));
+        modeTitleBox1->Pack(sfg::Label::Create("Offsets are working only when Head Tracking is activated"));
 
         virtualHipsBox->Pack(modeTitleBox1);
 
@@ -2700,7 +2700,7 @@ public:
 
 
 
-        psmidbox1->Pack(sfg::Label::Create(" -- Head PSMove ID --"));
+        psmidbox1->Pack(sfg::Label::Create("Head PSMove ID"));
         psmidbox1->Pack(psmoveboxa);
         psmidbox1->Pack(refreshpsmovesbuton11);
 
@@ -2712,23 +2712,23 @@ public:
 
         auto modeTitleBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
         auto standingBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
-        modeTitleBox->Pack(sfg::Label::Create("-- X Offset (meters) --"));
+        modeTitleBox->Pack(sfg::Label::Create("X Offset (meters)"));
         standingBox->Pack(VirtualHipHeightFromHMDButton);
         standingBox->Pack(sfg::Label::Create(" "));
 
         auto sittingBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
-        modeTitleBox->Pack(sfg::Label::Create("-- Y Offsets (meters) --"));
+        modeTitleBox->Pack(sfg::Label::Create("Y Offsets (meters)"));
         sittingBox->Pack(VirtualHipSittingThreshold);
         sittingBox->Pack(sfg::Label::Create(" "));
 
         auto lyingBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
-        modeTitleBox->Pack(sfg::Label::Create("-- Z Offset (meters) --"));
+        modeTitleBox->Pack(sfg::Label::Create("Z Offset (meters)"));
         lyingBox->Pack(VirtualHipLyingThreshold);
         lyingBox->Pack(sfg::Label::Create(" "));
 
         auto modeTitleBox10 = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
         auto standingBox10 = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
-        modeTitleBox10->Pack(sfg::Label::Create("-- World Offset (degrees) --"));
+        modeTitleBox10->Pack(sfg::Label::Create("World Offset (degrees)"));
         modeTitleBox10->Pack(DegreeButton);
 
         auto modeBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
@@ -2806,7 +2806,7 @@ private:
     sfg::Button::Ptr refreshpsmovesbuton1 = sfg::Button::Create("Refresh");
     sfg::Button::Ptr refreshpsmovesbuton11 = sfg::Button::Create("Refresh");
 
-    sfg::Button::Ptr TrackerInitButton = sfg::Button::Create("**Please be in VR before hitting me!** Initialise/Respawn SteamVR Kinect Trackers - HIT ME");
+    sfg::Button::Ptr TrackerInitButton = sfg::Button::Create("Spawn Trackers");
     sfg::Button::Ptr TrackerLastInitButton = sfg::Button::Create("**Please be in VR before hitting me!** Spawn same trackers as last session");
 
     sfg::Button::Ptr ShowSkeletonButton = sfg::CheckButton::Create("Show/Hide Skeleton Tracking");
@@ -2954,10 +2954,10 @@ private:
 
 
     sfg::Button::Ptr HeadTrackingStartButton = sfg::Button::Create("Start Head Tracking");
-    sfg::Button::Ptr HeadTrackingCalibButton = sfg::Button::Create("-- Calibrate: Look at Kinect and stand still --");
-    sfg::Button::Ptr TrackersCalibSButton = sfg::Button::Create("-- Calibrate: Hit me to calibrate! --");
-    sfg::Button::Ptr TrackersCalibButton = sfg::Button::Create("-- Calibrate: Hit me to calibrate! --");
-    sfg::CheckButton::Ptr expcalibbutton = sfg::CheckButton::Create("Check me to use experimental calibration method - with HMD sampling (Check it if you don't have controllers too)");
+    sfg::Button::Ptr HeadTrackingCalibButton = sfg::Button::Create("Calibration: Look at Kinect and stand still");
+    sfg::Button::Ptr TrackersCalibSButton = sfg::Button::Create("Begin Calibration");
+    sfg::Button::Ptr TrackersCalibButton = sfg::Button::Create("Begin Calibration");
+    sfg::CheckButton::Ptr expcalibbutton = sfg::CheckButton::Create("Enable Automatic Calibration");
 
     void updateKinectStatusLabelDisconnected() {
         KinectStatusLabel->SetText("Kinect Status: ERROR KINECT NOT DETECTED");

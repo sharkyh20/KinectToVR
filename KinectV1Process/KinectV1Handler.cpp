@@ -135,6 +135,8 @@
 
     glEnd();
 };
+
+ NUI_SKELETON_DATA backup;
  void KinectV1Handler::drawTrackedSkeletons(sf::RenderWindow &drawingWindow) {
     for (int i = 0; i < NUI_SKELETON_POSITION_COUNT; ++i) {
         screenSkelePoints[i] = sf::Vector2f(0.0f, 0.0f);
@@ -142,36 +144,33 @@
     for (int i = 0; i < NUI_SKELETON_COUNT; ++i) {
         NUI_SKELETON_TRACKING_STATE trackingState = skeletonFrame.SkeletonData[i].eTrackingState;
 
-        if (NUI_SKELETON_TRACKED == trackingState)
-        {
-            if (KinectSettings::isSkeletonDrawn) {
-                drawingWindow.pushGLStates();
-                drawingWindow.resetGLStates();
+        if (NUI_SKELETON_TRACKED == trackingState || NUI_SKELETON_POSITION_ONLY == trackingState)
+            backup = skeletonFrame.SkeletonData[i];
+	}
 
-                DrawSkeleton(skeletonFrame.SkeletonData[i], drawingWindow);
+	if (KinectSettings::isSkeletonDrawn) {
+		NUI_SKELETON_TRACKING_STATE trackingState = backup.eTrackingState;
+		if (NUI_SKELETON_TRACKED == trackingState)
+		{
+			drawingWindow.pushGLStates();
+			drawingWindow.resetGLStates();
 
-                drawingWindow.popGLStates();
-            }
+			DrawSkeleton(backup, drawingWindow);
+			drawingWindow.popGLStates();
+		}
+		else if (NUI_SKELETON_POSITION_ONLY == trackingState) {
+			sf::CircleShape circle(KinectSettings::g_JointThickness, 30);
+			circle.setRadius(KinectSettings::g_JointThickness);
+			circle.setPosition(SkeletonToScreen(backup.Position, SFMLsettings::m_window_width, SFMLsettings::m_window_height));
+			circle.setFillColor(sf::Color::Yellow);
 
-        }
-        else if (NUI_SKELETON_POSITION_ONLY == trackingState) {
-            //ONLY CENTER POINT TO DRAW
-            if (KinectSettings::isSkeletonDrawn) {
-                sf::CircleShape circle(KinectSettings::g_JointThickness, 30);
-                circle.setRadius(KinectSettings::g_JointThickness);
-                circle.setPosition(SkeletonToScreen(skeletonFrame.SkeletonData[i].Position, SFMLsettings::m_window_width, SFMLsettings::m_window_height));
-                circle.setFillColor(sf::Color::Yellow);
-
-                drawingWindow.pushGLStates();
-                drawingWindow.resetGLStates();
-
-                drawingWindow.draw(circle);
-
-                drawingWindow.popGLStates();
-            }
-        }
-    }
-};
+			drawingWindow.pushGLStates();
+			drawingWindow.resetGLStates();
+			drawingWindow.draw(circle);
+			drawingWindow.popGLStates();
+		}
+	}
+ };
 
 //Consider moving this tracking stuff into a seperate class
  void KinectV1Handler::zeroAllTracking(vr::IVRSystem* &m_sys) { // Holdover from previous implementation
@@ -562,6 +561,7 @@ void KinectV1Handler::getKinectRGBData() {
             // Same with the other cerr, without this, the skeleton flickers
         }
         // Render Torso
+        window.clear();
         DrawBone(skel, NUI_SKELETON_POSITION_HEAD, NUI_SKELETON_POSITION_SHOULDER_CENTER, window);
         DrawBone(skel, NUI_SKELETON_POSITION_SHOULDER_CENTER, NUI_SKELETON_POSITION_SHOULDER_LEFT, window);
         DrawBone(skel, NUI_SKELETON_POSITION_SHOULDER_CENTER, NUI_SKELETON_POSITION_SHOULDER_RIGHT, window);
