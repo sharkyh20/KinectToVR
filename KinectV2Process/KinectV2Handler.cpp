@@ -457,23 +457,6 @@ void KinectV2Handler::updateSkeletalFilters() {
 		}
 	}
 
-	JointOrientation jointOrientationsF[3];
-
-	jointOrientationsF[0].Orientation.w = lowPassFilter[0][0].update(jointOrientations[JointType_AnkleLeft].Orientation.w);
-	jointOrientationsF[0].Orientation.x = lowPassFilter[0][1].update(jointOrientations[JointType_AnkleLeft].Orientation.x);
-	jointOrientationsF[0].Orientation.y = lowPassFilter[0][2].update(jointOrientations[JointType_AnkleLeft].Orientation.y);
-	jointOrientationsF[0].Orientation.z = lowPassFilter[0][3].update(jointOrientations[JointType_AnkleLeft].Orientation.z);
-
-	jointOrientationsF[1].Orientation.w = lowPassFilter[1][0].update(jointOrientations[JointType_AnkleRight].Orientation.w);
-	jointOrientationsF[1].Orientation.x = lowPassFilter[1][1].update(jointOrientations[JointType_AnkleRight].Orientation.x);
-	jointOrientationsF[1].Orientation.y = lowPassFilter[1][2].update(jointOrientations[JointType_AnkleRight].Orientation.y);
-	jointOrientationsF[1].Orientation.z = lowPassFilter[1][3].update(jointOrientations[JointType_AnkleRight].Orientation.z);
-
-	jointOrientationsF[2].Orientation.w = lowPassFilter[2][0].update(jointOrientations[JointType_SpineBase].Orientation.w);
-	jointOrientationsF[2].Orientation.x = lowPassFilter[2][1].update(jointOrientations[JointType_SpineBase].Orientation.x);
-	jointOrientationsF[2].Orientation.y = lowPassFilter[2][2].update(jointOrientations[JointType_SpineBase].Orientation.y);
-	jointOrientationsF[2].Orientation.z = lowPassFilter[2][3].update(jointOrientations[JointType_SpineBase].Orientation.z);
-
 	KinectSettings::hmdPose = glm::vec3(
 		joints[JointType_Head].Position.X,
 		joints[JointType_Head].Position.Y,
@@ -515,8 +498,77 @@ void KinectV2Handler::updateSkeletalFilters() {
 		joints[JointType_SpineBase].Position.Z
 	);
 
+
+	JointOrientation jointOrientationsF[3];
+
+	// we're using direction vectors for feet so comment it out
+	/*
+	jointOrientationsF[0].Orientation.w = lowPassFilter[0][0].update(jointOrientations[JointType_AnkleLeft].Orientation.w);
+	jointOrientationsF[0].Orientation.x = lowPassFilter[0][1].update(jointOrientations[JointType_AnkleLeft].Orientation.x);
+	jointOrientationsF[0].Orientation.y = lowPassFilter[0][2].update(jointOrientations[JointType_AnkleLeft].Orientation.y);
+	jointOrientationsF[0].Orientation.z = lowPassFilter[0][3].update(jointOrientations[JointType_AnkleLeft].Orientation.z);
+
+	jointOrientationsF[1].Orientation.w = lowPassFilter[1][0].update(jointOrientations[JointType_AnkleRight].Orientation.w);
+	jointOrientationsF[1].Orientation.x = lowPassFilter[1][1].update(jointOrientations[JointType_AnkleRight].Orientation.x);
+	jointOrientationsF[1].Orientation.y = lowPassFilter[1][2].update(jointOrientations[JointType_AnkleRight].Orientation.y);
+	jointOrientationsF[1].Orientation.z = lowPassFilter[1][3].update(jointOrientations[JointType_AnkleRight].Orientation.z);
+	*/
+
+	//hips are ok
+	jointOrientationsF[2].Orientation.w = lowPassFilter[2][0].update(jointOrientations[JointType_SpineBase].Orientation.w);
+	jointOrientationsF[2].Orientation.x = lowPassFilter[2][1].update(jointOrientations[JointType_SpineBase].Orientation.x);
+	jointOrientationsF[2].Orientation.y = lowPassFilter[2][2].update(jointOrientations[JointType_SpineBase].Orientation.y);
+	jointOrientationsF[2].Orientation.z = lowPassFilter[2][3].update(jointOrientations[JointType_SpineBase].Orientation.z);
+	
+	//calculate direction vectors
+	glm::vec3 ankleLeftPose(
+		joints[JointType_AnkleLeft].Position.X,
+		joints[JointType_AnkleLeft].Position.Y,
+		joints[JointType_AnkleLeft].Position.Z),
+
+		ankleRightPose(
+			joints[JointType_AnkleRight].Position.X,
+			joints[JointType_AnkleRight].Position.Y,
+			joints[JointType_AnkleRight].Position.Z),
+		
+		footLeftPose(
+			joints[JointType_FootLeft].Position.X,
+			joints[JointType_FootLeft].Position.Y,
+			joints[JointType_FootLeft].Position.Z),
+
+		footRightPose(
+			joints[JointType_FootRight].Position.X,
+			joints[JointType_FootRight].Position.Y,
+			joints[JointType_FootRight].Position.Z);
+
+	/* direction = lookAt - lookFrom */
+	glm::vec3 hFootDirection(footLeftPose - ankleLeftPose),
+		mFootDirection(footRightPose - ankleRightPose);
+
+	//calculate lookat quaternion
+	glm::quat hFootRotF = glm::quatLookAt(hFootDirection, glm::vec3(0, 1, 0));
+	glm::quat mFootRotF = glm::quatLookAt(mFootDirection, glm::vec3(0, 1, 0));
+
+	//check for identity
+	if (!(glm::length(hFootDirection) > 0.0001)) 
+		hFootRotF = glm::quat(1, 0, 0, 0);
+	if (!(glm::length(mFootDirection) > 0.0001))
+		mFootRotF = glm::quat(1, 0, 0, 0);
+	
+	//smooth with lowpass filter
+	hFootRotF.w = lowPassFilter[0][0].update(hFootRotF.w);
+	hFootRotF.x = lowPassFilter[0][1].update(hFootRotF.x);
+	hFootRotF.y = lowPassFilter[0][2].update(hFootRotF.y);
+	hFootRotF.z = lowPassFilter[0][3].update(hFootRotF.z);
+
+	mFootRotF.w = lowPassFilter[1][0].update(mFootRotF.w);
+	mFootRotF.x = lowPassFilter[1][1].update(mFootRotF.x);
+	mFootRotF.y = lowPassFilter[1][2].update(mFootRotF.y);
+	mFootRotF.z = lowPassFilter[1][3].update(mFootRotF.z);
+
 	/* KINECT V2 ONLY: filter quaternion to be less jittery at end */
 
+	/*
 	glm::quat hFootRotF = glm::quat(
 		jointOrientationsF[0].Orientation.w,
 		jointOrientationsF[0].Orientation.x,
@@ -529,24 +581,29 @@ void KinectV2Handler::updateSkeletalFilters() {
 		jointOrientationsF[1].Orientation.y,
 		jointOrientationsF[1].Orientation.z
 	);
+	*/
+
+	//hips are ok
 	glm::quat hipsRotF = glm::quat(
 		jointOrientationsF[2].Orientation.w,
 		jointOrientationsF[2].Orientation.x,
 		jointOrientationsF[2].Orientation.y,
 		jointOrientationsF[2].Orientation.z
-	);
+	); 
 
-	if (hFootRotF != glm::quat(1, 0, 0, 0) &&
-		hFootRotF != glm::inverse(glm::quat(1, 0, 0, 0)))
-		KinectSettings::hFootRot = hFootRotF;
+	/*if (hFootRotF != glm::quat(1, 0, 0, 0) &&
+		hFootRotF != glm::inverse(glm::quat(1, 0, 0, 0)))*/
+	KinectSettings::hFootRot = hFootRotF;
 
-	if (mFootRotF != glm::quat(1, 0, 0, 0) &&
-		mFootRotF != glm::inverse(glm::quat(1, 0, 0, 0)))
-		KinectSettings::mFootRot = mFootRotF;
+	/*if (mFootRotF != glm::quat(1, 0, 0, 0) &&
+		mFootRotF != glm::inverse(glm::quat(1, 0, 0, 0)))*/
+	KinectSettings::mFootRot = mFootRotF;
 
+	//hips are ok
 	if (hipsRotF != glm::quat(1, 0, 0, 0) &&
 		hipsRotF != glm::inverse(glm::quat(1, 0, 0, 0)))
 		KinectSettings::hipsRot = hipsRotF;
+
 
 	KinectSettings::lastPose[0][0] = glm::vec3(
 		joints[JointType_AnkleLeft].Position.X,
