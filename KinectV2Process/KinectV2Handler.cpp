@@ -524,27 +524,10 @@ void KinectV2Handler::updateSkeletalFilters() {
 
 
 
+	/***********************************************************************************************/
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	glm::quat hFootRotF, mFootRotF;
-
-	//calculate direction vectors
-	glm::vec3 upvec(0, 1, 0),
+	//gather positions into vectors
+	glm::vec3 up(0, 1, 0),
 		ankleLeftPose(
 			joints[JointType_AnkleLeft].Position.X,
 			joints[JointType_AnkleLeft].Position.Y,
@@ -575,66 +558,43 @@ void KinectV2Handler::updateSkeletalFilters() {
 			joints[JointType_KneeRight].Position.Y,
 			joints[JointType_KneeRight].Position.Z);
 
+	//calculate feet orientation (only for yaw)
+	glm::vec3 feetRot[2] = {
+		glm::eulerAngles(glm::quat(glm::lookAt(footLeftPose, ankleLeftPose, up))),
+		glm::eulerAngles(glm::quat(glm::lookAt(footRightPose, ankleRightPose, up)))
+	};
 
-	/* Calculate euler angle from knee to ankle */
-	/* Direction is equal to LookAt - LookFrom */
+	//lil hack to bypass gimbal lock via 'disabling' third dimension
+	glm::vec3 tibiaRotZ[2] = {
+		glm::eulerAngles(glm::quat(glm::lookAt(
+			glm::vec3(ankleLeftPose.x,ankleLeftPose.y, 1),
+			glm::vec3(kneeLeftPose.x,kneeLeftPose.y, 0), up))),
+		glm::eulerAngles(glm::quat(glm::lookAt(
+			glm::vec3(ankleRightPose.x,ankleRightPose.y, 1),
+			glm::vec3(kneeRightPose.x,kneeRightPose.y, 0), up)))
+	};
 
-	glm::vec3 eulerTibiaLeft = glm::eulerAngles(
-		glm::quatLookAt(footLeftPose - kneeLeftPose, upvec));
+	glm::vec3 tibiaRotX[2] = {
+		glm::eulerAngles(glm::quat(glm::lookAt(
+			glm::vec3(1 ,ankleLeftPose.y,ankleLeftPose.z),
+			glm::vec3(0 ,kneeLeftPose.y,kneeLeftPose.z), up))),
+		glm::eulerAngles(glm::quat(glm::lookAt(
+			glm::vec3(1, ankleRightPose.y,ankleRightPose.z),
+			glm::vec3(0, kneeRightPose.y,kneeRightPose.z), up)))
+	};
 
-	glm::vec3 eulerTibiaRight = glm::eulerAngles(
-		glm::quatLookAt(footRightPose - kneeRightPose, upvec));
+	//compose orientations into quaternion
+	glm::quat hFootRotF = glm::vec3(
+		-tibiaRotX[0].x - M_PI / 3,
+		feetRot[0].y,
+		tibiaRotZ[0].z * 15);
 
-	// We're getting euler angle set pointing from knee straight to ankle
-	/* So: we need to add ankle->foot rotation into it
-	This can be done by assuming that foot is always 
-	rotated by PI/2 in X from the Tibia angle, like you had foot in plaster
-	Then we can add ankle->foot angle to it by multiplying quaternions
-	For better results the Tibia angle has got disabled yaw */
+	glm::quat mFootRotF = glm::vec3(
+		-tibiaRotX[1].x - M_PI / 3,
+		feetRot[1].y,
+		tibiaRotZ[1].z * 15);
 
-	// Disable yaw
-	eulerTibiaLeft.y = 0.f;
-	eulerTibiaRight.y = 0.f;
-
-	// Rotate UP in X by PI/2 (90deg)
-	eulerTibiaLeft.x -= M_PI / 2;
-	eulerTibiaRight.x -= M_PI / 2;
-
-	// calculate ankle->foot quaternion for offset
-	/* direction = lookAt - lookFrom */
-	glm::vec3 hFootDirection(footLeftPose - ankleLeftPose),
-		mFootDirection(footRightPose - ankleRightPose);
-
-	//calculate lookat quaternion
-	glm::quat footLeftDir = glm::quatLookAt(hFootDirection, glm::vec3(0, 1, 0));
-	glm::quat footRightDir = glm::quatLookAt(mFootDirection, glm::vec3(0, 1, 0));
-
-	//check for identity
-	if (!(glm::length(hFootDirection) > 0.0001))
-		footLeftDir = glm::quat(1, 0, 0, 0);
-	if (!(glm::length(mFootDirection) > 0.0001))
-		footRightDir = glm::quat(1, 0, 0, 0);
-
-
-	// Now we need to add quaternions by multiplying.
-	// make euler angles quaternion again and multiply giving product
-
-	hFootRotF = glm::quat(eulerTibiaLeft) * footLeftDir;
-	mFootRotF = glm::quat(eulerTibiaRight) * footRightDir;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	/***********************************************************************************************/
 
 
 

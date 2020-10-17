@@ -55,7 +55,7 @@ public:
                 return 0;
             }
             else {
-                LOG(ERROR) << "Failed to startup the PSMoveClient. Check if PSMoveService is running...";
+                LOG(INFO) << "PSMoveService is not running.";
             }
         }
         catch (std::exception& e) {
