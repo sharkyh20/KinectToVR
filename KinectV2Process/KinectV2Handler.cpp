@@ -520,17 +520,41 @@ void KinectV2Handler::updateSkeletalFilters() {
 	jointOrientationsF[2].Orientation.y = lowPassFilter[2][2].update(jointOrientations[JointType_SpineBase].Orientation.y);
 	jointOrientationsF[2].Orientation.z = lowPassFilter[2][3].update(jointOrientations[JointType_SpineBase].Orientation.z);
 	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	glm::quat hFootRotF, mFootRotF;
+
 	//calculate direction vectors
-	glm::vec3 ankleLeftPose(
-		joints[JointType_AnkleLeft].Position.X,
-		joints[JointType_AnkleLeft].Position.Y,
-		joints[JointType_AnkleLeft].Position.Z),
+	glm::vec3 upvec(0, 1, 0),
+		ankleLeftPose(
+			joints[JointType_AnkleLeft].Position.X,
+			joints[JointType_AnkleLeft].Position.Y,
+			joints[JointType_AnkleLeft].Position.Z),
 
 		ankleRightPose(
 			joints[JointType_AnkleRight].Position.X,
 			joints[JointType_AnkleRight].Position.Y,
 			joints[JointType_AnkleRight].Position.Z),
-		
+
 		footLeftPose(
 			joints[JointType_FootLeft].Position.X,
 			joints[JointType_FootLeft].Position.Y,
@@ -539,37 +563,98 @@ void KinectV2Handler::updateSkeletalFilters() {
 		footRightPose(
 			joints[JointType_FootRight].Position.X,
 			joints[JointType_FootRight].Position.Y,
-			joints[JointType_FootRight].Position.Z);
+			joints[JointType_FootRight].Position.Z),
 
+		kneeLeftPose(
+			joints[JointType_KneeLeft].Position.X,
+			joints[JointType_KneeLeft].Position.Y,
+			joints[JointType_KneeLeft].Position.Z),
+
+		kneeRightPose(
+			joints[JointType_KneeRight].Position.X,
+			joints[JointType_KneeRight].Position.Y,
+			joints[JointType_KneeRight].Position.Z);
+
+
+	/* Calculate euler angle from knee to ankle */
+	/* Direction is equal to LookAt - LookFrom */
+
+	glm::vec3 eulerTibiaLeft = glm::eulerAngles(
+		glm::quatLookAt(footLeftPose - kneeLeftPose, upvec));
+
+	glm::vec3 eulerTibiaRight = glm::eulerAngles(
+		glm::quatLookAt(footRightPose - kneeRightPose, upvec));
+
+	// We're getting euler angle set pointing from knee straight to ankle
+	/* So: we need to add ankle->foot rotation into it
+	This can be done by assuming that foot is always 
+	rotated by PI/2 in X from the Tibia angle, like you had foot in plaster
+	Then we can add ankle->foot angle to it by multiplying quaternions
+	For better results the Tibia angle has got disabled yaw */
+
+	// Disable yaw
+	eulerTibiaLeft.y = 0.f;
+	eulerTibiaRight.y = 0.f;
+
+	// Rotate UP in X by PI/2 (90deg)
+	eulerTibiaLeft.x -= M_PI / 2;
+	eulerTibiaRight.x -= M_PI / 2;
+
+	// calculate ankle->foot quaternion for offset
 	/* direction = lookAt - lookFrom */
 	glm::vec3 hFootDirection(footLeftPose - ankleLeftPose),
 		mFootDirection(footRightPose - ankleRightPose);
 
 	//calculate lookat quaternion
-	glm::quat hFootRotF = glm::quatLookAt(hFootDirection, glm::vec3(0, 1, 0));
-	glm::quat mFootRotF = glm::quatLookAt(mFootDirection, glm::vec3(0, 1, 0));
+	glm::quat footLeftDir = glm::quatLookAt(hFootDirection, glm::vec3(0, 1, 0));
+	glm::quat footRightDir = glm::quatLookAt(mFootDirection, glm::vec3(0, 1, 0));
 
 	//check for identity
-	if (!(glm::length(hFootDirection) > 0.0001)) 
-		hFootRotF = glm::quat(1, 0, 0, 0);
+	if (!(glm::length(hFootDirection) > 0.0001))
+		footLeftDir = glm::quat(1, 0, 0, 0);
 	if (!(glm::length(mFootDirection) > 0.0001))
-		mFootRotF = glm::quat(1, 0, 0, 0);
-	
-	//smooth with lowpass filter
-	hFootRotF.w = lowPassFilter[0][0].update(hFootRotF.w);
-	hFootRotF.x = lowPassFilter[0][1].update(hFootRotF.x);
-	hFootRotF.y = lowPassFilter[0][2].update(hFootRotF.y);
-	hFootRotF.z = lowPassFilter[0][3].update(hFootRotF.z);
+		footRightDir = glm::quat(1, 0, 0, 0);
 
-	mFootRotF.w = lowPassFilter[1][0].update(mFootRotF.w);
-	mFootRotF.x = lowPassFilter[1][1].update(mFootRotF.x);
-	mFootRotF.y = lowPassFilter[1][2].update(mFootRotF.y);
-	mFootRotF.z = lowPassFilter[1][3].update(mFootRotF.z);
+
+	// Now we need to add quaternions by multiplying.
+	// make euler angles quaternion again and multiply giving product
+
+	hFootRotF = glm::quat(eulerTibiaLeft) * footLeftDir;
+	mFootRotF = glm::quat(eulerTibiaRight) * footRightDir;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	////smooth with lowpass filter
+	//hFootRotF.w = lowPassFilter[0][0].update(hFootRotF.w);
+	//hFootRotF.x = lowPassFilter[0][1].update(hFootRotF.x);
+	//hFootRotF.y = lowPassFilter[0][2].update(hFootRotF.y);
+	//hFootRotF.z = lowPassFilter[0][3].update(hFootRotF.z);
+
+	//mFootRotF.w = lowPassFilter[1][0].update(mFootRotF.w);
+	//mFootRotF.x = lowPassFilter[1][1].update(mFootRotF.x);
+	//mFootRotF.y = lowPassFilter[1][2].update(mFootRotF.y);
+	//mFootRotF.z = lowPassFilter[1][3].update(mFootRotF.z);
 
 	/* KINECT V2 ONLY: filter quaternion to be less jittery at end */
-
-	/*
-	glm::quat hFootRotF = glm::quat(
+	/* glm::quat hFootRotF = glm::quat(
 		jointOrientationsF[0].Orientation.w,
 		jointOrientationsF[0].Orientation.x,
 		jointOrientationsF[0].Orientation.y,
@@ -580,8 +665,7 @@ void KinectV2Handler::updateSkeletalFilters() {
 		jointOrientationsF[1].Orientation.x,
 		jointOrientationsF[1].Orientation.y,
 		jointOrientationsF[1].Orientation.z
-	);
-	*/
+	); */
 
 	//hips are ok
 	glm::quat hipsRotF = glm::quat(
@@ -590,6 +674,9 @@ void KinectV2Handler::updateSkeletalFilters() {
 		jointOrientationsF[2].Orientation.y,
 		jointOrientationsF[2].Orientation.z
 	); 
+
+
+	// Check for identity / equality
 
 	/*if (hFootRotF != glm::quat(1, 0, 0, 0) &&
 		hFootRotF != glm::inverse(glm::quat(1, 0, 0, 0)))*/
@@ -604,6 +691,8 @@ void KinectV2Handler::updateSkeletalFilters() {
 		hipsRotF != glm::inverse(glm::quat(1, 0, 0, 0)))
 		KinectSettings::hipsRot = hipsRotF;
 
+
+	// Update last pose for interpolation
 
 	KinectSettings::lastPose[0][0] = glm::vec3(
 		joints[JointType_AnkleLeft].Position.X,
