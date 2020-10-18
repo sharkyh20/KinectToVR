@@ -601,11 +601,6 @@ void KinectV2Handler::updateSkeletalFilters() {
 	/***********************************************************************************************/
 
 
-
-
-
-
-
 	////smooth with lowpass filter
 	//hFootRotF.w = lowPassFilter[0][0].update(hFootRotF.w);
 	//hFootRotF.x = lowPassFilter[0][1].update(hFootRotF.x);
