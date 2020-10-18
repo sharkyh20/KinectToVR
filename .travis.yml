@@ -1,30 +1,14 @@
 language: cpp
 solution: KinectToVR.sln
+os: windows
 
-matrix:
-  include:
-    - env: COMPILER=g++-7 BUILD=Debug STANDARD=17
-      compiler: gcc
-      addons:
-        apt:
-          update: true
-          sources:
-            - sourceline: 'ppa:mhier/libboost-latest'
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-7
-            - boost1.74
-    - env: COMPILER=g++-7 BUILD=Release STANDARD=17
-      compiler: gcc
-      addons:
-        apt:
-          update: true
-          sources:
-            - sourceline: 'ppa:mhier/libboost-latest'
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-7
-            - boost1.74
+env:
+  - MSBUILD_PATH="C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin"
+
+install:
+  - choco install visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
+  - choco install dotnetcore-sdk
+  - dotnet restore
 
 script:
- - msbuild /p:Configuration=Release KinectToVR.sln
+ - MSBuild.exe -p:Configuration=Release -p:Platform=x64 KinectToVR.sln
