@@ -1,0 +1,30 @@
+language: cpp
+solution: KinectToVR.sln
+
+matrix:
+  include:
+    - env: COMPILER=g++-7 BUILD=Debug STANDARD=17
+      compiler: gcc
+      addons:
+        apt:
+          update: true
+          sources:
+            - sourceline: 'ppa:mhier/libboost-latest'
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+            - boost1.74
+    - env: COMPILER=g++-7 BUILD=Release STANDARD=17
+      compiler: gcc
+      addons:
+        apt:
+          update: true
+          sources:
+            - sourceline: 'ppa:mhier/libboost-latest'
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+            - boost1.74
+
+script:
+ - msbuild /p:Configuration=Release KinectToVR.sln
