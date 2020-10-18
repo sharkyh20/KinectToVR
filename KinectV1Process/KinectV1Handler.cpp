@@ -586,13 +586,16 @@ void KinectV1Handler::updateSkeletalData() {
 
 		KinectSettings::hFootRot = glm::vec3(
 			-tibiaRotX[0].x - M_PI / 3, 
-			feetRot[0].y, 
+			feetRot[0].y + 2 * KinectSettings::tryaw / 180 * M_PI,
 			tibiaRotZ[0].z * 15);
 
 		KinectSettings::mFootRot = glm::vec3(
 			-tibiaRotX[1].x - M_PI / 3, 
-			feetRot[1].y,
+			feetRot[1].y + 2 * KinectSettings::tryaw / 180 * M_PI,
 			tibiaRotZ[1].z * 15);
+
+		glm::normalize(KinectSettings::hFootRot);
+		glm::normalize(KinectSettings::mFootRot);
 
 		***********************************************************************************************/
 

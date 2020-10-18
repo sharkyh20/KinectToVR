@@ -558,13 +558,13 @@ void KinectV2Handler::updateSkeletalFilters() {
 			joints[JointType_KneeRight].Position.Y,
 			joints[JointType_KneeRight].Position.Z);
 
-	//calculate feet orientation (only for yaw)
+	//Calculate orietation for yaw basing on foot
 	glm::vec3 feetRot[2] = {
-		glm::eulerAngles(glm::quat(glm::lookAt(footLeftPose, ankleLeftPose, up))),
-		glm::eulerAngles(glm::quat(glm::lookAt(footRightPose, ankleRightPose, up)))
+			glm::eulerAngles(glm::quat(glm::lookAt(footLeftPose, ankleLeftPose, up))),
+			glm::eulerAngles(glm::quat(glm::lookAt(footRightPose, ankleRightPose, up)))
 	};
 
-	//lil hack to bypass gimbal lock via 'disabling' third dimension
+	//calculate rest basing on tibia bone
 	glm::vec3 tibiaRotZ[2] = {
 		glm::eulerAngles(glm::quat(glm::lookAt(
 			glm::vec3(ankleLeftPose.x,ankleLeftPose.y, 1),
@@ -583,16 +583,20 @@ void KinectV2Handler::updateSkeletalFilters() {
 			glm::vec3(0, kneeRightPose.y,kneeRightPose.z), up)))
 	};
 
-	//compose orientations into quaternion
+	//compose
 	glm::quat hFootRotF = glm::vec3(
 		-tibiaRotX[0].x - M_PI / 3,
-		feetRot[0].y,
+		feetRot[0].y + 2 * KinectSettings::tryaw / 180 * M_PI,
 		tibiaRotZ[0].z * 15);
 
 	glm::quat mFootRotF = glm::vec3(
 		-tibiaRotX[1].x - M_PI / 3,
-		feetRot[1].y,
+		feetRot[1].y + 2 * KinectSettings::tryaw / 180 * M_PI,
 		tibiaRotZ[1].z * 15);
+
+	//remove all possible errors
+	glm::normalize(hFootRotF);
+	glm::normalize(mFootRotF);
 
 	/***********************************************************************************************/
 

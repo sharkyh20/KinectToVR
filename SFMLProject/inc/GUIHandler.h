@@ -2449,8 +2449,8 @@ public:
                     settings.rcR_matT = KinectSettings::R_matT;
                     settings.rcT_matT = KinectSettings::T_matT;
 
-                    KinectSettings::tryaw = yawtmp;
-                    settings.tryawst = yawtmp;
+                    KinectSettings::tryaw = glm::degrees(yawtmp);
+                    settings.tryawst = glm::degrees(yawtmp);
 
                     KinectSettings::rtcalibrated = true;
                     settings.rtcalib = true;
