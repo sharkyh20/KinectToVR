@@ -120,7 +120,7 @@
       <AdditionalDependencies>Debug\sfml-audio-d.lib;Debug\sfml-graphics-d.lib;Debug\sfml-window-d.lib;Debug\sfml-system-d.lib;libvrinputemulator_d.lib;openvr_api64.lib;Kinect10.lib;OpenGL32.lib;glew32.lib;sfgui-d.lib;Kinect20.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(TargetPath)" "$(SolutionDir)external\KVRlib" /I /Y
+      <Command>xcopy "$(TargetPath)" "$(SolutionDir)external\KVRlib\" /I /Y
 xcopy "$(SolutionDir)external\dlls\*.dll" "$(TargetDir)"  /Y
 xcopy "$(SolutionDir)external\dlls\release\*.dll" "$(TargetDir)"  /Y</Command>
     </PostBuildEvent>
@@ -173,7 +173,7 @@ xcopy "$(SolutionDir)external\dlls\release\*.dll" "$(TargetDir)"  /Y</Command>
       <AdditionalDependencies>glew32.lib;Kinect20.lib;sfgui.lib;Kinect10.lib;OpenGL32.lib;libvrinputemulator.lib;openvr_api64.lib;Release\sfml-audio.lib;Release\sfml-graphics.lib;Release\sfml-window.lib;Release\sfml-system.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(TargetPath)" "$(SolutionDir)external\KVRlib" /I /Y
+      <Command>xcopy "$(TargetPath)" "$(SolutionDir)external\KVRlib\" /I /Y
 xcopy "$(SolutionDir)external\dlls\*.dll" "$(TargetDir)"  /Y
 xcopy "$(SolutionDir)external\dlls\release\*.dll" "$(TargetDir)"  /Y</Command>
     </PostBuildEvent>
