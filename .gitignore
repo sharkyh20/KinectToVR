@@ -30,3 +30,7 @@ inputemulator/
 *.log
 
 .vs/
+
+external/KVRlib/KinectToVR-d.lib
+
+external/KVRlib/KinectToVR.lib
