@@ -63,7 +63,7 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\favicon.ico">
+    <Image Include="..\external\icons\icon.ico">
       <Filter>Source Files\Resource Files</Filter>
     </Image>
   </ItemGroup>

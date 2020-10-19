@@ -54,7 +54,7 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\favicon.ico">
+    <Image Include="..\external\icons\icon.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

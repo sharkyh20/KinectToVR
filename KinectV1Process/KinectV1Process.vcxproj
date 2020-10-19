@@ -178,7 +178,7 @@
     <ResourceCompile Include="KinectV1Process.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\favicon.ico" />
+    <Image Include="..\external\icons\icon.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
