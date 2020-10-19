@@ -19,3 +19,4 @@ script:
  - 7z x ./external/boost_1_74_0-bin-msvc-all-32-64.7z -oexternal
  - 7z x ./external/kinectlib.7z -oexternal
  - MSBuild.exe -p:Configuration=Release -p:Platform=x64 KinectToVR.sln
+ - MSBuild.exe -p:Configuration=Release -p:Platform=x64 KinectToVR.sln /t:Rebuild
