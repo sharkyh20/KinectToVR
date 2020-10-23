@@ -36,3 +36,9 @@ external/KVRlib/KinectToVR-d.lib
 external/KVRlib/KinectToVR.lib
 
 external/KVRlib/
+
+PSMSProcess/PSMSProcess.aps
+
+PSMSProcess/x64/
+
+*.aps

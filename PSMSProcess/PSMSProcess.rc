@@ -78,11 +78,11 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName", "KinectToVR"
-            VALUE "FileDescription", "KinectToVR for KV2"
+            VALUE "FileDescription", "KinectToVR for PSMS"
             VALUE "FileVersion", "0.0.0.0"
-            VALUE "InternalName", "KinectV2Process.exe"
+            VALUE "InternalName", "PSMSProcess.exe"
             VALUE "LegalCopyright", "Copyright (C) 2020"
-            VALUE "OriginalFilename", "KinectV2Process.exe"
+            VALUE "OriginalFilename", "PSMSProc.exe"
             VALUE "ProductName", "KinectToVR EX"
             VALUE "ProductVersion", "0.8.0.0"
         END

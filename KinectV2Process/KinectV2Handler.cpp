@@ -600,17 +600,16 @@ void KinectV2Handler::updateSkeletalFilters() {
 
 	/***********************************************************************************************/
 
-
 	////smooth with lowpass filter
-	//hFootRotF.w = lowPassFilter[0][0].update(hFootRotF.w);
-	//hFootRotF.x = lowPassFilter[0][1].update(hFootRotF.x);
-	//hFootRotF.y = lowPassFilter[0][2].update(hFootRotF.y);
-	//hFootRotF.z = lowPassFilter[0][3].update(hFootRotF.z);
+	hFootRotF.w = lowPassFilter[0][0].update(hFootRotF.w);
+	hFootRotF.x = lowPassFilter[0][1].update(hFootRotF.x);
+	hFootRotF.y = lowPassFilter[0][2].update(hFootRotF.y);
+	hFootRotF.z = lowPassFilter[0][3].update(hFootRotF.z);
 
-	//mFootRotF.w = lowPassFilter[1][0].update(mFootRotF.w);
-	//mFootRotF.x = lowPassFilter[1][1].update(mFootRotF.x);
-	//mFootRotF.y = lowPassFilter[1][2].update(mFootRotF.y);
-	//mFootRotF.z = lowPassFilter[1][3].update(mFootRotF.z);
+	mFootRotF.w = lowPassFilter[1][0].update(mFootRotF.w);
+	mFootRotF.x = lowPassFilter[1][1].update(mFootRotF.x);
+	mFootRotF.y = lowPassFilter[1][2].update(mFootRotF.y);
+	mFootRotF.z = lowPassFilter[1][3].update(mFootRotF.z);
 
 	/* KINECT V2 ONLY: filter quaternion to be less jittery at end */
 	/* glm::quat hFootRotF = glm::quat(

@@ -241,6 +241,7 @@ void processLoop(KinectHandlerBase& kinect) {
 	kinect.update();
 
 	guiRef.updateKinectStatusLabel(kinect);
+	KinectSettings::isKinectPSMS = kinect.isPSMS;
 	// Reconnect Kinect Event Signal
 	guiRef.setKinectButtonSignal(kinect);
 
@@ -427,6 +428,13 @@ void processLoop(KinectHandlerBase& kinect) {
 			/*std::cout << "X: " << float(int(rightController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad).x*10))/10.f <<
 				" Y: " << float(int(rightController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad).y*10))/10.f << 
 				" T: " << rightController.GetTrigger() << '\n';*/
+			
+			/***********************************************************************************************/
+			std::cout <<
+				"Left: " << KinectSettings::hidariashimove.Pose.Position.x << ' ' << KinectSettings::hidariashimove.Pose.Position.y << ' ' << KinectSettings::hidariashimove.Pose.Position.z << '\n' <<
+				"Right: " << KinectSettings::migiashimove.Pose.Position.x << ' ' << KinectSettings::migiashimove.Pose.Position.y << ' ' << KinectSettings::migiashimove.Pose.Position.z << '\n' <<
+				"Waist: " << KinectSettings::yobumove.Pose.Position.x << ' ' << KinectSettings::yobumove.Pose.Position.y << ' ' << KinectSettings::yobumove.Pose.Position.z << "\n\n";
+			/***********************************************************************************************/
 
 			VRInput::trackpadpose[0].x = rightController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad).x;
 			VRInput::trackpadpose[0].y = rightController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad).y;

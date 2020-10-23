@@ -1035,12 +1035,12 @@ public:
 
 				TrackerLastInitButton->SetState(sfg::Widget::State::INSENSITIVE);
 
-				modeTitleBox110->Show(true);
+				modeTitleBox110->Show(!KinectSettings::isKinectPSMS);
 				TDegreeButton->SetValue(KinectSettings::cpoints);
 				TrackersConfigSaveButton->Show(true);
 				TrackersCalibButton->Show(true);
 				//TrackersCalibSButton->Show(true);
-				expcalibbutton->Show(true);
+				expcalibbutton->Show(!KinectSettings::isKinectPSMS); //Manual only if PSMS
 
 				AutoStartTrackers->Show(true);
 				//AutoStartKinectToVR->Show(true);
@@ -1066,12 +1066,12 @@ public:
 
 				TrackerLastInitButton->SetState(sfg::Widget::State::INSENSITIVE);
 
-				modeTitleBox110->Show(true);
+				modeTitleBox110->Show(!KinectSettings::isKinectPSMS);
 				TDegreeButton->SetValue(KinectSettings::cpoints);
 				TrackersConfigSaveButton->Show(true);
 				TrackersCalibButton->Show(true);
 				//TrackersCalibSButton->Show(true);
-				expcalibbutton->Show(true);
+				expcalibbutton->Show(!KinectSettings::isKinectPSMS);
 
 				AutoStartTrackers->Show(true);
 				//AutoStartKinectToVR->Show(true);
@@ -1908,13 +1908,19 @@ public:
 		if (kinect.isInitialised()) {
 			if (status == lastKinectStatus)
 				return; // No need to waste time updating it;
-			switch (status) {
-			case S_OK:
-				KinectStatusLabel->SetText("Kinect Status: Success!");
-				break;
-			default:
-				KinectStatusLabel->SetText("Kinect Status: ERROR " + kinect.statusResultString(status));
-				break;
+			if(kinect.isPSMS){
+				KinectStatusLabel->SetText("PSMoveService Mode!");
+			}
+			else {
+				switch (status) {
+				case S_OK: {
+					KinectStatusLabel->SetText("Kinect Status: Success!");
+					break;
+				}
+				default:
+					KinectStatusLabel->SetText("Kinect Status: ERROR " + kinect.statusResultString(status));
+					break;
+				}
 			}
 		}
 		else
@@ -2309,7 +2315,7 @@ public:
 						while (!KinectSettings::isTriggerPressed[0] || !KinectSettings::isTriggerPressed[1]) {
 							std::this_thread::sleep_for(std::chrono::milliseconds(300));
 							/******************************************************************************/
-							TrackersCalibButton->SetLabel(std::string("Adjust position with Thumbsticks (LGrip: Fine adjust, RGrip: Switch to ROT, Triggers: Accept)").c_str());
+							TrackersCalibButton->SetLabel(std::string("Adjust position with Thumbsticks (LGrip: Fine adjust, RGrip: Switch to Rotation, Triggers: Confirm)").c_str());
 							/******************************************************************************/
 
 							while (!KinectSettings::isGripPressed[0] && (!KinectSettings::isTriggerPressed[0] || !KinectSettings::isTriggerPressed[1])) {
@@ -2334,7 +2340,7 @@ public:
 
 							std::this_thread::sleep_for(std::chrono::milliseconds(300));
 							/******************************************************************************/
-							TrackersCalibButton->SetLabel(std::string("Adjust rotation with Thumbsticks (LGrip: Fine adjust, RGrip: Switch to POS, Triggers: Accept)").c_str());
+							TrackersCalibButton->SetLabel(std::string("Adjust rotation with Thumbsticks (LGrip: Fine adjust, RGrip: Switch to Position, Triggers: Confirm)").c_str());
 							/******************************************************************************/
 
 							while (!KinectSettings::isGripPressed[0] && (!KinectSettings::isTriggerPressed[0] || !KinectSettings::isTriggerPressed[1])) {
@@ -2382,7 +2388,7 @@ public:
 						KinectSettings::rtcalibrated = true;
 						settings.rtcalib = true;
 
-						TrackersCalibButton->SetLabel(std::string("Done! Hit me to re-calibrate!").c_str());
+						TrackersCalibButton->SetLabel(std::string(!calibrationAbort ? "Calibration aborted! Hit me to re-calibrate!" : "Done! Hit me to re-calibrate!").c_str());
 						TrackersCalibButton->SetState(sfg::Widget::State::NORMAL);
 
 						VirtualHips::saveSettings();
@@ -2543,7 +2549,7 @@ public:
 						KinectSettings::rtcalibrated = true;
 						settings.rtcalib = true;
 
-						TrackersCalibButton->SetLabel(std::string("Done! Hit me to re-calibrate!").c_str());
+						TrackersCalibButton->SetLabel(std::string(!calibrationAbort ? "Calibration aborted! Hit me to re-calibrate!" : "Done! Hit me to re-calibrate!").c_str());
 						TrackersCalibButton->SetState(sfg::Widget::State::NORMAL);
 
 						VirtualHips::saveSettings();

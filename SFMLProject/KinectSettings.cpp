@@ -49,7 +49,7 @@ namespace KinectSettings {
 
     PSMPSMove migiMove, hidariMove, hidariashimove, migiashimove, yobumove, atamamove;
     bool isGripPressed[2] = { false,false }, isTriggerPressed[2] = { false,false }; //0L, 1R
-    bool initialised = false;
+    bool initialised = false, isKinectPSMS = false;
     bool userChangingZero = false;
     bool legacy = false;
     float g_TrackedBoneThickness = 6.0f;
@@ -185,9 +185,9 @@ namespace KinectSettings {
             glm::quat trackerRoth, trackerRotm, trackerRoty;
 
             if (bodytrackingoption == bodiTorakkinguOpu::k_PSMoveFullTracking) {
-                hFootPose = glm::vec3(hidariashimove.Pose.Position.x, hidariashimove.Pose.Position.y, hidariashimove.Pose.Position.z);
-                mFootPose = glm::vec3(migiashimove.Pose.Position.x, migiashimove.Pose.Position.y, migiashimove.Pose.Position.z);
-                hipsPose = glm::vec3(yobumove.Pose.Position.x, yobumove.Pose.Position.y, yobumove.Pose.Position.z);
+                hFootPose = .01f * glm::vec3(hidariashimove.Pose.Position.x, hidariashimove.Pose.Position.y, hidariashimove.Pose.Position.z);
+                mFootPose = .01f * glm::vec3(migiashimove.Pose.Position.x, migiashimove.Pose.Position.y, migiashimove.Pose.Position.z);
+                hipsPose = .01f * glm::vec3(yobumove.Pose.Position.x, yobumove.Pose.Position.y, yobumove.Pose.Position.z);
 
                 hFootRot = glm::quat(hidariashimove.Pose.Orientation.w, hidariashimove.Pose.Orientation.x, hidariashimove.Pose.Orientation.y, hidariashimove.Pose.Orientation.z);
                 mFootRot = glm::quat(migiashimove.Pose.Orientation.w, migiashimove.Pose.Orientation.x, migiashimove.Pose.Orientation.y, migiashimove.Pose.Orientation.z);

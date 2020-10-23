@@ -45,7 +45,7 @@ public:
     KinectVersion kVersion = KinectVersion::INVALID;
     std::unique_ptr<GLubyte[]> kinectImageData; // array containing the texture data
     
-    bool zeroed = false;
+    bool zeroed = false, isPSMS = false;
     vr::HmdVector3d_t trackedPositionVROffset = { 0,0,0 };
 protected:
     bool initialised= false;
