@@ -45,8 +45,10 @@ namespace KinectSettings {
     KVR::KinectJointType rightFootJointWithRotation = KVR::KinectJointType::FootRight;
     KVR::KinectJointType leftFootJointWithoutRotation = KVR::KinectJointType::AnkleLeft;
     KVR::KinectJointType rightFootJointWithoutRotation = KVR::KinectJointType::AnkleRight;
+    bool isCalibrating = false;
 
     PSMPSMove migiMove, hidariMove, hidariashimove, migiashimove, yobumove, atamamove;
+    bool isGripPressed[2] = { false,false }, isTriggerPressed[2] = { false,false }; //0L, 1R
     bool initialised = false;
     bool userChangingZero = false;
     bool legacy = false;

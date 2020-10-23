@@ -94,8 +94,10 @@ namespace KinectSettings {
     } KVRPSMoveData[11];
 
     static std::vector<K2VR_PSMoveData> KVR_PSMoves;
+    extern bool isCalibrating;
 
     extern PSMPSMove migiMove, hidariMove, hidariashimove, migiashimove, yobumove, atamamove;
+    extern bool isGripPressed[2], isTriggerPressed[2]; //0L, 1R
     extern bool isKinectDrawn;
     extern bool isSkeletonDrawn;
     extern bool ignoreInferredPositions;

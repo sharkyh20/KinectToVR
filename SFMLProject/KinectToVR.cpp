@@ -434,6 +434,11 @@ void processLoop(KinectHandlerBase& kinect) {
 			VRInput::trackpadpose[1].y = leftController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad).y;
 			VRInput::confirmdatapose.bState = leftController.GetTriggerDown() || rightController.GetTriggerDown();
 
+			KinectSettings::isGripPressed[0] = rightController.GetGripDown();
+			KinectSettings::isGripPressed[1] = leftController.GetGrip();
+			KinectSettings::isTriggerPressed[0] = rightController.GetTrigger();
+			KinectSettings::isTriggerPressed[1] = leftController.GetTrigger();
+
 			// EWWWWWWWWW -------------
 			if (VRInput::legacyInputModeEnabled) {
 				using namespace VRInput;

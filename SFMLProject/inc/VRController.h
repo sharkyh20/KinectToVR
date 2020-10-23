@@ -102,6 +102,7 @@ public:
     {
         if (lastStateValid) {
             triggerPrevOn = triggerOn;
+            gripPrevOn = gripOn; //for grip
             float value = state_.rAxis[1].x;
             if (triggerOn)
             {
@@ -115,6 +116,7 @@ public:
                     triggerOn = true;
                 }
             }
+            gripOn = (state_.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Grip)) != 0; //for grip
         }
         //triggerLimit = triggerOn ? std::max(triggerLimit, value) : std::min(triggerLimit, value);
         
@@ -127,6 +129,16 @@ public:
     }
     bool GetTriggerUp() {
         if (lastStateValid) return !triggerOn && triggerPrevOn; else return false;
+    }
+
+    bool GetGrip() {
+        if (lastStateValid) return gripOn; else return false;
+    }
+    bool GetGripDown() {
+        if (lastStateValid) return gripOn && !gripPrevOn; else return false;
+    }
+    bool GetGripUp() {
+        if (lastStateValid) return !gripOn && gripPrevOn; else return false;
     }
 
     //controller input
@@ -218,6 +230,9 @@ private:
     bool triggerPrevOn;
     float triggerDeadzone;
     float triggerLimit;
+
+    bool gripOn;
+    bool gripPrevOn;
 
     bool lastStateValid;
     float deltaTime;
