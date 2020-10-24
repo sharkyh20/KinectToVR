@@ -24,9 +24,9 @@
 #include <../LowPassFilter.h>
 
 LowPassFilter lowPassFilter[3][4] = {
-	{LowPassFilter(7.1, 0.005),LowPassFilter(7.1, 0.005),LowPassFilter(7.1, 0.005),LowPassFilter(7.1, 0.005)},
-	{LowPassFilter(7.1, 0.005),LowPassFilter(7.1, 0.005),LowPassFilter(7.1, 0.005),LowPassFilter(7.1, 0.005)},
-	{LowPassFilter(7.1, 0.005),LowPassFilter(7.1, 0.005),LowPassFilter(7.1, 0.005),LowPassFilter(7.1, 0.005)}
+	{LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005)},
+	{LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005)},
+	{LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005)}
 };
 
 HRESULT KinectV2Handler::getStatusResult()
@@ -35,23 +35,27 @@ HRESULT KinectV2Handler::getStatusResult()
 	kinectSensor->get_IsAvailable(&avail);
 	if (avail)
 		return S_OK;
-	else
-		return S_FALSE; // Hresult only actually determines whether the function worked, the bool is the true value....
+	return S_FALSE;
+	// Hresult only actually determines whether the function worked, the bool is the true value....
 }
 
 std::string KinectV2Handler::statusResultString(HRESULT stat)
 {
-	switch (stat) {
+	switch (stat)
+	{
 	case S_OK: return "S_OK";
 	case S_FALSE: return "Sensor Unavailable! Check if it's plugged in to your USB and power plugs";
 	default: return "Uh Oh undefined kinect error! " + std::to_string(stat);
 	}
 }
 
-void KinectV2Handler::initialise() {
-	try {
+void KinectV2Handler::initialise()
+{
+	try
+	{
 		kVersion = KinectVersion::Version2;
-		kinectImageData = std::make_unique<GLubyte[]>(KinectSettings::kinectV2Width * KinectSettings::kinectV2Height * 4);  //RGBA
+		kinectImageData = std::make_unique<GLubyte[]>(
+			KinectSettings::kinectV2Width * KinectSettings::kinectV2Height * 4); //RGBA
 		initialised = initKinect();
 		// initialiseColor();
 		// Commented both image frames out, as most people use the kinect for skeletal data
@@ -60,10 +64,12 @@ void KinectV2Handler::initialise() {
 		initialiseSkeleton();
 		if (!initialised) throw FailedKinectInitialisation;
 	}
-	catch (std::exception& e) {
+	catch (std::exception& e)
+	{
 		LOG(ERROR) << e.what() << std::endl;
 	}
 }
+
 void KinectV2Handler::initialiseSkeleton()
 {
 	if (bodyFrameReader)
@@ -74,20 +80,23 @@ void KinectV2Handler::initialiseSkeleton()
 
 	// Newfangled event based frame capture
 	// https://github.com/StevenHickson/PCL_Kinect2SDK/blob/master/src/Microsoft_grabber2.cpp
-	h_bodyFrameEvent = (WAITABLE_HANDLE)CreateEvent(NULL, FALSE, FALSE, NULL);
+	h_bodyFrameEvent = (WAITABLE_HANDLE)CreateEvent(nullptr, FALSE, FALSE, nullptr);
 	HRESULT hr = bodyFrameReader->SubscribeFrameArrived(&h_bodyFrameEvent);
 	if (bodyFrameSource) bodyFrameSource->Release();
-	if (FAILED(hr)) {
+	if (FAILED(hr))
+	{
 		//throw std::exception("Couldn't subscribe frame");
 		LOG(ERROR) << "ERROR: Could not subscribe to skeleton frame event! HRESULT " << hr;
 	}
-	else {
+	else
+	{
 		LOG(INFO) << "Kinect Skeleton Reader subscribed to event, initialised successfully.";
 	}
 }
+
 void KinectV2Handler::initialiseColor()
 {
-https://github.com/UnaNancyOwen/Kinect2Sample/blob/master/sample/CoordinateMapper/app.h
+https: //github.com/UnaNancyOwen/Kinect2Sample/blob/master/sample/CoordinateMapper/app.h
 	if (colorFrameReader)
 		colorFrameReader->Release();
 	// Open Color Reader
@@ -97,25 +106,27 @@ https://github.com/UnaNancyOwen/Kinect2Sample/blob/master/sample/CoordinateMappe
 
 	// Retrieve Color Description
 	IFrameDescription* colorFrameDescription;
-	colorFrameSource->CreateFrameDescription(ColorImageFormat::ColorImageFormat_Bgra, &colorFrameDescription);
+	colorFrameSource->CreateFrameDescription(ColorImageFormat_Bgra, &colorFrameDescription);
 	colorFrameDescription->get_Width(&colorWidth); // 1920
 	colorFrameDescription->get_Height(&colorHeight); // 1080
 	colorFrameDescription->get_BytesPerPixel(&colorBytesPerPixel); // 4
 
-																				// Allocation Color Buffer
+	// Allocation Color Buffer
 	colorBuffer.resize(colorWidth * colorHeight * colorBytesPerPixel);
 	if (colorFrameSource) colorFrameSource->Release();
 	if (colorFrameDescription) colorFrameDescription->Release();
 
-	if (FAILED(hr)) {
+	if (FAILED(hr))
+	{
 		LOG(ERROR) << "Kinect Color Reader could not be opened! HRESULT " << hr;
 	}
 	else
 		LOG(INFO) << "Kinect Color Reader initialised successfully.";
 }
+
 void KinectV2Handler::initialiseDepth()
 {
-https://github.com/UnaNancyOwen/Kinect2Sample/blob/master/sample/CoordinateMapper/app.h
+https: //github.com/UnaNancyOwen/Kinect2Sample/blob/master/sample/CoordinateMapper/app.h
 	if (depthFrameReader) depthFrameReader->Release();
 
 	// Open Depth Reader
@@ -129,23 +140,27 @@ https://github.com/UnaNancyOwen/Kinect2Sample/blob/master/sample/CoordinateMappe
 	depthFrameDescription->get_Width(&depthWidth); // 512
 	depthFrameDescription->get_Height(&depthHeight); // 424
 	depthFrameDescription->get_BytesPerPixel(&depthBytesPerPixel); // 2
-																				// Allocation Depth Buffer
+	// Allocation Depth Buffer
 	depthBuffer.resize(depthWidth * depthHeight);
 
 	if (depthFrameSource) depthFrameSource->Release();
 	if (depthFrameDescription) depthFrameDescription->Release();
 
-	if (FAILED(hr)) {
+	if (FAILED(hr))
+	{
 		LOG(ERROR) << "Kinect Depth Reader could not be opened! HRESULT " << hr;
 	}
 	else
 		LOG(INFO) << "Kinect Depth Reader initialised successfully.";
 }
+
 void KinectV2Handler::terminateSkeleton()
 {
-	if (bodyFrameReader) {
+	if (bodyFrameReader)
+	{
 		HRESULT hr = bodyFrameReader->UnsubscribeFrameArrived(h_bodyFrameEvent);
-		if (FAILED(hr)) {
+		if (FAILED(hr))
+		{
 			LOG(ERROR) << "Couldn't unsubscribe skeleton frame! HRESULT " << hr;
 			throw std::exception("Couldn't unsubscribe frame!");
 		}
@@ -159,9 +174,11 @@ void KinectV2Handler::terminateSkeleton()
 	else
 		LOG(WARNING) << "Skeleton Reader was asked to terminate, but was already closed!";
 }
+
 void KinectV2Handler::terminateColor()
 {
-	if (colorFrameReader) {
+	if (colorFrameReader)
+	{
 		colorFrameReader->Release();
 		colorFrameReader = nullptr;
 		colorMat.release();
@@ -170,9 +187,11 @@ void KinectV2Handler::terminateColor()
 	else
 		LOG(WARNING) << "Color Reader was asked to terminate, but was already closed!";
 }
+
 void KinectV2Handler::terminateDepth()
 {
-	if (depthFrameReader) {
+	if (depthFrameReader)
+	{
 		depthFrameReader->Release();
 		depthFrameReader = nullptr;
 		depthMat.release();
@@ -186,21 +205,23 @@ void KinectV2Handler::initOpenGL()
 {
 	LOG(INFO) << "Attempted to initialise OpenGL";
 	int width = 0, height = 0;
-	if (kVersion == KinectVersion::Version1) {
+	if (kVersion == KinectVersion::Version1)
+	{
 		width = KinectSettings::kinectWidth;
 		height = KinectSettings::kinectHeight;
 	}
-	else if (kVersion == KinectVersion::Version2) {
+	else if (kVersion == KinectVersion::Version2)
+	{
 		width = KinectSettings::kinectV2Width;
 		height = KinectSettings::kinectV2Height;
-	}   // REMOVE THIS INTO KINECT V2 IMPL
-		// Initialize textures
+	} // REMOVE THIS INTO KINECT V2 IMPL
+	// Initialize textures
 	glGenTextures(1, &kinectTextureId);
 	glBindTexture(GL_TEXTURE_2D, kinectTextureId);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height,
-		0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, (GLvoid*)kinectImageData.get());
+	             0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, static_cast<GLvoid*>(kinectImageData.get()));
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// OpenGL setup
@@ -216,12 +237,15 @@ void KinectV2Handler::initOpenGL()
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 }
+
 void KinectV2Handler::update()
 {
-	if (isInitialised()) {
+	if (isInitialised())
+	{
 		BOOLEAN isAvailable = false;
 		HRESULT kinectStatus = kinectSensor->get_IsAvailable(&isAvailable);
-		if (kinectStatus == S_OK) {
+		if (kinectStatus == S_OK)
+		{
 			// NEW ARRIVED FRAMES ------------------------
 			MSG msg;
 			while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) // Unneccesary?
@@ -234,30 +258,31 @@ void KinectV2Handler::update()
 				//printf("Kinect Event ID: %d\n" ,(int)h_bodyFrameEvent);
 
 				//now check for IR Events
-				HANDLE handles[] = { reinterpret_cast<HANDLE>(h_bodyFrameEvent) }; // , reinterpret_cast<HANDLE>(ke.hMSEvent)		};
+				HANDLE handles[] = {reinterpret_cast<HANDLE>(h_bodyFrameEvent)};
+				// , reinterpret_cast<HANDLE>(ke.hMSEvent)		};
 
 				switch (MsgWaitForMultipleObjects(_countof(handles), handles, false, 0, QS_ALLINPUT))
 				{
 				case WAIT_OBJECT_0:
-				{
-					IBodyFrameArrivedEventArgs* pArgs = nullptr;
-					//printf("Body Frame Event Signaled.\n");
-
-					if (bodyFrameReader)
 					{
-						HRESULT hr = bodyFrameReader->GetFrameArrivedEventData(h_bodyFrameEvent, &pArgs);
-						//printf("Retreive Frame Arrive Event Data -HR: %d\n", hr);
+						IBodyFrameArrivedEventArgs* pArgs = nullptr;
+						//printf("Body Frame Event Signaled.\n");
 
-						if (SUCCEEDED(hr))
+						if (bodyFrameReader)
 						{
-							//printf("Retreived Frame Arrived Event Data\n");
-							onBodyFrameArrived(*bodyFrameReader, *pArgs);
-							pArgs->Release();
-							//printf("Frame Arrived Event Data Released\n");
+							HRESULT hr = bodyFrameReader->GetFrameArrivedEventData(h_bodyFrameEvent, &pArgs);
+							//printf("Retreive Frame Arrive Event Data -HR: %d\n", hr);
+
+							if (SUCCEEDED(hr))
+							{
+								//printf("Retreived Frame Arrived Event Data\n");
+								onBodyFrameArrived(*bodyFrameReader, *pArgs);
+								pArgs->Release();
+								//printf("Frame Arrived Event Data Released\n");
+							}
 						}
 					}
-				}
-				break;
+					break;
 				}
 			}
 			// ------------------------------
@@ -265,10 +290,12 @@ void KinectV2Handler::update()
 		}
 	}
 }
+
 template <typename T>
-void updateBufferWithSmoothedMat(cv::Mat& in, cv::Mat& out, std::vector<T>& buffer) {
+void updateBufferWithSmoothedMat(cv::Mat& in, cv::Mat& out, std::vector<T>& buffer)
+{
 	int filterIntensity = 5; //MUST be odd
-	cv::medianBlur(in, out, filterIntensity);
+	medianBlur(in, out, filterIntensity);
 
 	if (out.isContinuous()) {
 		buffer.assign((T*)out.datastart, (T*)out.dataend);
@@ -279,17 +306,23 @@ void updateBufferWithSmoothedMat(cv::Mat& in, cv::Mat& out, std::vector<T>& buff
 		}
 	}
 }
+
 void KinectV2Handler::updateColorData()
 {
-	if (colorFrameReader) {
+	if (colorFrameReader)
+	{
 		IColorFrame* colorFrame;
 		const HRESULT retrieveFrame = colorFrameReader->AcquireLatestFrame(&colorFrame);
-		if (FAILED(retrieveFrame)) {
+		if (FAILED(retrieveFrame))
+		{
 			LOG(ERROR) << "Could not retrieve color frame! HRESULT " << retrieveFrame;
 		}
-		else { // Necessary instead of instant return to prevent memory leak of colorFrame
+		else
+		{
+			// Necessary instead of instant return to prevent memory leak of colorFrame
 			//Convert from YUY2 -> BGRA
-			colorFrame->CopyConvertedFrameDataToArray(static_cast<UINT>(colorBuffer.size()), &colorBuffer[0], ColorImageFormat::ColorImageFormat_Bgra);
+			colorFrame->CopyConvertedFrameDataToArray(static_cast<UINT>(colorBuffer.size()), &colorBuffer[0],
+			                                          ColorImageFormat_Bgra);
 			colorMat = cv::Mat(colorHeight, colorWidth, CV_8UC4, &colorBuffer[0]);
 
 			updateBufferWithSmoothedMat(colorMat, colorMat, colorBuffer);
@@ -300,14 +333,18 @@ void KinectV2Handler::updateColorData()
 
 void KinectV2Handler::updateDepthData()
 {
-	if (depthFrameReader) {
+	if (depthFrameReader)
+	{
 		// Retrieve Depth Frame
 		IDepthFrame* depthFrame;
 		const HRESULT retrieveFrame = depthFrameReader->AcquireLatestFrame(&depthFrame);
-		if (FAILED(retrieveFrame)) {
+		if (FAILED(retrieveFrame))
+		{
 			LOG(ERROR) << "Could not retrieve depth frame! HRESULT " << retrieveFrame;
 		}
-		else {// Necessary instead of instant return to prevent memory leak of depthFrame
+		else
+		{
+			// Necessary instead of instant return to prevent memory leak of depthFrame
 			// Retrieve Depth Data
 			depthFrame->CopyFrameDataToArray(static_cast<UINT>(depthBuffer.size()), &depthBuffer[0]);
 
@@ -318,17 +355,24 @@ void KinectV2Handler::updateDepthData()
 		if (depthFrame) depthFrame->Release();
 	}
 }
-void KinectV2Handler::drawKinectData(sf::RenderWindow& win) {
-	if (KinectSettings::isKinectDrawn) {
+
+void KinectV2Handler::drawKinectData(sf::RenderWindow& win)
+{
+	if (KinectSettings::isKinectDrawn)
+	{
 		drawKinectImageData(win);
 	}
-	if (KinectSettings::isSkeletonDrawn) {
+	if (KinectSettings::isSkeletonDrawn)
+	{
 		drawTrackedSkeletons(win);
 	}
 }
-void KinectV2Handler::drawKinectImageData(sf::RenderWindow& win) {
+
+void KinectV2Handler::drawKinectImageData(sf::RenderWindow& win)
+{
 	glBindTexture(GL_TEXTURE_2D, kinectTextureId);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, SFMLsettings::m_window_width, SFMLsettings::m_window_height, GL_BGRA, GL_UNSIGNED_BYTE, (GLvoid*)kinectImageData.get());
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, SFMLsettings::m_window_width, SFMLsettings::m_window_height, GL_BGRA,
+	                GL_UNSIGNED_BYTE, static_cast<GLvoid*>(kinectImageData.get()));
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glBegin(GL_QUADS);
@@ -342,11 +386,15 @@ void KinectV2Handler::drawKinectImageData(sf::RenderWindow& win) {
 	glVertex3f(0, SFMLsettings::m_window_height, 0.0f);
 	glEnd();
 }
+
 Joint backup[JointType_Count];
 sf::Vector2f vbackup[JointType_Count];
 HandState lbackup = HandState_Unknown, rbackup = HandState_Unknown;
-void KinectV2Handler::drawTrackedSkeletons(sf::RenderWindow& win) {
-	for (int i = 0; i < BODY_COUNT; ++i) {
+
+void KinectV2Handler::drawTrackedSkeletons(sf::RenderWindow& win)
+{
+	for (int i = 0; i < BODY_COUNT; ++i)
+	{
 		IBody* pBody = kinectBodies[i];
 		if (pBody)
 		{
@@ -365,13 +413,15 @@ void KinectV2Handler::drawTrackedSkeletons(sf::RenderWindow& win) {
 				{
 					for (int j = 0; j < _countof(backup); ++j)
 					{
-						vbackup[j] = BodyToScreen(backup[j].Position, SFMLsettings::m_window_width, SFMLsettings::m_window_height);
+						vbackup[j] = BodyToScreen(backup[j].Position, SFMLsettings::m_window_width,
+						                          SFMLsettings::m_window_height);
 					}
 				}
 			}
 		}
 	}
-	if (KinectSettings::isSkeletonDrawn) {
+	if (KinectSettings::isSkeletonDrawn)
+	{
 		win.pushGLStates();
 		win.resetGLStates();
 
@@ -382,6 +432,7 @@ void KinectV2Handler::drawTrackedSkeletons(sf::RenderWindow& win) {
 		win.popGLStates();
 	}
 }
+
 void KinectV2Handler::drawHand(HandState handState, const sf::Vector2f& handPosition, sf::RenderWindow& win)
 {
 	sf::CircleShape circle{};
@@ -407,15 +458,22 @@ void KinectV2Handler::drawHand(HandState handState, const sf::Vector2f& handPosi
 		break;
 	}
 }
-void KinectV2Handler::onBodyFrameArrived(IBodyFrameReader& sender, IBodyFrameArrivedEventArgs& eventArgs) {
+
+void KinectV2Handler::onBodyFrameArrived(IBodyFrameReader& sender, IBodyFrameArrivedEventArgs& eventArgs)
+{
 	updateSkeletalData();
 }
-void KinectV2Handler::updateSkeletalData() {
-	if (bodyFrameReader) {
+
+void KinectV2Handler::updateSkeletalData()
+{
+	if (bodyFrameReader)
+	{
 		IBodyFrame* bodyFrame = nullptr;
 		HRESULT frameReceived = bodyFrameReader->AcquireLatestFrame(&bodyFrame);
-		if (FAILED(frameReceived)) {
-			if (frameReceived == E_PENDING) {
+		if (FAILED(frameReceived))
+		{
+			if (frameReceived == E_PENDING)
+			{
 				// LOG(INFO) << "Could not retrieve skeleton frame, stuck pending...";
 				// Harmless
 			}
@@ -439,11 +497,15 @@ void KinectV2Handler::updateSkeletalData() {
 }
 
 static bool flip = false;
-void KinectV2Handler::updateSkeletalFilters() {
-	for (int i = 0; i < BODY_COUNT; i++) {
+
+void KinectV2Handler::updateSkeletalFilters()
+{
+	for (int i = 0; i < BODY_COUNT; i++)
+	{
 		if (kinectBodies[i])
 			kinectBodies[i]->get_IsTracked(&isTracking);
-		if (isTracking) {
+		if (isTracking)
+		{
 			kinectBodies[i]->GetJoints(JointType_Count, joints);
 			kinectBodies[i]->GetJointOrientations(JointType_Count, jointOrientations);
 
@@ -515,72 +577,73 @@ void KinectV2Handler::updateSkeletalFilters() {
 	*/
 
 	//hips are ok
-	jointOrientationsF[2].Orientation.w = lowPassFilter[2][0].update(jointOrientations[JointType_SpineBase].Orientation.w);
-	jointOrientationsF[2].Orientation.x = lowPassFilter[2][1].update(jointOrientations[JointType_SpineBase].Orientation.x);
-	jointOrientationsF[2].Orientation.y = lowPassFilter[2][2].update(jointOrientations[JointType_SpineBase].Orientation.y);
-	jointOrientationsF[2].Orientation.z = lowPassFilter[2][3].update(jointOrientations[JointType_SpineBase].Orientation.z);
-	
-
-
+	jointOrientationsF[2].Orientation.w = lowPassFilter[2][0].update(
+		jointOrientations[JointType_SpineBase].Orientation.w);
+	jointOrientationsF[2].Orientation.x = lowPassFilter[2][1].update(
+		jointOrientations[JointType_SpineBase].Orientation.x);
+	jointOrientationsF[2].Orientation.y = lowPassFilter[2][2].update(
+		jointOrientations[JointType_SpineBase].Orientation.y);
+	jointOrientationsF[2].Orientation.z = lowPassFilter[2][3].update(
+		jointOrientations[JointType_SpineBase].Orientation.z);
 
 
 	/***********************************************************************************************/
 
 	//gather positions into vectors
 	glm::vec3 up(0, 1, 0),
-		ankleLeftPose(
-			joints[JointType_AnkleLeft].Position.X,
-			joints[JointType_AnkleLeft].Position.Y,
-			joints[JointType_AnkleLeft].Position.Z),
+	          ankleLeftPose(
+		          joints[JointType_AnkleLeft].Position.X,
+		          joints[JointType_AnkleLeft].Position.Y,
+		          joints[JointType_AnkleLeft].Position.Z),
 
-		ankleRightPose(
-			joints[JointType_AnkleRight].Position.X,
-			joints[JointType_AnkleRight].Position.Y,
-			joints[JointType_AnkleRight].Position.Z),
+	          ankleRightPose(
+		          joints[JointType_AnkleRight].Position.X,
+		          joints[JointType_AnkleRight].Position.Y,
+		          joints[JointType_AnkleRight].Position.Z),
 
-		footLeftPose(
-			joints[JointType_FootLeft].Position.X,
-			joints[JointType_FootLeft].Position.Y,
-			joints[JointType_FootLeft].Position.Z),
+	          footLeftPose(
+		          joints[JointType_FootLeft].Position.X,
+		          joints[JointType_FootLeft].Position.Y,
+		          joints[JointType_FootLeft].Position.Z),
 
-		footRightPose(
-			joints[JointType_FootRight].Position.X,
-			joints[JointType_FootRight].Position.Y,
-			joints[JointType_FootRight].Position.Z),
+	          footRightPose(
+		          joints[JointType_FootRight].Position.X,
+		          joints[JointType_FootRight].Position.Y,
+		          joints[JointType_FootRight].Position.Z),
 
-		kneeLeftPose(
-			joints[JointType_KneeLeft].Position.X,
-			joints[JointType_KneeLeft].Position.Y,
-			joints[JointType_KneeLeft].Position.Z),
+	          kneeLeftPose(
+		          joints[JointType_KneeLeft].Position.X,
+		          joints[JointType_KneeLeft].Position.Y,
+		          joints[JointType_KneeLeft].Position.Z),
 
-		kneeRightPose(
-			joints[JointType_KneeRight].Position.X,
-			joints[JointType_KneeRight].Position.Y,
-			joints[JointType_KneeRight].Position.Z);
+	          kneeRightPose(
+		          joints[JointType_KneeRight].Position.X,
+		          joints[JointType_KneeRight].Position.Y,
+		          joints[JointType_KneeRight].Position.Z);
 
 	//Calculate orietation for yaw basing on foot
 	glm::vec3 feetRot[2] = {
-			glm::eulerAngles(glm::quat(glm::lookAt(footLeftPose, ankleLeftPose, up))),
-			glm::eulerAngles(glm::quat(glm::lookAt(footRightPose, ankleRightPose, up)))
+		eulerAngles(glm::quat(lookAt(footLeftPose, ankleLeftPose, up))),
+		eulerAngles(glm::quat(lookAt(footRightPose, ankleRightPose, up)))
 	};
 
 	//calculate rest basing on tibia bone
 	glm::vec3 tibiaRotZ[2] = {
-		glm::eulerAngles(glm::quat(glm::lookAt(
-			glm::vec3(ankleLeftPose.x,ankleLeftPose.y, 1),
-			glm::vec3(kneeLeftPose.x,kneeLeftPose.y, 0), up))),
-		glm::eulerAngles(glm::quat(glm::lookAt(
-			glm::vec3(ankleRightPose.x,ankleRightPose.y, 1),
-			glm::vec3(kneeRightPose.x,kneeRightPose.y, 0), up)))
+		eulerAngles(glm::quat(lookAt(
+			glm::vec3(ankleLeftPose.x, ankleLeftPose.y, 1),
+			glm::vec3(kneeLeftPose.x, kneeLeftPose.y, 0), up))),
+		eulerAngles(glm::quat(lookAt(
+			glm::vec3(ankleRightPose.x, ankleRightPose.y, 1),
+			glm::vec3(kneeRightPose.x, kneeRightPose.y, 0), up)))
 	};
 
 	glm::vec3 tibiaRotX[2] = {
-		glm::eulerAngles(glm::quat(glm::lookAt(
-			glm::vec3(1 ,ankleLeftPose.y,ankleLeftPose.z),
-			glm::vec3(0 ,kneeLeftPose.y,kneeLeftPose.z), up))),
-		glm::eulerAngles(glm::quat(glm::lookAt(
-			glm::vec3(1, ankleRightPose.y,ankleRightPose.z),
-			glm::vec3(0, kneeRightPose.y,kneeRightPose.z), up)))
+		eulerAngles(glm::quat(lookAt(
+			glm::vec3(1, ankleLeftPose.y, ankleLeftPose.z),
+			glm::vec3(0, kneeLeftPose.y, kneeLeftPose.z), up))),
+		eulerAngles(glm::quat(lookAt(
+			glm::vec3(1, ankleRightPose.y, ankleRightPose.z),
+			glm::vec3(0, kneeRightPose.y, kneeRightPose.z), up)))
 	};
 
 	//compose
@@ -595,8 +658,8 @@ void KinectV2Handler::updateSkeletalFilters() {
 		tibiaRotZ[1].z * 15);
 
 	//remove all possible errors
-	glm::normalize(hFootRotF);
-	glm::normalize(mFootRotF);
+	normalize(hFootRotF);
+	normalize(mFootRotF);
 
 	/***********************************************************************************************/
 
@@ -631,7 +694,7 @@ void KinectV2Handler::updateSkeletalFilters() {
 		jointOrientationsF[2].Orientation.x,
 		jointOrientationsF[2].Orientation.y,
 		jointOrientationsF[2].Orientation.z
-	); 
+	);
 
 
 	// Check for identity / equality
@@ -646,7 +709,7 @@ void KinectV2Handler::updateSkeletalFilters() {
 
 	//hips are ok
 	if (hipsRotF != glm::quat(1, 0, 0, 0) &&
-		hipsRotF != glm::inverse(glm::quat(1, 0, 0, 0)))
+		hipsRotF != inverse(glm::quat(1, 0, 0, 0)))
 		KinectSettings::hipsRot = hipsRotF;
 
 
@@ -668,12 +731,15 @@ void KinectV2Handler::updateSkeletalFilters() {
 		joints[JointType_SpineBase].Position.Z
 	);
 }
-sf::Vector3f KinectV2Handler::zeroKinectPosition(int trackedSkeletonIndex) {
+
+sf::Vector3f KinectV2Handler::zeroKinectPosition(int trackedSkeletonIndex)
+{
 	return sf::Vector3f(
 		joints[JointType_Head].Position.X,
 		joints[JointType_Head].Position.Y,
 		joints[JointType_Head].Position.Z);
 }
+
 void KinectV2Handler::zeroAllTracking(vr::IVRSystem*& m_sys)
 {
 	/*
@@ -689,7 +755,9 @@ void KinectV2Handler::zeroAllTracking(vr::IVRSystem*& m_sys)
 	}
 	*/
 }
-void KinectV2Handler::setKinectToVRMultiplier(int skeletonIndex) {
+
+void KinectV2Handler::setKinectToVRMultiplier(int skeletonIndex)
+{
 	/*
 	KinectSettings::kinectToVRScale = KinectSettings::hmdZero.v[1]
 		/ (joints[JointType_Head].Position.Y
@@ -706,51 +774,65 @@ void KinectV2Handler::setKinectToVRMultiplier(int skeletonIndex) {
 // THIS DATA, AND THEN UPDATE THE TRACKERS IN ANOTHER METHOD
 void KinectV2Handler::updateTrackersWithSkeletonPosition(std::vector<KVR::KinectTrackedDevice>& trackers)
 {
-	for (KVR::KinectTrackedDevice& device : trackers) {
-		if (device.positionTrackingOption == KVR::JointPositionTrackingOption::Skeleton) {
-			if (device.isSensor()) {
-				device.update(KinectSettings::kinectRepPosition, { 0,0,0 }, KinectSettings::kinectRepRotation);
+	for (KVR::KinectTrackedDevice& device : trackers)
+	{
+		if (device.positionTrackingOption == KVR::JointPositionTrackingOption::Skeleton)
+		{
+			if (device.isSensor())
+			{
+				device.update(KinectSettings::kinectRepPosition, {0, 0, 0}, KinectSettings::kinectRepRotation);
 				// Only update after the calibration value has been changed
 				// e.g. on boot, calibration box change
 			}
-			else {
-				vr::HmdVector3d_t jointPosition{ 0,0,0 };
-				vr::HmdQuaternion_t jointRotation{ 0,0,0,0 };
-				if (getFilteredJoint(device, jointPosition, jointRotation)) {
+			else
+			{
+				vr::HmdVector3d_t jointPosition{0, 0, 0};
+				vr::HmdQuaternion_t jointRotation{0, 0, 0, 0};
+				if (getFilteredJoint(device, jointPosition, jointRotation))
+				{
 					device.update(trackedPositionVROffset, jointPosition, jointRotation);
 				}
 			}
 		}
 	}
 }
+
 void KinectV2Handler::updateTrackersWithColorPosition(std::vector<KVR::KinectTrackedDevice> trackers, sf::Vector2i pos)
 {
 	//std::cerr << "Tracked Point: " << pos.x << ", " << pos.y << '\n';
 
 	std::vector<CameraSpacePoint> resultPoints(colorWidth * colorHeight);
-	HRESULT hr = coordMapper->MapColorFrameToCameraSpace(depthBuffer.size(), &depthBuffer[0], resultPoints.size(), &resultPoints[0]);
-	if (SUCCEEDED(hr)) {
+	HRESULT hr = coordMapper->MapColorFrameToCameraSpace(depthBuffer.size(), &depthBuffer[0], resultPoints.size(),
+	                                                     &resultPoints[0]);
+	if (SUCCEEDED(hr))
+	{
 		int colorX = static_cast<int>(pos.x + 0.5f);
 		int colorY = static_cast<int>(pos.y + 0.5f);
-		long colorIndex = (long)(colorY * 1920 + colorX);
+		long colorIndex = static_cast<long>(colorY * 1920 + colorX);
 		CameraSpacePoint worldCoordinate = resultPoints[colorIndex];
 		//auto worldCoordinate = resultArray[pos.y * 1920 + pos.x];
 		//std::cerr << "World Point: " << worldCoordinate.X << ", " << worldCoordinate.Y << ", " << worldCoordinate.Z << '\n';
-		if (isnan(worldCoordinate.X)) {
+		if (isnan(worldCoordinate.X))
+		{
 			return;
 		}
-		for (KVR::KinectTrackedDevice device : trackers) {
-			if (device.positionTrackingOption == KVR::JointPositionTrackingOption::Color) {
-				if (device.isSensor()) {
-					device.update(KinectSettings::kinectRepPosition, { 0,0,0 }, KinectSettings::kinectRepRotation);
+		for (KVR::KinectTrackedDevice device : trackers)
+		{
+			if (device.positionTrackingOption == KVR::JointPositionTrackingOption::Color)
+			{
+				if (device.isSensor())
+				{
+					device.update(KinectSettings::kinectRepPosition, {0, 0, 0}, KinectSettings::kinectRepRotation);
 				}
-				else {
-					vr::HmdVector3d_t jointPosition{ 0,0,0 };
-					if (worldCoordinate.X + worldCoordinate.Y + worldCoordinate.Z != 0) {
+				else
+				{
+					vr::HmdVector3d_t jointPosition{0, 0, 0};
+					if (worldCoordinate.X + worldCoordinate.Y + worldCoordinate.Z != 0)
+					{
 						jointPosition.v[0] = worldCoordinate.X;
 						jointPosition.v[1] = worldCoordinate.Y;
 						jointPosition.v[2] = worldCoordinate.Z;
-						device.update(trackedPositionVROffset, jointPosition, { 0,0,0,1 });
+						device.update(trackedPositionVROffset, jointPosition, {0, 0, 0, 1});
 					}
 				}
 			}
@@ -758,34 +840,40 @@ void KinectV2Handler::updateTrackersWithColorPosition(std::vector<KVR::KinectTra
 	}
 	//std::cout << "HR: " << hr << '\n';
 }
-bool KinectV2Handler::getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdVector3d_t& position, vr::HmdQuaternion_t& rotation) {
+
+bool KinectV2Handler::getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdVector3d_t& position,
+                                       vr::HmdQuaternion_t& rotation)
+{
 	sf::Vector3f filteredPos = filter.GetFilteredJoints()[convertJoint(device.joint0)];
 	float jointX = filteredPos.x;
 	float jointY = filteredPos.y;
 	float jointZ = filteredPos.z;
-	position = vr::HmdVector3d_t{ jointX,jointY,jointZ };
+	position = vr::HmdVector3d_t{jointX, jointY, jointZ};
 
 	//Rotation - need to seperate into function
 	Vector4 kRotation;
-	switch (device.rotationFilterOption) {
+	switch (device.rotationFilterOption)
+	{
 	case KVR::JointRotationFilterOption::Unfiltered:
 		kRotation = jointOrientations[convertJoint(device.joint0)].Orientation;
 		break;
 	case KVR::JointRotationFilterOption::Filtered:
 		kRotation = rotationFilter.GetFilteredJoints()[convertJoint(device.joint0)];
 		break;
-	case KVR::JointRotationFilterOption::HeadLook: {        // Ew
-		auto q = KinectSettings::hmdRotation;
-		//Isolate Yaw
-		float yaw = atan2(2 * q.w * q.y + 2 * q.x * q.z, +q.w * q.w + q.x * q.x - q.z * q.z - q.y * q.y);
+	case KVR::JointRotationFilterOption::HeadLook:
+		{
+			// Ew
+			auto q = KinectSettings::hmdRotation;
+			//Isolate Yaw
+			float yaw = atan2(2 * q.w * q.y + 2 * q.x * q.z, +q.w * q.w + q.x * q.x - q.z * q.z - q.y * q.y);
 
-		auto kq = vrmath::quaternionFromRotationY(yaw);
-		kRotation.w = kq.w;
-		kRotation.x = kq.x;
-		kRotation.y = kq.y;
-		kRotation.z = kq.z;
-	}
-												 break;
+			auto kq = vrmath::quaternionFromRotationY(yaw);
+			kRotation.w = kq.w;
+			kRotation.x = kq.x;
+			kRotation.y = kq.y;
+			kRotation.z = kq.z;
+		}
+		break;
 	default:
 		LOG(ERROR) << "JOINT ROTATION OPTION UNDEFINED IN DEVICE " << device.deviceId << '\n';
 		break;
@@ -797,34 +885,42 @@ bool KinectV2Handler::getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdV
 
 	return true;
 }
-bool KinectV2Handler::initKinect() {
-	if (FAILED(GetDefaultKinectSensor(&kinectSensor))) {
+
+bool KinectV2Handler::initKinect()
+{
+	if (FAILED(GetDefaultKinectSensor(&kinectSensor)))
+	{
 		LOG(ERROR) << "Could not get default Kinect Sensor!";
 		return false;
 	}
-	if (kinectSensor) {
+	if (kinectSensor)
+	{
 		kinectSensor->get_CoordinateMapper(&coordMapper);
 
 		HRESULT hr_open = kinectSensor->Open();
 		//kinectSensor->OpenMultiSourceFrameReader( FrameSourceTypes::FrameSourceTypes_Body| FrameSourceTypes::FrameSourceTypes_Depth
-		 //    | FrameSourceTypes::FrameSourceTypes_Color,
-		 //   &frameReader);
+		//    | FrameSourceTypes::FrameSourceTypes_Color,
+		//   &frameReader);
 		//return frameReader;
-		std::this_thread::sleep_for(std::chrono::seconds(2)); // Necessary to allow kinect to become available behind the scenes
+		std::this_thread::sleep_for(std::chrono::seconds(2));
+		// Necessary to allow kinect to become available behind the scenes
 
 		BOOLEAN available = false;
 		kinectSensor->get_IsAvailable(&available);
 
-		if (FAILED(hr_open) || !available) {
+		if (FAILED(hr_open) || !available)
+		{
 			LOG(ERROR) << "Kinect sensor failed to open!";
 			return false;
 		}
-		else LOG(INFO) << "Kinect sensor opened successfully.";
+		LOG(INFO) << "Kinect sensor opened successfully.";
 		return true;
 	}
 	return false;
 }
-void KinectV2Handler::updateKinectData() {
+
+void KinectV2Handler::updateKinectData()
+{
 	updateDepthData();
 	updateColorData();
 }
@@ -886,7 +982,10 @@ void KinectV2Handler::drawBody(const Joint* pJoints, const sf::Vector2f* pJointP
 		}
 	}
 }
-void KinectV2Handler::drawBone(const Joint* pJoints, const sf::Vector2f* pJointPoints, JointType joint0, JointType joint1, sf::RenderWindow& window) {
+
+void KinectV2Handler::drawBone(const Joint* pJoints, const sf::Vector2f* pJointPoints, JointType joint0,
+                               JointType joint1, sf::RenderWindow& window)
+{
 	TrackingState joint0State = pJoints[joint0].TrackingState;
 	TrackingState joint1State = pJoints[joint1].TrackingState;
 
@@ -905,20 +1004,27 @@ void KinectV2Handler::drawBone(const Joint* pJoints, const sf::Vector2f* pJointP
 	// We assume all drawn bones are inferred unless BOTH joints are tracked
 	if ((joint0State == TrackingState_Tracked) && (joint1State == TrackingState_Tracked))
 	{
-		drawLine(pJointPoints[joint0], pJointPoints[joint1], sf::Color::Green, KinectSettings::g_TrackedBoneThickness, window);
+		drawLine(pJointPoints[joint0], pJointPoints[joint1], sf::Color::Green, KinectSettings::g_TrackedBoneThickness,
+		         window);
 	}
 	else
 	{
-		drawLine(pJointPoints[joint0], pJointPoints[joint1], sf::Color::Green, KinectSettings::g_TrackedBoneThickness, window);
+		drawLine(pJointPoints[joint0], pJointPoints[joint1], sf::Color::Green, KinectSettings::g_TrackedBoneThickness,
+		         window);
 	}
 }
-void KinectV2Handler::drawLine(sf::Vector2f start, sf::Vector2f end, sf::Color colour, float lineThickness, sf::RenderWindow& window) {
+
+void KinectV2Handler::drawLine(sf::Vector2f start, sf::Vector2f end, sf::Color colour, float lineThickness,
+                               sf::RenderWindow& window)
+{
 	sfLine line(start, end);
 	line.setColor(colour);
 	line.setThickness(lineThickness);
 	window.draw(line);
 }
-JointType KinectV2Handler::convertJoint(KVR::KinectJoint kJoint) {
+
+JointType KinectV2Handler::convertJoint(KVR::KinectJoint kJoint)
+{
 	// Currently, the v2 SDK id's match my jointtype class 1:1
 	return static_cast<JointType>(kJoint.joint);
 }

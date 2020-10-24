@@ -50,7 +50,8 @@ eigen_quaternion_normalized_lerp(const Eigen::Quaternionf& a, const Eigen::Quate
 }
 
 Eigen::Quaternionf
-eigen_quaternion_safe_divide_with_default(const Eigen::Quaternionf& q, const float divisor, const Eigen::Quaternionf& default_result)
+eigen_quaternion_safe_divide_with_default(const Eigen::Quaternionf& q, const float divisor,
+                                          const Eigen::Quaternionf& default_result)
 {
 	Eigen::Quaternionf q_n;
 
@@ -75,7 +76,8 @@ eigen_quaternion_normalize_with_default(Eigen::Quaternionf& inout_v, const Eigen
 }
 
 Eigen::Quaterniond
-eigen_quaterniond_safe_divide_with_default(const Eigen::Quaterniond& q, const double divisor, const Eigen::Quaterniond& default_result)
+eigen_quaterniond_safe_divide_with_default(const Eigen::Quaterniond& q, const double divisor,
+                                           const Eigen::Quaterniond& default_result)
 {
 	Eigen::Quaterniond q_n;
 
@@ -257,7 +259,7 @@ eigen_angle_axis_to_quaternion(
 }
 
 //http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/
-template<typename T>
+template <typename T>
 Eigen::Quaternion<T> eigen_euler_angles_to_quaternion(const Eigen::EulerAngles<T>& euler_angles)
 {
 	const T attitude_radians = euler_angles.get_attitude_radians(); // i
@@ -273,16 +275,16 @@ Eigen::Quaternion<T> eigen_euler_angles_to_quaternion(const Eigen::EulerAngles<T
 	const double c3 = cos(bank_radians / 2.f);
 	const double s3 = sin(bank_radians / 2.f);
 	Eigen::Quaternion<T> q(
-		static_cast<T>(c1 * c2 * c3 + s1 * s2 * s3),  // w = cos(theta/2)
-		static_cast<T>(s1 * c2 * c3 - c1 * s2 * s3),  // x = v.i*sin(theta/2)
-		static_cast<T>(c1 * s2 * c3 + s1 * c2 * s3),  // y = v.j*sin(theta/2)
+		static_cast<T>(c1 * c2 * c3 + s1 * s2 * s3), // w = cos(theta/2)
+		static_cast<T>(s1 * c2 * c3 - c1 * s2 * s3), // x = v.i*sin(theta/2)
+		static_cast<T>(c1 * s2 * c3 + s1 * c2 * s3), // y = v.j*sin(theta/2)
 		static_cast<T>(c1 * c2 * s3 - s1 * s2 * c3)); // z = v.k*sin(theta/2)
 
 	return q;
 }
 
 //http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/
-template<typename T>
+template <typename T>
 Eigen::EulerAngles<T> eigen_quaternion_to_euler_angles(const Eigen::Quaternion<T>& q)
 {
 	double qw = static_cast<double>(q.w());

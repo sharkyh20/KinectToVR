@@ -26,24 +26,27 @@
 #include <math.h>
 #include "VectorMath.h"
 
-void KinectV1Handler::initOpenGL() {
+void KinectV1Handler::initOpenGL()
+{
 	LOG(INFO) << "Attempted to initialise OpenGL";
 	int width = 0, height = 0;
-	if (kVersion == KinectVersion::Version1) {
+	if (kVersion == KinectVersion::Version1)
+	{
 		width = KinectSettings::kinectWidth;
 		height = KinectSettings::kinectHeight;
 	}
-	else if (kVersion == KinectVersion::Version2) {
+	else if (kVersion == KinectVersion::Version2)
+	{
 		width = KinectSettings::kinectV2Width;
 		height = KinectSettings::kinectV2Height;
-	}   // REMOVE THIS INTO KINECT V2 IMPL
-		// Initialize textures
+	} // REMOVE THIS INTO KINECT V2 IMPL
+	// Initialize textures
 	glGenTextures(1, &kinectTextureId);
 	glBindTexture(GL_TEXTURE_2D, kinectTextureId);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height,
-		0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, (GLvoid*)kinectImageData.get());
+	             0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, static_cast<GLvoid*>(kinectImageData.get()));
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// OpenGL setup
@@ -64,61 +67,76 @@ HRESULT KinectV1Handler::getStatusResult()
 {
 	if (kinectSensor)
 		return kinectSensor->NuiStatus();
-	else
-		return E_NUI_NOTCONNECTED;
+	return E_NUI_NOTCONNECTED;
 }
 
-std::string KinectV1Handler::statusResultString(HRESULT stat) {
-	switch (stat) {
+std::string KinectV1Handler::statusResultString(HRESULT stat)
+{
+	switch (stat)
+	{
 	case S_OK: return "S_OK";
-	case S_NUI_INITIALIZING:	return "S_NUI_INITIALIZING The device is connected, but still initializing.";
-	case E_NUI_NOTCONNECTED:	return "E_NUI_NOTCONNECTED The device is not connected.";
-	case E_NUI_NOTGENUINE:	return "E_NUI_NOTGENUINE The device is not a valid Kinect.";
-	case E_NUI_NOTSUPPORTED:	return "E_NUI_NOTSUPPORTED The device is an unsupported model.";
-	case E_NUI_INSUFFICIENTBANDWIDTH:	return "E_NUI_INSUFFICIENTBANDWIDTH The device is connected to a hub without the necessary bandwidth requirements.";
-	case E_NUI_NOTPOWERED:	return "E_NUI_NOTPOWERED The device is connected, but unpowered.";
-	case E_NUI_NOTREADY:	return "E_NUI_NOTREADY There was some other unspecified error.";
+	case S_NUI_INITIALIZING: return "S_NUI_INITIALIZING The device is connected, but still initializing.";
+	case E_NUI_NOTCONNECTED: return "E_NUI_NOTCONNECTED The device is not connected.";
+	case E_NUI_NOTGENUINE: return "E_NUI_NOTGENUINE The device is not a valid Kinect.";
+	case E_NUI_NOTSUPPORTED: return "E_NUI_NOTSUPPORTED The device is an unsupported model.";
+	case E_NUI_INSUFFICIENTBANDWIDTH: return
+			"E_NUI_INSUFFICIENTBANDWIDTH The device is connected to a hub without the necessary bandwidth requirements.";
+	case E_NUI_NOTPOWERED: return "E_NUI_NOTPOWERED The device is connected, but unpowered.";
+	case E_NUI_NOTREADY: return "E_NUI_NOTREADY There was some other unspecified error.";
 	default: return "Uh Oh undefined kinect error! " + std::to_string(stat);
 	}
 }
 
-void KinectV1Handler::initialise() {
-	try {
+void KinectV1Handler::initialise()
+{
+	try
+	{
 		kVersion = KinectVersion::Version1;
 		kinectImageData
-			= std::make_unique<GLubyte[]>(KinectSettings::kinectWidth * KinectSettings::kinectHeight * 4);  // BGRA
+			= std::make_unique<GLubyte[]>(KinectSettings::kinectWidth * KinectSettings::kinectHeight * 4); // BGRA
 		initialised = initKinect();
 		LOG_IF(initialised, INFO) << "Kinect initialised successfully!";
 		if (!initialised) throw FailedKinectInitialisation;
 	}
-	catch (std::exception& e) {
+	catch (std::exception& e)
+	{
 		LOG(ERROR) << "Failed to initialise Kinect " << e.what() << std::endl;
 	}
 }
 
-void KinectV1Handler::update() {
-	if (isInitialised()) {
+void KinectV1Handler::update()
+{
+	if (isInitialised())
+	{
 		HRESULT kinectStatus = kinectSensor->NuiStatus();
-		if (kinectStatus == S_OK) {
+		if (kinectStatus == S_OK)
+		{
 			getKinectRGBData();
 			updateSkeletalData();
 		}
 	}
 }
 
-void KinectV1Handler::drawKinectData(sf::RenderWindow& drawingWindow) {
-	if (isInitialised()) {
-		if (KinectSettings::isKinectDrawn) {
+void KinectV1Handler::drawKinectData(sf::RenderWindow& drawingWindow)
+{
+	if (isInitialised())
+	{
+		if (KinectSettings::isKinectDrawn)
+		{
 			drawKinectImageData(drawingWindow);
 		}
-		if (KinectSettings::isSkeletonDrawn) {
+		if (KinectSettings::isSkeletonDrawn)
+		{
 			drawTrackedSkeletons(drawingWindow);
 		}
 	}
 };
-void KinectV1Handler::drawKinectImageData(sf::RenderWindow& drawingWindow) {
+
+void KinectV1Handler::drawKinectImageData(sf::RenderWindow& drawingWindow)
+{
 	glBindTexture(GL_TEXTURE_2D, kinectTextureId);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, SFMLsettings::m_window_width, SFMLsettings::m_window_height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, (GLvoid*)kinectImageData.get());
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, SFMLsettings::m_window_width, SFMLsettings::m_window_height, GL_BGRA_EXT,
+	                GL_UNSIGNED_BYTE, static_cast<GLvoid*>(kinectImageData.get()));
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glBegin(GL_QUADS);
@@ -135,18 +153,23 @@ void KinectV1Handler::drawKinectImageData(sf::RenderWindow& drawingWindow) {
 };
 
 NUI_SKELETON_DATA backup;
-void KinectV1Handler::drawTrackedSkeletons(sf::RenderWindow& drawingWindow) {
-	for (int i = 0; i < NUI_SKELETON_POSITION_COUNT; ++i) {
+
+void KinectV1Handler::drawTrackedSkeletons(sf::RenderWindow& drawingWindow)
+{
+	for (int i = 0; i < NUI_SKELETON_POSITION_COUNT; ++i)
+	{
 		screenSkelePoints[i] = sf::Vector2f(0.0f, 0.0f);
 	}
-	for (int i = 0; i < NUI_SKELETON_COUNT; ++i) {
+	for (int i = 0; i < NUI_SKELETON_COUNT; ++i)
+	{
 		NUI_SKELETON_TRACKING_STATE trackingState = skeletonFrame.SkeletonData[i].eTrackingState;
 
 		if (NUI_SKELETON_TRACKED == trackingState || NUI_SKELETON_POSITION_ONLY == trackingState)
 			backup = skeletonFrame.SkeletonData[i];
 	}
 
-	if (KinectSettings::isSkeletonDrawn) {
+	if (KinectSettings::isSkeletonDrawn)
+	{
 		NUI_SKELETON_TRACKING_STATE trackingState = backup.eTrackingState;
 		if (NUI_SKELETON_TRACKED == trackingState)
 		{
@@ -156,10 +179,12 @@ void KinectV1Handler::drawTrackedSkeletons(sf::RenderWindow& drawingWindow) {
 			DrawSkeleton(backup, drawingWindow);
 			drawingWindow.popGLStates();
 		}
-		else if (NUI_SKELETON_POSITION_ONLY == trackingState) {
+		else if (NUI_SKELETON_POSITION_ONLY == trackingState)
+		{
 			sf::CircleShape circle(KinectSettings::g_JointThickness, 30);
 			circle.setRadius(KinectSettings::g_JointThickness);
-			circle.setPosition(SkeletonToScreen(backup.Position, SFMLsettings::m_window_width, SFMLsettings::m_window_height));
+			circle.setPosition(SkeletonToScreen(backup.Position, SFMLsettings::m_window_width,
+			                                    SFMLsettings::m_window_height));
 			circle.setFillColor(sf::Color::Yellow);
 
 			drawingWindow.pushGLStates();
@@ -171,8 +196,11 @@ void KinectV1Handler::drawTrackedSkeletons(sf::RenderWindow& drawingWindow) {
 };
 
 //Consider moving this tracking stuff into a seperate class
-void KinectV1Handler::zeroAllTracking(vr::IVRSystem*& m_sys) { // Holdover from previous implementation
-	for (int i = 0; i < NUI_SKELETON_COUNT; ++i) {
+void KinectV1Handler::zeroAllTracking(vr::IVRSystem*& m_sys)
+{
+	// Holdover from previous implementation
+	for (int i = 0; i < NUI_SKELETON_COUNT; ++i)
+	{
 		NUI_SKELETON_TRACKING_STATE trackingState = skeletonFrame.SkeletonData[i].eTrackingState;
 
 		if (NUI_SKELETON_TRACKED == trackingState)
@@ -189,22 +217,29 @@ void KinectV1Handler::zeroAllTracking(vr::IVRSystem*& m_sys) { // Holdover from 
 void KinectV1Handler::updateTrackersWithSkeletonPosition(
 	std::vector<KVR::KinectTrackedDevice>& trackers)
 {
-	for (KVR::KinectTrackedDevice& device : trackers) {
-		if (device.isSensor()) {
-			device.update(KinectSettings::kinectRepPosition, { 0,0,0 }, KinectSettings::kinectRepRotation);
+	for (KVR::KinectTrackedDevice& device : trackers)
+	{
+		if (device.isSensor())
+		{
+			device.update(KinectSettings::kinectRepPosition, {0, 0, 0}, KinectSettings::kinectRepRotation);
 		}
-		else {
-			vr::HmdVector3d_t jointPosition{ 0,0,0 };
-			vr::HmdQuaternion_t jointRotation{ 0,0,0,0 };
-			if (getFilteredJoint(device, jointPosition, jointRotation)) {
+		else
+		{
+			vr::HmdVector3d_t jointPosition{0, 0, 0};
+			vr::HmdQuaternion_t jointRotation{0, 0, 0, 0};
+			if (getFilteredJoint(device, jointPosition, jointRotation))
+			{
 				device.update(trackedPositionVROffset, jointPosition, jointRotation);
 			}
 		}
 	}
 }
 
-bool KinectV1Handler::getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdVector3d_t& position, vr::HmdQuaternion_t& rotation) {
-	for (int i = 0; i < NUI_SKELETON_COUNT; ++i) {
+bool KinectV1Handler::getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdVector3d_t& position,
+                                       vr::HmdQuaternion_t& rotation)
+{
+	for (int i = 0; i < NUI_SKELETON_COUNT; ++i)
+	{
 		NUI_SKELETON_TRACKING_STATE trackingState = skeletonFrame.SkeletonData[i].eTrackingState;
 
 		if (trackingState == NUI_SKELETON_TRACKED)
@@ -226,29 +261,33 @@ bool KinectV1Handler::getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdV
 				float jointX = jointPositions[convertJoint(device.joint0)].x;
 				float jointY = jointPositions[convertJoint(device.joint0)].y;
 				float jointZ = jointPositions[convertJoint(device.joint0)].z;
-				position = vr::HmdVector3d_t{ jointX,jointY,jointZ };
+				position = vr::HmdVector3d_t{jointX, jointY, jointZ};
 
 				//Rotation - Need to seperate into function
-				Vector4 kRotation = { 0,0,0,1 };
-				switch (device.rotationFilterOption) {
+				Vector4 kRotation = {0, 0, 0, 1};
+				switch (device.rotationFilterOption)
+				{
 				case KVR::JointRotationFilterOption::Unfiltered:
 					kRotation = boneOrientations[convertJoint(device.joint0)].absoluteRotation.rotationQuaternion;
 					break;
 				case KVR::JointRotationFilterOption::Filtered:
 					kRotation = rotFilter.GetFilteredJoints()[convertJoint(device.joint0)];
 					break;
-				case KVR::JointRotationFilterOption::HeadLook: {        // Ew
-					auto q = KinectSettings::hmdRotation;
-					//Isolate Yaw
-					float yaw = atan2(2 * q.w * q.y + 2 * q.x * q.z, +q.w * q.w + q.x * q.x - q.z * q.z - q.y * q.y);
+				case KVR::JointRotationFilterOption::HeadLook:
+					{
+						// Ew
+						auto q = KinectSettings::hmdRotation;
+						//Isolate Yaw
+						float yaw = atan2(2 * q.w * q.y + 2 * q.x * q.z,
+						                  +q.w * q.w + q.x * q.x - q.z * q.z - q.y * q.y);
 
-					auto kq = vrmath::quaternionFromRotationY(yaw);
-					kRotation.w = kq.w;
-					kRotation.x = kq.x;
-					kRotation.y = kq.y;
-					kRotation.z = kq.z;
-				}
-															 break;
+						auto kq = vrmath::quaternionFromRotationY(yaw);
+						kRotation.w = kq.w;
+						kRotation.x = kq.x;
+						kRotation.y = kq.y;
+						kRotation.z = kq.z;
+					}
+					break;
 				default:
 					LOG(ERROR) << "JOINT ROTATION OPTION UNDEFINED IN DEVICE " << device.deviceId;
 					break;
@@ -264,12 +303,14 @@ bool KinectV1Handler::getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdV
 	}
 	return false;
 }
+
 NUI_SKELETON_POSITION_INDEX KinectV1Handler::convertJoint(KVR::KinectJoint joint)
 {
 	using namespace KVR;
 	//Unfortunately I believe this is required because there are mismatches between v1 and v2 joint IDs
 	//Might consider investigating to see if there's a way to shorten this
-	switch (joint.joint) {
+	switch (joint.joint)
+	{
 	case KinectJointType::SpineBase:
 		return NUI_SKELETON_POSITION_HIP_CENTER;
 	case KinectJointType::SpineMid:
@@ -338,14 +379,18 @@ NUI_SKELETON_POSITION_INDEX KinectV1Handler::convertJoint(KVR::KinectJoint joint
 		break;
 	}
 }
-bool KinectV1Handler::initKinect() {
+
+bool KinectV1Handler::initKinect()
+{
 	//Get a working Kinect Sensor
 	int numSensors = 0;
-	if (NuiGetSensorCount(&numSensors) < 0 || numSensors < 1) {
+	if (NuiGetSensorCount(&numSensors) < 0 || numSensors < 1)
+	{
 		LOG(ERROR) << "No Kinect Sensors found!";
 		return false;
 	}
-	if (NuiCreateSensorByIndex(0, &kinectSensor) < 0) {
+	if (NuiCreateSensorByIndex(0, &kinectSensor) < 0)
+	{
 		LOG(ERROR) << "Sensor found, but could not create an instance of it!";
 		return false;
 	}
@@ -353,7 +398,8 @@ bool KinectV1Handler::initKinect() {
 	HRESULT hr = kinectSensor->NuiInitialize(NUI_INITIALIZE_FLAG_USES_DEPTH_AND_PLAYER_INDEX
 		| NUI_INITIALIZE_FLAG_USES_SKELETON);
 	LOG_IF(FAILED(hr), ERROR) << "Kinect sensor failed to initialise!";
-	else LOG(INFO) << "Kinect sensor opened successfully.";
+	else
+		LOG(INFO) << "Kinect sensor opened successfully.";
 	/*
 	kinectSensor->NuiImageStreamOpen(
 		NUI_IMAGE_TYPE_COLOR,               //Depth Camera or RGB Camera?
@@ -365,23 +411,26 @@ bool KinectV1Handler::initKinect() {
 
 	*/
 	kinectSensor->NuiImageStreamOpen(
-		NUI_IMAGE_TYPE_DEPTH_AND_PLAYER_INDEX,               //Depth Camera or RGB Camera?
-		NUI_IMAGE_RESOLUTION_320x240,       //Image Resolution
-		0,                                  //Image stream flags, e.g. near mode
-		2,                                  //Number of frames to buffer
-		NULL,                               //Event handle
+		NUI_IMAGE_TYPE_DEPTH_AND_PLAYER_INDEX, //Depth Camera or RGB Camera?
+		NUI_IMAGE_RESOLUTION_320x240, //Image Resolution
+		0, //Image stream flags, e.g. near mode
+		2, //Number of frames to buffer
+		nullptr, //Event handle
 		&kinectDepthStream);
 	kinectSensor->NuiSkeletonTrackingEnable(
-		NULL,
+		nullptr,
 		NUI_SKELETON_TRACKING_FLAG_ENABLE_IN_NEAR_RANGE
 	);
 
 	return kinectSensor;
 }
-void KinectV1Handler::getKinectRGBData() {
+
+void KinectV1Handler::getKinectRGBData()
+{
 	NUI_IMAGE_FRAME imageFrame{};
 	NUI_LOCKED_RECT LockedRect{};
-	if (acquireKinectFrame(imageFrame, kinectRGBStream, kinectSensor)) {
+	if (acquireKinectFrame(imageFrame, kinectRGBStream, kinectSensor))
+	{
 		return;
 	}
 	INuiFrameTexture* texture = lockKinectPixelData(imageFrame, LockedRect);
@@ -390,40 +439,50 @@ void KinectV1Handler::getKinectRGBData() {
 
 	releaseKinectFrame(imageFrame, kinectRGBStream, kinectSensor);
 }
+
 bool KinectV1Handler::acquireKinectFrame(NUI_IMAGE_FRAME& imageFrame, HANDLE& rgbStream, INuiSensor*& sensor)
 {
 	return (sensor->NuiImageStreamGetNextFrame(rgbStream, 1, &imageFrame) < 0);
 }
+
 INuiFrameTexture* KinectV1Handler::lockKinectPixelData(NUI_IMAGE_FRAME& imageFrame, NUI_LOCKED_RECT& LockedRect)
 {
 	INuiFrameTexture* texture = imageFrame.pFrameTexture;
-	texture->LockRect(0, &LockedRect, NULL, 0);
+	texture->LockRect(0, &LockedRect, nullptr, 0);
 	return imageFrame.pFrameTexture;
 }
+
 void KinectV1Handler::copyKinectPixelData(NUI_LOCKED_RECT& LockedRect, GLubyte* dest)
 {
 	int bytesInFrameRow = LockedRect.Pitch;
-	if (bytesInFrameRow != 0) {
-		const BYTE* curr = (const BYTE*)LockedRect.pBits;
+	if (bytesInFrameRow != 0)
+	{
+		const BYTE* curr = static_cast<const BYTE*>(LockedRect.pBits);
 		const BYTE* dataEnd = curr + (KinectSettings::kinectWidth * KinectSettings::kinectHeight) * 4;
 
-		while (curr < dataEnd) {
+		while (curr < dataEnd)
+		{
 			*dest++ = *curr++;
 		}
 	}
 }
+
 void KinectV1Handler::unlockKinectPixelData(INuiFrameTexture* texture)
 {
 	texture->UnlockRect(0);
 }
+
 void KinectV1Handler::releaseKinectFrame(NUI_IMAGE_FRAME& imageFrame, HANDLE& rgbStream, INuiSensor*& sensor)
 {
 	sensor->NuiImageStreamReleaseFrame(rgbStream, &imageFrame);
 }
 
 static bool flip = false;
-void KinectV1Handler::updateSkeletalData() {
-	if (kinectSensor->NuiSkeletonGetNextFrame(0, &skeletonFrame) >= 0) {
+
+void KinectV1Handler::updateSkeletalData()
+{
+	if (kinectSensor->NuiSkeletonGetNextFrame(0, &skeletonFrame) >= 0)
+	{
 		NUI_TRANSFORM_SMOOTH_PARAMETERS params;
 
 		params.fCorrection = .25f;
@@ -439,16 +498,18 @@ void KinectV1Handler::updateSkeletalData() {
 		params.fJitterRadius = 0.03f;
 		params.fPrediction = .25f;
 		*/
-		kinectSensor->NuiTransformSmooth(&skeletonFrame, &params);   //Smooths jittery tracking
+		kinectSensor->NuiTransformSmooth(&skeletonFrame, &params); //Smooths jittery tracking
 		NUI_SKELETON_DATA data;
 
-		for (int i = 0; i < NUI_SKELETON_COUNT; ++i) {
+		for (int i = 0; i < NUI_SKELETON_COUNT; ++i)
+		{
 			NUI_SKELETON_TRACKING_STATE trackingState = skeletonFrame.SkeletonData[i].eTrackingState;
 			data = skeletonFrame.SkeletonData[i];
 
 			if (NUI_SKELETON_TRACKED == trackingState)
 			{
-				for (int j = 0; j < NUI_SKELETON_POSITION_COUNT; ++j) {
+				for (int j = 0; j < NUI_SKELETON_POSITION_COUNT; ++j)
+				{
 					jointPositions[j] = skeletonFrame.SkeletonData[i].SkeletonPositions[j];
 				}
 				NuiSkeletonCalculateBoneOrientations(&skeletonFrame.SkeletonData[i], boneOrientations);
@@ -497,15 +558,18 @@ void KinectV1Handler::updateSkeletalData() {
 			jointPositions[convertJoint(KVR::KinectJointType::SpineBase)].y,
 			jointPositions[convertJoint(KVR::KinectJointType::SpineBase)].z
 		);
-		KinectSettings::hFootRot = glm::quat(boneOrientations[convertJoint(KVR::KinectJointType::AnkleLeft)].absoluteRotation.rotationQuaternion.w,
+		KinectSettings::hFootRot = glm::quat(
+			boneOrientations[convertJoint(KVR::KinectJointType::AnkleLeft)].absoluteRotation.rotationQuaternion.w,
 			boneOrientations[convertJoint(KVR::KinectJointType::AnkleLeft)].absoluteRotation.rotationQuaternion.x,
 			boneOrientations[convertJoint(KVR::KinectJointType::AnkleLeft)].absoluteRotation.rotationQuaternion.y,
 			boneOrientations[convertJoint(KVR::KinectJointType::AnkleLeft)].absoluteRotation.rotationQuaternion.z);
-		KinectSettings::mFootRot = glm::quat(boneOrientations[convertJoint(KVR::KinectJointType::AnkleRight)].absoluteRotation.rotationQuaternion.w,
+		KinectSettings::mFootRot = glm::quat(
+			boneOrientations[convertJoint(KVR::KinectJointType::AnkleRight)].absoluteRotation.rotationQuaternion.w,
 			boneOrientations[convertJoint(KVR::KinectJointType::AnkleRight)].absoluteRotation.rotationQuaternion.x,
 			boneOrientations[convertJoint(KVR::KinectJointType::AnkleRight)].absoluteRotation.rotationQuaternion.y,
 			boneOrientations[convertJoint(KVR::KinectJointType::AnkleRight)].absoluteRotation.rotationQuaternion.z);
-		KinectSettings::hipsRot = glm::quat(boneOrientations[convertJoint(KVR::KinectJointType::SpineBase)].absoluteRotation.rotationQuaternion.w,
+		KinectSettings::hipsRot = glm::quat(
+			boneOrientations[convertJoint(KVR::KinectJointType::SpineBase)].absoluteRotation.rotationQuaternion.w,
 			boneOrientations[convertJoint(KVR::KinectJointType::SpineBase)].absoluteRotation.rotationQuaternion.x,
 			boneOrientations[convertJoint(KVR::KinectJointType::SpineBase)].absoluteRotation.rotationQuaternion.y,
 			boneOrientations[convertJoint(KVR::KinectJointType::SpineBase)].absoluteRotation.rotationQuaternion.z);
@@ -616,12 +680,14 @@ void KinectV1Handler::updateSkeletalData() {
 		//orientation = boneOrientations[convertJoint(KinectJointType::FootRight)].absoluteRotation.rotationQuaternion;
 		//debugDisplayTextStream << "FootLeftRot " << ": " << orientation.w << ", " << orientation.x << ", " << orientation.y << ", " << orientation.z << '\n';
 	}
-
-	return;
 };
-void KinectV1Handler::DrawSkeleton(const NUI_SKELETON_DATA& skel, sf::RenderWindow& window) {
-	for (int i = 0; i < NUI_SKELETON_POSITION_COUNT; ++i) {
-		screenSkelePoints[i] = SkeletonToScreen(jointPositions[i], SFMLsettings::m_window_width, SFMLsettings::m_window_height);
+
+void KinectV1Handler::DrawSkeleton(const NUI_SKELETON_DATA& skel, sf::RenderWindow& window)
+{
+	for (int i = 0; i < NUI_SKELETON_POSITION_COUNT; ++i)
+	{
+		screenSkelePoints[i] = SkeletonToScreen(jointPositions[i], SFMLsettings::m_window_width,
+		                                        SFMLsettings::m_window_height);
 		//std::cerr << "m_points[" << i << "] = " << screenSkelePoints[i].x << ", " << screenSkelePoints[i].y << '\n';
 		// Same with the other cerr, without this, the skeleton flickers
 	}
@@ -674,7 +740,9 @@ void KinectV1Handler::DrawSkeleton(const NUI_SKELETON_DATA& skel, sf::RenderWind
 		}
 	}
 }
-sf::Vector2f KinectV1Handler::SkeletonToScreen(Vector4 skeletonPoint, int _width, int _height) {
+
+sf::Vector2f KinectV1Handler::SkeletonToScreen(Vector4 skeletonPoint, int _width, int _height)
+{
 	LONG x = 0, y = 0;
 	USHORT depth = 0;
 
@@ -689,8 +757,9 @@ sf::Vector2f KinectV1Handler::SkeletonToScreen(Vector4 skeletonPoint, int _width
 	// The skeleton constantly flickers and drops out without the cerr command...
 	return sf::Vector2f(screenPointX, screenPointY);
 }
+
 void KinectV1Handler::DrawBone(const NUI_SKELETON_DATA& skel, NUI_SKELETON_POSITION_INDEX joint0,
-	NUI_SKELETON_POSITION_INDEX joint1, sf::RenderWindow& window)
+                               NUI_SKELETON_POSITION_INDEX joint1, sf::RenderWindow& window)
 {
 	NUI_SKELETON_POSITION_TRACKING_STATE joint0State = skel.eSkeletonPositionTrackingState[joint0];
 	NUI_SKELETON_POSITION_TRACKING_STATE joint1State = skel.eSkeletonPositionTrackingState[joint1];
@@ -709,24 +778,33 @@ void KinectV1Handler::DrawBone(const NUI_SKELETON_DATA& skel, NUI_SKELETON_POSIT
 	// Assume all bones are inferred unless BOTH joints are tracked
 	if (joint0State == NUI_SKELETON_POSITION_TRACKED && joint1State == NUI_SKELETON_POSITION_TRACKED)
 	{
-		DrawLine(screenSkelePoints[joint0], screenSkelePoints[joint1], sf::Color::Green, KinectSettings::g_TrackedBoneThickness, window);
+		DrawLine(screenSkelePoints[joint0], screenSkelePoints[joint1], sf::Color::Green,
+		         KinectSettings::g_TrackedBoneThickness, window);
 	}
 	else
 	{
-		DrawLine(screenSkelePoints[joint0], screenSkelePoints[joint1], sf::Color::Red, KinectSettings::g_InferredBoneThickness, window);
+		DrawLine(screenSkelePoints[joint0], screenSkelePoints[joint1], sf::Color::Red,
+		         KinectSettings::g_InferredBoneThickness, window);
 	}
 }
-void KinectV1Handler::DrawLine(sf::Vector2f start, sf::Vector2f end, sf::Color colour, float lineThickness, sf::RenderWindow& window) {
+
+void KinectV1Handler::DrawLine(sf::Vector2f start, sf::Vector2f end, sf::Color colour, float lineThickness,
+                               sf::RenderWindow& window)
+{
 	sfLine line(start, end);
 	line.setColor(colour);
 	line.setThickness(lineThickness);
 	window.draw(line);
 	//std::cerr << "Line drawn at: " << start.x << ", " << start.y << " to " << end.x << ", " << end.y << "\n";
 }
-Vector4 KinectV1Handler::zeroKinectPosition(int trackedSkeletonIndex) {
+
+Vector4 KinectV1Handler::zeroKinectPosition(int trackedSkeletonIndex)
+{
 	return jointPositions[NUI_SKELETON_POSITION_HEAD];
 }
-void KinectV1Handler::setKinectToVRMultiplier(int skeletonIndex) {
+
+void KinectV1Handler::setKinectToVRMultiplier(int skeletonIndex)
+{
 	/*
 	KinectSettings::kinectToVRScale = KinectSettings::hmdZero.v[1]
 		/ (jointPositions[NUI_SKELETON_POSITION_HEAD].y
@@ -738,16 +816,19 @@ void KinectV1Handler::setKinectToVRMultiplier(int skeletonIndex) {
 	*/
 }
 
-bool KinectV1Handler::jointsUntracked(KVR::KinectJoint joint0, KVR::KinectJoint joint1, NUI_SKELETON_DATA data) {
+bool KinectV1Handler::jointsUntracked(KVR::KinectJoint joint0, KVR::KinectJoint joint1, NUI_SKELETON_DATA data)
+{
 	NUI_SKELETON_POSITION_TRACKING_STATE joint0State = data.eSkeletonPositionTrackingState[convertJoint(joint0)];
 	NUI_SKELETON_POSITION_TRACKING_STATE joint1State = data.eSkeletonPositionTrackingState[convertJoint(joint1)];
 
 	// If we can't find either of these joints, exit
 	return ((joint0State == NUI_SKELETON_POSITION_NOT_TRACKED
-		|| joint1State == NUI_SKELETON_POSITION_NOT_TRACKED)
+			|| joint1State == NUI_SKELETON_POSITION_NOT_TRACKED)
 		&& KinectSettings::ignoreInferredPositions);
 }
-bool KinectV1Handler::jointsInferred(KVR::KinectJoint joint0, KVR::KinectJoint joint1, NUI_SKELETON_DATA data) {
+
+bool KinectV1Handler::jointsInferred(KVR::KinectJoint joint0, KVR::KinectJoint joint1, NUI_SKELETON_DATA data)
+{
 	NUI_SKELETON_POSITION_TRACKING_STATE joint0State = data.eSkeletonPositionTrackingState[convertJoint(joint0)];
 	NUI_SKELETON_POSITION_TRACKING_STATE joint1State = data.eSkeletonPositionTrackingState[convertJoint(joint1)];
 

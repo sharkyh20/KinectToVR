@@ -20,7 +20,7 @@
 #include "DeviceHandler.h"
 #include "TrackingPoolManager.h"
 #include <boost/thread.hpp>
-#include <SFML\Audio.hpp>
+#include <SFML/Audio.hpp>
 
 #include <locale>
 #include <codecvt>
@@ -28,11 +28,11 @@
 #include <string>
 #include <thread>
 //GUI
-#include <SFGUI\SFGUI.hpp>
+#include <SFGUI/SFGUI.hpp>
 #include <SFGUI/Widgets.hpp>
 
 //OpenCV
-#include <opencv2\opencv.hpp>
+#include <opencv2/opencv.hpp>
 
 // Windows last because of the great and holy Microsoft
 // ... and their ability to cause compiler errors with macros
@@ -58,8 +58,11 @@ std::string log_get_timestamp_prefix()
 
 	return ss.str();
 }
-void processKeyEvents(sf::Event event) {
-	switch (event.key.code) {
+
+void processKeyEvents(sf::Event event)
+{
+	switch (event.key.code)
+	{
 	case sf::Keyboard::A:
 		toggle(KinectSettings::isKinectDrawn);
 		break;
@@ -67,9 +70,12 @@ void processKeyEvents(sf::Event event) {
 		break;
 	}
 }
-void toggle(bool& b) {
+
+void toggle(bool& b)
+{
 	b = !b;
 }
+
 // Get the horizontal and vertical screen sizes in pixel
 //  https://stackoverflow.com/questions/8690619/how-to-get-screen-resolution-in-c
 void getDesktopResolution(int& horizontal, int& vertical)
@@ -85,55 +91,67 @@ void getDesktopResolution(int& horizontal, int& vertical)
 	horizontal = desktop.right;
 	vertical = desktop.bottom;
 }
-sf::VideoMode getScaledWindowResolution() {
+
+sf::VideoMode getScaledWindowResolution()
+{
 	int h;
 	int v;
 	getDesktopResolution(h, v);
 
-	sf::VideoMode mode = sf::VideoMode(SFMLsettings::windowScale * float(h), SFMLsettings::windowScale * float(v));
+	sf::VideoMode mode = sf::VideoMode(SFMLsettings::windowScale * static_cast<float>(h),
+	                                   SFMLsettings::windowScale * static_cast<float>(v));
 	//std::cerr << "desktop: " << h << ", " << v << '\n';
 	//std::cerr << "scaled: " << mode.width << ", " << mode.height << '\n';
 	return mode;
 }
-void updateKinectWindowRes(const sf::RenderWindow& window) {
+
+void updateKinectWindowRes(const sf::RenderWindow& window)
+{
 	SFMLsettings::m_window_width = window.getSize().x;
 	SFMLsettings::m_window_height = window.getSize().y;
 	LOG(INFO) << "Stored window size: " << SFMLsettings::m_window_width << " x " << SFMLsettings::m_window_height;
 	//std::cerr << "w: " << SFMLsettings::m_window_width << " h: " << SFMLsettings::m_window_height << "\n";
 }
 
-bool filePathIsNonASCII(const std::wstring& filePath) {
-	for (auto c : filePath) {
-		if (static_cast<unsigned char>(c) > 127) {
+bool filePathIsNonASCII(const std::wstring& filePath)
+{
+	for (auto c : filePath)
+	{
+		if (static_cast<unsigned char>(c) > 127)
+		{
 			return true;
 		}
 	}
 	return false;
 }
 
-void verifyDefaultFilePath() {
+void verifyDefaultFilePath()
+{
 	// Warn about non-english file path, as openvr can only take ASCII chars
 	// If this isn't checked, unfortunately, most of the bindings won't load
 	// Unless OpenVR's C API adds support for non-english filepaths, K2VR can't either
 	bool filePathInvalid = filePathIsNonASCII(SFMLsettings::fileDirectoryPath);
-	if (filePathInvalid) {
+	if (filePathInvalid)
+	{
 		LOG(ERROR) << "K2VR File Path NONASCII (Invalid)!";
 		auto message = L"WARNING: NON-ENGLISH FILEPATH DETECTED: "
 			+ SFMLsettings::fileDirectoryPath
 			+ L"\n It's possible that OpenVR bindings won't work correctly"
 			+ L"\n Please move the K2VR directory to a location with ASCII only"
 			+ L"\n e.g. C:/KinectToVR will be fine";
-		auto result = MessageBox(NULL, message.c_str(), L"WARNING!!!", MB_ABORTRETRYIGNORE + MB_ICONWARNING);
-		if (result = IDABORT) {
+		auto result = MessageBox(nullptr, message.c_str(), L"WARNING!!!", MB_ABORTRETRYIGNORE + MB_ICONWARNING);
+		if (result = IDABORT)
+		{
 			SFMLsettings::keepRunning = false;
 		}
 	}
 	else
 		LOG(INFO) << "K2VR File Path ASCII (Valid)";
 }
-void updateFilePath() {
 
-	HMODULE module = GetModuleHandleW(NULL);
+void updateFilePath()
+{
+	HMODULE module = GetModuleHandleW(nullptr);
 	WCHAR exeFilePath[MAX_PATH];
 	GetModuleFileNameW(module, exeFilePath, MAX_PATH);
 
@@ -144,7 +162,7 @@ void updateFilePath() {
 	WCHAR fname[_MAX_FNAME];
 	WCHAR ext[_MAX_EXT];
 	_wsplitpath_s(exeFilePath, drive, _MAX_DRIVE, dir, _MAX_DIR, fname,
-		_MAX_FNAME, ext, _MAX_EXT);
+	              _MAX_FNAME, ext, _MAX_EXT);
 
 	WCHAR filename[_MAX_FNAME]{};
 	WCHAR extension[_MAX_EXT]{};
@@ -155,7 +173,9 @@ void updateFilePath() {
 
 	LOG(INFO) << "File Directory Path Set to " << filePathString;
 }
-void attemptInitialiseDebugDisplay(sf::Font& font, sf::Text& debugText) {
+
+void attemptInitialiseDebugDisplay(sf::Font& font, sf::Text& debugText)
+{
 	// Global Debug Font
 #if _DEBUG
 	auto fontFileName = "arial.ttf";
@@ -169,15 +189,24 @@ void attemptInitialiseDebugDisplay(sf::Font& font, sf::Text& debugText) {
 
 	debugText.setString(SFMLsettings::debugDisplayTextStream.str());
 }
-vr::HmdQuaternion_t kinectQuaternionFromRads() {
-	return vrmath::quaternionFromYawPitchRoll(KinectSettings::kinectRadRotation.v[1], KinectSettings::kinectRadRotation.v[0], KinectSettings::kinectRadRotation.v[2]);
+
+vr::HmdQuaternion_t kinectQuaternionFromRads()
+{
+	return vrmath::quaternionFromYawPitchRoll(KinectSettings::kinectRadRotation.v[1],
+	                                          KinectSettings::kinectRadRotation.v[0],
+	                                          KinectSettings::kinectRadRotation.v[2]);
 }
-void updateTrackerInitGuiSignals(GUIHandler& guiRef, std::vector<KVR::KinectTrackedDevice>& v_trackers, vr::IVRSystem*& m_VRsystem) {
-	if (true) {
+
+void updateTrackerInitGuiSignals(GUIHandler& guiRef, std::vector<KinectTrackedDevice>& v_trackers,
+                                 vr::IVRSystem*& m_VRsystem)
+{
+	if constexpr (true)
+	{
 		guiRef.setTrackerButtonSignals(v_trackers, m_VRsystem);
 		guiRef.updateEmuStatusLabelSuccess();
 	}
-	else {
+	else
+	{
 		guiRef.updateTrackerInitButtonLabelFail();
 	}
 }
@@ -193,30 +222,35 @@ void limitVRFramerate(double& endFrameMilliseconds)
 
 	if (floor(deltaDeviationMilliseconds) > 0) // TODO: Handle -ve (slow) frames
 		Sleep(deltaDeviationMilliseconds);
-	if (deltaDeviationMilliseconds < -maxMillisecondsToCompensate) {
+	if (deltaDeviationMilliseconds < -maxMillisecondsToCompensate)
+	{
 		endFrameMilliseconds -= maxMillisecondsToCompensate;
 	}
-	else {
+	else
+	{
 		endFrameMilliseconds += deltaDeviationMilliseconds;
 	}
 }
 
-void updatenormaltrackers() {
-
+void updatenormaltrackers()
+{
 }
 
-void processLoop(KinectHandlerBase& kinect) {
+void processLoop(KinectHandlerBase& kinect)
+{
 	LOG(INFO) << "~~~New logging session for main process begins here!~~~";
-	LOG(INFO) << "Kinect version is V" << (int)kinect.kVersion;
+	LOG(INFO) << "Kinect version is V" << static_cast<int>(kinect.kVersion);
 	updateFilePath();
 	//sf::RenderWindow renderWindow(getScaledWindowResolution(), "KinectToVR: " + KinectSettings::KVRversion, sf::Style::Titlebar | sf::Style::Close);
-	sf::RenderWindow renderWindow(sf::VideoMode(1280, 768, 32), "KinectToVR: " + KinectSettings::KVRversion, sf::Style::Titlebar | sf::Style::Close | sf::Style::Resize);
+	sf::RenderWindow renderWindow(sf::VideoMode(1280, 768, 32), "KinectToVR: " + KinectSettings::KVRversion,
+	                              sf::Style::Titlebar | sf::Style::Close | sf::Style::Resize);
 	auto mGUIView = sf::View(renderWindow.getDefaultView());
 	auto mGridView = sf::View(sf::FloatRect(0, 0, 1280, 768));
 
 	updateKinectWindowRes(renderWindow);
 	int windowFrameLimit = 90;
-	renderWindow.setFramerateLimit(windowFrameLimit);   //Prevents ridiculous overupdating and high CPU usage - plus 90Hz is the recommended refresh rate for most VR panels 
+	renderWindow.setFramerateLimit(windowFrameLimit);
+	//Prevents ridiculous overupdating and high CPU usage - plus 90Hz is the recommended refresh rate for most VR panels 
 	//renderWindow.setVerticalSyncEnabled(true);
 
 	sf::Clock frameClock;
@@ -246,29 +280,31 @@ void processLoop(KinectHandlerBase& kinect) {
 	guiRef.setKinectButtonSignal(kinect);
 
 	//Initialise InputEmu and Trackers
-	std::vector<KVR::KinectTrackedDevice> v_trackers{};
+	std::vector<KinectTrackedDevice> v_trackers{};
 
 	VRcontroller rightController(vr::TrackedControllerRole_RightHand);
 	VRcontroller leftController(vr::TrackedControllerRole_LeftHand);
 
 
-	LOG(INFO) << "Attempting connection to vrsystem.... ";    // DEBUG
+	LOG(INFO) << "Attempting connection to vrsystem.... "; // DEBUG
 	vr::EVRInitError eError = vr::VRInitError_None;
-	vr::IVRSystem* m_VRSystem = vr::VR_Init(&eError, vr::VRApplication_Overlay);
+	vr::IVRSystem* m_VRSystem = VR_Init(&eError, vr::VRApplication_Overlay);
 
-	LOG_IF(eError != vr::VRInitError_None, ERROR) << "IVRSystem could not be initialised: EVRInitError Code " << (int)eError;
+	LOG_IF(eError != vr::VRInitError_None, ERROR) << "IVRSystem could not be initialised: EVRInitError Code " <<
+ static_cast<int>(eError);
 
 	// INPUT BINDING TEMPORARY --------------------------------
 	// Warn about non-english file path, as openvr can only take ASCII chars
 	verifyDefaultFilePath();
 
-	if (eError == vr::VRInitError_None) {
-
+	if (eError == vr::VRInitError_None)
+	{
 		// Set origins so that proper offsets for each coordinate system can be found
 		KinectSettings::trackingOrigin = m_VRSystem->GetRawZeroPoseToStandingAbsoluteTrackingPose();
 		KinectSettings::trackingOriginPosition = GetVRPositionFromMatrix(KinectSettings::trackingOrigin);
 		double yaw = std::atan2(KinectSettings::trackingOrigin.m[0][2], KinectSettings::trackingOrigin.m[2][2]);
-		if (yaw < 0.0) {
+		if (yaw < 0.0)
+		{
 			yaw = 2 * M_PI + yaw;
 		}
 		KinectSettings::svrhmdyaw = yaw;
@@ -291,17 +327,16 @@ void processLoop(KinectHandlerBase& kinect) {
 		guiRef.loadK2VRIntoBindingsMenu(m_VRSystem);
 	}
 	// Function pointer for the currently selected calibration method, which can be swapped out for the others
-		// Only one calibration method can be active at a time
+	// Only one calibration method can be active at a time
 	std::function<void
-	(double deltaT,
-		KinectHandlerBase& kinect,
-		vr::VRActionHandle_t& h_horizontalPos,
-		vr::VRActionHandle_t& h_verticalPos,
-		vr::VRActionHandle_t& h_confirmPos,
-		GUIHandler& guiRef)>
+			(double deltaT,
+			 KinectHandlerBase& kinect,
+			 vr::VRActionHandle_t& h_horizontalPos,
+			 vr::VRActionHandle_t& h_verticalPos,
+			 vr::VRActionHandle_t& h_confirmPos,
+			 GUIHandler& guiRef)>
 		currentCalibrationMethod = ManualCalibrator::Calibrate;
 	guiRef.updateVRStatusLabel(eError);
-
 
 
 	KinectSettings::userChangingZero = true;
@@ -357,22 +392,26 @@ void processLoop(KinectHandlerBase& kinect) {
 		SFMLsettings::debugDisplayTextStream << "FPS Start = " << 1.0 / deltaT << '\n';
 		//std::cout << SFMLsettings::debugDisplayTextStream.str() << std::endl;
 
-		if (timingClock.getElapsedTime() > time_lastGuiDesktopUpdate + sf::milliseconds(33)) {
+		if (timingClock.getElapsedTime() > time_lastGuiDesktopUpdate + sf::milliseconds(33))
+		{
 			sf::Event event;
 
 			while (renderWindow.pollEvent(event))
 			{
 				guiRef.desktopHandleEvents(event);
-				if (event.type == sf::Event::Closed) {
+				if (event.type == sf::Event::Closed)
+				{
 					SFMLsettings::keepRunning = false;
 					KinectSettings::initialised = false;
 					renderWindow.close();
 					break;
 				}
-				if (event.type == sf::Event::KeyPressed) {
+				if (event.type == sf::Event::KeyPressed)
+				{
 					processKeyEvents(event);
 				}
-				if (event.type == sf::Event::Resized) {
+				if (event.type == sf::Event::Resized)
+				{
 					std::cerr << "HELP I AM RESIZING!\n";
 					//sf::Vector2f size = static_cast<sf::Vector2f>(renderWindow.getSize());
 					sf::Vector2f size = sf::Vector2f(event.size.width, event.size.height);
@@ -387,9 +426,10 @@ void processLoop(KinectHandlerBase& kinect) {
 
 					// Reset grid view
 					mGridView.setCenter(size / 2.f);
-					mGridView.setSize(size); // = sf::View(sf::FloatRect(mGridView.getCenter().x, mGridView.getCenter().y, mGridView.getSize().x+(mGridView.getSize().x - size.x), mGridView.getSize().y+(mGridView.getSize().y - size.y)));
+					mGridView.setSize(size);
+					// = sf::View(sf::FloatRect(mGridView.getCenter().x, mGridView.getCenter().y, mGridView.getSize().x+(mGridView.getSize().x - size.x), mGridView.getSize().y+(mGridView.getSize().y - size.y)));
 
-											 // Reset  GUI view
+					// Reset  GUI view
 					mGUIView = sf::View(sf::FloatRect(0.f, 0.f, size.x, size.y));
 					//mGUIView.setCenter(size / 2.f);
 					renderWindow.setView(mGUIView);
@@ -399,7 +439,8 @@ void processLoop(KinectHandlerBase& kinect) {
 					guiRef.updateWithNewWindowSize(size);
 				}
 			}
-			if (!(renderWindow.isOpen() && SFMLsettings::keepRunning)) {
+			if (!(renderWindow.isOpen() && SFMLsettings::keepRunning))
+			{
 				// Possible for window to be closed mid-loop, in which case, instead of using goto's
 				// this is used to avoid glErrors that crash the program, and prevent proper
 				// destruction and cleaning up
@@ -419,21 +460,25 @@ void processLoop(KinectHandlerBase& kinect) {
 		}
 
 		//Update VR Components
-		if (eError == vr::VRInitError_None) {
+		if (eError == vr::VRInitError_None)
+		{
 			rightController.update(deltaT);
 			leftController.update(deltaT);
-			
+
 			updateHMDPosAndRot(m_VRSystem);
 
 			/*std::cout << "X: " << float(int(rightController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad).x*10))/10.f <<
 				" Y: " << float(int(rightController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad).y*10))/10.f << 
 				" T: " << rightController.GetTrigger() << '\n';*/
-			
+
 			/***********************************************************************************************/
 			std::cout <<
-				"Left: " << KinectSettings::hidariashimove.Pose.Position.x << ' ' << KinectSettings::hidariashimove.Pose.Position.y << ' ' << KinectSettings::hidariashimove.Pose.Position.z << '\n' <<
-				"Right: " << KinectSettings::migiashimove.Pose.Position.x << ' ' << KinectSettings::migiashimove.Pose.Position.y << ' ' << KinectSettings::migiashimove.Pose.Position.z << '\n' <<
-				"Waist: " << KinectSettings::yobumove.Pose.Position.x << ' ' << KinectSettings::yobumove.Pose.Position.y << ' ' << KinectSettings::yobumove.Pose.Position.z << "\n\n";
+				"Left: " << KinectSettings::hidariashimove.Pose.Position.x << ' ' << KinectSettings::hidariashimove.Pose
+				.Position.y << ' ' << KinectSettings::hidariashimove.Pose.Position.z << '\n' <<
+				"Right: " << KinectSettings::migiashimove.Pose.Position.x << ' ' << KinectSettings::migiashimove.Pose.
+				Position.y << ' ' << KinectSettings::migiashimove.Pose.Position.z << '\n' <<
+				"Waist: " << KinectSettings::yobumove.Pose.Position.x << ' ' << KinectSettings::yobumove.Pose.Position.y
+				<< ' ' << KinectSettings::yobumove.Pose.Position.z << "\n\n";
 			/***********************************************************************************************/
 
 			VRInput::trackpadpose[0].x = rightController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad).x;
@@ -448,7 +493,8 @@ void processLoop(KinectHandlerBase& kinect) {
 			KinectSettings::isTriggerPressed[1] = leftController.GetTrigger();
 
 			// EWWWWWWWWW -------------
-			if (VRInput::legacyInputModeEnabled) {
+			if (VRInput::legacyInputModeEnabled)
+			{
 				using namespace VRInput;
 				moveHorizontallyData.bActive = true;
 				auto leftStickValues = leftController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad);
@@ -467,7 +513,8 @@ void processLoop(KinectHandlerBase& kinect) {
 			// -------------------------
 		}
 
-		for (auto& device_ptr : v_deviceHandlers) {
+		for (auto& device_ptr : v_deviceHandlers)
+		{
 			if (device_ptr->active) device_ptr->run();
 		}
 
@@ -475,12 +522,14 @@ void processLoop(KinectHandlerBase& kinect) {
 
 		// Update Kinect Status
 		// Only needs to be updated sparingly
-		if (timingClock.getElapsedTime() > time_lastKinectStatusUpdate + sf::seconds(2.0)) {
+		if (timingClock.getElapsedTime() > time_lastKinectStatusUpdate + sf::seconds(2.0))
+		{
 			guiRef.updateKinectStatusLabel(kinect);
 			time_lastKinectStatusUpdate = timingClock.getElapsedTime();
 		}
 
-		if (kinect.isInitialised()) {
+		if (kinect.isInitialised())
+		{
 			kinect.update();
 			if (KinectSettings::adjustingKinectRepresentationPos
 				|| KinectSettings::adjustingKinectRepresentationRot)
@@ -494,61 +543,79 @@ void processLoop(KinectHandlerBase& kinect) {
 
 			//kinect.updateTrackersWithSkeletonPosition(v_trackers);
 
-			for (auto& method_ptr : v_trackingMethods) {
+			for (auto& method_ptr : v_trackingMethods)
+			{
 				method_ptr->update(kinect, v_trackers);
 				method_ptr->updateTrackers(kinect, v_trackers);
 			}
-			for (auto& tracker : v_trackers) {
+			for (auto& tracker : v_trackers)
+			{
 				tracker.update();
 			}
-			
+
 			//renderWindow.clear();
 			kinect.drawKinectData(renderWindow);
 		}
 
-		if (footOrientationFilterOption.filterOption != footRotationFilterOption(guiRef.coptbox->GetSelectedItem())) {
-			footOrientationFilterOption.filterOption = footRotationFilterOption(guiRef.coptbox->GetSelectedItem());
+		if (footOrientationFilterOption.filterOption != static_cast<footRotationFilterOption>(guiRef.coptbox->
+			GetSelectedItem()))
+		{
+			footOrientationFilterOption.filterOption = static_cast<footRotationFilterOption>(guiRef.coptbox->
+				GetSelectedItem());
 			VirtualHips::settings.footOption = guiRef.coptbox->GetSelectedItem();
 
 			VirtualHips::saveSettings();
 		}
-		if (hipsOrientationFilterOption.filterOption != hipsRotationFilterOption(guiRef.coptbox1->GetSelectedItem())) {
-			hipsOrientationFilterOption.filterOption = hipsRotationFilterOption(guiRef.coptbox1->GetSelectedItem());
+		if (hipsOrientationFilterOption.filterOption != static_cast<hipsRotationFilterOption>(guiRef.coptbox1->
+			GetSelectedItem()))
+		{
+			hipsOrientationFilterOption.filterOption = static_cast<hipsRotationFilterOption>(guiRef.coptbox1->
+				GetSelectedItem());
 			VirtualHips::settings.hipsOption = guiRef.coptbox1->GetSelectedItem();
 
 			VirtualHips::saveSettings();
 		}
-		if (positionFilterOption.filterOption != positionalFilterOption(guiRef.foptbox->GetSelectedItem())) {
-			positionFilterOption.filterOption = positionalFilterOption(guiRef.foptbox->GetSelectedItem());
+		if (positionFilterOption.filterOption != static_cast<positionalFilterOption>(guiRef.foptbox->GetSelectedItem()))
+		{
+			positionFilterOption.filterOption = static_cast<positionalFilterOption>(guiRef.foptbox->GetSelectedItem());
 			VirtualHips::settings.posOption = guiRef.foptbox->GetSelectedItem();
 
 			VirtualHips::saveSettings();
 		}
-		if (kontororaTorakkinguOpushon.trackingOption != kontororaTorakkinguOpu(guiRef.contrackingselectbox->GetSelectedItem())) {
-			kontororaTorakkinguOpushon.trackingOption = kontororaTorakkinguOpu(guiRef.contrackingselectbox->GetSelectedItem());
+		if (kontororaTorakkinguOpushon.trackingOption != static_cast<kontororaTorakkinguOpu>(guiRef.contrackingselectbox
+			->GetSelectedItem()))
+		{
+			kontororaTorakkinguOpushon.trackingOption = static_cast<kontororaTorakkinguOpu>(guiRef.contrackingselectbox
+				->GetSelectedItem());
 			VirtualHips::settings.conOption = guiRef.contrackingselectbox->GetSelectedItem();
 
 			VirtualHips::saveSettings();
 		}
-		if (bodiTorakkinguOpushon.trackingOption != bodiTorakkinguOpu(guiRef.bodytrackingselectbox->GetSelectedItem())) {
-			bodiTorakkinguOpushon.trackingOption = bodiTorakkinguOpu(guiRef.bodytrackingselectbox->GetSelectedItem());
+		if (bodiTorakkinguOpushon.trackingOption != static_cast<bodiTorakkinguOpu>(guiRef.bodytrackingselectbox->
+			GetSelectedItem()))
+		{
+			bodiTorakkinguOpushon.trackingOption = static_cast<bodiTorakkinguOpu>(guiRef.bodytrackingselectbox->
+				GetSelectedItem());
 			VirtualHips::settings.bodyTrackingOption = guiRef.bodytrackingselectbox->GetSelectedItem();
 
 			VirtualHips::saveSettings();
 		}
-		if (atamaTorakkinguOpushon.trackingOption != atamaTorakkinguOpu(guiRef.headtrackingselectbox->GetSelectedItem())) {
-			atamaTorakkinguOpushon.trackingOption = atamaTorakkinguOpu(guiRef.headtrackingselectbox->GetSelectedItem());
+		if (atamaTorakkinguOpushon.trackingOption != static_cast<atamaTorakkinguOpu>(guiRef.headtrackingselectbox->
+			GetSelectedItem()))
+		{
+			atamaTorakkinguOpushon.trackingOption = static_cast<atamaTorakkinguOpu>(guiRef.headtrackingselectbox->
+				GetSelectedItem());
 			VirtualHips::settings.headTrackingOption = guiRef.headtrackingselectbox->GetSelectedItem();
 
 			VirtualHips::saveSettings();
 		}
 
-		if (VirtualHips::settings.bodyTrackingOption == bodiTorakkinguOpu::k_PSMoveFullTracking)
+		if (VirtualHips::settings.bodyTrackingOption == k_PSMoveFullTracking)
 			guiRef.psmidbox->Show(true);
 		else
 			guiRef.psmidbox->Show(false);
 
-		if (VirtualHips::settings.headTrackingOption == atamaTorakkinguOpu::k_PSMoveTracking)
+		if (VirtualHips::settings.headTrackingOption == k_PSMoveTracking)
 			guiRef.psmidbox1->Show(true);
 		else
 			guiRef.psmidbox1->Show(false);
@@ -582,19 +649,21 @@ void processLoop(KinectHandlerBase& kinect) {
 		renderWindow.resetGLStates();
 		//End Frame
 		renderWindow.display();
-
 	}
-	for (auto& device_ptr : v_deviceHandlers) {
+	for (auto& device_ptr : v_deviceHandlers)
+	{
 		device_ptr->shutdown();
 	}
-	for (KinectTrackedDevice d : v_trackers) {
+	for (KinectTrackedDevice d : v_trackers)
+	{
 		d.destroy();
 	}
 	KinectSettings::writeKinectSettings();
 	VirtualHips::saveSettings();
 
 	//playspaceMovementAdjuster.resetPlayspaceAdjustments();
-	if (eError == vr::EVRInitError::VRInitError_None) {
+	if (eError == vr::EVRInitError::VRInitError_None)
+	{
 		removeTrackerRolesInVRSettings();
 		vr::VR_Shutdown();
 	}
@@ -602,16 +671,18 @@ void processLoop(KinectHandlerBase& kinect) {
 
 void spawnDefaultLowerBodyTrackers()
 {
-	std::thread* activate = new std::thread([] {
-		HANDLE pingPipe = CreateFile(TEXT("\\\\.\\pipe\\TrackersInitPipe"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+	std::thread* activate = new std::thread([]
+	{
+		HANDLE pingPipe = CreateFile(
+			TEXT("\\\\.\\pipe\\TrackersInitPipe"), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr);
 		DWORD Written;
-		
-		std::string InitS = "Initializus totalus!";
+
+		std::string InitS = "Initialize Trackers!";
 
 		char InitD[1024];
 		strcpy_s(InitD, InitS.c_str());
 
-		WriteFile(pingPipe, InitD, sizeof(InitD), &Written, NULL);
+		WriteFile(pingPipe, InitD, sizeof(InitD), &Written, nullptr);
 		CloseHandle(pingPipe);
-		});
+	});
 }

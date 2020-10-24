@@ -1,56 +1,101 @@
 #pragma once
 #include "IKinectHandler.h"
-#include <opencv2\opencv.hpp>
+#include <opencv2/opencv.hpp>
 #include "KinectTrackedDevice.h"
-class KinectHandlerBase : public IKinectHandler {
+
+class KinectHandlerBase : public IKinectHandler
+{
 public:
-    KinectHandlerBase() {
+	KinectHandlerBase()
+	{
+	}
 
-    }
-    ~KinectHandlerBase() {
+	~KinectHandlerBase()
+	{
+	}
 
-    }
-    bool convertColorToDepthResolution = false;
-    // Color Buffer
-    std::vector<BYTE> colorBuffer;
-    int colorWidth;
-    int colorHeight;
-    unsigned int colorBytesPerPixel;
-    cv::Mat colorMat;
+	bool convertColorToDepthResolution = false;
+	// Color Buffer
+	std::vector<BYTE> colorBuffer;
+	int colorWidth;
+	int colorHeight;
+	unsigned int colorBytesPerPixel;
+	cv::Mat colorMat;
 
-    // Depth Buffer
-    std::vector<UINT16> depthBuffer;
-    int depthWidth;
-    int depthHeight;
-    unsigned int depthBytesPerPixel;
-    cv::Mat depthMat;
+	// Depth Buffer
+	std::vector<UINT16> depthBuffer;
+	int depthWidth;
+	int depthHeight;
+	unsigned int depthBytesPerPixel;
+	cv::Mat depthMat;
 
-    virtual void initOpenGL() {};
-    virtual void initialise() {};
+	void initOpenGL() override
+	{
+	};
 
-    virtual void initialiseSkeleton() {};
-    virtual void initialiseColor() {};
-    virtual void initialiseDepth() {};
+	void initialise() override
+	{
+	};
 
-    virtual void terminateSkeleton() {};
-    virtual void terminateColor() {};
-    virtual void terminateDepth() {};
+	virtual void initialiseSkeleton()
+	{
+	};
 
-    virtual HRESULT getStatusResult() { return E_NOTIMPL; }
-    virtual std::string statusResultString(HRESULT stat) { return "statusResultString behaviour not defined"; };
-    virtual bool getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdVector3d_t& position, vr::HmdQuaternion_t &rotation) { return false; };
+	virtual void initialiseColor()
+	{
+	};
 
-    virtual void update() {};
+	virtual void initialiseDepth()
+	{
+	};
 
-    virtual bool putRGBDataIntoMatrix(cv::Mat& image) { return false; }
-    virtual void drawKinectData(sf::RenderWindow &win) {};  // Houses the below draw functions with a check
-    virtual void drawKinectImageData(sf::RenderWindow &win) {};
-    virtual void drawTrackedSkeletons(sf::RenderWindow &win) {};
+	virtual void terminateSkeleton()
+	{
+	};
 
-    virtual void zeroAllTracking(vr::IVRSystem* &m_sys) {};
-    virtual void updateTrackersWithSkeletonPosition(
-        std::vector<KVR::KinectTrackedDevice> & trackers
-    ) {};
-    virtual void updateTrackersWithColorPosition(
-        std::vector<KVR::KinectTrackedDevice> trackers, sf::Vector2i pos) {}
+	virtual void terminateColor()
+	{
+	};
+
+	virtual void terminateDepth()
+	{
+	};
+
+	HRESULT getStatusResult() override { return E_NOTIMPL; }
+	std::string statusResultString(HRESULT stat) override { return "statusResultString behaviour not defined"; };
+
+	virtual bool getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdVector3d_t& position,
+	                              vr::HmdQuaternion_t& rotation) { return false; };
+
+	void update() override
+	{
+	};
+
+	bool putRGBDataIntoMatrix(cv::Mat& image) override { return false; }
+
+	void drawKinectData(sf::RenderWindow& win) override
+	{
+	}; // Houses the below draw functions with a check
+	void drawKinectImageData(sf::RenderWindow& win) override
+	{
+	};
+
+	void drawTrackedSkeletons(sf::RenderWindow& win) override
+	{
+	};
+
+	void zeroAllTracking(vr::IVRSystem* & m_sys) override
+	{
+	};
+
+	void updateTrackersWithSkeletonPosition(
+		std::vector<KVR::KinectTrackedDevice>& trackers
+	) override
+	{
+	};
+
+	virtual void updateTrackersWithColorPosition(
+		std::vector<KVR::KinectTrackedDevice> trackers, sf::Vector2i pos)
+	{
+	}
 };

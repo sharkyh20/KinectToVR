@@ -5,10 +5,16 @@
 #include "GamepadController.h"
 #include "GUIHandler.h"
 
-class Calibrator {
-    static void Calibrate(
-        double deltaT,
-        KinectHandlerBase kinect,
-        GUIHandler &guiRef) {}
-    static void Calibrate(double deltaT, GamepadController gamepad, GUIHandler &guiRef) {}
+class Calibrator
+{
+	static void Calibrate(
+		double deltaT,
+		KinectHandlerBase kinect,
+		GUIHandler& guiRef)
+	{
+	}
+
+	static void Calibrate(double deltaT, GamepadController gamepad, GUIHandler& guiRef)
+	{
+	}
 };

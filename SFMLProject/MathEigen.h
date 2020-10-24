@@ -28,42 +28,56 @@ namespace Eigen
 	// y - up - heading axis - applied first
 	// z - right - attitude axis - applied second
 	template <typename T>
-	class EulerAngles : public Eigen::Matrix<T, 3, 1>
+	class EulerAngles : public Matrix<T, 3, 1>
 	{
 	public:
-		inline EulerAngles() : Eigen::Matrix<T, 3, 1>() {}
-		inline EulerAngles(const Eigen::Matrix<T, 3, 1>& e)
+		EulerAngles() : Matrix<T, 3, 1>()
+		{
+		}
+
+		EulerAngles(const Matrix<T, 3, 1>& e)
 		{
 			set(e.x(), e.y(), e.z());
 		}
-		inline EulerAngles(T bank_radians, T heading_radians, T attitude_radians)
+
+		EulerAngles(T bank_radians, T heading_radians, T attitude_radians)
 		{
 			set(bank_radians, heading_radians, attitude_radians);
 		}
 
-		inline T get_x_radians() const { return (*this)(0, 0); }
-		inline T get_y_radians() const { return (*this)(1, 0); }
-		inline T get_z_radians() const { return (*this)(2, 0); }
+		T get_x_radians() const { return (*this)(0, 0); }
+		T get_y_radians() const { return (*this)(1, 0); }
+		T get_z_radians() const { return (*this)(2, 0); }
 
-		inline T get_x_degrees() const { return static_cast<T>((*this)(0, 0) * k_real64_radians_to_degreees); }
-		inline T get_y_degrees() const { return static_cast<T>((*this)(1, 0) * k_real64_radians_to_degreees); }
-		inline T get_z_degrees() const { return static_cast<T>((*this)(2, 0) * k_real64_radians_to_degreees); }
+		T get_x_degrees() const { return static_cast<T>((*this)(0, 0) * k_real64_radians_to_degreees); }
+		T get_y_degrees() const { return static_cast<T>((*this)(1, 0) * k_real64_radians_to_degreees); }
+		T get_z_degrees() const { return static_cast<T>((*this)(2, 0) * k_real64_radians_to_degreees); }
 
-		inline T get_bank_radians() const { return get_x_radians(); }
-		inline T get_heading_radians() const { return get_y_radians(); }
-		inline T get_attitude_radians() const { return get_z_radians(); }
+		T get_bank_radians() const { return get_x_radians(); }
+		T get_heading_radians() const { return get_y_radians(); }
+		T get_attitude_radians() const { return get_z_radians(); }
 
-		inline T get_bank_degrees() const { return get_x_degrees(); }
-		inline T get_heading_degrees() const { return get_y_degrees(); }
-		inline T get_attitude_degrees() const { return get_z_degrees(); }
+		T get_bank_degrees() const { return get_x_degrees(); }
+		T get_heading_degrees() const { return get_y_degrees(); }
+		T get_attitude_degrees() const { return get_z_degrees(); }
 
-		inline void set(T bank_radians, T heading_radians, T attitude_radians)
+		void set(T bank_radians, T heading_radians, T attitude_radians)
 		{
-			(*this)(0, 0) = (T)wrap_ranged((T)bank_radians, -k_real64_pi - k_real64_normal_epsilon, k_real64_pi + k_real64_normal_epsilon); // bank in range [-180,180], applied third
-			(*this)(1, 0) = (T)wrap_ranged((T)heading_radians, -k_real64_pi - k_real64_normal_epsilon, k_real64_pi + k_real64_normal_epsilon); // heading in range [-180,180], applied first
-			(*this)(2, 0) = (T)wrap_ranged((T)attitude_radians, -k_real64_half_pi - k_real64_normal_epsilon, k_real64_half_pi + k_real64_normal_epsilon); // attitude in range [-90,90], applied second
+			(*this)(0, 0) = static_cast<T>(wrap_ranged(static_cast<T>(bank_radians),
+			                                           -k_real64_pi - k_real64_normal_epsilon,
+			                                           k_real64_pi + k_real64_normal_epsilon));
+			// bank in range [-180,180], applied third
+			(*this)(1, 0) = static_cast<T>(wrap_ranged(static_cast<T>(heading_radians),
+			                                           -k_real64_pi - k_real64_normal_epsilon,
+			                                           k_real64_pi + k_real64_normal_epsilon));
+			// heading in range [-180,180], applied first
+			(*this)(2, 0) = static_cast<T>(wrap_ranged(static_cast<T>(attitude_radians),
+			                                           -k_real64_half_pi - k_real64_normal_epsilon,
+			                                           k_real64_half_pi + k_real64_normal_epsilon));
+			// attitude in range [-90,90], applied second
 		}
 	};
+
 	typedef EulerAngles<float> EulerAnglesf;
 	typedef EulerAngles<double> EulerAnglesd;
 };
@@ -93,13 +107,15 @@ eigen_quaternion_concatenate(const Eigen::Quaternion<T>& first, const Eigen::Qua
 }
 
 Eigen::Quaternionf
-eigen_quaternion_normalized_lerp(const Eigen::Quaternionf& a, const Eigen::Quaternionf& b, const float u);
+eigen_quaternion_normalized_lerp(const Eigen::Quaternionf& a, const Eigen::Quaternionf& b, float u);
 
 Eigen::Quaternionf
-eigen_quaternion_safe_divide_with_default(const Eigen::Quaternionf& q, const float divisor, const Eigen::Quaternionf& default_result);
+eigen_quaternion_safe_divide_with_default(const Eigen::Quaternionf& q, float divisor,
+                                          const Eigen::Quaternionf& default_result);
 
 Eigen::Quaterniond
-eigen_quaterniond_safe_divide_with_default(const Eigen::Quaterniond& q, const double divisor, const Eigen::Quaterniond& default_result);
+eigen_quaterniond_safe_divide_with_default(const Eigen::Quaterniond& q, double divisor,
+                                           const Eigen::Quaterniond& default_result);
 
 float
 eigen_quaternion_normalize_with_default(Eigen::Quaternionf& inout_v, const Eigen::Quaternionf& default_result);

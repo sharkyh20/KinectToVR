@@ -2,8 +2,8 @@
 #include <stdexcept>
 #include <Eigen/Dense>
 
-class KalmanFilter {
-
+class KalmanFilter
+{
 public:
 	KalmanFilter::KalmanFilter(
 		double dt,
@@ -13,15 +13,18 @@ public:
 		const Eigen::MatrixXd& R,
 		const Eigen::MatrixXd& P)
 		: A(A), C(C), Q(Q), R(R), P0(P),
-		m(C.rows()), n(A.rows()), dt(dt), initialized(false),
-		I(n, n), x_hat(n), x_hat_new(n)
+		  m(C.rows()), n(A.rows()), dt(dt), initialized(false),
+		  I(n, n), x_hat(n), x_hat_new(n)
 	{
 		I.setIdentity();
 	}
 
-	KalmanFilter::KalmanFilter() {}
+	KalmanFilter::KalmanFilter()
+	{
+	}
 
-	void KalmanFilter::init(double t0, const Eigen::VectorXd& x0) {
+	void KalmanFilter::init(double t0, const Eigen::VectorXd& x0)
+	{
 		x_hat = x0;
 		P = P0;
 		this->t0 = t0;
@@ -29,7 +32,8 @@ public:
 		initialized = true;
 	}
 
-	void KalmanFilter::init() {
+	void KalmanFilter::init()
+	{
 		x_hat.setZero();
 		P = P0;
 		t0 = 0;
@@ -37,8 +41,8 @@ public:
 		initialized = true;
 	}
 
-	void KalmanFilter::update(const Eigen::VectorXd& y) {
-
+	void KalmanFilter::update(const Eigen::VectorXd& y)
+	{
 		if (!initialized)
 			throw std::runtime_error("Filter is not initialized!");
 
@@ -52,8 +56,8 @@ public:
 		t += dt;
 	}
 
-	void KalmanFilter::update(const Eigen::VectorXd& y, double dt, const Eigen::MatrixXd A) {
-
+	void KalmanFilter::update(const Eigen::VectorXd& y, double dt, const Eigen::MatrixXd A)
+	{
 		this->A = A;
 		this->dt = dt;
 		update(y);
