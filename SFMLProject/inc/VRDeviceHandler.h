@@ -43,7 +43,7 @@ struct VirtualHipSettings
 	bool astartk = false;
 	bool astarth = false;
 	bool astartt = false;
-	float tryawst;
+	float tryawst, kinpitchst;
 	int autosver = 1;
 	int footOption, hipsOption, posOption = 3, conOption;
 	int bodyTrackingOption = 1, headTrackingOption = 1;
@@ -105,6 +105,8 @@ struct VirtualHipSettings
 			CEREAL_NVP(autosver),
 			CEREAL_NVP(astarth),
 			CEREAL_NVP(tryawst),
+			CEREAL_NVP(kinpitchst),
+
 			CEREAL_NVP(rtcalib),
 			CEREAL_NVP(heightFromHMD),
 			CEREAL_NVP(positionAccountsForFootTrackers),
@@ -211,6 +213,7 @@ namespace VirtualHips
 
 				KinectSettings::rtcalibrated = settings.rtcalib;
 				KinectSettings::tryaw = settings.tryawst;
+				KinectSettings::kinpitch = settings.kinpitchst;
 
 				KinectSettings::hauoffset.v[0] = settings.hauoffset_s(0);
 				KinectSettings::hauoffset.v[1] = settings.hauoffset_s(1);

@@ -2,25 +2,17 @@
 #include "KinectSettings.h"
 #include <cereal/archives/json.hpp>
 #include <cereal/cereal.hpp>
-#include <cereal/types/array.hpp>
-#include <cereal/types/string.hpp>
-#include <cereal/types/vector.hpp>
 #include <cereal/types/memory.hpp>
-#include <cereal/types/base_class.hpp>
-#include <cereal/archives/binary.hpp>
-#include <cereal/types/common.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <LowPassFilter.h>
 #include <EKF_Filter.h>
 #include <MathEigen.h>
 #include <iostream>
 #include <fstream>
-
 #include "wtypes.h"
 
 #include <Windows.h>
 #include <codecvt>
-
 #include <openvr_math.h>
 
 namespace KinectSettings
@@ -30,7 +22,7 @@ namespace KinectSettings
 	bool psmbuttons[5][10];
 	bool isKinectDrawn = false;
 	bool isSkeletonDrawn = false;
-	float svrhmdyaw = 0;
+	float svrhmdyaw = 0, kinpitch = 0;
 	int psmh, psmm;
 	std::vector<int> psmindexidpsm[2];
 	int flashnow[2];
@@ -152,6 +144,7 @@ namespace KinectSettings
 	Eigen::Quaternionf quatf[2];
 	glm::quat btrackeroffset[3];
 	glm::vec3 joy[2] = {glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)};
+	glm::quat trackerRoth, trackerRotm, trackerRoty;
 
 	void sendipc()
 	{
@@ -198,7 +191,6 @@ namespace KinectSettings
 		while (true)
 		{
 			auto t1 = std::chrono::high_resolution_clock::now();
-			glm::quat trackerRoth, trackerRotm, trackerRoty;
 
 			if (bodytrackingoption == k_PSMoveFullTracking)
 			{
@@ -502,17 +494,17 @@ namespace KinectSettings
 					unofu[2] += glm::vec3(0.f, tryaw * M_PI / 180, 0.f);
 					if (flip)
 					{
-						//unofu[0] += glm::vec3(0.f, M_PI, 0.f);
-						//unofu[1] += glm::vec3(0.f, M_PI, 0.f);
-						//unofu[2] += glm::vec3(0.f, M_PI, 0.f);
+						//unofu[0] += glm::vec3(0.f, M_PI, M_PI);
+						//unofu[1] += glm::vec3(0.f, M_PI, M_PI);
+						//unofu[2] += glm::vec3(0.f, M_PI, M_PI);
 
 						unofu[0] += glm::vec3(0.f, 0.f, M_PI);
 						unofu[1] += glm::vec3(0.f, 0.f, M_PI);
 						unofu[2] += glm::vec3(0.f, 0.f, M_PI);
 
-						trackerRoth = glm::vec3(/*unofu[0].x*/ 0.f, -unofu[0].y, unofu[0].z);
-						trackerRotm = glm::vec3(/*unofu[1].x*/ 0.f, -unofu[1].y, unofu[1].z);
-						trackerRoty = glm::vec3(/*unofu[2].x*/ 0.f, -unofu[2].y, unofu[2].z);
+						trackerRoth = glm::vec3(/*unofu[0].x*/ 0.f, unofu[0].y, unofu[0].z);
+						trackerRotm = glm::vec3(/*unofu[1].x*/ 0.f, unofu[1].y, unofu[1].z);
+						trackerRoty = glm::vec3(/*unofu[2].x*/ 0.f, unofu[2].y, unofu[2].z);
 					}
 					else
 					{
@@ -559,6 +551,17 @@ namespace KinectSettings
 					PointSet Hf2 = (R_matT * (Hf - calorigin)).colwise() + T_matT + calorigin;
 					PointSet Mf2 = (R_matT * (Mf - calorigin)).colwise() + T_matT + calorigin;
 					PointSet Hp2 = (R_matT * (Hp - calorigin)).colwise() + T_matT + calorigin;
+
+					/*******************************************************/
+					if (flip)
+					{
+						glm::quat qy_quat(glm::vec3(-glm::radians(kinpitch) / 2, 2 * M_PI, 0.f)),
+							qy_quat_hips(glm::vec3(0.f, 2 * M_PI, 0.f));
+						trackerRoth *= qy_quat;
+						trackerRotm *= qy_quat;
+						trackerRoty *= qy_quat_hips;
+					}
+					/*******************************************************/
 
 					S << "HX" << 10000 * (Hf2(0) + moffsets[0][1].v[0] + troffsets.v[0]) <<
 						"/HY" << 10000 * (Hf2(1) + moffsets[0][1].v[1] + troffsets.v[1]) <<

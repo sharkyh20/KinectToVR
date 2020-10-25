@@ -124,6 +124,7 @@ namespace KinectSettings
 	extern bool isCalibrating, isKinectPSMS;
 
 	extern PSMPSMove migiMove, hidariMove, hidariashimove, migiashimove, yobumove, atamamove;
+	extern glm::quat trackerRoth, trackerRotm, trackerRoty;
 	extern bool isGripPressed[2], isTriggerPressed[2]; //0L, 1R
 	extern bool isKinectDrawn;
 	extern bool isSkeletonDrawn;
@@ -140,7 +141,7 @@ namespace KinectSettings
 	extern float g_TrackedBoneThickness;
 	extern float g_InferredBoneThickness;
 	extern float g_JointThickness;
-	extern float hmdYaw;
+	extern float hmdYaw, kinpitch;
 	extern int flashnow[2];
 	extern bool conActivated;
 	extern std::vector<int> psmindexidpsm[2];

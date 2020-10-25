@@ -2734,19 +2734,25 @@ public:
 								KinectSettings::R_matT = settings.rcR_matT;
 								KinectSettings::T_matT = settings.rcT_matT;
 								KinectSettings::tryaw = settings.tryawst;
+
+								KinectSettings::kinpitch = settings.kinpitchst;
 								calibrationAbort = true;
 								break;
 							}
 						}
 
 						std::this_thread::sleep_for(std::chrono::seconds(1));
-
+						
 						if (!calibrationAbort)
 						{
 							settings.caliborigin = KinectSettings::calorigin;
 							settings.rcR_matT = KinectSettings::R_matT;
 							settings.rcT_matT = KinectSettings::T_matT;
 							settings.tryawst = glm::degrees(yawtmp);
+							
+							KinectSettings::kinpitch = 
+								(glm::degrees(eulerAngles(KinectSettings::trackerRoth).x) + glm::degrees(eulerAngles(KinectSettings::trackerRoth).y)) / 2;
+							settings.kinpitchst = KinectSettings::kinpitch;
 						}
 
 						KinectSettings::rtcalibrated = true;
@@ -2844,6 +2850,8 @@ public:
 							KinectSettings::R_matT = settings.rcR_matT;
 							KinectSettings::T_matT = settings.rcT_matT;
 							KinectSettings::tryaw = settings.tryawst;
+
+							KinectSettings::kinpitch = settings.kinpitchst;
 							calibrationAbort = true;
 						}
 
@@ -2913,6 +2921,8 @@ public:
 							KinectSettings::R_matT = settings.rcR_matT;
 							KinectSettings::T_matT = settings.rcT_matT;
 							KinectSettings::tryaw = settings.tryawst;
+
+							KinectSettings::kinpitch = settings.kinpitchst;
 							calibrationAbort = true;
 						}
 
@@ -2939,6 +2949,10 @@ public:
 
 							KinectSettings::tryaw = glm::degrees(yaw);
 							settings.tryawst = glm::degrees(yaw);
+
+							KinectSettings::kinpitch =
+								(glm::degrees(eulerAngles(KinectSettings::trackerRoth).x) + glm::degrees(eulerAngles(KinectSettings::trackerRoth).y)) / 2;
+							settings.kinpitchst = KinectSettings::kinpitch;
 
 							KinectSettings::calorigin = Eigen::Vector3f(0, 0, 0);
 							settings.caliborigin = KinectSettings::calorigin;

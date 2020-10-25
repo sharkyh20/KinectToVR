@@ -595,71 +595,71 @@ void KinectV1Handler::updateSkeletalData()
 
 		//calculate direction vectors
 		glm::vec3 up(0, 1, 0),
-			ankleLeftPose(
-				jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].x,
-				jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].y,
-				jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].z),
+		          ankleLeftPose(
+			          jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].x,
+			          jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].y,
+			          jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].z),
 
-			ankleRightPose(
-				jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].x,
-				jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].y,
-				jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].z),
+		          ankleRightPose(
+			          jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].x,
+			          jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].y,
+			          jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].z),
 
-			footLeftPose(
-				jointPositions[convertJoint(KVR::KinectJointType::FootLeft)].x,
-				jointPositions[convertJoint(KVR::KinectJointType::FootLeft)].y,
-				jointPositions[convertJoint(KVR::KinectJointType::FootLeft)].z),
+		          footLeftPose(
+			          jointPositions[convertJoint(KVR::KinectJointType::FootLeft)].x,
+			          jointPositions[convertJoint(KVR::KinectJointType::FootLeft)].y,
+			          jointPositions[convertJoint(KVR::KinectJointType::FootLeft)].z),
 
-			footRightPose(
-				jointPositions[convertJoint(KVR::KinectJointType::FootRight)].x,
-				jointPositions[convertJoint(KVR::KinectJointType::FootRight)].y,
-				jointPositions[convertJoint(KVR::KinectJointType::FootRight)].z),
+		          footRightPose(
+			          jointPositions[convertJoint(KVR::KinectJointType::FootRight)].x,
+			          jointPositions[convertJoint(KVR::KinectJointType::FootRight)].y,
+			          jointPositions[convertJoint(KVR::KinectJointType::FootRight)].z),
 
-			kneeLeftPose(
-				jointPositions[convertJoint(KVR::KinectJointType::KneeLeft)].x,
-				jointPositions[convertJoint(KVR::KinectJointType::KneeLeft)].y,
-				jointPositions[convertJoint(KVR::KinectJointType::KneeLeft)].z),
+		          kneeLeftPose(
+			          jointPositions[convertJoint(KVR::KinectJointType::KneeLeft)].x,
+			          jointPositions[convertJoint(KVR::KinectJointType::KneeLeft)].y,
+			          jointPositions[convertJoint(KVR::KinectJointType::KneeLeft)].z),
 
-			kneeRightPose(
-				jointPositions[convertJoint(KVR::KinectJointType::KneeRight)].x,
-				jointPositions[convertJoint(KVR::KinectJointType::KneeRight)].y,
-				jointPositions[convertJoint(KVR::KinectJointType::KneeRight)].z);
+		          kneeRightPose(
+			          jointPositions[convertJoint(KVR::KinectJointType::KneeRight)].x,
+			          jointPositions[convertJoint(KVR::KinectJointType::KneeRight)].y,
+			          jointPositions[convertJoint(KVR::KinectJointType::KneeRight)].z);
 
 		glm::vec3 feetRot[2] = {
-			glm::eulerAngles(glm::quat(glm::lookAt(footLeftPose, ankleLeftPose, up))),
-			glm::eulerAngles(glm::quat(glm::lookAt(footRightPose, ankleRightPose, up)))
+			eulerAngles(glm::quat(lookAt(footLeftPose, ankleLeftPose, up))),
+			eulerAngles(glm::quat(lookAt(footRightPose, ankleRightPose, up)))
 		};
 
 		glm::vec3 tibiaRotZ[2] = {
-			glm::eulerAngles(glm::quat(glm::lookAt(
-				glm::vec3(ankleLeftPose.x,ankleLeftPose.y, 1), 
-				glm::vec3(kneeLeftPose.x,kneeLeftPose.y, 0), up))),
-			glm::eulerAngles(glm::quat(glm::lookAt(
-				glm::vec3(ankleRightPose.x,ankleRightPose.y, 1), 
-				glm::vec3(kneeRightPose.x,kneeRightPose.y, 0), up)))
+			eulerAngles(glm::quat(lookAt(
+				glm::vec3(ankleLeftPose.x, ankleLeftPose.y, 1),
+				glm::vec3(kneeLeftPose.x, kneeLeftPose.y, 0), up))),
+			eulerAngles(glm::quat(lookAt(
+				glm::vec3(ankleRightPose.x, ankleRightPose.y, 1),
+				glm::vec3(kneeRightPose.x, kneeRightPose.y, 0), up)))
 		};
 
 		glm::vec3 tibiaRotX[2] = {
-			glm::eulerAngles(glm::quat(glm::lookAt(
-				glm::vec3(1 ,ankleLeftPose.y,ankleLeftPose.z),
-				glm::vec3(0 ,kneeLeftPose.y,kneeLeftPose.z), up))),
-			glm::eulerAngles(glm::quat(glm::lookAt(
-				glm::vec3(1, ankleRightPose.y,ankleRightPose.z),
-				glm::vec3(0, kneeRightPose.y,kneeRightPose.z), up)))
+			eulerAngles(glm::quat(lookAt(
+				glm::vec3(1, ankleLeftPose.y, ankleLeftPose.z),
+				glm::vec3(0, kneeLeftPose.y, kneeLeftPose.z), up))),
+			eulerAngles(glm::quat(lookAt(
+				glm::vec3(1, ankleRightPose.y, ankleRightPose.z),
+				glm::vec3(0, kneeRightPose.y, kneeRightPose.z), up)))
 		};
 
 		KinectSettings::hFootRot = glm::vec3(
-			-tibiaRotX[0].x - M_PI / 3, 
-			feetRot[0].y + 2 * KinectSettings::tryaw / 180 * M_PI,
+			-tibiaRotX[0].x - M_PI / 3,
+			feetRot[0].y + /*2 * KinectSettings::tryaw / 180 * M_PI,
 			tibiaRotZ[0].z * 15);
 
 		KinectSettings::mFootRot = glm::vec3(
-			-tibiaRotX[1].x - M_PI / 3, 
-			feetRot[1].y + 2 * KinectSettings::tryaw / 180 * M_PI,
+			-tibiaRotX[1].x - M_PI / 3,
+			feetRot[1].y + /*2 * KinectSettings::tryaw / 180 * M_PI,
 			tibiaRotZ[1].z * 15);
 
-		glm::normalize(KinectSettings::hFootRot);
-		glm::normalize(KinectSettings::mFootRot);
+		normalize(KinectSettings::hFootRot);
+		normalize(KinectSettings::mFootRot);
 
 		***********************************************************************************************/
 
