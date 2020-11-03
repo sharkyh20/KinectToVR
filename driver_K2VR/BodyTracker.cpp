@@ -5,7 +5,6 @@
 #include <Windows.h>
 #include <thread>
 #include <Eigen/Dense>
-#include <glm/glm.hpp>
 #include "soft_knuckles_device.h"
 
 DriverPose_t BodyTracker::dlpose;

@@ -5,20 +5,16 @@
 
 #include "KinectSettings.h"
 #include "VRController.h"
-#include "VRHelper.h"
 #include "GamepadController.h"
 #include "GUIHandler.h"
 #include "ManualCalibrator.h"
-#include "HeadAndHandsAutoCalibrator.h"
 #include "TrackingMethod.h"
-#include "ColorTracker.h"
 #include "SkeletonTracker.h"
 #include "IMU_PositionMethod.h"
 #include "IMU_RotationMethod.h"
 #include "VRDeviceHandler.h"
 #include "PSMoveHandler.h"
 #include "DeviceHandler.h"
-#include "TrackingPoolManager.h"
 #include <boost/thread.hpp>
 #include <SFML/Audio.hpp>
 
@@ -27,17 +23,9 @@
 #include <iostream>
 #include <string>
 #include <thread>
-//GUI
-#include <SFGUI/SFGUI.hpp>
 #include <SFGUI/Widgets.hpp>
 
-//OpenCV
-#include <opencv2/opencv.hpp>
-
-// Windows last because of the great and holy Microsoft
-// ... and their ability to cause compiler errors with macros
-#include "wtypes.h"
-
+#include <boost/interprocess/managed_shared_memory.hpp>
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
@@ -236,6 +224,56 @@ void updatenormaltrackers()
 {
 }
 
+int checkK2Server()
+{
+	if (!KinectSettings::isDriverPresent) {
+		try {
+			using namespace boost::interprocess;
+			//Open managed shared memory
+			managed_shared_memory segment(open_only, "K2ServerDriverSHM");
+
+			std::pair<int*, std::size_t> res =
+				segment.find<int>("K2ServerDriverStatus_int");
+
+			//Length should be 1
+			if (res.first) return *res.first;
+			return -10;
+		}
+		catch (std::exception const &e) { return -10; }
+	}
+	
+/*
+ * codes:
+ * -1: check fail
+ * -10: sever fail
+ * 1: result ok
+ * 10: init fail
+ */
+	return 1; //don't check if it was already working
+}
+
+void updateServerStatus(GUIHandler &guiRef)
+{
+	KinectSettings::K2Drivercode = checkK2Server();
+	switch (KinectSettings::K2Drivercode) {
+	case -1:
+		guiRef.DriverStatusLabel->SetText("Driver Status: UNKNOWN (Code: -1)");
+		break;
+	case -10:
+		guiRef.DriverStatusLabel->SetText("Driver Status: SERVER ERROR (Code: -10)");
+		break;
+	case 1:
+		guiRef.DriverStatusLabel->SetText("Driver Status: Success!");
+		KinectSettings::isDriverPresent = true;
+		break;
+	case 10:
+		guiRef.DriverStatusLabel->SetText("Driver Status: ERROR NOT INITIALIZED (Code: 10)");
+		break;
+	}
+
+	guiRef.TrackerInitButton->SetState(KinectSettings::isDriverPresent ? sfg::Widget::State::NORMAL : sfg::Widget::State::INSENSITIVE);
+}
+
 void processLoop(KinectHandlerBase& kinect)
 {
 	LOG(INFO) << "~~~New logging session for main process begins here!~~~";
@@ -279,6 +317,9 @@ void processLoop(KinectHandlerBase& kinect)
 	// Reconnect Kinect Event Signal
 	guiRef.setKinectButtonSignal(kinect);
 
+	//Clear driver memory
+	boost::interprocess::shared_memory_object::remove("K2ServerDriverSHM");
+
 	//Initialise InputEmu and Trackers
 	std::vector<KinectTrackedDevice> v_trackers{};
 
@@ -290,12 +331,16 @@ void processLoop(KinectHandlerBase& kinect)
 	vr::EVRInitError eError = vr::VRInitError_None;
 	vr::IVRSystem* m_VRSystem = VR_Init(&eError, vr::VRApplication_Overlay);
 
-	LOG_IF(eError != vr::VRInitError_None, ERROR) << "IVRSystem could not be initialised: EVRInitError Code " <<
- static_cast<int>(eError);
+	LOG_IF(eError != vr::VRInitError_None, ERROR) << "IVRSystem could not be initialised: EVRInitError Code " << static_cast<int>(eError);
 
 	// INPUT BINDING TEMPORARY --------------------------------
 	// Warn about non-english file path, as openvr can only take ASCII chars
 	verifyDefaultFilePath();
+
+	//Update driver status
+	/************************************************/
+	updateServerStatus(guiRef);
+	/************************************************/
 
 	if (eError == vr::VRInitError_None)
 	{
@@ -337,7 +382,11 @@ void processLoop(KinectHandlerBase& kinect)
 			 GUIHandler& guiRef)>
 		currentCalibrationMethod = ManualCalibrator::Calibrate;
 	guiRef.updateVRStatusLabel(eError);
-
+	
+	//Update driver status
+	/************************************************/
+	updateServerStatus(guiRef);
+	/************************************************/
 
 	KinectSettings::userChangingZero = true;
 
@@ -383,6 +432,14 @@ void processLoop(KinectHandlerBase& kinect)
 
 	while (renderWindow.isOpen() && SFMLsettings::keepRunning)
 	{
+		if (!KinectSettings::isDriverPresent)
+		{
+			//Update driver status
+			/************************************************/
+			updateServerStatus(guiRef);
+			/************************************************/
+		}
+		
 		//Clear the debug text display
 		SFMLsettings::debugDisplayTextStream.str(std::string());
 		SFMLsettings::debugDisplayTextStream.clear();

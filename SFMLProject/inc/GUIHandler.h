@@ -16,20 +16,13 @@
 #include "VRDeviceHandler.h"
 #include <ShellAPI.h>
 
-#include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
-#include <glm/vec3.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/rotate_vector.hpp>
 #include <Eigen/Geometry>
-
-#include <locale>
 #include <codecvt>
 #include <string>
 
 #include <SFML/Graphics.hpp>
-#include <SFML/Window/Mouse.hpp>
 #include <SFML/OpenGL.hpp>
 //GUI
 #include <SFGUI/SFGUI.hpp>
@@ -38,8 +31,6 @@
 
 #include <cereal/archives/json.hpp>
 #include <cereal/cereal.hpp>
-#include <cereal/types/vector.hpp>
-#include <cereal/types/common.hpp>
 #include <cereal/types/memory.hpp>
 #include <cereal/access.hpp>
 
@@ -104,8 +95,7 @@ struct serialTest
 
 class GUIHandler
 {
-private:
-
+	
 public:
 	sfg::ComboBox::Ptr coptbox = sfg::ComboBox::Create();
 	sfg::ComboBox::Ptr coptbox1 = sfg::ComboBox::Create();
@@ -125,6 +115,8 @@ public:
 	sfg::ComboBox::Ptr psmoveboxyo = sfg::ComboBox::Create();
 	sfg::Box::Ptr psmidbox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
 	sfg::Box::Ptr psmidbox1 = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
+	sfg::Button::Ptr TrackerInitButton = sfg::Button::Create("Spawn Trackers");
+	sfg::Label::Ptr DriverStatusLabel = sfg::Label::Create("Driver Status: UNKNOWN (Code: -1)");
 
 	GUIHandler()
 	{
@@ -1234,7 +1226,7 @@ public:
 		/*bool foundCachedTrackers = trackerConfigExists() ? true : false;
 		TrackerLastInitButton->Show(foundCachedTrackers);*/
 
-		if (VirtualHips::settings.astartt)
+		if (VirtualHips::settings.astartt && KinectSettings::isDriverPresent)
 		{
 			std::thread* st = new std::thread([this]
 			{
@@ -1260,113 +1252,113 @@ public:
 			});
 		}
 
-		if (VirtualHips::settings.astarth)
-		{
-			KinectSettings::headtracked = true;
-			HeadTrackingStartButton->SetLabel("Head Tracking Started");
-			HeadTrackingStartButton->Show(false);
-			HeadTrackingCalibButton->Show(true);
-			AutoStartHeadTracking->Show(true);
+		//if (VirtualHips::settings.astarth)
+		//{
+		//	KinectSettings::headtracked = true;
+		//	HeadTrackingStartButton->SetLabel("Head Tracking Started");
+		//	HeadTrackingStartButton->Show(false);
+		//	HeadTrackingCalibButton->Show(true);
+		//	AutoStartHeadTracking->Show(true);
 
-			std::thread* hedo_of = new std::thread([]()
-			{
-				while (true)
-				{
-					HANDLE pipeAtama = CreateFile(
-						TEXT("\\\\.\\pipe\\LogPipeOf"), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0,
-						nullptr);
+		//	std::thread* hedo_of = new std::thread([]()
+		//	{
+		//		while (true)
+		//		{
+		//			HANDLE pipeAtama = CreateFile(
+		//				TEXT("\\\\.\\pipe\\LogPipeOf"), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0,
+		//				nullptr);
 
-					DWORD Written;
+		//			DWORD Written;
 
-					std::string AtamaS = [&]()-> std::string
-					{
-						std::stringstream S;
-						S << "X" << 10000 * (KinectSettings::huoffsets.v[0]) <<
-							"/Y" << 10000 * (KinectSettings::huoffsets.v[1]) <<
-							"/Z" << 10000 * (KinectSettings::huoffsets.v[2]) <<
-							"/R" << 10000 * (0) << "/"; //DEPRECATED: GLM_ROTATE SCREWED UP WITH > 99
+		//			std::string AtamaS = [&]()-> std::string
+		//			{
+		//				std::stringstream S;
+		//				S << "X" << 10000 * (KinectSettings::huoffsets.v[0]) <<
+		//					"/Y" << 10000 * (KinectSettings::huoffsets.v[1]) <<
+		//					"/Z" << 10000 * (KinectSettings::huoffsets.v[2]) <<
+		//					"/R" << 10000 * (0) << "/"; //DEPRECATED: GLM_ROTATE SCREWED UP WITH > 99
 
-						return S.str();
-					}();
+		//				return S.str();
+		//			}();
 
-					char AtamaD[1024];
-					strcpy_s(AtamaD, AtamaS.c_str());
+		//			char AtamaD[1024];
+		//			strcpy_s(AtamaD, AtamaS.c_str());
 
-					WriteFile(pipeAtama, AtamaD, sizeof(AtamaD), &Written, nullptr);
-					CloseHandle(pipeAtama);
+		//			WriteFile(pipeAtama, AtamaD, sizeof(AtamaD), &Written, nullptr);
+		//			CloseHandle(pipeAtama);
 
-					std::this_thread::sleep_for(std::chrono::milliseconds(370));
-				}
-			});
-		}
+		//			std::this_thread::sleep_for(std::chrono::milliseconds(370));
+		//		}
+		//	});
+		//}
 
-		if (VirtualHips::settings.astarta)
-		{
-			/*
-			comportbox1->Clear();
-			comportbox1->AppendItem(VirtualHips::settings.comph);
-			comportbox1->SelectItem(0);
+		//if (VirtualHips::settings.astarta)
+		//{
+		//	/*
+		//	comportbox1->Clear();
+		//	comportbox1->AppendItem(VirtualHips::settings.comph);
+		//	comportbox1->SelectItem(0);
 
-			comportbox2->Clear();
-			comportbox2->AppendItem(VirtualHips::settings.compm);
-			comportbox2->SelectItem(0);*/
+		//	comportbox2->Clear();
+		//	comportbox2->AppendItem(VirtualHips::settings.compm);
+		//	comportbox2->SelectItem(0);*/
 
-			std::thread* activate = new std::thread([]
-			{
-				try
-				{
-					using namespace boost::asio;
-					using ip::tcp;
-					using std::string;
+		//	std::thread* activate = new std::thread([]
+		//	{
+		//		try
+		//		{
+		//			using namespace boost::asio;
+		//			using ip::tcp;
+		//			using std::string;
 
-					io_service io_service;
-					//socket creation
-					tcp::socket socket(io_service);
-					//connection
-					socket.connect(tcp::endpoint(ip::address::from_string("127.0.0.1"), 5741));
-					// request/message from client
+		//			io_service io_service;
+		//			//socket creation
+		//			tcp::socket socket(io_service);
+		//			//connection
+		//			socket.connect(tcp::endpoint(ip::address::from_string("127.0.0.1"), 5741));
+		//			// request/message from client
 
-					const string msg = "Hello from Client!\n";
-					boost::system::error_code error;
-					boost::asio::write(socket, buffer(msg), error);
-					if (!error)
-					{
-						LOG(INFO) << "Client sent message!";
-					}
-					else
-					{
-						LOG(INFO) << "(Ignore) send failed: " << error.message();
-					}
+		//			const string msg = "Hello from Client!\n";
+		//			boost::system::error_code error;
+		//			boost::asio::write(socket, buffer(msg), error);
+		//			if (!error)
+		//			{
+		//				LOG(INFO) << "Client sent message!";
+		//			}
+		//			else
+		//			{
+		//				LOG(INFO) << "(Ignore) send failed: " << error.message();
+		//			}
 
-					// getting response from server
-					streambuf receive_buffer;
-					boost::asio::read(socket, receive_buffer, transfer_all(), error);
-					if (error && error != error::eof)
-					{
-						LOG(INFO) << "(Ignore) receive failed: " << error.message();
-					}
-					else
-					{
-						const char* data = boost::asio::buffer_cast<const char*>(receive_buffer.data());
-					}
-				}
-				catch (boost::exception const& e)
-				{
-				}
-				catch (std::exception e)
-				{
-				}
-			});
+		//			// getting response from server
+		//			streambuf receive_buffer;
+		//			boost::asio::read(socket, receive_buffer, transfer_all(), error);
+		//			if (error && error != error::eof)
+		//			{
+		//				LOG(INFO) << "(Ignore) receive failed: " << error.message();
+		//			}
+		//			else
+		//			{
+		//				const char* data = boost::asio::buffer_cast<const char*>(receive_buffer.data());
+		//			}
+		//		}
+		//		catch (boost::exception const& e)
+		//		{
+		//		}
+		//		catch (std::exception e)
+		//		{
+		//		}
+		//	});
 
-			//ShellExecute(NULL, _T("open"), _T("avr_hhost.exe"), s2ws(VirtualHips::settings.comph).c_str(), NULL, SW_HIDE);
-			//ShellExecute(NULL, _T("open"), _T("avr_mhost.exe"), s2ws(VirtualHips::settings.compm).c_str(), NULL, SW_HIDE);
+		//	//ShellExecute(NULL, _T("open"), _T("avr_hhost.exe"), s2ws(VirtualHips::settings.comph).c_str(), NULL, SW_HIDE);
+		//	//ShellExecute(NULL, _T("open"), _T("avr_mhost.exe"), s2ws(VirtualHips::settings.compm).c_str(), NULL, SW_HIDE);
 
-			stopControllers->SetState(sfg::Widget::State::NORMAL);
-			startControllers->SetState(sfg::Widget::State::INSENSITIVE);
-			//comportbox1->SetState(sfg::Widget::State::INSENSITIVE);
-			//comportbox2->SetState(sfg::Widget::State::INSENSITIVE);
-			//refreshcomports->SetState(sfg::Widget::State::INSENSITIVE);
-		}
+		//	stopControllers->SetState(sfg::Widget::State::NORMAL);
+		//	startControllers->SetState(sfg::Widget::State::INSENSITIVE);
+		//	//comportbox1->SetState(sfg::Widget::State::INSENSITIVE);
+		//	//comportbox2->SetState(sfg::Widget::State::INSENSITIVE);
+		//	//refreshcomports->SetState(sfg::Widget::State::INSENSITIVE);
+		//}
 
 		TrackerLastInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers]
 		{
@@ -1512,32 +1504,13 @@ public:
 				KinectSettings::headtracked = true;
 
 				vr::EVRInitError error;
-				vr::IVRSystem* system = VR_Init(&error, vr::VRApplication_Background);
 				vr::TrackedDevicePose_t trackedDevicePose;
-				vr::TrackedDevicePose_t trackedControllerPose;
-				vr::VRControllerState_t controllerState;
-				vr::HmdMatrix34_t poseMatrix;
-				vr::HmdVector3_t position;
-				vr::HmdQuaternion_t quaternion;
-
 				std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
-				vr::DriverPose_t svrposes;
 				vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, &trackedDevicePose, 1);
-				poseMatrix = trackedDevicePose.mDeviceToAbsoluteTracking;
-				position = GetPosition(trackedDevicePose.mDeviceToAbsoluteTracking);
-				quaternion = GetRotation(trackedDevicePose.mDeviceToAbsoluteTracking);
 				double yaw = std::atan2(trackedDevicePose.mDeviceToAbsoluteTracking.m[0][2],
-				                        trackedDevicePose.mDeviceToAbsoluteTracking.m[2][2]),
-				       yawRaw = std::atan2(trackedDevicePose.mDeviceToAbsoluteTracking.m[0][2],
-				                           trackedDevicePose.mDeviceToAbsoluteTracking.m[2][2]);
-
-				Eigen::Quaternion q(quaternion.w, quaternion.x, quaternion.y, quaternion.z);
-
-				if (yawRaw < 0.0f)
-				{
-					yawRaw += 2 * M_PI;
-				}
+					trackedDevicePose.mDeviceToAbsoluteTracking.m[2][2]);
+			
 				if (yaw < 0.0)
 				{
 					yaw = 2 * M_PI + yaw;
@@ -1764,6 +1737,7 @@ public:
 	{
 		//Statuses are at the top
 		mainGUIBox->Pack(KinectStatusLabel);
+		mainGUIBox->Pack(DriverStatusLabel);
 		mainGUIBox->Pack(SteamVRStatusLabel);
 		mainGUIBox->Pack(InputEmulatorStatusLabel);
 
@@ -2759,7 +2733,7 @@ public:
 						settings.rtcalib = true;
 
 						TrackersCalibButton->SetLabel(
-							std::string(!calibrationAbort
+							std::string(calibrationAbort
 								            ? "Calibration aborted! Hit me to re-calibrate!"
 								            : "Done! Hit me to re-calibrate!").c_str());
 						TrackersCalibButton->SetState(sfg::Widget::State::NORMAL);
@@ -2962,7 +2936,7 @@ public:
 						settings.rtcalib = true;
 
 						TrackersCalibButton->SetLabel(
-							std::string(!calibrationAbort
+							std::string(calibrationAbort
 								            ? "Calibration aborted! Hit me to re-calibrate!"
 								            : "Done! Hit me to re-calibrate!").c_str());
 						TrackersCalibButton->SetState(sfg::Widget::State::NORMAL);
@@ -3140,7 +3114,6 @@ private:
 	sfg::Button::Ptr refreshpsmovesbuton1 = sfg::Button::Create("Refresh");
 	sfg::Button::Ptr refreshpsmovesbuton11 = sfg::Button::Create("Refresh");
 
-	sfg::Button::Ptr TrackerInitButton = sfg::Button::Create("Spawn Trackers");
 	sfg::Button::Ptr TrackerLastInitButton = sfg::Button::Create(
 		"**Please be in VR before hitting me!** Spawn same trackers as last session");
 

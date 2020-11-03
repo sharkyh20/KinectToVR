@@ -22,8 +22,10 @@ namespace KinectSettings
 	bool psmbuttons[5][10];
 	bool isKinectDrawn = false;
 	bool isSkeletonDrawn = false;
+	bool isDriverPresent = false;
 	float svrhmdyaw = 0, kinpitch = 0;
 	int psmh, psmm;
+	int K2Drivercode = -1; //unknown
 	std::vector<int> psmindexidpsm[2];
 	int flashnow[2];
 	bool conActivated = false;
@@ -553,7 +555,9 @@ namespace KinectSettings
 					PointSet Hp2 = (R_matT * (Hp - calorigin)).colwise() + T_matT + calorigin;
 
 					/*******************************************************/
-					if (flip)
+					if (bodytrackingoption == k_KinectFullTracking &&
+						footOption != k_EnableOrientationFilter_HeadOrientation &&
+						flip)
 					{
 						glm::quat qy_quat(glm::vec3(-glm::radians(kinpitch) / 2, 2 * M_PI, 0.f)),
 							qy_quat_hips(glm::vec3(0.f, 2 * M_PI, 0.f));
@@ -616,294 +620,17 @@ namespace KinectSettings
 
 				return S.str();
 			}();
-
-			std::string HedoS = [&]()-> std::string
-			{
-				std::stringstream S;
-
-				Eigen::AngleAxisd rollAngle(0.f, Eigen::Vector3d::UnitZ());
-				Eigen::AngleAxisd yawAngle(hroffset * M_PI / 180, Eigen::Vector3d::UnitY());
-				Eigen::AngleAxisd pitchAngle(0.f, Eigen::Vector3d::UnitX());
-				Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
-				Eigen::Vector3d in(hmdPose.x, hmdPose.y, hmdPose.z);
-				Eigen::Vector3d out = q * in;
-
-				S << "X" << 10000 * (out(0) + hoffsets.v[0]) <<
-					"/Y" << 10000 * (out(1) + hoffsets.v[1]) <<
-					"/Z" << 10000 * (out(2) + hoffsets.v[2]) << "/";
-				return S.str();
-			}();
-
-			std::string RightS = [&]()-> std::string
-			{
-				std::stringstream S;
-
-				if (conOption == k_PSMoveFull)
-				{
-					hHandPose = glm::vec3(hidariMove.Pose.Position.x, hidariMove.Pose.Position.y,
-					                      hidariMove.Pose.Position.z);
-					mHandPose = glm::vec3(migiMove.Pose.Position.x, migiMove.Pose.Position.y, migiMove.Pose.Position.z);
-					hElPose = glm::vec3(0, 0, 0);
-					mElPose = glm::vec3(0, 0, 0);
-				}
-
-				if (rtcalibrated)
-				{
-					using PointSet = Eigen::Matrix<float, 3, Eigen::Dynamic>;
-
-					Eigen::Vector3f Hf, Ef;
-					if (!flip)
-					{
-						Hf(0) = mHandPose.x;
-						Hf(1) = mHandPose.y;
-						Hf(2) = mHandPose.z;
-						Ef(0) = mElPose.x;
-						Ef(1) = mElPose.y;
-						Ef(2) = mElPose.z;
-					}
-					else
-					{
-						Hf(0) = hHandPose.x;
-						Hf(1) = hHandPose.y;
-						Hf(2) = hHandPose.z;
-						Ef(0) = hElPose.x;
-						Ef(1) = hElPose.y;
-						Ef(2) = hElPose.z;
-					}
-
-					PointSet Hf2 = (R_matT * Hf).colwise() + T_matT;
-					PointSet Mf2 = (R_matT * Ef).colwise() + T_matT;
-
-					S << "X" << 10000 * (Hf2(0) + hoffsets.v[0] + mauoffset.v[0]) <<
-						"/Y" << 10000 * (Hf2(1) + hoffsets.v[1] + mauoffset.v[1]) <<
-						"/Z" << 10000 * (Hf2(2) + hoffsets.v[2] + mauoffset.v[2]) <<
-						"/EX" << 10000 * (Ef(0) + hoffsets.v[0] + mauoffset.v[0]) <<
-						"/EY" << 10000 * (Ef(1) + hoffsets.v[1] + mauoffset.v[1]) <<
-						"/EZ" << 10000 * (Ef(2) + hoffsets.v[2] + mauoffset.v[2]) <<
-						"/DISABLE" << 10000 * !conActivated << "/";
-				}
-				else
-				{
-					S << "X" << 10000 * (mHandPose.x + hoffsets.v[0] + mauoffset.v[0]) <<
-						"/Y" << 10000 * (mHandPose.y + hoffsets.v[1] + mauoffset.v[1]) <<
-						"/Z" << 10000 * (mHandPose.z + hoffsets.v[2] + mauoffset.v[2]) <<
-						"/EX" << 10000 * (mElPose.x + hoffsets.v[0] + mauoffset.v[0]) <<
-						"/EY" << 10000 * (mElPose.y + hoffsets.v[1] + mauoffset.v[1]) <<
-						"/EZ" << 10000 * (mElPose.z + hoffsets.v[2] + mauoffset.v[2]) <<
-						"/DISABLE" << 10000 * !conActivated << "/";
-				}
-
-				return S.str();
-			}();
-
-			std::string LeftS = [&]()-> std::string
-			{
-				std::stringstream S;
-
-				if (conOption == k_PSMoveFull)
-				{
-					hHandPose = glm::vec3(hidariMove.Pose.Position.x, hidariMove.Pose.Position.y,
-					                      hidariMove.Pose.Position.z);
-					mHandPose = glm::vec3(migiMove.Pose.Position.x, migiMove.Pose.Position.y, migiMove.Pose.Position.z);
-					hElPose = glm::vec3(0, 0, 0);
-					mElPose = glm::vec3(0, 0, 0);
-				}
-
-				if (rtcalibrated)
-				{
-					using PointSet = Eigen::Matrix<float, 3, Eigen::Dynamic>;
-
-					Eigen::Vector3f Hf, Ef;
-					if (!flip)
-					{
-						Hf(0) = hHandPose.x;
-						Hf(1) = hHandPose.y;
-						Hf(2) = hHandPose.z;
-						Ef(0) = hElPose.x;
-						Ef(1) = hElPose.y;
-						Ef(2) = hElPose.z;
-					}
-					else
-					{
-						Hf(0) = mHandPose.x;
-						Hf(1) = mHandPose.y;
-						Hf(2) = mHandPose.z;
-						Ef(0) = mElPose.x;
-						Ef(1) = mElPose.y;
-						Ef(2) = mElPose.z;
-					}
-
-					PointSet Hf2 = (R_matT * Hf).colwise() + T_matT;
-					PointSet Mf2 = (R_matT * Ef).colwise() + T_matT;
-
-					S << "X" << 10000 * (Hf2(0) + hoffsets.v[0] + hauoffset.v[0]) <<
-						"/Y" << 10000 * (Hf2(1) + hoffsets.v[1] + hauoffset.v[1]) <<
-						"/Z" << 10000 * (Hf2(2) + hoffsets.v[2] + hauoffset.v[2]) <<
-						"/EX" << 10000 * (Ef(0) + hoffsets.v[0] + hauoffset.v[0]) <<
-						"/EY" << 10000 * (Ef(1) + hoffsets.v[1] + hauoffset.v[1]) <<
-						"/EZ" << 10000 * (Ef(2) + hoffsets.v[2] + hauoffset.v[2]) <<
-						"/DISABLE" << 10000 * !conActivated << "/";
-				}
-				else
-				{
-					S << "X" << 10000 * (hHandPose.x + hoffsets.v[0] + hauoffset.v[0]) <<
-						"/Y" << 10000 * (hHandPose.y + hoffsets.v[1] + hauoffset.v[1]) <<
-						"/Z" << 10000 * (hHandPose.z + hoffsets.v[2] + hauoffset.v[2]) <<
-						"/EX" << 10000 * (hElPose.x + hoffsets.v[0] + hauoffset.v[0]) <<
-						"/EY" << 10000 * (hElPose.y + hoffsets.v[1] + hauoffset.v[1]) <<
-						"/EZ" << 10000 * (hElPose.z + hoffsets.v[2] + hauoffset.v[2]) <<
-						"/DISABLE" << 10000 * !conActivated << "/";
-				}
-
-				return S.str();
-			}();
-
-			std::string IchiDatS = [&migiKontorora]()-> std::string
-			{
-				std::stringstream S;
-				S << "JX" << 10000 * (constrain(map(joy[0].z * 180 / M_PI, 70.f, -70.f, -1.f, 1.f), -1.f, 1.f)) <<
-					"/JY" << 10000 * (constrain(map(joy[0].x * 180 / M_PI, 70.f, -70.f, -1.f, 1.f), -1.f, 1.f)) <<
-					"/SY" << 10000 * (migiKontorora.CircleButton == PSMButtonState_DOWN) <<
-					"/TR" << 10000 * (map(static_cast<int>(migiKontorora.TriggerValue), 0, 255, 0.f, 1.f)) <<
-					"/AB" << 10000 * (migiKontorora.CrossButton == PSMButtonState_DOWN) <<
-					"/BB" << 10000 * (migiKontorora.SquareButton == PSMButtonState_DOWN) <<
-					"/GR" << 10000 * (migiKontorora.TriangleButton == PSMButtonState_DOWN) << "/";
-
-				return S.str();
-			}();
-
-			std::string IchiRotDatS = [&]()-> std::string
-			{
-				std::stringstream S;
-				Eigen::Quaternionf invorient =
-					Eigen::Quaternionf(offset[0].w, offset[0].x, offset[0].y, offset[0].z).conjugate();
-				eigen_quaternion_normalize_with_default(invorient, Eigen::Quaternionf::Identity());
-
-				quatf[0] = invorient * Eigen::Quaternionf(
-					migiKontorora.Pose.Orientation.w, migiKontorora.Pose.Orientation.x,
-					migiKontorora.Pose.Orientation.y, migiKontorora.Pose.Orientation.z);
-
-				if (migiKontorora.MoveButton != PSMButtonState_DOWN)
-				{
-					joy[0] = glm::vec3(0, 0, 0);
-				}
-				else
-				{
-					joy[0] = eulerAngles(glm::quat(quatf[0].w(), quatf[0].x(), quatf[0].y(), quatf[0].z()));
-					joy[0] -= joybk[0];
-				}
-				if (migiKontorora.MoveButton == PSMButtonState_PRESSED)
-				{
-					joybk[0] = eulerAngles(glm::quat(quatf[0].w(), quatf[0].x(), quatf[0].y(), quatf[0].z()));
-				}
-
-				S << "X" << 10000.f * quatf[0].x() <<
-					"/Y" << 10000.f * quatf[0].y() <<
-					"/Z" << 10000.f * quatf[0].z() <<
-					"/W" << 10000.f * quatf[0].w() << "/";
-
-				return S.str();
-			}();
-
-			std::string NiDatS = [&hidariKontorora]()-> std::string
-			{
-				std::stringstream S;
-				S << "JX" << 10000 * (constrain(map(joy[1].z * 180 / M_PI, 70.f, -70.f, -1.f, 1.f), -1.f, 1.f)) <<
-					"/JY" << 10000 * (constrain(map(joy[1].x * 180 / M_PI, 70.f, -70.f, -1.f, 1.f), -1.f, 1.f)) <<
-					"/SY" << 10000 * (hidariKontorora.CrossButton == PSMButtonState_DOWN) <<
-					"/TR" << 10000 * (map(static_cast<int>(hidariKontorora.TriggerValue), 0, 255, 0.f, 1.f)) <<
-					"/AB" << 10000 * (hidariKontorora.CircleButton == PSMButtonState_DOWN) <<
-					"/BB" << 10000 * (hidariKontorora.TriangleButton == PSMButtonState_DOWN) <<
-					"/GR" << 10000 * (hidariKontorora.SquareButton == PSMButtonState_DOWN) << "/";
-
-				return S.str();
-			}();
-			std::string NiRotDatS = [&]()-> std::string
-			{
-				std::stringstream S;
-
-				Eigen::Quaternionf invorient =
-					Eigen::Quaternionf(offset[1].w, offset[1].x, offset[1].y, offset[1].z).conjugate();
-				eigen_quaternion_normalize_with_default(invorient, Eigen::Quaternionf::Identity());
-
-				quatf[1] = invorient * Eigen::Quaternionf(
-					hidariKontorora.Pose.Orientation.w, hidariKontorora.Pose.Orientation.x,
-					hidariKontorora.Pose.Orientation.y, hidariKontorora.Pose.Orientation.z);
-
-				if (hidariKontorora.MoveButton != PSMButtonState_DOWN)
-				{
-					joy[1] = glm::vec3(0, 0, 0);
-				}
-				else
-				{
-					joy[1] = eulerAngles(glm::quat(quatf[1].w(), quatf[1].x(), quatf[1].y(), quatf[1].z()));
-					joy[1] -= joybk[1];
-				}
-				if (hidariKontorora.MoveButton == PSMButtonState_PRESSED)
-				{
-					joybk[1] = eulerAngles(glm::quat(quatf[1].w(), quatf[1].x(), quatf[1].y(), quatf[1].z()));
-				}
-
-				S << "X" << 10000.f * quatf[1].x() <<
-					"/Y" << 10000.f * quatf[1].y() <<
-					"/Z" << 10000.f * quatf[1].z() <<
-					"/W" << 10000.f * quatf[1].w() << "/";
-
-				return S.str();
-			}();
-
-			char TrackerD[1024], HedoD[1024], RightD[1024],
-			     LeftD[1024], IchiDatD[1024],
-			     IchiRotDatD[1024], NiDatD[1024], NiRotDatD[1024];
-
+			
+			char TrackerD[1024];
 			strcpy_s(TrackerD, TrackerS.c_str());
-			strcpy_s(HedoD, HedoS.c_str());
-			strcpy_s(RightD, RightS.c_str());
-			strcpy_s(LeftD, LeftS.c_str());
-			strcpy_s(IchiDatD, IchiDatS.c_str());
-			strcpy_s(IchiRotDatD, IchiRotDatS.c_str());
-			strcpy_s(NiDatD, NiDatS.c_str());
-			strcpy_s(NiRotDatD, NiRotDatS.c_str());
 
 			HANDLE pipeTracker = CreateFile(
 				TEXT("\\\\.\\pipe\\LogPipeTracker"), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0,
 				nullptr);
-			HANDLE pipeSan = CreateFile(TEXT("\\\\.\\pipe\\LogPipeSan"), GENERIC_READ | GENERIC_WRITE, 0, nullptr,
-			                            OPEN_EXISTING, 0, nullptr);
-			HANDLE pipeLeft = CreateFile(TEXT("\\\\.\\pipe\\LogPipeNi"), GENERIC_READ | GENERIC_WRITE, 0, nullptr,
-			                             OPEN_EXISTING, 0, nullptr);
-			HANDLE pipeRight = CreateFile(
-				TEXT("\\\\.\\pipe\\LogPipeIchi"), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr);
-			HANDLE pipeIchi = CreateFile(
-				TEXT("\\\\.\\pipe\\LogPipeIchiButton"), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0,
-				nullptr);
-			HANDLE pipeIchiRot = CreateFile(
-				TEXT("\\\\.\\pipe\\LogPipeIchiRot"), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0,
-				nullptr);
-			HANDLE pipeNi = CreateFile(
-				TEXT("\\\\.\\pipe\\LogPipeNiButton"), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0,
-				nullptr);
-			HANDLE pipeNiRot = CreateFile(
-				TEXT("\\\\.\\pipe\\LogPipeNiRot"), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr);
+			
 			DWORD numWritten;
-
 			WriteFile(pipeTracker, TrackerD, sizeof(TrackerD), &numWritten, nullptr);
-			WriteFile(pipeSan, HedoD, sizeof(HedoD), &numWritten, nullptr);
-			WriteFile(pipeRight, RightD, sizeof(RightD), &numWritten, nullptr);
-			WriteFile(pipeLeft, LeftD, sizeof(LeftD), &numWritten, nullptr);
-			WriteFile(pipeIchi, IchiDatD, sizeof(IchiDatD), &numWritten, nullptr);
-			WriteFile(pipeIchiRot, IchiRotDatD, sizeof(IchiRotDatD), &numWritten, nullptr);
-			WriteFile(pipeNi, NiDatD, sizeof(NiDatD), &numWritten, nullptr);
-			WriteFile(pipeNiRot, NiRotDatD, sizeof(NiRotDatD), &numWritten, nullptr);
-
 			CloseHandle(pipeTracker);
-			CloseHandle(pipeSan);
-			CloseHandle(pipeRight);
-			CloseHandle(pipeLeft);
-			CloseHandle(pipeIchi);
-			CloseHandle(pipeIchiRot);
-			CloseHandle(pipeNi);
-			CloseHandle(pipeNiRot);
 
 
 			auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(

@@ -29,12 +29,12 @@
 #include "soft_knuckles_debug_handler.h"
 #include "socket_notifier.h"
 #include "BodyTracker.h"
-#include "BaseStation.h"
-#include <glm/gtx/euler_angles.hpp>
 #include "dprintf.h"
+#include <boost/interprocess/managed_shared_memory.hpp>
 #pragma comment(lib, "Ws2_32.lib")
 
 using namespace vr;
+bool activatedSpawned = false;
 
 namespace soft_knuckles
 {
@@ -42,6 +42,7 @@ namespace soft_knuckles
 	static const int BASES = 3;
 	static const char* listen_address = "127.0.0.1";
 	static const unsigned short listen_port = 5741;
+	bool activated = false;
 
 	class SoftKnucklesProvider;
 
@@ -89,40 +90,64 @@ namespace soft_knuckles
 			m_notifier.StartListening(listen_address, listen_port);
 
 			std::thread* inittrackers = new std::thread([&]
-			{
-				while (true)
 				{
-					HANDLE pipeInit = CreateNamedPipe(
-						TEXT("\\\\.\\pipe\\TrackersInitPipe"), PIPE_ACCESS_INBOUND | PIPE_ACCESS_OUTBOUND,
-						PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE, 1, 1024, 1024, 120 * 1000, nullptr);
-					if (pipeInit == INVALID_HANDLE_VALUE)
+					while (true) //don't need to wait - pipe's ReadFile already does it
 					{
+						HANDLE pipeInit = CreateNamedPipe(
+							TEXT("\\\\.\\pipe\\TrackersInitPipe"), PIPE_ACCESS_INBOUND | PIPE_ACCESS_OUTBOUND,
+							PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE, 1, 1024, 1024, 120 * 1000, nullptr);
+
+						char InitD[1024];
+						DWORD Init = DWORD();
+
+						ConnectNamedPipe(pipeInit, nullptr);
+						ReadFile(pipeInit, InitD, 1024, &Init, nullptr);
+						CloseHandle(pipeInit);
+
+						std::string InitS = InitD;
+
+						if (InitS.find("Initialize Trackers!") != std::string::npos)
+						{
+							VRServerDriverHost()->TrackedDeviceAdded(trp->get_serial().c_str(),
+								TrackedDeviceClass_GenericTracker, trp);
+							VRServerDriverHost()->TrackedDeviceAdded(trm->get_serial().c_str(),
+								TrackedDeviceClass_GenericTracker, trm);
+							VRServerDriverHost()->TrackedDeviceAdded(trh->get_serial().c_str(),
+								TrackedDeviceClass_GenericTracker, trh);
+
+							boost::thread m_pipeTR_thread = boost::thread(dlPipeTR);
+							m_pipeTR_thread.detach();
+							activatedSpawned = true;
+							return;
+						}
 					}
+				});
 
-					char InitD[1024];
-					DWORD Init = DWORD();
-
-					ConnectNamedPipe(pipeInit, nullptr);
-					ReadFile(pipeInit, InitD, 1024, &Init, nullptr);
-					CloseHandle(pipeInit);
-
-					std::string InitS = InitD;
-
-					if (InitS.find("Initialize Trackers!") != std::string::npos)
+			std::thread* serverstatus = new std::thread([&]
+				{
+					while(!activatedSpawned) //run at 110hz until trackers are spawned
 					{
-						VRServerDriverHost()->TrackedDeviceAdded(trp->get_serial().c_str(),
-						                                         TrackedDeviceClass_GenericTracker, trp);
-						VRServerDriverHost()->TrackedDeviceAdded(trm->get_serial().c_str(),
-						                                         TrackedDeviceClass_GenericTracker, trm);
-						VRServerDriverHost()->TrackedDeviceAdded(trh->get_serial().c_str(),
-						                                         TrackedDeviceClass_GenericTracker, trh);
+						auto t1 = std::chrono::high_resolution_clock::now();
 
-						boost::thread m_pipeTR_thread = boost::thread(dlPipeTR);
-						m_pipeTR_thread.detach();
-						return;
+						//notify server's running
+						try
+						{
+							using namespace boost::interprocess;
+							shared_memory_object::remove("K2ServerDriverSHM");
+							managed_shared_memory managed_shm{ open_or_create, "K2ServerDriverSHM", 1024 };
+							managed_shm.construct<int>("K2ServerDriverStatus_int")(activated ? 1 : 10);
+						}
+						catch (std::exception const& e) { return -1; }
+
+						//wait
+						auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(
+							std::chrono::high_resolution_clock::now() - t1).count();
+						if (duration <= 9000000.f)
+						{
+							std::this_thread::sleep_for(std::chrono::nanoseconds(9000000 - duration));
+						}
 					}
-				}
-			});
+				});
 
 			return VRInitError_None;
 		}
@@ -291,7 +316,8 @@ HMD_DLL_EXPORT void* HmdDriverFactory(const char* pInterfaceName, int* pReturnCo
 
 	static soft_knuckles::SoftKnucklesProvider s_knuckles_provider; // single instance of the provider
 	static CWatchdogDriver_Sample s_watchdogDriverNull; // this is from sample code.
-
+	soft_knuckles::activated = true; //notify that server creation's started
+	
 	if (0 == strcmp(IServerTrackedDeviceProvider_Version, pInterfaceName))
 	{
 		return &s_knuckles_provider;

@@ -26,6 +26,7 @@ namespace soft_knuckles
 	class SoftKnucklesDebugHandler;
 
 	extern BaseStation* m_station1;
+	extern bool activated;
 
 	static boost::thread m_pipeM_thread;
 	static boost::thread m_pipeH_thread;
