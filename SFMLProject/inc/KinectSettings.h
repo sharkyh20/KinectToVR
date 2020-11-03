@@ -1,20 +1,12 @@
 #pragma once
 #include "stdafx.h"
 #include <openvr.h>
-#include <SFML/System/Vector3.hpp>
 #include <SFML/Graphics/Text.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
-#include <glm/gtx/transform2.hpp>
-#include <glm/mat4x4.hpp>
 #include <glm/detail/type_vec3.hpp>
 #include <glm/detail/type_vec4.hpp>
 #include <glm/detail/type_vec2.hpp>
-#include <glm/vec3.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/gtx/quaternion.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/rotate_vector.hpp>
 #include <string>
 #include <sstream>
 #include <Eigen/Geometry>
@@ -122,10 +114,11 @@ namespace KinectSettings
 
 	static std::vector<K2VR_PSMoveData> KVR_PSMoves;
 	extern bool isCalibrating, isKinectPSMS;
-
+	extern int K2Drivercode;
 	extern PSMPSMove migiMove, hidariMove, hidariashimove, migiashimove, yobumove, atamamove;
 	extern glm::quat trackerRoth, trackerRotm, trackerRoty;
 	extern bool isGripPressed[2], isTriggerPressed[2]; //0L, 1R
+	extern bool isDriverPresent;
 	extern bool isKinectDrawn;
 	extern bool isSkeletonDrawn;
 	extern bool ignoreInferredPositions;

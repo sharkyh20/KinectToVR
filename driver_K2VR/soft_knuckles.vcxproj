@@ -23,7 +23,7 @@
     <ProjectGuid>{7895A29E-E1A6-464E-BE29-EA03CB3D4EC1}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>softknuckles</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
     <ProjectName>driver_KinectToVR</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
