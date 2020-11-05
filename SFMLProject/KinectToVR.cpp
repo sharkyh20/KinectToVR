@@ -228,15 +228,27 @@ int checkK2Server()
 {
 	if (!KinectSettings::isDriverPresent) {
 		try {
-			using namespace boost::interprocess;
-			//Open managed shared memory
-			managed_shared_memory segment(open_only, "K2ServerDriverSHM");
+			HANDLE ServerStatusPipe = CreateNamedPipe(
+				TEXT("\\\\.\\pipe\\K2ServerStatusPipe"), PIPE_ACCESS_INBOUND | PIPE_ACCESS_OUTBOUND,
+				PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE, 1, 1024, 1024, 120 * 1000, nullptr);
 
-			std::pair<int*, std::size_t> res =
-				segment.find<int>("K2ServerDriverStatus_int");
+			char ServerData[1024];
+			DWORD Init = DWORD();
 
-			//Length should be 1
-			if (res.first) return *res.first;
+			ConnectNamedPipe(ServerStatusPipe, nullptr);
+			ReadFile(ServerStatusPipe, ServerData, 1024, &Init, nullptr);
+			CloseHandle(ServerStatusPipe);
+
+			std::string ServerString = ServerData;
+
+			if (ServerString.find("10") != std::string::npos)
+			{
+				return 10;
+			}
+			if (ServerString.find("1") != std::string::npos)
+			{
+				return 1;
+			}
 			return -10;
 		}
 		catch (std::exception const &e) { return -10; }
@@ -729,17 +741,20 @@ void processLoop(KinectHandlerBase& kinect)
 void spawnDefaultLowerBodyTrackers()
 {
 	std::thread* activate = new std::thread([]
-	{
-		HANDLE pingPipe = CreateFile(
-			TEXT("\\\\.\\pipe\\TrackersInitPipe"), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr);
-		DWORD Written;
+		{
+			// pipe implements waiting anyway
+			while (true) {
+				HANDLE pingPipe = CreateFile(
+					TEXT("\\\\.\\pipe\\TrackersInitPipe"), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr);
+				DWORD Written;
 
-		std::string InitS = "Initialize Trackers!";
+				std::string InitS = "Initialize Trackers!";
 
-		char InitD[1024];
-		strcpy_s(InitD, InitS.c_str());
+				char InitD[1024];
+				strcpy_s(InitD, InitS.c_str());
 
-		WriteFile(pingPipe, InitD, sizeof(InitD), &Written, nullptr);
-		CloseHandle(pingPipe);
-	});
+				WriteFile(pingPipe, InitD, sizeof(InitD), &Written, nullptr);
+				CloseHandle(pingPipe);
+			}
+		});
 }

@@ -2658,7 +2658,10 @@ public:
 								}
 
 								std::this_thread::sleep_for(std::chrono::milliseconds(5));
-								if (!KinectSettings::isCalibrating) break;
+								if (!KinectSettings::isCalibrating) {
+									calibrationAbort = true;
+									break;
+								}
 							}
 
 							if (firstTime)
@@ -2699,7 +2702,10 @@ public:
 
 								std::this_thread::sleep_for(std::chrono::milliseconds(5));
 								KinectSettings::tryaw = glm::degrees(yawtmp);
-								if (!KinectSettings::isCalibrating) break;
+								if (!KinectSettings::isCalibrating) {
+									calibrationAbort = true;
+									break;
+								}
 							}
 
 							if (!KinectSettings::isCalibrating)
@@ -2733,7 +2739,7 @@ public:
 						settings.rtcalib = true;
 
 						TrackersCalibButton->SetLabel(
-							std::string(calibrationAbort
+							std::string(!KinectSettings::isCalibrating
 								            ? "Calibration aborted! Hit me to re-calibrate!"
 								            : "Done! Hit me to re-calibrate!").c_str());
 						TrackersCalibButton->SetState(sfg::Widget::State::NORMAL);

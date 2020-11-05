@@ -125,27 +125,20 @@ namespace soft_knuckles
 
 			std::thread* serverstatus = new std::thread([&]
 				{
-					while(!activatedSpawned) //run at 110hz until trackers are spawned
+				// pipe implements waiting anyway
+					while(true) // We could reboot the application!
 					{
-						auto t1 = std::chrono::high_resolution_clock::now();
+						HANDLE pingPipe = CreateFile(
+							TEXT("\\\\.\\pipe\\K2ServerStatusPipe"), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr);
+						DWORD Written;
 
-						//notify server's running
-						try
-						{
-							using namespace boost::interprocess;
-							shared_memory_object::remove("K2ServerDriverSHM");
-							managed_shared_memory managed_shm{ open_or_create, "K2ServerDriverSHM", 1024 };
-							managed_shm.construct<int>("K2ServerDriverStatus_int")(activated ? 1 : 10);
-						}
-						catch (std::exception const& e) { return -1; }
+						std::string ServerString = std::to_string(activated ? 1 : 10);
 
-						//wait
-						auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(
-							std::chrono::high_resolution_clock::now() - t1).count();
-						if (duration <= 9000000.f)
-						{
-							std::this_thread::sleep_for(std::chrono::nanoseconds(9000000 - duration));
-						}
+						char ServerData[1024];
+						strcpy_s(ServerData, ServerString.c_str());
+
+						WriteFile(pingPipe, ServerData, sizeof(ServerData), &Written, nullptr);
+						CloseHandle(pingPipe);
 					}
 				});
 
@@ -286,6 +279,7 @@ EVRInitError CWatchdogDriver_Sample::Init(IVRDriverContext* pDriverContext)
 		return VRInitError_Driver_Failed;
 	}
 
+	soft_knuckles::activated = true; //notify success
 	return VRInitError_None;
 }
 
@@ -313,10 +307,10 @@ void CWatchdogDriver_Sample::Cleanup()
 HMD_DLL_EXPORT void* HmdDriverFactory(const char* pInterfaceName, int* pReturnCode)
 {
 	dprintf("HmdDriverFactory %s\n", pInterfaceName);
+	soft_knuckles::activated = true; //notify success
 
 	static soft_knuckles::SoftKnucklesProvider s_knuckles_provider; // single instance of the provider
 	static CWatchdogDriver_Sample s_watchdogDriverNull; // this is from sample code.
-	soft_knuckles::activated = true; //notify that server creation's started
 	
 	if (0 == strcmp(IServerTrackedDeviceProvider_Version, pInterfaceName))
 	{
