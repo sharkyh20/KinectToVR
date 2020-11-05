@@ -38,20 +38,11 @@ END
 
 3 TEXTINCLUDE 
 BEGIN
+    "\r\n"
     "\0"
 END
 
 #endif    // APSTUDIO_INVOKED
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Icon
-//
-
-// Icon with lowest ID value placed first to ensure application icon
-// remains consistent on all systems.
-IDI_ICON1               ICON                    "..\\external\\icons\\icon.ico"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -69,7 +60,7 @@ VS_VERSION_INFO VERSIONINFO
  FILEFLAGS 0x0L
 #endif
  FILEOS 0x40004L
- FILETYPE 0x1L
+ FILETYPE 0x2L
  FILESUBTYPE 0x0L
 BEGIN
     BLOCK "StringFileInfo"
@@ -77,11 +68,11 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName", "KinectToVR"
-            VALUE "FileDescription", "KinectToVR for KV1"
+            VALUE "FileDescription", "KinectToVR OpenVR driver"
             VALUE "FileVersion", "71.8.45.8"
-            VALUE "InternalName", "KinectV1Process.exe"
+            VALUE "InternalName", "driver_K.dll"
             VALUE "LegalCopyright", "Copyright (C) 2020"
-            VALUE "OriginalFilename", "KinectV1Process.exe"
+            VALUE "OriginalFilename", "driver_KinectToVR.dll"
             VALUE "ProductName", "KinectToVR EX"
             VALUE "ProductVersion", "0.8.0.0"
         END
@@ -95,4 +86,15 @@ END
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
 

@@ -28,10 +28,10 @@ void dprintf(const char* fmt, ...)
     static FILE *factory_log;
     if (factory_log == 0)
     {
-        factory_log = fopen("C:\\avrknuckleslog.txt", "wt");
+        factory_log = fopen("C:\\.K2VR_log", "wt"); //open only
         if (!factory_log)
         {
-            factory_log = fopen("C:\\avrknuckleslog.txt", "wt");
+            factory_log = fopen("C:\\.K2VR_log", "wt"); //open only
         }
     }
 

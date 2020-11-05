@@ -61,7 +61,7 @@ IDI_ICON1               ICON                    "..\\external\\icons\\icon.ico"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 22,5,29,7
+ FILEVERSION 71,8,45,8
  PRODUCTVERSION 0,8,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
@@ -79,7 +79,7 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "KinectToVR"
             VALUE "FileDescription", "KinectToVR for KV2"
-            VALUE "FileVersion", "22.5.29.7"
+            VALUE "FileVersion", "71.8.45.8"
             VALUE "InternalName", "KinectV2Process.exe"
             VALUE "LegalCopyright", "Copyright (C) 2020"
             VALUE "OriginalFilename", "KinectV2Process.exe"

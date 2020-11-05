@@ -63,6 +63,7 @@
     <ClInclude Include="trackable_device.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Source Files">
@@ -71,5 +72,8 @@
     <Filter Include="Header Files">
       <UniqueIdentifier>{27e47a17-310e-4114-91d8-36f93f63e758}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="driver_KinectToVR.rc" />
   </ItemGroup>
 </Project>

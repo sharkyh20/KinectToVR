@@ -190,6 +190,7 @@ copy /Y "C:\Users\AkaYa!\Desktop\soft_knuckles-master\x64\Debug\soft_knuckles.dl
     <ClInclude Include="BodyTracker.h" />
     <ClInclude Include="dprintf.h" />
     <ClInclude Include="logger.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="socket_notifier.h" />
     <ClInclude Include="SysForm.h" />
     <ClInclude Include="linalg.h" />
@@ -197,6 +198,9 @@ copy /Y "C:\Users\AkaYa!\Desktop\soft_knuckles-master\x64\Debug\soft_knuckles.dl
     <ClInclude Include="soft_knuckles_debug_handler.h" />
     <ClInclude Include="soft_knuckles_device.h" />
     <ClInclude Include="trackable_device.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="driver_KinectToVR.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
