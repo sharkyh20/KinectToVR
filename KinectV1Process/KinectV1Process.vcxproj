@@ -180,6 +180,11 @@
   <ItemGroup>
     <Image Include="..\external\icons\icon.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SFMLProject\SFMLProject.vcxproj">
+      <Project>{9e612475-cf0a-4384-969a-3c01c9543935}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
