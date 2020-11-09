@@ -14,9 +14,8 @@ script:
  - export PATH=$MSBUILD_PATH:$PATH
  - git clone https://github.com/USCiLab/cereal external/cereal
  - git clone https://github.com/ValveSoftware/openvr external/openvr
- - wget "https://jztkft.dl.sourceforge.net/project/boost/boost-binaries/1.74.0/boost_1_74_0-bin-msvc-all-32-64.7z" -O ./external/boost_1_74_0-bin-msvc-all-32-64.7z
+ - wget "https://www.dropbox.com/s/9qledlbsehcywri/boost_1_74_0.7z?dl=1" -O ./external/boost_1_74_0.7z
  - wget "https://drive.google.com/uc?export=download&id=14TBSyxF9AfTd5n05guthFRfpxeh0nxLX" -O ./external/kinectlib.7z
- - 7z x ./external/boost_1_74_0-bin-msvc-all-32-64.7z -oexternal
+ - 7z x ./external/boost_1_74_0.7z -oexternal
  - 7z x ./external/kinectlib.7z -oexternal
- - MSBuild.exe -p:Configuration=Release -p:Platform=x64 KinectToVR.sln
- - MSBuild.exe -p:Configuration=Release -p:Platform=x64 KinectToVR.sln /t:Rebuild
+ - MSBuild.exe -p:Configuration=Release -p:Platform=x64 KinectToVR.sln -t:KinectToVR
