@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
 	KinectSettings::rightFootJointWithoutRotation = KVR::KinectJointType::FootRight;
 
 	processLoop(kinect);
-
+	
 	return 0;
 }
 

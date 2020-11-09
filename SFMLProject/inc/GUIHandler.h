@@ -2916,8 +2916,6 @@ public:
 							       yawRaw = std::atan2(trackedDevicePose.mDeviceToAbsoluteTracking.m[0][2],
 							                           trackedDevicePose.mDeviceToAbsoluteTracking.m[2][2]);
 
-							Eigen::Quaternion q(quaternion.w, quaternion.x, quaternion.y, quaternion.z);
-
 							if (yawRaw < 0.0f)
 							{
 								yawRaw += 2 * M_PI;
@@ -3307,7 +3305,7 @@ private:
 	sfg::Button::Ptr HeadTrackingCalibButton = sfg::Button::Create("Calibration: Look at Kinect and stand still");
 	sfg::Button::Ptr TrackersCalibSButton = sfg::Button::Create("Begin Calibration");
 	sfg::Button::Ptr TrackersCalibButton = sfg::Button::Create("Begin Calibration");
-	sfg::CheckButton::Ptr expcalibbutton = sfg::CheckButton::Create("Enable Automatic Calibration");
+	sfg::CheckButton::Ptr expcalibbutton = sfg::CheckButton::Create("Enable Manual Calibration");
 
 	void updateKinectStatusLabelDisconnected()
 	{

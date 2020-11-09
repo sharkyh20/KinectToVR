@@ -264,26 +264,31 @@ int checkK2Server()
 	return 1; //don't check if it was already working
 }
 
-void updateServerStatus(GUIHandler &guiRef)
+void updateServerStatus(GUIHandler& guiRef)
 {
-	KinectSettings::K2Drivercode = checkK2Server();
-	switch (KinectSettings::K2Drivercode) {
-	case -1:
-		guiRef.DriverStatusLabel->SetText("Driver Status: UNKNOWN (Code: -1)");
-		break;
-	case -10:
-		guiRef.DriverStatusLabel->SetText("Driver Status: SERVER ERROR (Code: -10)");
-		break;
-	case 1:
-		guiRef.DriverStatusLabel->SetText("Driver Status: Success!");
-		KinectSettings::isDriverPresent = true;
-		break;
-	case 10:
-		guiRef.DriverStatusLabel->SetText("Driver Status: ERROR NOT INITIALIZED (Code: 10)");
-		break;
-	}
+	std::thread([&]() {
+		KinectSettings::K2Drivercode = checkK2Server();
+		switch (KinectSettings::K2Drivercode) {
+		case -1:
+			guiRef.DriverStatusLabel->SetText("Driver Status: UNKNOWN (Code: -1)");
+			break;
+		case -10:
+			guiRef.DriverStatusLabel->SetText("Driver Status: SERVER ERROR (Code: -10)");
+			break;
+		case 1:
+			guiRef.DriverStatusLabel->SetText("Driver Status: Success!");
+			KinectSettings::isDriverPresent = true;
+			break;
+		case 10:
+			guiRef.DriverStatusLabel->SetText("Driver Status: ERROR NOT INITIALIZED (Code: 10)");
+			break;
+		default:
+			guiRef.DriverStatusLabel->SetText("Driver Status: UNKNOWN (Code: -1)");
+			break;
+		}
 
-	guiRef.TrackerInitButton->SetState(KinectSettings::isDriverPresent ? sfg::Widget::State::NORMAL : sfg::Widget::State::INSENSITIVE);
+		guiRef.TrackerInitButton->SetState(KinectSettings::isDriverPresent ? sfg::Widget::State::NORMAL : sfg::Widget::State::INSENSITIVE);
+		}).detach();
 }
 
 void processLoop(KinectHandlerBase& kinect)
@@ -326,6 +331,8 @@ void processLoop(KinectHandlerBase& kinect)
 
 	guiRef.updateKinectStatusLabel(kinect);
 	KinectSettings::isKinectPSMS = kinect.isPSMS;
+	KinectSettings::expcalib = !kinect.isPSMS; //Enable default manual calibration if PSMS
+	
 	// Reconnect Kinect Event Signal
 	guiRef.setKinectButtonSignal(kinect);
 
@@ -729,6 +736,10 @@ void processLoop(KinectHandlerBase& kinect)
 	}
 	KinectSettings::writeKinectSettings();
 	VirtualHips::saveSettings();
+
+	kinect.terminateColor();
+	kinect.terminateDepth();
+	kinect.terminateSkeleton();
 
 	//playspaceMovementAdjuster.resetPlayspaceAdjustments();
 	if (eError == vr::EVRInitError::VRInitError_None)
