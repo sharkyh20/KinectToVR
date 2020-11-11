@@ -547,7 +547,7 @@ void processLoop(KinectHandlerBase& kinect)
 				" Y: " << float(int(rightController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad).y*10))/10.f << 
 				" T: " << rightController.GetTrigger() << '\n';*/
 
-			/***********************************************************************************************/
+			/***********************************************************************************************
 			std::cout <<
 				"Left: " << KinectSettings::hidariashimove.Pose.Position.x << ' ' << KinectSettings::hidariashimove.Pose
 				.Position.y << ' ' << KinectSettings::hidariashimove.Pose.Position.z << '\n' <<
@@ -555,7 +555,7 @@ void processLoop(KinectHandlerBase& kinect)
 				Position.y << ' ' << KinectSettings::migiashimove.Pose.Position.z << '\n' <<
 				"Waist: " << KinectSettings::yobumove.Pose.Position.x << ' ' << KinectSettings::yobumove.Pose.Position.y
 				<< ' ' << KinectSettings::yobumove.Pose.Position.z << "\n\n";
-			/***********************************************************************************************/
+			***********************************************************************************************/
 
 			VRInput::trackpadpose[0].x = rightController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad).x;
 			VRInput::trackpadpose[0].y = rightController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad).y;
@@ -753,8 +753,14 @@ void spawnDefaultLowerBodyTrackers()
 {
 	std::thread* activate = new std::thread([]
 		{
-			// pipe implements waiting anyway
+			// create chrono for limiting loop timing
+			using clock = std::chrono::steady_clock;
+			auto next_frame = clock::now();
+		
 			while (true) {
+				// measure loop time, let's run at 140/s
+				next_frame += std::chrono::milliseconds(1000 / 30);
+				
 				HANDLE pingPipe = CreateFile(
 					TEXT("\\\\.\\pipe\\TrackersInitPipe"), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr);
 				DWORD Written;
@@ -766,6 +772,9 @@ void spawnDefaultLowerBodyTrackers()
 
 				WriteFile(pingPipe, InitD, sizeof(InitD), &Written, nullptr);
 				CloseHandle(pingPipe);
+
+				//Sleep until next frame, if time haven't passed yet
+				std::this_thread::sleep_until(next_frame);
 			}
 		});
 }

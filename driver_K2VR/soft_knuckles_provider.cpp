@@ -125,9 +125,14 @@ namespace soft_knuckles
 
 			std::thread* serverstatus = new std::thread([&]
 				{
-				// pipe implements waiting anyway
+					using clock = std::chrono::steady_clock;
+					auto next_frame = clock::now();
+
 					while(true) // We could reboot the application!
 					{
+						// Add time to wait
+						next_frame += std::chrono::milliseconds(1000 / 30);
+						
 						HANDLE pingPipe = CreateFile(
 							TEXT("\\\\.\\pipe\\K2ServerStatusPipe"), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr);
 						DWORD Written;
@@ -139,6 +144,9 @@ namespace soft_knuckles
 
 						WriteFile(pingPipe, ServerData, sizeof(ServerData), &Written, nullptr);
 						CloseHandle(pingPipe);
+
+						// Wait until next frame
+						std::this_thread::sleep_until(next_frame);
 					}
 				});
 
