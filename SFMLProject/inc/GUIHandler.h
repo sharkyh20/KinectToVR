@@ -2619,7 +2619,6 @@ public:
 			vr::TrackedDevicePose_t ctrackedControllerPose;
 			vr::VRControllerState_t ccontrollerState;
 			vr::VRControllerState_t cstate;
-			bool calibrationAbort = false;
 
 			if (!KinectSettings::isCalibrating)
 			{
@@ -2627,7 +2626,7 @@ public:
 
 				if (!KinectSettings::expcalib)
 				{
-					std::thread* t1 = new std::thread([this, &calibrationAbort]()
+					std::thread* t1 = new std::thread([this]()
 					{
 						KinectSettings::rtcalibrated = true;
 						KinectSettings::jcalib = true;
@@ -2669,10 +2668,7 @@ public:
 								}
 
 								std::this_thread::sleep_for(std::chrono::milliseconds(5));
-								if (!KinectSettings::isCalibrating) {
-									calibrationAbort = true;
-									break;
-								}
+								if (!KinectSettings::isCalibrating) break;
 							}
 
 							if (firstTime)
@@ -2713,10 +2709,7 @@ public:
 
 								std::this_thread::sleep_for(std::chrono::milliseconds(5));
 								KinectSettings::tryaw = glm::degrees(yawtmp);
-								if (!KinectSettings::isCalibrating) {
-									calibrationAbort = true;
-									break;
-								}
+								if (!KinectSettings::isCalibrating) break;
 							}
 
 							if (!KinectSettings::isCalibrating)
@@ -2727,14 +2720,13 @@ public:
 								KinectSettings::tryaw = settings.tryawst;
 
 								KinectSettings::kinpitch = settings.kinpitchst;
-								calibrationAbort = true;
 								break;
 							}
 						}
 
 						std::this_thread::sleep_for(std::chrono::seconds(1));
 						
-						if (!calibrationAbort)
+						if (!KinectSettings::isCalibrating)
 						{
 							settings.caliborigin = KinectSettings::calorigin;
 							settings.rcR_matT = KinectSettings::R_matT;
@@ -2760,7 +2752,7 @@ public:
 				}
 				else
 				{
-					std::thread* t1 = new std::thread([this, &calibrationAbort]()
+					std::thread* t1 = new std::thread([this]()
 					{
 						vr::EVRInitError error;
 						vr::IVRSystem* system = VR_Init(&error, vr::VRApplication_Background);
@@ -2833,6 +2825,7 @@ public:
 
 							spose.push_back(ispose);
 							hpose.push_back(ihpose);
+							
 							if (!KinectSettings::isCalibrating) break;
 						}
 						if (!KinectSettings::isCalibrating)
@@ -2843,10 +2836,9 @@ public:
 							KinectSettings::tryaw = settings.tryawst;
 
 							KinectSettings::kinpitch = settings.kinpitchst;
-							calibrationAbort = true;
 						}
 
-						if (!calibrationAbort)
+						if (KinectSettings::isCalibrating)
 						{
 							Eigen::Matrix<float, 3, Eigen::Dynamic> spoints(3, KinectSettings::cpoints), hpoints(
 								                                        3, KinectSettings::cpoints);
@@ -2914,10 +2906,9 @@ public:
 							KinectSettings::tryaw = settings.tryawst;
 
 							KinectSettings::kinpitch = settings.kinpitchst;
-							calibrationAbort = true;
 						}
 
-						if (!calibrationAbort)
+						if (KinectSettings::isCalibrating)
 						{
 							vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(
 								vr::TrackingUniverseStanding, 0, &trackedDevicePose, 1);
@@ -2963,7 +2954,6 @@ public:
 			else
 			{
 				KinectSettings::isCalibrating = false;
-				calibrationAbort = true;
 			}
 
 			saveSettings();
