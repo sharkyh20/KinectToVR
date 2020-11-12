@@ -4,16 +4,11 @@
 #include <boost/exception_ptr.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
-#include <glm/gtx/transform2.hpp>
-#include <glm/mat4x4.hpp>
 #include <glm/detail/type_vec3.hpp>
 #include <glm/detail/type_vec4.hpp>
 #include <glm/detail/type_vec2.hpp>
-#include <glm/vec3.hpp>
-#include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/rotate_vector.hpp>
 #include "glew.h"
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
@@ -22,9 +17,15 @@
 #include <sfLine.h>
 #include <iostream>
 #include <KinectJoint.h>
-#include <Eigen/Geometry>
 #include <math.h>
-#include "VectorMath.h"
+
+#include <../LowPassFilter.h>
+
+LowPassFilter lowPassFilter[3][4] = {
+	{LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005)},
+	{LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005)},
+	{LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005)}
+};
 
 void KinectV1Handler::initOpenGL()
 {
@@ -590,7 +591,7 @@ void KinectV1Handler::updateSkeletalData()
 			jointPositions[convertJoint(KVR::KinectJointType::SpineBase)].z
 		);
 
-		/***********************************************************************************************
+		/***********************************************************************************************/
 		glm::quat hFootRotF, mFootRotF;
 
 		//calculate direction vectors
@@ -648,20 +649,34 @@ void KinectV1Handler::updateSkeletalData()
 				glm::vec3(0, kneeRightPose.y, kneeRightPose.z), up)))
 		};
 
-		KinectSettings::hFootRot = glm::vec3(
+		hFootRotF = glm::vec3(
 			-tibiaRotX[0].x - M_PI / 3,
-			feetRot[0].y + /*2 * KinectSettings::tryaw / 180 * M_PI,
+			feetRot[0].y + /*2 */ KinectSettings::tryaw / 180 * M_PI,
 			tibiaRotZ[0].z * 15);
 
-		KinectSettings::mFootRot = glm::vec3(
+		mFootRotF = glm::vec3(
 			-tibiaRotX[1].x - M_PI / 3,
-			feetRot[1].y + /*2 * KinectSettings::tryaw / 180 * M_PI,
+			feetRot[1].y + /*2 */ KinectSettings::tryaw / 180 * M_PI,
 			tibiaRotZ[1].z * 15);
 
-		normalize(KinectSettings::hFootRot);
-		normalize(KinectSettings::mFootRot);
+		normalize(hFootRotF);
+		normalize(mFootRotF);
 
-		***********************************************************************************************/
+		////smooth with lowpass filter
+		hFootRotF.w = lowPassFilter[0][0].update(hFootRotF.w);
+		hFootRotF.x = lowPassFilter[0][1].update(hFootRotF.x);
+		hFootRotF.y = lowPassFilter[0][2].update(hFootRotF.y);
+		hFootRotF.z = lowPassFilter[0][3].update(hFootRotF.z);
+
+		mFootRotF.w = lowPassFilter[1][0].update(mFootRotF.w);
+		mFootRotF.x = lowPassFilter[1][1].update(mFootRotF.x);
+		mFootRotF.y = lowPassFilter[1][2].update(mFootRotF.y);
+		mFootRotF.z = lowPassFilter[1][3].update(mFootRotF.z);
+		
+		KinectSettings::trackerSoftRot[0] = hFootRotF;
+		KinectSettings::trackerSoftRot[1] = mFootRotF;
+
+		/***********************************************************************************************/
 
 		//DEBUG
 		/*

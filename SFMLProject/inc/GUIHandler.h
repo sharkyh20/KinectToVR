@@ -1153,6 +1153,36 @@ public:
 		return r;
 	}
 
+	void ping_InitTrackers()
+	{
+		if (!KinectSettings::initialised && // If not done yet
+			VirtualHips::settings.astartt && KinectSettings::isDriverPresent)
+		{
+			std::thread* st = new std::thread([this]
+				{
+					std::this_thread::sleep_for(std::chrono::seconds(3));
+					TrackerInitButton->SetLabel("Trackers Initialised - Destroy Trackers");
+					spawnDefaultLowerBodyTrackers();
+
+					showPostTrackerInitUI();
+
+					TrackerLastInitButton->SetState(sfg::Widget::State::INSENSITIVE);
+
+					modeTitleBox110->Show(!KinectSettings::isKinectPSMS);
+					TDegreeButton->SetValue(KinectSettings::cpoints);
+					TrackersConfigSaveButton->Show(true);
+					TrackersCalibButton->Show(true);
+					//TrackersCalibSButton->Show(true);
+					expcalibbutton->Show(!KinectSettings::isKinectPSMS);
+
+					AutoStartTrackers->Show(true);
+					//AutoStartKinectToVR->Show(true);
+
+					KinectSettings::initialised = true;
+				});
+		}
+	}
+
 	void setTrackerButtonSignals(std::vector<KVR::KinectTrackedDevice>& v_trackers, vr::IVRSystem*& m_VRSystem)
 	{
 		calibrateOffsetButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers, &m_VRSystem]
@@ -1226,31 +1256,8 @@ public:
 		/*bool foundCachedTrackers = trackerConfigExists() ? true : false;
 		TrackerLastInitButton->Show(foundCachedTrackers);*/
 
-		if (VirtualHips::settings.astartt && KinectSettings::isDriverPresent)
-		{
-			std::thread* st = new std::thread([this]
-			{
-				std::this_thread::sleep_for(std::chrono::seconds(7));
-				TrackerInitButton->SetLabel("Trackers Initialised - Destroy Trackers");
-				spawnDefaultLowerBodyTrackers();
-
-				showPostTrackerInitUI();
-
-				TrackerLastInitButton->SetState(sfg::Widget::State::INSENSITIVE);
-
-				modeTitleBox110->Show(!KinectSettings::isKinectPSMS);
-				TDegreeButton->SetValue(KinectSettings::cpoints);
-				TrackersConfigSaveButton->Show(true);
-				TrackersCalibButton->Show(true);
-				//TrackersCalibSButton->Show(true);
-				expcalibbutton->Show(!KinectSettings::isKinectPSMS);
-
-				AutoStartTrackers->Show(true);
-				//AutoStartKinectToVR->Show(true);
-
-				KinectSettings::initialised = true;
-			});
-		}
+		//Initialise trackers if $(Conditions)
+		ping_InitTrackers();
 
 		//if (VirtualHips::settings.astarth)
 		//{
@@ -1993,6 +2000,10 @@ public:
 		coptbox->AppendItem("Disable Feet Rotation");
 		coptbox->AppendItem("Disable Feet Yaw (+Y)");
 		coptbox->AppendItem("Use Head Orientation");
+
+		// Only if we're using kinect v1
+		if(KinectSettings::kinectVersion == 1)
+			coptbox->AppendItem("Math-Based Rotation");
 
 		coptbox1->AppendItem("Enable Waist Rotation");
 		coptbox1->AppendItem("Disable Waist Rotation");

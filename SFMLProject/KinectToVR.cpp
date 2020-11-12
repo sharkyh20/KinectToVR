@@ -288,6 +288,7 @@ void updateServerStatus(GUIHandler& guiRef)
 		}
 
 		guiRef.TrackerInitButton->SetState(KinectSettings::isDriverPresent ? sfg::Widget::State::NORMAL : sfg::Widget::State::INSENSITIVE);
+		guiRef.ping_InitTrackers();
 		}).detach();
 }
 
@@ -295,6 +296,8 @@ void processLoop(KinectHandlerBase& kinect)
 {
 	LOG(INFO) << "~~~New logging session for main process begins here!~~~";
 	LOG(INFO) << "Kinect version is V" << static_cast<int>(kinect.kVersion);
+	KinectSettings::kinectVersion = kinect.kVersion; //Set kinect version
+	
 	updateFilePath();
 	//sf::RenderWindow renderWindow(getScaledWindowResolution(), "KinectToVR: " + KinectSettings::KVRversion, sf::Style::Titlebar | sf::Style::Close);
 	sf::RenderWindow renderWindow(sf::VideoMode(1280, 768, 32), "KinectToVR: " + KinectSettings::KVRversion,
@@ -352,14 +355,14 @@ void processLoop(KinectHandlerBase& kinect)
 
 	LOG_IF(eError != vr::VRInitError_None, ERROR) << "IVRSystem could not be initialised: EVRInitError Code " << static_cast<int>(eError);
 
-	// INPUT BINDING TEMPORARY --------------------------------
-	// Warn about non-english file path, as openvr can only take ASCII chars
-	verifyDefaultFilePath();
-
 	//Update driver status
 	/************************************************/
 	updateServerStatus(guiRef);
 	/************************************************/
+
+	// INPUT BINDING TEMPORARY --------------------------------
+	// Warn about non-english file path, as openvr can only take ASCII chars
+	verifyDefaultFilePath();
 
 	if (eError == vr::VRInitError_None)
 	{
@@ -436,7 +439,11 @@ void processLoop(KinectHandlerBase& kinect)
 	guiRef.setDeviceHandlersReference(v_deviceHandlers);
 	guiRef.initialisePSMoveHandlerIntoGUI(); // Needs the deviceHandlerRef to be set
 
-	guiRef.coptbox->SelectItem(VirtualHips::settings.footOption);
+	// Select backed up or first (we may switch from KV1 to KV2, keeping config)
+	guiRef.coptbox->SelectItem(
+		VirtualHips::settings.footOption < guiRef.coptbox->GetItemCount() ? 
+		VirtualHips::settings.footOption : 0);
+	
 	guiRef.coptbox1->SelectItem(VirtualHips::settings.hipsOption);
 	guiRef.foptbox->SelectItem(VirtualHips::settings.posOption);
 	guiRef.contrackingselectbox->SelectItem(VirtualHips::settings.conOption);

@@ -13,7 +13,7 @@
 #include "KinectJoint.h"
 #include <PSMoveClient_CAPI.h>
 
-enum class KinectVersion
+enum KinectVersion
 {
 	Version1 = 1,
 	//AKA Xbox 360/ Windows v1
@@ -31,6 +31,8 @@ enum footRotationFilterOption
 	k_EnableOrientationFilter_WithoutYaw,
 	///don't rotate foots in +y
 	k_EnableOrientationFilter_HeadOrientation,
+	///use headset orientation for foots
+	k_EnableOrientationFilter_Software,
 	///use headset orientation for foots
 };
 
@@ -114,9 +116,10 @@ namespace KinectSettings
 
 	static std::vector<K2VR_PSMoveData> KVR_PSMoves;
 	extern bool isCalibrating, isKinectPSMS;
-	extern int K2Drivercode;
+	extern int K2Drivercode, kinectVersion;
 	extern PSMPSMove migiMove, hidariMove, hidariashimove, migiashimove, yobumove, atamamove;
 	extern glm::quat trackerRoth, trackerRotm, trackerRoty;
+	extern glm::quat trackerSoftRot[2]; //Software-calculated
 	extern bool isGripPressed[2], isTriggerPressed[2]; //0L, 1R
 	extern bool isDriverPresent;
 	extern bool isKinectDrawn;

@@ -19,6 +19,7 @@ namespace KinectSettings
 {
 	std::wstring const CFG_NAME(L"KinectToVR.cfg");
 	std::string KVRversion = "0.8.0 EX";
+	int kinectVersion = -1;
 	bool psmbuttons[5][10];
 	bool isKinectDrawn = false;
 	bool isSkeletonDrawn = false;
@@ -81,6 +82,7 @@ namespace KinectSettings
 	glm::vec3 hmdPose, hHandPose, mHandPose, hFootPose, mFootPose, hipsPose, hElPose, mElPose,
 	          lastPose[3][2];
 	glm::quat hFootRot, mFootRot, hipsRot;
+	glm::quat trackerSoftRot[2];
 	vr::HmdQuaternion_t hmdRot;
 
 	const int kinectV2Height = 1920;
@@ -468,6 +470,26 @@ namespace KinectSettings
 					trackerRotm = glm::quat(0, 0, 0, 0);
 				}
 
+				/*******************************************************/
+				glm::quat r = glm::vec3(0.f, hmdYaw, 0.f);
+				if (footOption == k_EnableOrientationFilter_HeadOrientation)
+				{
+					trackerRoth = r;
+					trackerRotm = r;
+				}
+				if (hipsOption == k_EnableHipsOrientationFilter_HeadOrientation)
+				{
+					trackerRoty = r;
+				}
+				/*******************************************************/
+				if(footOption == k_EnableOrientationFilter_Software)
+				{
+					trackerRoth = trackerSoftRot[0];
+					trackerRotm = trackerSoftRot[1];
+				}
+				/*******************************************************/
+
+				/* Apply offsets to orientations */
 				glm::vec3 unofu[3] = {eulerAngles(trackerRoth), eulerAngles(trackerRotm), eulerAngles(trackerRoty)};
 				unofu[0] += glm::vec3(moffsets[1][1].v[0] * M_PI / 180.f, moffsets[1][1].v[1] * M_PI / 180.f,
 				                      moffsets[1][1].v[2] * M_PI / 180.f);
@@ -516,22 +538,11 @@ namespace KinectSettings
 				/*******************************************************/
 				if (rtcalibrated && bodytrackingoption == k_KinectFullTracking && flip)
 				{
-					glm::quat qy_quat(glm::vec3(-glm::radians(kinpitch) / 2, 2 * M_PI, 0.f)),
+					glm::quat qy_quat(glm::vec3(-glm::radians(kinpitch), 2 * M_PI, 0.f)),
 						qy_quat_hips(glm::vec3(0.f, 2 * M_PI, 0.f));
 					trackerRoth *= qy_quat;
 					trackerRotm *= qy_quat;
 					trackerRoty *= qy_quat_hips;
-				}
-				/*******************************************************/
-				glm::quat r = glm::vec3(0.f, hmdYaw, 0.f);
-				if (footOption == k_EnableOrientationFilter_HeadOrientation)
-				{
-					trackerRoth = r;
-					trackerRotm = r;
-				}
-				if (hipsOption == k_EnableHipsOrientationFilter_HeadOrientation)
-				{
-					trackerRoty = r;
 				}
 				/*******************************************************/
 
