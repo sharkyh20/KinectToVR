@@ -30,4 +30,4 @@ jobs:
       id: run_msbuild
       run: |
         dir
-        msbuild "/p:Configuration=Release;Platform=x64;WindowsTargetPlatformVersion=10.0" "/t:Rebuild"
+        msbuild "/p:Configuration=Release;Platform=x64;WindowsTargetPlatformVersion=10.0" "/t:KinectToVR"
