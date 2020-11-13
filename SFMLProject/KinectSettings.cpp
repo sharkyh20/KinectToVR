@@ -407,7 +407,23 @@ namespace KinectSettings
 				else if (hipsOption == k_DisableHipsOrientationFilter)
 					trackerRoty = glm::quat(0, 0, 0, 0);
 
-				glm::quat footrot[2] = {hFootRot, mFootRot};
+				// We may be using special orientation filter, apply it
+				/*******************************************************/
+				if (footOption == k_EnableOrientationFilter_Software)
+				{
+					glm::quat q = glm::quat(glm::vec3(0.f, M_PI, 0.f));
+					if (!flip)
+					{
+						trackerRoth = trackerSoftRot[0] * q;
+						trackerRotm = trackerSoftRot[1] * q;
+					}
+					else {
+						trackerRoth = inverse(trackerSoftRot[1]) * q;
+						trackerRotm = inverse(trackerSoftRot[0]) * q;
+					}
+				}
+				/*******************************************************/
+				
 				if (footOption == k_EnableOrientationFilter)
 				{
 					if (bodytrackingoption == k_KinectFullTracking)
@@ -482,12 +498,7 @@ namespace KinectSettings
 					trackerRoty = r;
 				}
 				/*******************************************************/
-				if(footOption == k_EnableOrientationFilter_Software)
-				{
-					trackerRoth = trackerSoftRot[0];
-					trackerRotm = trackerSoftRot[1];
-				}
-				/*******************************************************/
+				
 
 				/* Apply offsets to orientations */
 				glm::vec3 unofu[3] = {eulerAngles(trackerRoth), eulerAngles(trackerRotm), eulerAngles(trackerRoty)};
@@ -504,22 +515,31 @@ namespace KinectSettings
 				if (bodytrackingoption == k_KinectFullTracking)
 				{
 					glm::vec3 unofu[3] = { eulerAngles(trackerRoth), eulerAngles(trackerRotm), eulerAngles(trackerRoty) };
-					unofu[0] += glm::vec3(0.f, tryaw * M_PI / 180, 0.f);
-					unofu[1] += glm::vec3(0.f, tryaw * M_PI / 180, 0.f);
-					unofu[2] += glm::vec3(0.f, tryaw * M_PI / 180, 0.f);
+					if (footOption != k_EnableOrientationFilter_HeadOrientation) {
+						unofu[0] += glm::vec3(0.f, tryaw * M_PI / 180, 0.f);
+						unofu[1] += glm::vec3(0.f, tryaw * M_PI / 180, 0.f);
+					}
+					if (hipsOption != k_EnableHipsOrientationFilter_HeadOrientation)
+						unofu[2] += glm::vec3(0.f, tryaw * M_PI / 180, 0.f);
+
 					if (flip)
 					{
 						//unofu[0] += glm::vec3(0.f, M_PI, M_PI);
 						//unofu[1] += glm::vec3(0.f, M_PI, M_PI);
 						//unofu[2] += glm::vec3(0.f, M_PI, M_PI);
 
-						unofu[0] += glm::vec3(0.f, 0.f, M_PI);
-						unofu[1] += glm::vec3(0.f, 0.f, M_PI);
-						unofu[2] += glm::vec3(0.f, 0.f, M_PI);
+						if (footOption != k_EnableOrientationFilter_HeadOrientation) {
+							unofu[0] += glm::vec3(0.f, 0.f, M_PI);
+							unofu[1] += glm::vec3(0.f, 0.f, M_PI);
 
-						trackerRoth = glm::vec3(/*unofu[0].x*/ 0.f, unofu[0].y, unofu[0].z);
-						trackerRotm = glm::vec3(/*unofu[1].x*/ 0.f, unofu[1].y, unofu[1].z);
-						trackerRoty = glm::vec3(/*unofu[2].x*/ 0.f, unofu[2].y, unofu[2].z);
+							trackerRoth = glm::vec3(/*unofu[0].x*/ 0.f, unofu[0].y, unofu[0].z);
+							trackerRotm = glm::vec3(/*unofu[1].x*/ 0.f, unofu[1].y, unofu[1].z);
+						}
+						if (hipsOption != k_EnableHipsOrientationFilter_HeadOrientation) {
+							unofu[2] += glm::vec3(0.f, 0.f, M_PI);
+
+							trackerRoty = glm::vec3(/*unofu[2].x*/ 0.f, unofu[2].y, unofu[2].z);
+						}
 					}
 					else
 					{
@@ -538,11 +558,15 @@ namespace KinectSettings
 				/*******************************************************/
 				if (rtcalibrated && bodytrackingoption == k_KinectFullTracking && flip)
 				{
-					glm::quat qy_quat(glm::vec3(-glm::radians(kinpitch), 2 * M_PI, 0.f)),
+					glm::quat qy_quat(glm::vec3(-glm::radians(kinpitch) / 2.f, 2 * M_PI, 0.f)),
 						qy_quat_hips(glm::vec3(0.f, 2 * M_PI, 0.f));
-					trackerRoth *= qy_quat;
-					trackerRotm *= qy_quat;
-					trackerRoty *= qy_quat_hips;
+					if (footOption == k_EnableOrientationFilter ||
+						footOption == k_EnableOrientationFilter_WithoutYaw) {
+						trackerRoth *= qy_quat;
+						trackerRotm *= qy_quat;
+					}
+					if (hipsOption == k_EnableHipsOrientationFilter)
+						trackerRoty *= qy_quat_hips;
 				}
 				/*******************************************************/
 

@@ -22,9 +22,24 @@
 #include <../LowPassFilter.h>
 
 LowPassFilter lowPassFilter[3][4] = {
-	{LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005)},
-	{LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005)},
-	{LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005)}
+	{
+		LowPassFilter(7.1, 0.005),
+		LowPassFilter(7.1, 0.005),
+		LowPassFilter(7.1, 0.005),
+		LowPassFilter(7.1, 0.005)
+	},
+	{
+		LowPassFilter(7.1, 0.005),
+		LowPassFilter(7.1, 0.005),
+		LowPassFilter(7.1, 0.005),
+		LowPassFilter(7.1, 0.005)
+	},
+	{
+		LowPassFilter(7.1, 0.005),
+		LowPassFilter(7.1, 0.005),
+		LowPassFilter(7.1, 0.005),
+		LowPassFilter(7.1, 0.005)
+	}
 };
 
 void KinectV1Handler::initOpenGL()
@@ -651,19 +666,19 @@ void KinectV1Handler::updateSkeletalData()
 
 		hFootRotF = glm::vec3(
 			-tibiaRotX[0].x - M_PI / 3,
-			feetRot[0].y + /*2 */ KinectSettings::tryaw / 180 * M_PI,
-			tibiaRotZ[0].z * 15);
+			-feetRot[0].y + /*2 */ KinectSettings::tryaw / 180 * M_PI,
+			-tibiaRotZ[0].z * 15 + M_PI);
 
 		mFootRotF = glm::vec3(
 			-tibiaRotX[1].x - M_PI / 3,
-			feetRot[1].y + /*2 */ KinectSettings::tryaw / 180 * M_PI,
-			tibiaRotZ[1].z * 15);
+			-feetRot[1].y + /*2 */ KinectSettings::tryaw / 180 * M_PI,
+			-tibiaRotZ[1].z * 15 + M_PI);
 
 		normalize(hFootRotF);
 		normalize(mFootRotF);
-
+		
 		////smooth with lowpass filter
-		hFootRotF.w = lowPassFilter[0][0].update(hFootRotF.w);
+		/*hFootRotF.w = lowPassFilter[0][0].update(hFootRotF.w);
 		hFootRotF.x = lowPassFilter[0][1].update(hFootRotF.x);
 		hFootRotF.y = lowPassFilter[0][2].update(hFootRotF.y);
 		hFootRotF.z = lowPassFilter[0][3].update(hFootRotF.z);
@@ -671,7 +686,7 @@ void KinectV1Handler::updateSkeletalData()
 		mFootRotF.w = lowPassFilter[1][0].update(mFootRotF.w);
 		mFootRotF.x = lowPassFilter[1][1].update(mFootRotF.x);
 		mFootRotF.y = lowPassFilter[1][2].update(mFootRotF.y);
-		mFootRotF.z = lowPassFilter[1][3].update(mFootRotF.z);
+		mFootRotF.z = lowPassFilter[1][3].update(mFootRotF.z);*/
 		
 		KinectSettings::trackerSoftRot[0] = hFootRotF;
 		KinectSettings::trackerSoftRot[1] = mFootRotF;
