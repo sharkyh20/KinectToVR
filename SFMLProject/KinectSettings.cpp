@@ -364,7 +364,7 @@ namespace KinectSettings
 			const float yaw = hmdYaw * 180 / M_PI; //get current headset yaw (RAD->DEG)
 			const float facing = yaw - calibration_trackers_yaw; //get facing to kinect; 
 
-			//we're subtracting looking at the kinect degree from actual yaw to get offset angle:
+			// we're subtracting looking at the kinect degree from actual yaw to get offset angle:
 			//       
 			//             FRONT                 Front is at 0deg
 			//              / \     KINECT       Kinect is at 30deg
@@ -378,7 +378,13 @@ namespace KinectSettings
 			//             CENTER                          
 			//              ---                         
 			//               |                          
-			//               |                          
+			//               |
+
+			// NOTE! I'm using:
+			// Pitch for rotation around +x
+			// Yaw for rotation around +y (yes, +)
+			// Roll for rotation around +z
+			// Just get used to it
 
 			if (positional_tracking_option == k_PSMoveFullTracking)
 				flip = false;
@@ -409,13 +415,29 @@ namespace KinectSettings
 
 				// We may be using special orientation filter, apply it
 				/*******************************************************/
-				if (feet_rotation_option == k_EnableOrientationFilter_Software)
+				if (feet_rotation_option == k_EnableOrientationFilter_Software || kinectVersion == 2)
 				{
 					glm::quat q = glm::quat(glm::vec3(0.f, M_PI, 0.f));
 					if (!flip)
 					{
 						left_tracker_rot = trackerSoftRot[0] * q;
 						right_tracker_rot = trackerSoftRot[1] * q;
+
+						glm::vec3 euler_orientation[2] = {
+							eulerAngles(left_tracker_rot),
+							eulerAngles(right_tracker_rot)
+						};
+
+						// Mirror pitch and roll
+						euler_orientation[0].x *= -1;
+						euler_orientation[1].x *= -1;
+						
+						euler_orientation[0].z *= -1;
+						euler_orientation[1].z *= -1;
+
+						// Apply to parent
+						left_tracker_rot = euler_orientation[0];
+						right_tracker_rot = euler_orientation[1];
 					}
 					else {
 						left_tracker_rot = inverse(trackerSoftRot[1]) * q;
@@ -428,15 +450,18 @@ namespace KinectSettings
 				{
 					if (positional_tracking_option == k_KinectFullTracking)
 					{
-						if (!flip)
-						{
-							left_tracker_rot = left_foot_raw_ori;
-							right_tracker_rot = right_foot_raw_ori;
-						}
-						else
-						{
-							right_tracker_rot = inverse(left_foot_raw_ori);
-							left_tracker_rot = inverse(right_foot_raw_ori);
+						// Don't run on v2
+						if (kinectVersion == 1) {
+							if (!flip)
+							{
+								left_tracker_rot = left_foot_raw_ori;
+								right_tracker_rot = right_foot_raw_ori;
+							}
+							else
+							{
+								right_tracker_rot = inverse(left_foot_raw_ori);
+								left_tracker_rot = inverse(right_foot_raw_ori);
+							}
 						}
 					}
 					else
@@ -565,8 +590,12 @@ namespace KinectSettings
 						tune_quat_waist(glm::vec3(0.f, 2 * M_PI, 0.f));
 					if (feet_rotation_option == k_EnableOrientationFilter ||
 						feet_rotation_option == k_EnableOrientationFilter_WithoutYaw) {
-						left_tracker_rot *= tune_quat;
-						right_tracker_rot *= tune_quat;
+
+						// Don't run on v2
+						if (kinectVersion == 1) {
+							left_tracker_rot *= tune_quat;
+							right_tracker_rot *= tune_quat;
+						}
 					}
 					if (hips_rotation_option == k_EnableHipsOrientationFilter)
 						waist_tracker_rot *= tune_quat_waist;
