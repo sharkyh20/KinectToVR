@@ -552,21 +552,19 @@ namespace KinectSettings
 
 					if (flip)
 					{
-						//unofu[0] += glm::vec3(0.f, M_PI, M_PI);
-						//unofu[1] += glm::vec3(0.f, M_PI, M_PI);
-						//unofu[2] += glm::vec3(0.f, M_PI, M_PI);
+						bool pitchOn = false;
 
 						if (feet_rotation_option != k_EnableOrientationFilter_HeadOrientation) {
 							kinect_trackers_orientation[0] += glm::vec3(0.f, 0.f, M_PI);
 							kinect_trackers_orientation[1] += glm::vec3(0.f, 0.f, M_PI);
 
-							left_tracker_rot = glm::vec3(/*unofu[0].x*/ 0.f, kinect_trackers_orientation[0].y, kinect_trackers_orientation[0].z);
-							right_tracker_rot = glm::vec3(/*unofu[1].x*/ 0.f, kinect_trackers_orientation[1].y, kinect_trackers_orientation[1].z);
+							left_tracker_rot = glm::vec3(pitchOn * kinect_trackers_orientation[0].x, kinect_trackers_orientation[0].y, kinect_trackers_orientation[0].z);
+							right_tracker_rot = glm::vec3(pitchOn * kinect_trackers_orientation[1].x, kinect_trackers_orientation[1].y, kinect_trackers_orientation[1].z);
 						}
 						if (hips_rotation_option != k_EnableHipsOrientationFilter_HeadOrientation) {
 							kinect_trackers_orientation[2] += glm::vec3(0.f, 0.f, M_PI);
 
-							waist_tracker_rot = glm::vec3(/*unofu[2].x*/ 0.f, kinect_trackers_orientation[2].y, kinect_trackers_orientation[2].z);
+							waist_tracker_rot = glm::vec3(pitchOn * kinect_trackers_orientation[2].x, kinect_trackers_orientation[2].y, kinect_trackers_orientation[2].z);
 						}
 					}
 					else
@@ -586,8 +584,8 @@ namespace KinectSettings
 				/*******************************************************/
 				if (matrixes_calibrated && positional_tracking_option == k_KinectFullTracking && flip)
 				{
-					glm::quat tune_quat(glm::vec3(-glm::radians(calibration_kinect_pitch) / 2.f, 2 * M_PI, 0.f)),
-						tune_quat_waist(glm::vec3(0.f, 2 * M_PI, 0.f));
+					glm::quat tune_quat(glm::vec3(-calibration_kinect_pitch, 2 * M_PI, 0.f)),
+						tune_quat_w(glm::vec3(0.f, 2 * M_PI, 0.f));
 					if (feet_rotation_option == k_EnableOrientationFilter ||
 						feet_rotation_option == k_EnableOrientationFilter_WithoutYaw) {
 
@@ -598,7 +596,7 @@ namespace KinectSettings
 						}
 					}
 					if (hips_rotation_option == k_EnableHipsOrientationFilter)
-						waist_tracker_rot *= tune_quat_waist;
+						waist_tracker_rot *= tune_quat_w;
 				}
 				/*******************************************************/
 

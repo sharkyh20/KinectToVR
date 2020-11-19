@@ -588,46 +588,45 @@ void KinectV2Handler::updateSkeletalFilters()
 
 
 	/***********************************************************************************************/
+	glm::quat hFootRotF, mFootRotF;
 
-	//gather positions into vectors
+	//calculate direction vectors
 	glm::vec3 up(0, 1, 0),
-	          ankleLeftPose(
-		          joints[JointType_AnkleLeft].Position.X,
-		          joints[JointType_AnkleLeft].Position.Y,
-		          joints[JointType_AnkleLeft].Position.Z),
+		ankleLeftPose(
+			joints[JointType_AnkleLeft].Position.X,
+			joints[JointType_AnkleLeft].Position.Y,
+			joints[JointType_AnkleLeft].Position.Z),
 
-	          ankleRightPose(
-		          joints[JointType_AnkleRight].Position.X,
-		          joints[JointType_AnkleRight].Position.Y,
-		          joints[JointType_AnkleRight].Position.Z),
+		ankleRightPose(
+			joints[JointType_AnkleRight].Position.X,
+			joints[JointType_AnkleRight].Position.Y,
+			joints[JointType_AnkleRight].Position.Z),
 
-	          footLeftPose(
-		          joints[JointType_FootLeft].Position.X,
-		          joints[JointType_FootLeft].Position.Y,
-		          joints[JointType_FootLeft].Position.Z),
+		footLeftPose(
+			joints[JointType_FootLeft].Position.X,
+			joints[JointType_FootLeft].Position.Y,
+			joints[JointType_FootLeft].Position.Z),
 
-	          footRightPose(
-		          joints[JointType_FootRight].Position.X,
-		          joints[JointType_FootRight].Position.Y,
-		          joints[JointType_FootRight].Position.Z),
+		footRightPose(
+			joints[JointType_FootRight].Position.X,
+			joints[JointType_FootRight].Position.Y,
+			joints[JointType_FootRight].Position.Z),
 
-	          kneeLeftPose(
-		          joints[JointType_KneeLeft].Position.X,
-		          joints[JointType_KneeLeft].Position.Y,
-		          joints[JointType_KneeLeft].Position.Z),
+		kneeLeftPose(
+			joints[JointType_KneeLeft].Position.X,
+			joints[JointType_KneeLeft].Position.Y,
+			joints[JointType_KneeLeft].Position.Z),
 
-	          kneeRightPose(
-		          joints[JointType_KneeRight].Position.X,
-		          joints[JointType_KneeRight].Position.Y,
-		          joints[JointType_KneeRight].Position.Z);
+		kneeRightPose(
+			joints[JointType_KneeRight].Position.X,
+			joints[JointType_KneeRight].Position.Y,
+			joints[JointType_KneeRight].Position.Z);
 
-	//Calculate orietation for yaw basing on foot
 	glm::vec3 feetRot[2] = {
 		eulerAngles(glm::quat(lookAt(footLeftPose, ankleLeftPose, up))),
 		eulerAngles(glm::quat(lookAt(footRightPose, ankleRightPose, up)))
 	};
 
-	//calculate rest basing on tibia bone
 	glm::vec3 tibiaRotZ[2] = {
 		eulerAngles(glm::quat(lookAt(
 			glm::vec3(ankleLeftPose.x, ankleLeftPose.y, 1),
@@ -646,24 +645,20 @@ void KinectV2Handler::updateSkeletalFilters()
 			glm::vec3(0, kneeRightPose.y, kneeRightPose.z), up)))
 	};
 
-	//compose
-	glm::quat hFootRotF = glm::vec3(
+	hFootRotF = glm::vec3(
 		-tibiaRotX[0].x - M_PI / 3,
-		feetRot[0].y + 2 * KinectSettings::calibration_trackers_yaw / 180 * M_PI,
-		tibiaRotZ[0].z * 15);
+		-feetRot[0].y + /*2 */ KinectSettings::calibration_trackers_yaw / 180 * M_PI,
+		-tibiaRotZ[0].z * 15 + M_PI);
 
-	glm::quat mFootRotF = glm::vec3(
+	mFootRotF = glm::vec3(
 		-tibiaRotX[1].x - M_PI / 3,
-		feetRot[1].y + 2 * KinectSettings::calibration_trackers_yaw / 180 * M_PI,
-		tibiaRotZ[1].z * 15);
+		-feetRot[1].y + /*2 */ KinectSettings::calibration_trackers_yaw / 180 * M_PI,
+		-tibiaRotZ[1].z * 15 + M_PI);
 
-	//remove all possible errors
 	normalize(hFootRotF);
 	normalize(mFootRotF);
 
-	/***********************************************************************************************/
-
-	////smooth with lowpass filter
+	//smooth with lowpass filter
 	hFootRotF.w = lowPassFilter[0][0].update(hFootRotF.w);
 	hFootRotF.x = lowPassFilter[0][1].update(hFootRotF.x);
 	hFootRotF.y = lowPassFilter[0][2].update(hFootRotF.y);
@@ -673,6 +668,12 @@ void KinectV2Handler::updateSkeletalFilters()
 	mFootRotF.x = lowPassFilter[1][1].update(mFootRotF.x);
 	mFootRotF.y = lowPassFilter[1][2].update(mFootRotF.y);
 	mFootRotF.z = lowPassFilter[1][3].update(mFootRotF.z);
+
+	KinectSettings::trackerSoftRot[0] = hFootRotF;
+	KinectSettings::trackerSoftRot[1] = mFootRotF;
+
+	/***********************************************************************************************/
+
 
 	/* KINECT V2 ONLY: filter quaternion to be less jittery at end */
 	/* glm::quat hFootRotF = glm::quat(

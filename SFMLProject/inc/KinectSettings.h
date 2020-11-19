@@ -73,38 +73,38 @@ static struct posFilter
 	positionalFilterOption filterOption;
 } positionFilterOption;
 
-enum kontororaTorakkinguOpu
+enum controllersTrackingOption
 {
 	k_PSMoveFull,
 	k_PSMoveRot_KinectPose
 };
 
-static struct toraOpushon
+static struct trackingOpt
 {
-	kontororaTorakkinguOpu trackingOption;
-} kontororaTorakkinguOpushon;
+	controllersTrackingOption trackingOption;
+} controllersTrackingOption_s;
 
-enum bodiTorakkinguOpu
+enum bodyTrackingOption
 {
 	k_PSMoveFullTracking,
 	k_KinectFullTracking
 };
 
-static struct bodiToraOpushon
+static struct bodyTrackingOpt
 {
-	bodiTorakkinguOpu trackingOption;
-} bodiTorakkinguOpushon;
+	bodyTrackingOption trackingOption;
+} bodyTrackingOption_s;
 
-enum atamaTorakkinguOpu
+enum headTrackingOption
 {
 	k_PSMoveTracking,
 	k_KinectTracking
 };
 
-static struct atamaToraOpushon
+static struct headTrackingOpt
 {
-	atamaTorakkinguOpu trackingOption;
-} atamaTorakkinguOpushon;
+	headTrackingOption trackingOption;
+} headTrackingOption_s;
 
 namespace KinectSettings
 {

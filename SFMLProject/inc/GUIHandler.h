@@ -134,7 +134,7 @@ public:
 
 		mainNotebook->AppendPage(mainGUIBox, sfg::Label::Create(" Body Trackers "));
 		mainNotebook->AppendPage(calibrationBox, sfg::Label::Create(" Offsets "));
-		mainNotebook->AppendPage(advancedTrackerBox, sfg::Label::Create(" Tracking Options "));
+		mainNotebook->AppendPage(advancedTrackerBox, sfg::Label::Create(" Options "));
 		//mainNotebook->AppendPage(controllersBox, sfg::Label::Create(" Controllers "));
 		//mainNotebook->AppendPage(virtualHipsBox, sfg::Label::Create(" Head Tracking "));
 
@@ -1175,9 +1175,8 @@ public:
 					//TrackersCalibSButton->Show(true);
 					expcalibbutton->Show(!KinectSettings::isKinectPSMS);
 
+					space_label->Show(true);
 					AutoStartTrackers->Show(true);
-					//AutoStartKinectToVR->Show(true);
-
 					KinectSettings::initialised = true;
 				});
 		}
@@ -1241,9 +1240,8 @@ public:
 				//TrackersCalibSButton->Show(true);
 				expcalibbutton->Show(!KinectSettings::isKinectPSMS); //Manual only if PSMS
 
+				space_label->Show(true);
 				AutoStartTrackers->Show(true);
-				//AutoStartKinectToVR->Show(true);
-
 				KinectSettings::initialised = true;
 			}
 			else
@@ -1760,11 +1758,6 @@ public:
 		mainGUIBox->Pack(recBox);
 		mainGUIBox->Pack(TrackerInitButton);
 
-		sfg::Box::Ptr horizontalPSMBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
-		horizontalPSMBox->Pack(StartPSMoveHandler);
-		horizontalPSMBox->Pack(StopPSMoveHandler);
-		//mainGUIBox->Pack(horizontalPSMBox);
-
 		//setHipScaleBox();
 		mainGUIBox->Pack(ShowSkeletonButton);
 
@@ -1786,15 +1779,6 @@ public:
 
 		mainGUIBox->Pack(expcalibbutton);
 		expcalibbutton->Show(false);
-
-		sfg::Box::Ptr astartbox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
-
-		astartbox->Pack(AutoStartTrackers);
-		astartbox->Pack(AutoStartKinectToVR);
-		AutoStartTrackers->Show(false);
-		AutoStartKinectToVR->Show(false);
-
-		mainGUIBox->Pack(astartbox);
 
 		//mainGUIBox->Pack(TrackersCalibSButton);
 		//TrackersCalibSButton->Show(false);
@@ -1946,12 +1930,16 @@ public:
 
 	void packElementsIntoAdvTrackerBox()
 	{
-		advancedTrackerBox->Pack(sfg::Label::Create("PSMoveSerive handler"));
+		// Only if we're using psms
+		if (KinectSettings::isKinectPSMS)
+		{
+			sfg::Box::Ptr horizontalPSMBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
+			horizontalPSMBox->Pack(StartPSMoveHandler);
+			horizontalPSMBox->Pack(StopPSMoveHandler);
 
-		sfg::Box::Ptr horizontalPSMBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
-		horizontalPSMBox->Pack(StartPSMoveHandler);
-		horizontalPSMBox->Pack(StopPSMoveHandler);
-		advancedTrackerBox->Pack(horizontalPSMBox);
+			advancedTrackerBox->Pack(sfg::Label::Create("PSMoveSerive handler"));
+			advancedTrackerBox->Pack(horizontalPSMBox);
+		}
 
 		advancedTrackerBox->Pack(sfg::Label::Create("Body tracking option"));
 
@@ -1960,9 +1948,11 @@ public:
 		selectoptionbox->Pack(bodytrackingselectbox);
 		advancedTrackerBox->Pack(selectoptionbox);
 
-		bodytrackingselectbox->AppendItem("PSMove body tracking");
-		bodytrackingselectbox->AppendItem("Kinect body tracking");
-		bodytrackingselectbox->SelectItem(VirtualHips::settings.bodyTrackingOption);
+		// Append just a needed one
+		bodytrackingselectbox->AppendItem(KinectSettings::isKinectPSMS ? "PSMove body tracking" : "Kinect body tracking");
+
+		// Select corresponding (only) device
+		bodytrackingselectbox->SelectItem(0);
 
 		sfg::Box::Ptr psmleftidbox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
 		sfg::Box::Ptr psmrightidbox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
@@ -1983,9 +1973,6 @@ public:
 		psmidbox->Pack(refreshpsmovesbuton1);
 
 		advancedTrackerBox->Pack(psmidbox);
-
-		//bodytrackingselectbox
-
 		advancedTrackerBox->Pack(sfg::Label::Create("Trackers orientation filter"));
 
 		auto box1 = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
@@ -2000,7 +1987,7 @@ public:
 		coptbox->AppendItem("Disable Feet Rotation");
 		coptbox->AppendItem("Disable Feet Yaw (+Y)");
 		coptbox->AppendItem("Use Head Orientation");
-
+		
 		// Only if we're using kinect v1
 		if(KinectSettings::kinectVersion == 1)
 			coptbox->AppendItem("Math-Based Rotation");
@@ -2035,6 +2022,14 @@ public:
 		foptbox->AppendItem("No filter - normal results, no smoothing");
 
 		advancedTrackerBox->Pack(box11);
+		advancedTrackerBox->Pack(space_label);
+
+		sfg::Box::Ptr astartbox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
+		astartbox->Pack(AutoStartTrackers);
+		
+		space_label->Show(false);
+		AutoStartTrackers->Show(false);
+		advancedTrackerBox->Pack(astartbox);
 	}
 
 	void packElementsIntoCalibrationBox()
@@ -2733,8 +2728,7 @@ public:
 							settings.rcT_matT = KinectSettings::calibration_translation;
 							settings.tryawst = glm::degrees(yawtmp);
 							
-							KinectSettings::calibration_kinect_pitch = 
-								(glm::degrees(eulerAngles(KinectSettings::left_tracker_rot).x) + glm::degrees(eulerAngles(KinectSettings::left_tracker_rot).y)) / 2;
+							KinectSettings::calibration_kinect_pitch = eulerAngles(KinectSettings::left_tracker_rot).x;
 							settings.kinpitchst = KinectSettings::calibration_kinect_pitch;
 						}
 
@@ -2930,8 +2924,7 @@ public:
 							KinectSettings::calibration_trackers_yaw = glm::degrees(yaw);
 							settings.tryawst = glm::degrees(yaw);
 
-							KinectSettings::calibration_kinect_pitch =
-								(glm::degrees(eulerAngles(KinectSettings::left_tracker_rot).x) + glm::degrees(eulerAngles(KinectSettings::left_tracker_rot).y)) / 2;
+							KinectSettings::calibration_kinect_pitch = eulerAngles(KinectSettings::left_tracker_rot).x;
 							settings.kinpitchst = KinectSettings::calibration_kinect_pitch;
 
 							KinectSettings::calibration_origin = Eigen::Vector3f(0, 0, 0);
@@ -3226,6 +3219,7 @@ private:
 	sfg::Button::Ptr calibrateOffsetButton = sfg::Button::Create("Calibrate VR Offset");
 	sfg::Button::Ptr AddHandControllersToList = sfg::Button::Create("Add Hand Controllers");
 	sfg::Button::Ptr AddLowerTrackersToList = sfg::Button::Create("Add Lower Body Trackers");
+	sfg::Label::Ptr space_label = sfg::Label::Create(" ");
 
 	bool userSelectedDeviceRotIndex = false;
 	bool userSelectedDevicePosIndex = false;

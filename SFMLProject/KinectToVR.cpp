@@ -324,18 +324,19 @@ void processLoop(KinectHandlerBase& kinect)
 	// Global Debug Font
 	attemptInitialiseDebugDisplay(font, debugText);
 
-	//SFGUI Handling -------------------------------------- 
-	GUIHandler guiRef;
-	// ----------------------------------------------------
-
 	//Initialise Kinect
 	KinectSettings::kinectRepRotation = kinectQuaternionFromRads();
 	kinect.update();
 
-	guiRef.updateKinectStatusLabel(kinect);
 	KinectSettings::isKinectPSMS = kinect.isPSMS;
 	KinectSettings::expcalib = !kinect.isPSMS; //Enable default manual calibration if PSMS
-	
+
+	//SFGUI Handling -------------------------------------- 
+	GUIHandler guiRef;
+	// ----------------------------------------------------
+
+	// Update kinect status
+	guiRef.updateKinectStatusLabel(kinect);
 	// Reconnect Kinect Event Signal
 	guiRef.setKinectButtonSignal(kinect);
 
@@ -447,12 +448,16 @@ void processLoop(KinectHandlerBase& kinect)
 	guiRef.coptbox1->SelectItem(VirtualHips::settings.hipsOption);
 	guiRef.foptbox->SelectItem(VirtualHips::settings.posOption);
 	guiRef.contrackingselectbox->SelectItem(VirtualHips::settings.conOption);
-	guiRef.bodytrackingselectbox->SelectItem(VirtualHips::settings.bodyTrackingOption);
-	guiRef.headtrackingselectbox->SelectItem(VirtualHips::settings.headTrackingOption);
+
+	// Select automatically
+	guiRef.bodytrackingselectbox->SelectItem(0);
 	guiRef.refreshpsms();
 
-	//select last psm ids
-
+	// Select tracking option automatically
+	VirtualHips::settings.bodyTrackingOption = KinectSettings::isKinectPSMS ? k_PSMoveFullTracking : k_KinectFullTracking;
+	bodyTrackingOption_s.trackingOption = static_cast<bodyTrackingOption>(VirtualHips::settings.bodyTrackingOption);
+	KinectSettings::positional_tracking_option = VirtualHips::settings.bodyTrackingOption;
+	
 	boost::thread* ipcThread = new boost::thread(KinectSettings::sendipc);
 	ipcThread->detach();
 
@@ -665,28 +670,29 @@ void processLoop(KinectHandlerBase& kinect)
 
 			VirtualHips::saveSettings();
 		}
-		if (kontororaTorakkinguOpushon.trackingOption != static_cast<kontororaTorakkinguOpu>(guiRef.contrackingselectbox
+		if (controllersTrackingOption_s.trackingOption != static_cast<controllersTrackingOption>(guiRef.contrackingselectbox
 			->GetSelectedItem()))
 		{
-			kontororaTorakkinguOpushon.trackingOption = static_cast<kontororaTorakkinguOpu>(guiRef.contrackingselectbox
+			controllersTrackingOption_s.trackingOption = static_cast<controllersTrackingOption>(guiRef.contrackingselectbox
 				->GetSelectedItem());
 			VirtualHips::settings.conOption = guiRef.contrackingselectbox->GetSelectedItem();
 
 			VirtualHips::saveSettings();
 		}
-		if (bodiTorakkinguOpushon.trackingOption != static_cast<bodiTorakkinguOpu>(guiRef.bodytrackingselectbox->
+		// We're not updating it, it would mess everything
+		/*if (bodyTrackingOption_s.trackingOption != static_cast<bodyTrackingOption>(guiRef.bodytrackingselectbox->
 			GetSelectedItem()))
 		{
-			bodiTorakkinguOpushon.trackingOption = static_cast<bodiTorakkinguOpu>(guiRef.bodytrackingselectbox->
+			bodyTrackingOption_s.trackingOption = static_cast<bodyTrackingOption>(guiRef.bodytrackingselectbox->
 				GetSelectedItem());
 			VirtualHips::settings.bodyTrackingOption = guiRef.bodytrackingselectbox->GetSelectedItem();
 
 			VirtualHips::saveSettings();
-		}
-		if (atamaTorakkinguOpushon.trackingOption != static_cast<atamaTorakkinguOpu>(guiRef.headtrackingselectbox->
+		}*/
+		if (headTrackingOption_s.trackingOption != static_cast<headTrackingOption>(guiRef.headtrackingselectbox->
 			GetSelectedItem()))
 		{
-			atamaTorakkinguOpushon.trackingOption = static_cast<atamaTorakkinguOpu>(guiRef.headtrackingselectbox->
+			headTrackingOption_s.trackingOption = static_cast<headTrackingOption>(guiRef.headtrackingselectbox->
 				GetSelectedItem());
 			VirtualHips::settings.headTrackingOption = guiRef.headtrackingselectbox->GetSelectedItem();
 

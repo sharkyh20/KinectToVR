@@ -226,8 +226,8 @@ namespace VirtualHips
 				footOrientationFilterOption.filterOption = static_cast<footRotationFilterOption>(settings.footOption);
 				hipsOrientationFilterOption.filterOption = static_cast<hipsRotationFilterOption>(settings.hipsOption);
 				positionFilterOption.filterOption = static_cast<positionalFilterOption>(settings.posOption);
-				kontororaTorakkinguOpushon.trackingOption = static_cast<kontororaTorakkinguOpu>(settings.conOption);
-				bodiTorakkinguOpushon.trackingOption = static_cast<bodiTorakkinguOpu>(settings.bodyTrackingOption);
+				controllersTrackingOption_s.trackingOption = static_cast<controllersTrackingOption>(settings.conOption);
+				bodyTrackingOption_s.trackingOption = static_cast<bodyTrackingOption>(settings.bodyTrackingOption);
 
 				KinectSettings::calibration_origin = settings.caliborigin;
 
