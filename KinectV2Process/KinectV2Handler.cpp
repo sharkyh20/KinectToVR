@@ -519,12 +519,12 @@ void KinectV2Handler::updateSkeletalFilters()
 		}
 	}
 
-	KinectSettings::hmdPose = glm::vec3(
+	KinectSettings::head_position = glm::vec3(
 		joints[JointType_Head].Position.X,
 		joints[JointType_Head].Position.Y,
 		joints[JointType_Head].Position.Z
 	);
-	KinectSettings::hHandPose = glm::vec3(
+	KinectSettings::left_hand_pose = glm::vec3(
 		joints[JointType_HandLeft].Position.X,
 		joints[JointType_HandLeft].Position.Y,
 		joints[JointType_HandLeft].Position.Z
@@ -544,17 +544,17 @@ void KinectV2Handler::updateSkeletalFilters()
 		joints[JointType_ElbowRight].Position.Y,
 		joints[JointType_ElbowRight].Position.Z
 	);
-	KinectSettings::hFootPose = glm::vec3(
+	KinectSettings::left_foot_raw_pose = glm::vec3(
 		joints[JointType_AnkleLeft].Position.X,
 		joints[JointType_AnkleLeft].Position.Y,
 		joints[JointType_AnkleLeft].Position.Z
 	);
-	KinectSettings::mFootPose = glm::vec3(
+	KinectSettings::right_foot_raw_pose = glm::vec3(
 		joints[JointType_AnkleRight].Position.X,
 		joints[JointType_AnkleRight].Position.Y,
 		joints[JointType_AnkleRight].Position.Z
 	);
-	KinectSettings::hipsPose = glm::vec3(
+	KinectSettings::waist_raw_pose = glm::vec3(
 		joints[JointType_SpineBase].Position.X,
 		joints[JointType_SpineBase].Position.Y,
 		joints[JointType_SpineBase].Position.Z
@@ -649,12 +649,12 @@ void KinectV2Handler::updateSkeletalFilters()
 	//compose
 	glm::quat hFootRotF = glm::vec3(
 		-tibiaRotX[0].x - M_PI / 3,
-		feetRot[0].y + 2 * KinectSettings::tryaw / 180 * M_PI,
+		feetRot[0].y + 2 * KinectSettings::calibration_trackers_yaw / 180 * M_PI,
 		tibiaRotZ[0].z * 15);
 
 	glm::quat mFootRotF = glm::vec3(
 		-tibiaRotX[1].x - M_PI / 3,
-		feetRot[1].y + 2 * KinectSettings::tryaw / 180 * M_PI,
+		feetRot[1].y + 2 * KinectSettings::calibration_trackers_yaw / 180 * M_PI,
 		tibiaRotZ[1].z * 15);
 
 	//remove all possible errors
@@ -701,16 +701,16 @@ void KinectV2Handler::updateSkeletalFilters()
 
 	/*if (hFootRotF != glm::quat(1, 0, 0, 0) &&
 		hFootRotF != glm::inverse(glm::quat(1, 0, 0, 0)))*/
-	KinectSettings::hFootRot = hFootRotF;
+	KinectSettings::left_foot_raw_ori = hFootRotF;
 
 	/*if (mFootRotF != glm::quat(1, 0, 0, 0) &&
 		mFootRotF != glm::inverse(glm::quat(1, 0, 0, 0)))*/
-	KinectSettings::mFootRot = mFootRotF;
+	KinectSettings::right_foot_raw_ori = mFootRotF;
 
 	//hips are ok
 	if (hipsRotF != glm::quat(1, 0, 0, 0) &&
 		hipsRotF != inverse(glm::quat(1, 0, 0, 0)))
-		KinectSettings::hipsRot = hipsRotF;
+		KinectSettings::waist_raw_ori = hipsRotF;
 
 
 	// Update last pose for interpolation

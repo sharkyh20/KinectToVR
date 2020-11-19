@@ -534,12 +534,12 @@ void KinectV1Handler::updateSkeletalData()
 			}
 		}
 
-		KinectSettings::hmdPose = glm::vec3(
+		KinectSettings::head_position = glm::vec3(
 			jointPositions[convertJoint(KVR::KinectJointType::Head)].x,
 			jointPositions[convertJoint(KVR::KinectJointType::Head)].y,
 			jointPositions[convertJoint(KVR::KinectJointType::Head)].z
 		);
-		KinectSettings::hHandPose = glm::vec3(
+		KinectSettings::left_hand_pose = glm::vec3(
 			jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].x,
 			jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].y,
 			jointPositions[convertJoint(KVR::KinectJointType::HandLeft)].z
@@ -559,32 +559,32 @@ void KinectV1Handler::updateSkeletalData()
 			jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].y,
 			jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].z
 		);
-		KinectSettings::hFootPose = glm::vec3(
+		KinectSettings::left_foot_raw_pose = glm::vec3(
 			jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].x,
 			jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].y,
 			jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].z
 		);
-		KinectSettings::mFootPose = glm::vec3(
+		KinectSettings::right_foot_raw_pose = glm::vec3(
 			jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].x,
 			jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].y,
 			jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].z
 		);
-		KinectSettings::hipsPose = glm::vec3(
+		KinectSettings::waist_raw_pose = glm::vec3(
 			jointPositions[convertJoint(KVR::KinectJointType::SpineBase)].x,
 			jointPositions[convertJoint(KVR::KinectJointType::SpineBase)].y,
 			jointPositions[convertJoint(KVR::KinectJointType::SpineBase)].z
 		);
-		KinectSettings::hFootRot = glm::quat(
+		KinectSettings::left_foot_raw_ori = glm::quat(
 			boneOrientations[convertJoint(KVR::KinectJointType::AnkleLeft)].absoluteRotation.rotationQuaternion.w,
 			boneOrientations[convertJoint(KVR::KinectJointType::AnkleLeft)].absoluteRotation.rotationQuaternion.x,
 			boneOrientations[convertJoint(KVR::KinectJointType::AnkleLeft)].absoluteRotation.rotationQuaternion.y,
 			boneOrientations[convertJoint(KVR::KinectJointType::AnkleLeft)].absoluteRotation.rotationQuaternion.z);
-		KinectSettings::mFootRot = glm::quat(
+		KinectSettings::right_foot_raw_ori = glm::quat(
 			boneOrientations[convertJoint(KVR::KinectJointType::AnkleRight)].absoluteRotation.rotationQuaternion.w,
 			boneOrientations[convertJoint(KVR::KinectJointType::AnkleRight)].absoluteRotation.rotationQuaternion.x,
 			boneOrientations[convertJoint(KVR::KinectJointType::AnkleRight)].absoluteRotation.rotationQuaternion.y,
 			boneOrientations[convertJoint(KVR::KinectJointType::AnkleRight)].absoluteRotation.rotationQuaternion.z);
-		KinectSettings::hipsRot = glm::quat(
+		KinectSettings::waist_raw_ori = glm::quat(
 			boneOrientations[convertJoint(KVR::KinectJointType::SpineBase)].absoluteRotation.rotationQuaternion.w,
 			boneOrientations[convertJoint(KVR::KinectJointType::SpineBase)].absoluteRotation.rotationQuaternion.x,
 			boneOrientations[convertJoint(KVR::KinectJointType::SpineBase)].absoluteRotation.rotationQuaternion.y,
@@ -666,12 +666,12 @@ void KinectV1Handler::updateSkeletalData()
 
 		hFootRotF = glm::vec3(
 			-tibiaRotX[0].x - M_PI / 3,
-			-feetRot[0].y + /*2 */ KinectSettings::tryaw / 180 * M_PI,
+			-feetRot[0].y + /*2 */ KinectSettings::calibration_trackers_yaw / 180 * M_PI,
 			-tibiaRotZ[0].z * 15 + M_PI);
 
 		mFootRotF = glm::vec3(
 			-tibiaRotX[1].x - M_PI / 3,
-			-feetRot[1].y + /*2 */ KinectSettings::tryaw / 180 * M_PI,
+			-feetRot[1].y + /*2 */ KinectSettings::calibration_trackers_yaw / 180 * M_PI,
 			-tibiaRotZ[1].z * 15 + M_PI);
 
 		normalize(hFootRotF);

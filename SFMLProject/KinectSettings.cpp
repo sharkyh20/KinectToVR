@@ -24,7 +24,7 @@ namespace KinectSettings
 	bool isKinectDrawn = false;
 	bool isSkeletonDrawn = false;
 	bool isDriverPresent = false;
-	float svrhmdyaw = 0, kinpitch = 0;
+	float svrhmdyaw = 0, calibration_kinect_pitch = 0;
 	int psmh, psmm;
 	int K2Drivercode = -1; //unknown
 	std::vector<int> psmindexidpsm[2];
@@ -33,7 +33,7 @@ namespace KinectSettings
 	bool ignoreInferredPositions = false;
 	bool ignoreRotationSmoothing = false;
 	float ardroffset = 0.f;
-	int bodytrackingoption = 1, headtrackingoption = 1;
+	int positional_tracking_option = 1, headtrackingoption = 1;
 	// The joints which actually have rotation change based on the kinect
 	// Each kinect type should set these in their process beginning
 	// These would be the defaults for the V1
@@ -43,7 +43,7 @@ namespace KinectSettings
 	KVR::KinectJointType rightFootJointWithoutRotation = KVR::KinectJointType::AnkleRight;
 	bool isCalibrating = false;
 
-	PSMPSMove migiMove, hidariMove, hidariashimove, migiashimove, yobumove, atamamove;
+	PSMPSMove right_move_controller, left_move_controller, left_foot_psmove, right_foot_psmove, waist_psmove, atamamove;
 	bool isGripPressed[2] = {false, false}, isTriggerPressed[2] = {false, false}; //0L, 1R
 	bool initialised = false, isKinectPSMS = false;
 	bool userChangingZero = false;
@@ -56,7 +56,7 @@ namespace KinectSettings
 	const int kinectWidth = 480;
 	bool expcalib = true;
 	bool frame1 = true;
-	int footOption, hipsOption, posOption = 2, conOption;
+	int feet_rotation_option, hips_rotation_option, posOption = 2, conOption;
 
 	float map(float value, float start1, float stop1, float start2, float stop2)
 	{
@@ -79,9 +79,9 @@ namespace KinectSettings
 		return x;
 	}
 
-	glm::vec3 hmdPose, hHandPose, mHandPose, hFootPose, mFootPose, hipsPose, hElPose, mElPose,
+	glm::vec3 head_position, left_hand_pose, mHandPose, left_foot_raw_pose, right_foot_raw_pose, waist_raw_pose, hElPose, mElPose,
 	          lastPose[3][2];
-	glm::quat hFootRot, mFootRot, hipsRot;
+	glm::quat left_foot_raw_ori, right_foot_raw_ori, waist_raw_ori;
 	glm::quat trackerSoftRot[2];
 	vr::HmdQuaternion_t hmdRot;
 
@@ -108,27 +108,27 @@ namespace KinectSettings
 	vr::HmdQuaternion_t kinectRepRotation{0, 0, 0, 0}; //TEMP
 	vr::HmdVector3d_t kinectRadRotation{0, 0, 0};
 	vr::HmdVector3d_t kinectRepPosition{0, 0, 0};
-	vr::HmdVector3d_t moffsets[2][3] = {{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}}, {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}}};
+	vr::HmdVector3d_t manual_offsets[2][3] = {{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}}, {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}}};
 	vr::HmdVector3d_t hoffsets{0, 0, 0};
 	vr::HmdVector3d_t huoffsets{0, 0, 0};
-	vr::HmdVector3d_t troffsets{0, 0, 0};
+	vr::HmdVector3d_t kinect_tracker_offsets{0, 0, 0};
 	float hroffset = 0;
 	float troffset = 0;
-	Eigen::Vector3f calorigin;
+	Eigen::Vector3f calibration_origin;
 	vr::TrackedDevicePose_t controllersPose[2];
 	vr::HmdVector3d_t hauoffset{0, 0, 0}, mauoffset{0, 0, 0};
-	Eigen::Matrix<float, 3, 3> R_matT;
-	Eigen::Matrix<float, 3, 1> T_matT;
+	Eigen::Matrix<float, 3, 3> calibration_rotation;
+	Eigen::Matrix<float, 3, 1> calibration_translation;
 	bool ismatrixcalibrated = false;
-	bool rtcalibrated = false;
+	bool matrixes_calibrated = false;
 
-	float tryaw = 0.0;
+	float calibration_trackers_yaw = 0.0;
 	bool jcalib;
 	int cpoints = 3;
 
 	vr::HmdQuaternion_t hmdquat{1, 0, 0, 0};
 
-	vr::HmdVector3d_t mposes[3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
+	vr::HmdVector3d_t kinect_m_positions[3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
 
 	bool headtracked = false;
 	bool sensorConfigChanged = true; // First time used, it's config has changed internally
@@ -146,9 +146,9 @@ namespace KinectSettings
 	bool flip;
 	PSMQuatf offset[2];
 	Eigen::Quaternionf quatf[2];
-	glm::quat btrackeroffset[3];
+	glm::quat move_ori_offset[3];
 	glm::vec3 joy[2] = {glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)};
-	glm::quat trackerRoth, trackerRotm, trackerRoty;
+	glm::quat left_tracker_rot, right_tracker_rot, waist_tracker_rot;
 
 	void sendipc()
 	{
@@ -169,7 +169,7 @@ namespace KinectSettings
 		R << 5;
 		P << .1, .1, .1, .1, 10000, 10, .1, 10, 100;
 
-		KalmanFilter posef[3][3] = {
+		KalmanFilter kalmanFilter[3][3] = {
 			{KalmanFilter(dt, A, C, Q, R, P), KalmanFilter(dt, A, C, Q, R, P), KalmanFilter(dt, A, C, Q, R, P)},
 			{KalmanFilter(dt, A, C, Q, R, P), KalmanFilter(dt, A, C, Q, R, P), KalmanFilter(dt, A, C, Q, R, P)},
 			{KalmanFilter(dt, A, C, Q, R, P), KalmanFilter(dt, A, C, Q, R, P), KalmanFilter(dt, A, C, Q, R, P)}
@@ -182,7 +182,7 @@ namespace KinectSettings
 		{
 			for (int j = 0; j < 3; j++)
 			{
-				posef[i][j].init(0.f, x0);
+				kalmanFilter[i][j].init(0.f, x0);
 			}
 		}
 
@@ -194,36 +194,36 @@ namespace KinectSettings
 
 		while (true)
 		{
-			auto t1 = std::chrono::high_resolution_clock::now();
+			auto loop_start_time = std::chrono::high_resolution_clock::now();
 
-			if (bodytrackingoption == k_PSMoveFullTracking)
+			if (positional_tracking_option == k_PSMoveFullTracking)
 			{
-				hFootPose = .01f * glm::vec3(hidariashimove.Pose.Position.x, hidariashimove.Pose.Position.y,
-				                             hidariashimove.Pose.Position.z);
-				mFootPose = .01f * glm::vec3(migiashimove.Pose.Position.x, migiashimove.Pose.Position.y,
-				                             migiashimove.Pose.Position.z);
-				hipsPose = .01f * glm::vec3(yobumove.Pose.Position.x, yobumove.Pose.Position.y,
-				                            yobumove.Pose.Position.z);
+				left_foot_raw_pose = .01f * glm::vec3(left_foot_psmove.Pose.Position.x, left_foot_psmove.Pose.Position.y,
+				                             left_foot_psmove.Pose.Position.z);
+				right_foot_raw_pose = .01f * glm::vec3(right_foot_psmove.Pose.Position.x, right_foot_psmove.Pose.Position.y,
+				                             right_foot_psmove.Pose.Position.z);
+				waist_raw_pose = .01f * glm::vec3(waist_psmove.Pose.Position.x, waist_psmove.Pose.Position.y,
+				                            waist_psmove.Pose.Position.z);
 
-				hFootRot = glm::quat(hidariashimove.Pose.Orientation.w, hidariashimove.Pose.Orientation.x,
-				                     hidariashimove.Pose.Orientation.y, hidariashimove.Pose.Orientation.z);
-				mFootRot = glm::quat(migiashimove.Pose.Orientation.w, migiashimove.Pose.Orientation.x,
-				                     migiashimove.Pose.Orientation.y, migiashimove.Pose.Orientation.z);
-				hipsRot = glm::quat(yobumove.Pose.Orientation.w, yobumove.Pose.Orientation.x,
-				                    yobumove.Pose.Orientation.y, yobumove.Pose.Orientation.z);
+				left_foot_raw_ori = glm::quat(left_foot_psmove.Pose.Orientation.w, left_foot_psmove.Pose.Orientation.x,
+				                     left_foot_psmove.Pose.Orientation.y, left_foot_psmove.Pose.Orientation.z);
+				right_foot_raw_ori = glm::quat(right_foot_psmove.Pose.Orientation.w, right_foot_psmove.Pose.Orientation.x,
+				                     right_foot_psmove.Pose.Orientation.y, right_foot_psmove.Pose.Orientation.z);
+				waist_raw_ori = glm::quat(waist_psmove.Pose.Orientation.w, waist_psmove.Pose.Orientation.x,
+				                    waist_psmove.Pose.Orientation.y, waist_psmove.Pose.Orientation.z);
 			}
 
-			mposes[2].v[0] = hipsPose.x;
-			mposes[2].v[1] = hipsPose.y;
-			mposes[2].v[2] = hipsPose.z;
-			mposes[1].v[0] = hHandPose.x;
-			mposes[1].v[1] = hHandPose.y;
-			mposes[1].v[2] = hHandPose.z;
-			mposes[0].v[0] = hmdPose.x;
-			mposes[0].v[1] = hmdPose.y;
-			mposes[0].v[2] = hmdPose.z;
+			kinect_m_positions[2].v[0] = waist_raw_pose.x;
+			kinect_m_positions[2].v[1] = waist_raw_pose.y;
+			kinect_m_positions[2].v[2] = waist_raw_pose.z;
+			kinect_m_positions[1].v[0] = left_hand_pose.x;
+			kinect_m_positions[1].v[1] = left_hand_pose.y;
+			kinect_m_positions[1].v[2] = left_hand_pose.z;
+			kinect_m_positions[0].v[0] = head_position.x;
+			kinect_m_positions[0].v[1] = head_position.y;
+			kinect_m_positions[0].v[2] = head_position.z;
 
-			const glm::vec3 posePrev[3] = {hFootPose, mFootPose, hipsPose};
+			const glm::vec3 posePrev[3] = {left_foot_raw_pose, right_foot_raw_pose, waist_raw_pose};
 			const glm::vec3 poseLast[3] = {lastPose[0][0], lastPose[1][0], lastPose[2][0]};
 			const glm::vec3 poseLerp[3] = {
 				mix(posePrev[0], poseLast[0], 0.3f),
@@ -234,9 +234,9 @@ namespace KinectSettings
 
 			if (posOption == k_DisablePositionFilter)
 			{
-				poseFiltered[0] = hFootPose;
-				poseFiltered[1] = mFootPose;
-				poseFiltered[2] = hipsPose;
+				poseFiltered[0] = left_foot_raw_pose;
+				poseFiltered[1] = right_foot_raw_pose;
+				poseFiltered[2] = waist_raw_pose;
 			}
 			else if (posOption == k_EnablePositionFilter_LERP)
 			{
@@ -246,15 +246,15 @@ namespace KinectSettings
 			}
 			else if (posOption == k_EnablePositionFilter_LowPass)
 			{
-				poseFiltered[0] = glm::vec3(lowPassFilter[0][0].update(hFootPose.x),
-				                            lowPassFilter[0][1].update(hFootPose.y),
-				                            lowPassFilter[0][2].update(hFootPose.z));
-				poseFiltered[1] = glm::vec3(lowPassFilter[1][0].update(mFootPose.x),
-				                            lowPassFilter[1][1].update(mFootPose.y),
-				                            lowPassFilter[1][2].update(mFootPose.z));
-				poseFiltered[2] = glm::vec3(lowPassFilter[2][0].update(hipsPose.x),
-				                            lowPassFilter[2][1].update(hipsPose.y),
-				                            lowPassFilter[2][2].update(hipsPose.z));
+				poseFiltered[0] = glm::vec3(lowPassFilter[0][0].update(left_foot_raw_pose.x),
+				                            lowPassFilter[0][1].update(left_foot_raw_pose.y),
+				                            lowPassFilter[0][2].update(left_foot_raw_pose.z));
+				poseFiltered[1] = glm::vec3(lowPassFilter[1][0].update(right_foot_raw_pose.x),
+				                            lowPassFilter[1][1].update(right_foot_raw_pose.y),
+				                            lowPassFilter[1][2].update(right_foot_raw_pose.z));
+				poseFiltered[2] = glm::vec3(lowPassFilter[2][0].update(waist_raw_pose.x),
+				                            lowPassFilter[2][1].update(waist_raw_pose.y),
+				                            lowPassFilter[2][2].update(waist_raw_pose.z));
 			}
 			else if (posOption == k_EnablePositionFilter_Kalman)
 			{
@@ -264,19 +264,19 @@ namespace KinectSettings
 					switch (i)
 					{
 					case 0:
-						y[0][i] << hFootPose.x;
-						posef[0][i].update(y[0][i]);
-						poseFiltered[0].x = posef[0][i].state().x();
+						y[0][i] << left_foot_raw_pose.x;
+						kalmanFilter[0][i].update(y[0][i]);
+						poseFiltered[0].x = kalmanFilter[0][i].state().x();
 						break;
 					case 1:
-						y[0][i] << hFootPose.y;
-						posef[0][i].update(y[0][i]);
-						poseFiltered[0].y = posef[0][i].state().x();
+						y[0][i] << left_foot_raw_pose.y;
+						kalmanFilter[0][i].update(y[0][i]);
+						poseFiltered[0].y = kalmanFilter[0][i].state().x();
 						break;
 					case 2:
-						y[0][i] << hFootPose.z;
-						posef[0][i].update(y[0][i]);
-						poseFiltered[0].z = posef[0][i].state().x();
+						y[0][i] << left_foot_raw_pose.z;
+						kalmanFilter[0][i].update(y[0][i]);
+						poseFiltered[0].z = kalmanFilter[0][i].state().x();
 						break;
 					}
 				}
@@ -287,19 +287,19 @@ namespace KinectSettings
 					switch (i)
 					{
 					case 0:
-						y[1][i] << mFootPose.x;
-						posef[1][i].update(y[1][i]);
-						poseFiltered[1].x = posef[1][i].state().x();
+						y[1][i] << right_foot_raw_pose.x;
+						kalmanFilter[1][i].update(y[1][i]);
+						poseFiltered[1].x = kalmanFilter[1][i].state().x();
 						break;
 					case 1:
-						y[1][i] << mFootPose.y;
-						posef[1][i].update(y[1][i]);
-						poseFiltered[1].y = posef[1][i].state().x();
+						y[1][i] << right_foot_raw_pose.y;
+						kalmanFilter[1][i].update(y[1][i]);
+						poseFiltered[1].y = kalmanFilter[1][i].state().x();
 						break;
 					case 2:
-						y[1][i] << mFootPose.z;
-						posef[1][i].update(y[1][i]);
-						poseFiltered[1].z = posef[1][i].state().x();
+						y[1][i] << right_foot_raw_pose.z;
+						kalmanFilter[1][i].update(y[1][i]);
+						poseFiltered[1].z = kalmanFilter[1][i].state().x();
 						break;
 					}
 				}
@@ -310,25 +310,25 @@ namespace KinectSettings
 					switch (i)
 					{
 					case 0:
-						y[2][i] << hipsPose.x;
-						posef[2][i].update(y[2][i]);
-						poseFiltered[2].x = posef[2][i].state().x();
+						y[2][i] << waist_raw_pose.x;
+						kalmanFilter[2][i].update(y[2][i]);
+						poseFiltered[2].x = kalmanFilter[2][i].state().x();
 						break;
 					case 1:
-						y[2][i] << hipsPose.y;
-						posef[2][i].update(y[2][i]);
-						poseFiltered[2].y = posef[2][i].state().x();
+						y[2][i] << waist_raw_pose.y;
+						kalmanFilter[2][i].update(y[2][i]);
+						poseFiltered[2].y = kalmanFilter[2][i].state().x();
 						break;
 					case 2:
-						y[2][i] << hipsPose.z;
-						posef[2][i].update(y[2][i]);
-						poseFiltered[2].z = posef[2][i].state().x();
+						y[2][i] << waist_raw_pose.z;
+						kalmanFilter[2][i].update(y[2][i]);
+						poseFiltered[2].z = kalmanFilter[2][i].state().x();
 						break;
 					}
 				}
 			}
 
-			PSMPSMove hidariKontorora = hidariMove, migiKontorora = migiMove;
+			const PSMPSMove left_psmove = left_move_controller, right_psmove = right_move_controller;
 
 			//if (KVR_PSMoves.size() >= 1) {
 			//    hidariKontorora = KVR_PSMoves.at(psmh).PSMoveData;
@@ -337,32 +337,32 @@ namespace KinectSettings
 			//    migiKontorora = KVR_PSMoves.at(psmm).PSMoveData;
 			//}
 
-			if (migiKontorora.SelectButton == PSMButtonState_DOWN) //we are recentering right psmove with select button
-				offset[0] = migiKontorora.Pose.Orientation; //quaterion for further offset maths
+			if (right_psmove.SelectButton == PSMButtonState_DOWN) //we are recentering right psmove with select button
+				offset[0] = right_psmove.Pose.Orientation; //quaterion for further offset maths
 
-			if (hidariKontorora.SelectButton == PSMButtonState_DOWN)
+			if (left_psmove.SelectButton == PSMButtonState_DOWN)
 				//we are recentering right psmove with select button
-				offset[1] = hidariKontorora.Pose.Orientation; //quaterion for further offset maths
+				offset[1] = left_psmove.Pose.Orientation; //quaterion for further offset maths
 
 
-			if (hidariashimove.SelectButton == PSMButtonState_DOWN) //recenter left foot move with select button
-				btrackeroffset[0] = glm::quat(hidariashimove.Pose.Orientation.w,
-				                              hidariashimove.Pose.Orientation.x, hidariashimove.Pose.Orientation.y,
-				                              hidariashimove.Pose.Orientation.z);
+			if (left_foot_psmove.SelectButton == PSMButtonState_DOWN) //recenter left foot move with select button
+				move_ori_offset[0] = glm::quat(left_foot_psmove.Pose.Orientation.w,
+				                              left_foot_psmove.Pose.Orientation.x, left_foot_psmove.Pose.Orientation.y,
+				                              left_foot_psmove.Pose.Orientation.z);
 
-			if (migiashimove.SelectButton == PSMButtonState_DOWN) //recenter right foot move with select button
-				btrackeroffset[1] = glm::quat(migiashimove.Pose.Orientation.w,
-				                              migiashimove.Pose.Orientation.x, migiashimove.Pose.Orientation.y,
-				                              migiashimove.Pose.Orientation.z);
+			if (right_foot_psmove.SelectButton == PSMButtonState_DOWN) //recenter right foot move with select button
+				move_ori_offset[1] = glm::quat(right_foot_psmove.Pose.Orientation.w,
+				                              right_foot_psmove.Pose.Orientation.x, right_foot_psmove.Pose.Orientation.y,
+				                              right_foot_psmove.Pose.Orientation.z);
 
-			if (yobumove.SelectButton == PSMButtonState_DOWN) //recenter waist move with select button
-				btrackeroffset[2] = glm::quat(yobumove.Pose.Orientation.w,
-				                              yobumove.Pose.Orientation.x, yobumove.Pose.Orientation.y,
-				                              yobumove.Pose.Orientation.z);
+			if (waist_psmove.SelectButton == PSMButtonState_DOWN) //recenter waist move with select button
+				move_ori_offset[2] = glm::quat(waist_psmove.Pose.Orientation.w,
+				                              waist_psmove.Pose.Orientation.x, waist_psmove.Pose.Orientation.y,
+				                              waist_psmove.Pose.Orientation.z);
 
 			using PointSet = Eigen::Matrix<float, 3, Eigen::Dynamic>; //create pointset for korejan's transform algo
-			float yaw = hmdYaw * 180 / M_PI; //get current headset yaw (RAD->DEG)
-			float facing = yaw - tryaw; //get facing to kinect; 
+			const float yaw = hmdYaw * 180 / M_PI; //get current headset yaw (RAD->DEG)
+			const float facing = yaw - calibration_trackers_yaw; //get facing to kinect; 
 
 			//we're subtracting looking at the kinect degree from actual yaw to get offset angle:
 			//       
@@ -380,7 +380,7 @@ namespace KinectSettings
 			//               |                          
 			//               |                          
 
-			if (bodytrackingoption == k_PSMoveFullTracking)
+			if (positional_tracking_option == k_PSMoveFullTracking)
 				flip = false;
 			else
 			{
@@ -392,135 +392,138 @@ namespace KinectSettings
 					flip = true;
 			}
 
-			std::string TrackerS = [&]()-> std::string
+			std::string tracker_data_string = [&]()-> std::string
 			{
 				std::stringstream S;
 
-				if (hipsOption == k_EnableHipsOrientationFilter)
+				if (hips_rotation_option == k_EnableHipsOrientationFilter)
 				{
-					if (bodytrackingoption == k_KinectFullTracking)
-						trackerRoty = hipsRot;
+					if (positional_tracking_option == k_KinectFullTracking)
+						waist_tracker_rot = waist_raw_ori;
 					else
-						trackerRoty = glm::quat(yobumove.Pose.Orientation.w, yobumove.Pose.Orientation.x,
-						                        yobumove.Pose.Orientation.y, yobumove.Pose.Orientation.z);
+						waist_tracker_rot = glm::quat(waist_psmove.Pose.Orientation.w, waist_psmove.Pose.Orientation.x,
+						                        waist_psmove.Pose.Orientation.y, waist_psmove.Pose.Orientation.z);
 				}
-				else if (hipsOption == k_DisableHipsOrientationFilter)
-					trackerRoty = glm::quat(0, 0, 0, 0);
+				else if (hips_rotation_option == k_DisableHipsOrientationFilter)
+					waist_tracker_rot = glm::quat(0, 0, 0, 0);
 
 				// We may be using special orientation filter, apply it
 				/*******************************************************/
-				if (footOption == k_EnableOrientationFilter_Software)
+				if (feet_rotation_option == k_EnableOrientationFilter_Software)
 				{
 					glm::quat q = glm::quat(glm::vec3(0.f, M_PI, 0.f));
 					if (!flip)
 					{
-						trackerRoth = trackerSoftRot[0] * q;
-						trackerRotm = trackerSoftRot[1] * q;
+						left_tracker_rot = trackerSoftRot[0] * q;
+						right_tracker_rot = trackerSoftRot[1] * q;
 					}
 					else {
-						trackerRoth = inverse(trackerSoftRot[1]) * q;
-						trackerRotm = inverse(trackerSoftRot[0]) * q;
+						left_tracker_rot = inverse(trackerSoftRot[1]) * q;
+						right_tracker_rot = inverse(trackerSoftRot[0]) * q;
 					}
 				}
 				/*******************************************************/
 				
-				if (footOption == k_EnableOrientationFilter)
+				if (feet_rotation_option == k_EnableOrientationFilter)
 				{
-					if (bodytrackingoption == k_KinectFullTracking)
+					if (positional_tracking_option == k_KinectFullTracking)
 					{
 						if (!flip)
 						{
-							trackerRoth = hFootRot;
-							trackerRotm = mFootRot;
+							left_tracker_rot = left_foot_raw_ori;
+							right_tracker_rot = right_foot_raw_ori;
 						}
 						else
 						{
-							trackerRotm = inverse(hFootRot);
-							trackerRoth = inverse(mFootRot);
+							right_tracker_rot = inverse(left_foot_raw_ori);
+							left_tracker_rot = inverse(right_foot_raw_ori);
 						}
 					}
 					else
 					{
-						trackerRoth = glm::quat(hidariashimove.Pose.Orientation.w, hidariashimove.Pose.Orientation.x,
-						                        hidariashimove.Pose.Orientation.y, hidariashimove.Pose.Orientation.z);
-						trackerRotm = glm::quat(migiashimove.Pose.Orientation.w, migiashimove.Pose.Orientation.x,
-						                        migiashimove.Pose.Orientation.y, migiashimove.Pose.Orientation.z);
+						left_tracker_rot = glm::quat(left_foot_psmove.Pose.Orientation.w, left_foot_psmove.Pose.Orientation.x,
+						                        left_foot_psmove.Pose.Orientation.y, left_foot_psmove.Pose.Orientation.z);
+						right_tracker_rot = glm::quat(right_foot_psmove.Pose.Orientation.w, right_foot_psmove.Pose.Orientation.x,
+						                        right_foot_psmove.Pose.Orientation.y, right_foot_psmove.Pose.Orientation.z);
 					}
 				}
-				else if (footOption == k_EnableOrientationFilter_WithoutYaw)
+				else if (feet_rotation_option == k_EnableOrientationFilter_WithoutYaw)
 				{
-					if (bodytrackingoption == k_KinectFullTracking)
+					if (positional_tracking_option == k_KinectFullTracking)
 					{
 						if (!flip)
 						{
-							glm::vec3 hwithyaw = eulerAngles(hFootRot);
-							trackerRoth = glm::quat(glm::vec3(hwithyaw.x, 0.f, hwithyaw.z));
-							glm::vec3 mwithyaw = eulerAngles(mFootRot);
-							trackerRotm = glm::quat(glm::vec3(mwithyaw.x, 0.f, mwithyaw.z));
+							glm::vec3 left_ori_with_yaw = eulerAngles(left_foot_raw_ori);
+							left_tracker_rot = glm::quat(glm::vec3(left_ori_with_yaw.x, 0.f, left_ori_with_yaw.z));
+							glm::vec3 right_ori_with_yaw = eulerAngles(right_foot_raw_ori);
+							right_tracker_rot = glm::quat(glm::vec3(right_ori_with_yaw.x, 0.f, right_ori_with_yaw.z));
 						}
 						else
 						{
-							glm::vec3 hwithyaw = eulerAngles(hFootRot);
-							trackerRoth = normalize(inverse(glm::quat(glm::vec3(hwithyaw.x, 0.f, hwithyaw.z))));
-							glm::vec3 mwithyaw = eulerAngles(mFootRot);
-							trackerRotm = normalize(inverse(glm::quat(glm::vec3(mwithyaw.x, 0.f, mwithyaw.z))));
+							glm::vec3 left_ori_with_yaw = eulerAngles(left_foot_raw_ori);
+							left_tracker_rot = normalize(inverse(glm::quat(glm::vec3(left_ori_with_yaw.x, 0.f, left_ori_with_yaw.z))));
+							glm::vec3 right_ori_with_yaw = eulerAngles(right_foot_raw_ori);
+							right_tracker_rot = normalize(inverse(glm::quat(glm::vec3(right_ori_with_yaw.x, 0.f, right_ori_with_yaw.z))));
 						}
 					}
 					else
 					{
-						glm::vec3 hwithyaw = eulerAngles(glm::quat(hidariashimove.Pose.Orientation.w,
-						                                           hidariashimove.Pose.Orientation.x,
-						                                           hidariashimove.Pose.Orientation.y,
-						                                           hidariashimove.Pose.Orientation.z));
-						trackerRoth = glm::quat(glm::vec3(hwithyaw.x, 0.f, hwithyaw.z));
-						glm::vec3 mwithyaw = eulerAngles(glm::quat(migiashimove.Pose.Orientation.w,
-						                                           migiashimove.Pose.Orientation.x,
-						                                           migiashimove.Pose.Orientation.y,
-						                                           migiashimove.Pose.Orientation.z));
-						trackerRotm = glm::quat(glm::vec3(mwithyaw.x, 0.f, mwithyaw.z));
+						glm::vec3 left_ori_with_yaw = eulerAngles(glm::quat(left_foot_psmove.Pose.Orientation.w,
+						                                           left_foot_psmove.Pose.Orientation.x,
+						                                           left_foot_psmove.Pose.Orientation.y,
+						                                           left_foot_psmove.Pose.Orientation.z));
+						left_tracker_rot = glm::quat(glm::vec3(left_ori_with_yaw.x, 0.f, left_ori_with_yaw.z));
+						glm::vec3 right_ori_with_yaw = eulerAngles(glm::quat(right_foot_psmove.Pose.Orientation.w,
+						                                           right_foot_psmove.Pose.Orientation.x,
+						                                           right_foot_psmove.Pose.Orientation.y,
+						                                           right_foot_psmove.Pose.Orientation.z));
+						right_tracker_rot = glm::quat(glm::vec3(right_ori_with_yaw.x, 0.f, right_ori_with_yaw.z));
 					}
 				}
-				else if (footOption == k_DisableOrientationFilter)
+				else if (feet_rotation_option == k_DisableOrientationFilter)
 				{
-					trackerRoth = glm::quat(0, 0, 0, 0);
-					trackerRotm = glm::quat(0, 0, 0, 0);
+					left_tracker_rot = glm::quat(0, 0, 0, 0);
+					right_tracker_rot = glm::quat(0, 0, 0, 0);
 				}
 
 				/*******************************************************/
 				glm::quat r = glm::vec3(0.f, hmdYaw, 0.f);
-				if (footOption == k_EnableOrientationFilter_HeadOrientation)
+				if (feet_rotation_option == k_EnableOrientationFilter_HeadOrientation)
 				{
-					trackerRoth = r;
-					trackerRotm = r;
+					left_tracker_rot = r;
+					right_tracker_rot = r;
 				}
-				if (hipsOption == k_EnableHipsOrientationFilter_HeadOrientation)
+				if (hips_rotation_option == k_EnableHipsOrientationFilter_HeadOrientation)
 				{
-					trackerRoty = r;
+					waist_tracker_rot = r;
 				}
 				/*******************************************************/
 				
-
 				/* Apply offsets to orientations */
-				glm::vec3 unofu[3] = {eulerAngles(trackerRoth), eulerAngles(trackerRotm), eulerAngles(trackerRoty)};
-				unofu[0] += glm::vec3(moffsets[1][1].v[0] * M_PI / 180.f, moffsets[1][1].v[1] * M_PI / 180.f,
-				                      moffsets[1][1].v[2] * M_PI / 180.f);
-				unofu[1] += glm::vec3(moffsets[1][0].v[0] * M_PI / 180.f, moffsets[1][0].v[1] * M_PI / 180.f,
-				                      moffsets[1][0].v[2] * M_PI / 180.f);
-				unofu[2] += glm::vec3(moffsets[1][2].v[0] * M_PI / 180.f, moffsets[1][2].v[1] * M_PI / 180.f,
-				                      moffsets[1][2].v[2] * M_PI / 180.f);
-				trackerRoth = unofu[0];
-				trackerRotm = unofu[1];
-				trackerRoty = unofu[2];
+				glm::vec3 offset_orientation[3] = {
+					eulerAngles(left_tracker_rot),
+					eulerAngles(right_tracker_rot),
+					eulerAngles(waist_tracker_rot)
+				};
+				offset_orientation[0] += glm::vec3(manual_offsets[1][1].v[0] * M_PI / 180.f, manual_offsets[1][1].v[1] * M_PI / 180.f,
+				                      manual_offsets[1][1].v[2] * M_PI / 180.f);
+				offset_orientation[1] += glm::vec3(manual_offsets[1][0].v[0] * M_PI / 180.f, manual_offsets[1][0].v[1] * M_PI / 180.f,
+				                      manual_offsets[1][0].v[2] * M_PI / 180.f);
+				offset_orientation[2] += glm::vec3(manual_offsets[1][2].v[0] * M_PI / 180.f, manual_offsets[1][2].v[1] * M_PI / 180.f,
+				                      manual_offsets[1][2].v[2] * M_PI / 180.f);
+				left_tracker_rot = offset_orientation[0];
+				right_tracker_rot = offset_orientation[1];
+				waist_tracker_rot = offset_orientation[2];
 
-				if (bodytrackingoption == k_KinectFullTracking)
+				if (positional_tracking_option == k_KinectFullTracking)
 				{
-					glm::vec3 unofu[3] = { eulerAngles(trackerRoth), eulerAngles(trackerRotm), eulerAngles(trackerRoty) };
-					if (footOption != k_EnableOrientationFilter_HeadOrientation) {
-						unofu[0] += glm::vec3(0.f, tryaw * M_PI / 180, 0.f);
-						unofu[1] += glm::vec3(0.f, tryaw * M_PI / 180, 0.f);
+					glm::vec3 kinect_trackers_orientation[3] = { eulerAngles(left_tracker_rot), eulerAngles(right_tracker_rot), eulerAngles(waist_tracker_rot) };
+					if (feet_rotation_option != k_EnableOrientationFilter_HeadOrientation) {
+						kinect_trackers_orientation[0] += glm::vec3(0.f, calibration_trackers_yaw * M_PI / 180, 0.f);
+						kinect_trackers_orientation[1] += glm::vec3(0.f, calibration_trackers_yaw * M_PI / 180, 0.f);
 					}
-					if (hipsOption != k_EnableHipsOrientationFilter_HeadOrientation)
-						unofu[2] += glm::vec3(0.f, tryaw * M_PI / 180, 0.f);
+					if (hips_rotation_option != k_EnableHipsOrientationFilter_HeadOrientation)
+						kinect_trackers_orientation[2] += glm::vec3(0.f, calibration_trackers_yaw * M_PI / 180, 0.f);
 
 					if (flip)
 					{
@@ -528,148 +531,148 @@ namespace KinectSettings
 						//unofu[1] += glm::vec3(0.f, M_PI, M_PI);
 						//unofu[2] += glm::vec3(0.f, M_PI, M_PI);
 
-						if (footOption != k_EnableOrientationFilter_HeadOrientation) {
-							unofu[0] += glm::vec3(0.f, 0.f, M_PI);
-							unofu[1] += glm::vec3(0.f, 0.f, M_PI);
+						if (feet_rotation_option != k_EnableOrientationFilter_HeadOrientation) {
+							kinect_trackers_orientation[0] += glm::vec3(0.f, 0.f, M_PI);
+							kinect_trackers_orientation[1] += glm::vec3(0.f, 0.f, M_PI);
 
-							trackerRoth = glm::vec3(/*unofu[0].x*/ 0.f, unofu[0].y, unofu[0].z);
-							trackerRotm = glm::vec3(/*unofu[1].x*/ 0.f, unofu[1].y, unofu[1].z);
+							left_tracker_rot = glm::vec3(/*unofu[0].x*/ 0.f, kinect_trackers_orientation[0].y, kinect_trackers_orientation[0].z);
+							right_tracker_rot = glm::vec3(/*unofu[1].x*/ 0.f, kinect_trackers_orientation[1].y, kinect_trackers_orientation[1].z);
 						}
-						if (hipsOption != k_EnableHipsOrientationFilter_HeadOrientation) {
-							unofu[2] += glm::vec3(0.f, 0.f, M_PI);
+						if (hips_rotation_option != k_EnableHipsOrientationFilter_HeadOrientation) {
+							kinect_trackers_orientation[2] += glm::vec3(0.f, 0.f, M_PI);
 
-							trackerRoty = glm::vec3(/*unofu[2].x*/ 0.f, unofu[2].y, unofu[2].z);
+							waist_tracker_rot = glm::vec3(/*unofu[2].x*/ 0.f, kinect_trackers_orientation[2].y, kinect_trackers_orientation[2].z);
 						}
 					}
 					else
 					{
-						trackerRoth = glm::vec3(unofu[0].x, unofu[0].y, unofu[0].z);
-						trackerRotm = glm::vec3(unofu[1].x, unofu[1].y, unofu[1].z);
-						trackerRoty = glm::vec3(unofu[2].x, unofu[2].y, unofu[2].z);
+						left_tracker_rot = glm::vec3(kinect_trackers_orientation[0].x, kinect_trackers_orientation[0].y, kinect_trackers_orientation[0].z);
+						right_tracker_rot = glm::vec3(kinect_trackers_orientation[1].x, kinect_trackers_orientation[1].y, kinect_trackers_orientation[1].z);
+						waist_tracker_rot = glm::vec3(kinect_trackers_orientation[2].x, kinect_trackers_orientation[2].y, kinect_trackers_orientation[2].z);
 					}
 				}
 				else
 				{
-					trackerRoth *= normalize(inverse(btrackeroffset[0]));
-					trackerRotm *= normalize(inverse(btrackeroffset[1]));
-					trackerRoty *= normalize(inverse(btrackeroffset[2]));
+					left_tracker_rot *= normalize(inverse(move_ori_offset[0]));
+					right_tracker_rot *= normalize(inverse(move_ori_offset[1]));
+					waist_tracker_rot *= normalize(inverse(move_ori_offset[2]));
 				}
 
 				/*******************************************************/
-				if (rtcalibrated && bodytrackingoption == k_KinectFullTracking && flip)
+				if (matrixes_calibrated && positional_tracking_option == k_KinectFullTracking && flip)
 				{
-					glm::quat qy_quat(glm::vec3(-glm::radians(kinpitch) / 2.f, 2 * M_PI, 0.f)),
-						qy_quat_hips(glm::vec3(0.f, 2 * M_PI, 0.f));
-					if (footOption == k_EnableOrientationFilter ||
-						footOption == k_EnableOrientationFilter_WithoutYaw) {
-						trackerRoth *= qy_quat;
-						trackerRotm *= qy_quat;
+					glm::quat tune_quat(glm::vec3(-glm::radians(calibration_kinect_pitch) / 2.f, 2 * M_PI, 0.f)),
+						tune_quat_waist(glm::vec3(0.f, 2 * M_PI, 0.f));
+					if (feet_rotation_option == k_EnableOrientationFilter ||
+						feet_rotation_option == k_EnableOrientationFilter_WithoutYaw) {
+						left_tracker_rot *= tune_quat;
+						right_tracker_rot *= tune_quat;
 					}
-					if (hipsOption == k_EnableHipsOrientationFilter)
-						trackerRoty *= qy_quat_hips;
+					if (hips_rotation_option == k_EnableHipsOrientationFilter)
+						waist_tracker_rot *= tune_quat_waist;
 				}
 				/*******************************************************/
 
-				if (rtcalibrated)
+				if (matrixes_calibrated)
 				{
-					Eigen::Vector3f Hf, Mf, Hp;
+					Eigen::Vector3f left_foot_pose, right_foot_pose, waist_pose;
 					if (!flip)
 					{
-						Hf(0) = poseFiltered[0].x;
-						Hf(1) = poseFiltered[0].y;
-						Hf(2) = poseFiltered[0].z;
+						left_foot_pose(0) = poseFiltered[0].x;
+						left_foot_pose(1) = poseFiltered[0].y;
+						left_foot_pose(2) = poseFiltered[0].z;
 
-						Mf(0) = poseFiltered[1].x;
-						Mf(1) = poseFiltered[1].y;
-						Mf(2) = poseFiltered[1].z;
+						right_foot_pose(0) = poseFiltered[1].x;
+						right_foot_pose(1) = poseFiltered[1].y;
+						right_foot_pose(2) = poseFiltered[1].z;
 					}
 					else
 					{
-						Mf(0) = poseFiltered[0].x;
-						Mf(1) = poseFiltered[0].y;
-						Mf(2) = poseFiltered[0].z;
+						right_foot_pose(0) = poseFiltered[0].x;
+						right_foot_pose(1) = poseFiltered[0].y;
+						right_foot_pose(2) = poseFiltered[0].z;
 
-						Hf(0) = poseFiltered[1].x;
-						Hf(1) = poseFiltered[1].y;
-						Hf(2) = poseFiltered[1].z;
+						left_foot_pose(0) = poseFiltered[1].x;
+						left_foot_pose(1) = poseFiltered[1].y;
+						left_foot_pose(2) = poseFiltered[1].z;
 					}
 
-					Hp(0) = poseFiltered[2].x;
-					Hp(1) = poseFiltered[2].y;
-					Hp(2) = poseFiltered[2].z;
+					waist_pose(0) = poseFiltered[2].x;
+					waist_pose(1) = poseFiltered[2].y;
+					waist_pose(2) = poseFiltered[2].z;
 
-					PointSet Hf2 = (R_matT * (Hf - calorigin)).colwise() + T_matT + calorigin;
-					PointSet Mf2 = (R_matT * (Mf - calorigin)).colwise() + T_matT + calorigin;
-					PointSet Hp2 = (R_matT * (Hp - calorigin)).colwise() + T_matT + calorigin;
+					PointSet left_pose_end = (calibration_rotation * (left_foot_pose - calibration_origin)).colwise() + calibration_translation + calibration_origin;
+					PointSet right_pose_end = (calibration_rotation * (right_foot_pose - calibration_origin)).colwise() + calibration_translation + calibration_origin;
+					PointSet waist_pose_end = (calibration_rotation * (waist_pose - calibration_origin)).colwise() + calibration_translation + calibration_origin;
 
-					S << "HX" << 10000 * (Hf2(0) + moffsets[0][1].v[0] + troffsets.v[0]) <<
-						"/HY" << 10000 * (Hf2(1) + moffsets[0][1].v[1] + troffsets.v[1]) <<
-						"/HZ" << 10000 * (Hf2(2) + moffsets[0][1].v[2] + troffsets.v[2]) <<
-						"/MX" << 10000 * (Mf2(0) + moffsets[0][0].v[0] + troffsets.v[0]) <<
-						"/MY" << 10000 * (Mf2(1) + moffsets[0][0].v[1] + troffsets.v[1]) <<
-						"/MZ" << 10000 * (Mf2(2) + moffsets[0][0].v[2] + troffsets.v[2]) <<
-						"/PX" << 10000 * (Hp2(0) + moffsets[0][2].v[0] + troffsets.v[0]) <<
-						"/PY" << 10000 * (Hp2(1) + moffsets[0][2].v[1] + troffsets.v[1]) <<
-						"/PZ" << 10000 * (Hp2(2) + moffsets[0][2].v[2] + troffsets.v[2]) <<
-						"/HRW" << 10000 * (trackerRoth.w) <<
-						"/HRX" << 10000 * (trackerRoth.x) <<
-						"/HRY" << 10000 * (trackerRoth.y) <<
-						"/HRZ" << 10000 * (trackerRoth.z) <<
-						"/MRW" << 10000 * (trackerRotm.w) <<
-						"/MRX" << 10000 * (trackerRotm.x) <<
-						"/MRY" << 10000 * (trackerRotm.y) <<
-						"/MRZ" << 10000 * (trackerRotm.z) <<
-						"/PRW" << 10000 * (trackerRoty.w) <<
-						"/PRX" << 10000 * (trackerRoty.x) <<
-						"/PRY" << 10000 * (trackerRoty.y) <<
-						"/PRZ" << 10000 * (trackerRoty.z) <<
-						"/WRW" << 10000 * (0) << //DEPRECATED: GLM_ROTATE SCREWED UP WITH > 99
+					S << "HX" << 10000 * (left_pose_end(0) + manual_offsets[0][1].v[0] + kinect_tracker_offsets.v[0]) <<
+						"/HY" << 10000 * (left_pose_end(1) + manual_offsets[0][1].v[1] + kinect_tracker_offsets.v[1]) <<
+						"/HZ" << 10000 * (left_pose_end(2) + manual_offsets[0][1].v[2] + kinect_tracker_offsets.v[2]) <<
+						"/MX" << 10000 * (right_pose_end(0) + manual_offsets[0][0].v[0] + kinect_tracker_offsets.v[0]) <<
+						"/MY" << 10000 * (right_pose_end(1) + manual_offsets[0][0].v[1] + kinect_tracker_offsets.v[1]) <<
+						"/MZ" << 10000 * (right_pose_end(2) + manual_offsets[0][0].v[2] + kinect_tracker_offsets.v[2]) <<
+						"/PX" << 10000 * (waist_pose_end(0) + manual_offsets[0][2].v[0] + kinect_tracker_offsets.v[0]) <<
+						"/PY" << 10000 * (waist_pose_end(1) + manual_offsets[0][2].v[1] + kinect_tracker_offsets.v[1]) <<
+						"/PZ" << 10000 * (waist_pose_end(2) + manual_offsets[0][2].v[2] + kinect_tracker_offsets.v[2]) <<
+						"/HRW" << 10000 * left_tracker_rot.w <<
+						"/HRX" << 10000 * left_tracker_rot.x <<
+						"/HRY" << 10000 * left_tracker_rot.y <<
+						"/HRZ" << 10000 * left_tracker_rot.z <<
+						"/MRW" << 10000 * right_tracker_rot.w <<
+						"/MRX" << 10000 * right_tracker_rot.x <<
+						"/MRY" << 10000 * right_tracker_rot.y <<
+						"/MRZ" << 10000 * right_tracker_rot.z <<
+						"/PRW" << 10000 * waist_tracker_rot.w <<
+						"/PRX" << 10000 * waist_tracker_rot.x <<
+						"/PRY" << 10000 * waist_tracker_rot.y <<
+						"/PRZ" << 10000 * waist_tracker_rot.z <<
+						"/WRW" << 0 << //DEPRECATED: GLM_ROTATE SCREWED UP WITH > 99
 						"/ENABLED" << initialised << "/";
 				}
 				else
 				{
-					S << "HX" << 10000 * (poseFiltered[0].x + moffsets[0][1].v[0] + troffsets.v[0]) <<
-						"/HY" << 10000 * (poseFiltered[0].y + moffsets[0][1].v[1] + troffsets.v[1]) <<
-						"/HZ" << 10000 * (poseFiltered[0].z + moffsets[0][1].v[2] + troffsets.v[2]) <<
-						"/MX" << 10000 * (poseFiltered[1].x + moffsets[0][0].v[0] + troffsets.v[0]) <<
-						"/MY" << 10000 * (poseFiltered[1].y + moffsets[0][0].v[1] + troffsets.v[1]) <<
-						"/MZ" << 10000 * (poseFiltered[1].z + moffsets[0][0].v[2] + troffsets.v[2]) <<
-						"/PX" << 10000 * (poseFiltered[2].x + moffsets[0][2].v[0] + troffsets.v[0]) <<
-						"/PY" << 10000 * (poseFiltered[2].y + moffsets[0][2].v[1] + troffsets.v[1]) <<
-						"/PZ" << 10000 * (poseFiltered[2].z + moffsets[0][2].v[2] + troffsets.v[2]) <<
-						"/HRW" << 10000 * (trackerRoth.w) <<
-						"/HRX" << 10000 * (trackerRoth.x) <<
-						"/HRY" << 10000 * (trackerRoth.y) <<
-						"/HRZ" << 10000 * (trackerRoth.z) <<
-						"/MRW" << 10000 * (trackerRotm.w) <<
-						"/MRX" << 10000 * (trackerRotm.x) <<
-						"/MRY" << 10000 * (trackerRotm.y) <<
-						"/MRZ" << 10000 * (trackerRotm.z) <<
-						"/PRW" << 10000 * (trackerRoty.w) <<
-						"/PRX" << 10000 * (trackerRoty.x) <<
-						"/PRY" << 10000 * (trackerRoty.y) <<
-						"/PRZ" << 10000 * (trackerRoty.z) <<
-						"/WRW" << 10000 * (0) << //DEPRECATED: GLM_ROTATE SCREWED UP WITH > 99
+					S << "HX" << 10000 * (poseFiltered[0].x + manual_offsets[0][1].v[0] + kinect_tracker_offsets.v[0]) <<
+						"/HY" << 10000 * (poseFiltered[0].y + manual_offsets[0][1].v[1] + kinect_tracker_offsets.v[1]) <<
+						"/HZ" << 10000 * (poseFiltered[0].z + manual_offsets[0][1].v[2] + kinect_tracker_offsets.v[2]) <<
+						"/MX" << 10000 * (poseFiltered[1].x + manual_offsets[0][0].v[0] + kinect_tracker_offsets.v[0]) <<
+						"/MY" << 10000 * (poseFiltered[1].y + manual_offsets[0][0].v[1] + kinect_tracker_offsets.v[1]) <<
+						"/MZ" << 10000 * (poseFiltered[1].z + manual_offsets[0][0].v[2] + kinect_tracker_offsets.v[2]) <<
+						"/PX" << 10000 * (poseFiltered[2].x + manual_offsets[0][2].v[0] + kinect_tracker_offsets.v[0]) <<
+						"/PY" << 10000 * (poseFiltered[2].y + manual_offsets[0][2].v[1] + kinect_tracker_offsets.v[1]) <<
+						"/PZ" << 10000 * (poseFiltered[2].z + manual_offsets[0][2].v[2] + kinect_tracker_offsets.v[2]) <<
+						"/HRW" << 10000 * left_tracker_rot.w <<
+						"/HRX" << 10000 * left_tracker_rot.x <<
+						"/HRY" << 10000 * left_tracker_rot.y <<
+						"/HRZ" << 10000 * left_tracker_rot.z <<
+						"/MRW" << 10000 * right_tracker_rot.w <<
+						"/MRX" << 10000 * right_tracker_rot.x <<
+						"/MRY" << 10000 * right_tracker_rot.y <<
+						"/MRZ" << 10000 * right_tracker_rot.z <<
+						"/PRW" << 10000 * waist_tracker_rot.w <<
+						"/PRX" << 10000 * waist_tracker_rot.x <<
+						"/PRY" << 10000 * waist_tracker_rot.y <<
+						"/PRZ" << 10000 * waist_tracker_rot.z <<
+						"/WRW" << 0 << //DEPRECATED: GLM_ROTATE SCREWED UP WITH > 99
 						"/ENABLED" << initialised << "/";
 				}
 
 				return S.str();
 			}();
 			
-			char TrackerD[1024];
-			strcpy_s(TrackerD, TrackerS.c_str());
+			char tracker_data_char[1024];
+			strcpy_s(tracker_data_char, tracker_data_string.c_str());
 
-			HANDLE pipeTracker = CreateFile(
+			const HANDLE server_pipe_handle = CreateFile(
 				TEXT("\\\\.\\pipe\\LogPipeTracker"), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0,
 				nullptr);
 			
-			DWORD numWritten;
-			WriteFile(pipeTracker, TrackerD, sizeof(TrackerD), &numWritten, nullptr);
-			CloseHandle(pipeTracker);
+			DWORD written;
+			WriteFile(server_pipe_handle, tracker_data_char, sizeof(tracker_data_char), &written, nullptr);
+			CloseHandle(server_pipe_handle);
 
-
+			// Wait until certain time has passed
 			auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(
-				std::chrono::high_resolution_clock::now() - t1).count();
+				std::chrono::high_resolution_clock::now() - loop_start_time).count();
 			if (duration <= 9000000.f)
 			{
 				std::this_thread::sleep_for(std::chrono::nanoseconds(9000000 - duration));
@@ -713,13 +716,13 @@ namespace KinectSettings
 				LOG(ERROR) << "CONFIG FILE LOAD JSON ERROR: " << e.what();
 			}
 
-			moffsets[0][0] = {pos[0][0], pos[0][1], pos[0][2]};
-			moffsets[0][1] = {pos[1][0], pos[1][1], pos[1][2]};
-			moffsets[0][2] = {pos[2][0], pos[2][1], pos[2][2]};
+			manual_offsets[0][0] = {pos[0][0], pos[0][1], pos[0][2]};
+			manual_offsets[0][1] = {pos[1][0], pos[1][1], pos[1][2]};
+			manual_offsets[0][2] = {pos[2][0], pos[2][1], pos[2][2]};
 
-			moffsets[1][0] = {rot[0][0], rot[0][1], rot[0][2]};
-			moffsets[1][1] = {rot[1][0], rot[1][1], rot[1][2]};
-			moffsets[1][2] = {rot[2][0], rot[2][1], rot[2][2]};
+			manual_offsets[1][0] = {rot[0][0], rot[0][1], rot[0][2]};
+			manual_offsets[1][1] = {rot[1][0], rot[1][1], rot[1][2]};
+			manual_offsets[1][2] = {rot[2][0], rot[2][1], rot[2][2]};
 
 			hipRoleHeightAdjust = hipHeight;
 			sensorConfigChanged = true;
@@ -739,15 +742,15 @@ namespace KinectSettings
 			using namespace KinectSettings;
 			using namespace SFMLsettings;
 			float kRotation[3][3] = {
-				{moffsets[1][0].v[0], moffsets[1][0].v[1], moffsets[1][0].v[2]},
-				{moffsets[1][1].v[0], moffsets[1][1].v[1], moffsets[1][1].v[2]},
-				{moffsets[1][2].v[0], moffsets[1][2].v[1], moffsets[1][2].v[2]},
+				{manual_offsets[1][0].v[0], manual_offsets[1][0].v[1], manual_offsets[1][0].v[2]},
+				{manual_offsets[1][1].v[0], manual_offsets[1][1].v[1], manual_offsets[1][1].v[2]},
+				{manual_offsets[1][2].v[0], manual_offsets[1][2].v[1], manual_offsets[1][2].v[2]},
 			};
 
 			float kPosition[3][3] = {
-				{moffsets[0][0].v[0], moffsets[0][0].v[1], moffsets[0][0].v[2]},
-				{moffsets[0][1].v[0], moffsets[0][1].v[1], moffsets[0][1].v[2]},
-				{moffsets[0][2].v[0], moffsets[0][2].v[1], moffsets[0][2].v[2]},
+				{manual_offsets[0][0].v[0], manual_offsets[0][0].v[1], manual_offsets[0][0].v[2]},
+				{manual_offsets[0][1].v[0], manual_offsets[0][1].v[1], manual_offsets[0][1].v[2]},
+				{manual_offsets[0][2].v[0], manual_offsets[0][2].v[1], manual_offsets[0][2].v[2]},
 			};
 
 			cereal::JSONOutputArchive archive(os);

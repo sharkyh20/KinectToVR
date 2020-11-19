@@ -204,16 +204,16 @@ namespace VirtualHips
 				KinectSettings::hroffset = settings.hmdegree;
 				KinectSettings::cpoints = settings.tdegree;
 
-				KinectSettings::R_matT = settings.rcR_matT;
-				KinectSettings::T_matT = settings.rcT_matT;
+				KinectSettings::calibration_rotation = settings.rcR_matT;
+				KinectSettings::calibration_translation = settings.rcT_matT;
 
 				KinectSettings::huoffsets.v[0] = settings.heightFromHMD;
 				KinectSettings::huoffsets.v[1] = settings.sittingMaxHeightThreshold;
 				KinectSettings::huoffsets.v[2] = settings.lyingMaxHeightThreshold;
 
-				KinectSettings::rtcalibrated = settings.rtcalib;
-				KinectSettings::tryaw = settings.tryawst;
-				KinectSettings::kinpitch = settings.kinpitchst;
+				KinectSettings::matrixes_calibrated = settings.rtcalib;
+				KinectSettings::calibration_trackers_yaw = settings.tryawst;
+				KinectSettings::calibration_kinect_pitch = settings.kinpitchst;
 
 				KinectSettings::hauoffset.v[0] = settings.hauoffset_s(0);
 				KinectSettings::hauoffset.v[1] = settings.hauoffset_s(1);
@@ -229,10 +229,10 @@ namespace VirtualHips
 				kontororaTorakkinguOpushon.trackingOption = static_cast<kontororaTorakkinguOpu>(settings.conOption);
 				bodiTorakkinguOpushon.trackingOption = static_cast<bodiTorakkinguOpu>(settings.bodyTrackingOption);
 
-				KinectSettings::calorigin = settings.caliborigin;
+				KinectSettings::calibration_origin = settings.caliborigin;
 
-				LOG(INFO) << settings.tryawst << '\n' << settings.rcR_matT << '\n' << KinectSettings::tryaw << '\n' <<
-					KinectSettings::R_matT << '\n';
+				LOG(INFO) << settings.tryawst << '\n' << settings.rcR_matT << '\n' << KinectSettings::calibration_trackers_yaw << '\n' <<
+					KinectSettings::calibration_rotation << '\n';
 			}
 			catch (cereal::Exception e)
 			{

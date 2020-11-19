@@ -117,8 +117,8 @@ namespace KinectSettings
 	static std::vector<K2VR_PSMoveData> KVR_PSMoves;
 	extern bool isCalibrating, isKinectPSMS;
 	extern int K2Drivercode, kinectVersion;
-	extern PSMPSMove migiMove, hidariMove, hidariashimove, migiashimove, yobumove, atamamove;
-	extern glm::quat trackerRoth, trackerRotm, trackerRoty;
+	extern PSMPSMove right_move_controller, left_move_controller, left_foot_psmove, right_foot_psmove, waist_psmove, atamamove;
+	extern glm::quat left_tracker_rot, right_tracker_rot, waist_tracker_rot;
 	extern glm::quat trackerSoftRot[2]; //Software-calculated
 	extern bool isGripPressed[2], isTriggerPressed[2]; //0L, 1R
 	extern bool isDriverPresent;
@@ -137,7 +137,7 @@ namespace KinectSettings
 	extern float g_TrackedBoneThickness;
 	extern float g_InferredBoneThickness;
 	extern float g_JointThickness;
-	extern float hmdYaw, kinpitch;
+	extern float hmdYaw, calibration_kinect_pitch;
 	extern int flashnow[2];
 	extern bool conActivated;
 	extern std::vector<int> psmindexidpsm[2];
@@ -153,9 +153,9 @@ namespace KinectSettings
 	extern bool psmbuttons[5][10];
 	extern float conID[2];
 	extern double hipRoleHeightAdjust;
-	extern float tryaw;
-	extern int footOption, hipsOption, posOption, conOption;
-	extern int bodytrackingoption, headtrackingoption;
+	extern float calibration_trackers_yaw;
+	extern int feet_rotation_option, hips_rotation_option, posOption, conOption;
+	extern int positional_tracking_option, headtrackingoption;
 	//Need to delete later (Merge should sort it)
 	extern int leftHandPlayspaceMovementButton;
 	extern int rightHandPlayspaceMovementButton;
@@ -176,36 +176,36 @@ namespace KinectSettings
 	extern vr::HmdQuaternion_t kinectRepRotation;
 	extern vr::HmdVector3d_t kinectRadRotation;
 	extern vr::HmdVector3d_t kinectRepPosition;
-	extern vr::HmdVector3d_t moffsets[2][3];
+	extern vr::HmdVector3d_t manual_offsets[2][3];
 	extern vr::HmdVector3d_t hoffsets;
 	extern vr::HmdVector3d_t huoffsets;
-	extern vr::HmdVector3d_t troffsets;
+	extern vr::HmdVector3d_t kinect_tracker_offsets;
 	extern float hroffset;
 	extern float troffset;
 	extern vr::HmdQuaternion_t hmdquat;
 	extern bool expcalib;
 	extern bool jcalib;
-	extern Eigen::Matrix<float, 3, 3> R_matT;
-	extern Eigen::Matrix<float, 3, 1> T_matT;
+	extern Eigen::Matrix<float, 3, 3> calibration_rotation;
+	extern Eigen::Matrix<float, 3, 1> calibration_translation;
 	extern bool ismatrixcalibrated;
-	extern Eigen::Vector3f calorigin;
+	extern Eigen::Vector3f calibration_origin;
 	extern int cpoints;
-	extern bool rtcalibrated;
+	extern bool matrixes_calibrated;
 	extern int psmmigi, psmhidari, psmyobu, psmatama;
 
 	extern float hmdegree;
 	extern bool sensorConfigChanged;
 
-	extern vr::HmdVector3d_t mposes[3];
+	extern vr::HmdVector3d_t kinect_m_positions[3];
 
 	extern bool adjustingKinectRepresentationRot;
 	extern bool adjustingKinectRepresentationPos;
 	void updateKinectQuaternion();
 
 	extern std::string KVRversion;
-	extern glm::vec3 hmdPose, hHandPose, mHandPose, hFootPose, mFootPose, hipsPose, hElPose, mElPose,
+	extern glm::vec3 head_position, left_hand_pose, mHandPose, left_foot_raw_pose, right_foot_raw_pose, waist_raw_pose, hElPose, mElPose,
 	                 lastPose[3][2];
-	extern glm::quat hFootRot, mFootRot, hipsRot;
+	extern glm::quat left_foot_raw_ori, right_foot_raw_ori, waist_raw_ori;
 
 	void sendipc();
 

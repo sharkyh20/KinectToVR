@@ -832,107 +832,107 @@ public:
 	void refreshCalibrationMenuValues()
 	{
 		using namespace KinectSettings;
-		CalibrationEntryrPosX->SetValue(moffsets[0][0].v[0]);
-		CalibrationEntryrPosY->SetValue(moffsets[0][0].v[1]);
-		CalibrationEntryrPosZ->SetValue(moffsets[0][0].v[2]);
+		CalibrationEntryrPosX->SetValue(manual_offsets[0][0].v[0]);
+		CalibrationEntryrPosY->SetValue(manual_offsets[0][0].v[1]);
+		CalibrationEntryrPosZ->SetValue(manual_offsets[0][0].v[2]);
 
-		CalibrationEntryrRotX->SetValue(moffsets[1][0].v[0]);
-		CalibrationEntryrRotY->SetValue(moffsets[1][0].v[1]);
-		CalibrationEntryrRotZ->SetValue(moffsets[1][0].v[2]);
+		CalibrationEntryrRotX->SetValue(manual_offsets[1][0].v[0]);
+		CalibrationEntryrRotY->SetValue(manual_offsets[1][0].v[1]);
+		CalibrationEntryrRotZ->SetValue(manual_offsets[1][0].v[2]);
 
-		CalibrationEntrylPosX->SetValue(moffsets[0][1].v[0]);
-		CalibrationEntrylPosY->SetValue(moffsets[0][1].v[1]);
-		CalibrationEntrylPosZ->SetValue(moffsets[0][1].v[2]);
+		CalibrationEntrylPosX->SetValue(manual_offsets[0][1].v[0]);
+		CalibrationEntrylPosY->SetValue(manual_offsets[0][1].v[1]);
+		CalibrationEntrylPosZ->SetValue(manual_offsets[0][1].v[2]);
 
-		CalibrationEntrylRotX->SetValue(moffsets[1][1].v[0]);
-		CalibrationEntrylRotY->SetValue(moffsets[1][1].v[1]);
-		CalibrationEntrylRotZ->SetValue(moffsets[1][1].v[2]);
+		CalibrationEntrylRotX->SetValue(manual_offsets[1][1].v[0]);
+		CalibrationEntrylRotY->SetValue(manual_offsets[1][1].v[1]);
+		CalibrationEntrylRotZ->SetValue(manual_offsets[1][1].v[2]);
 
-		CalibrationEntryhPosX->SetValue(moffsets[0][2].v[0]);
-		CalibrationEntryhPosY->SetValue(moffsets[0][2].v[1]);
-		CalibrationEntryhPosZ->SetValue(moffsets[0][2].v[2]);
+		CalibrationEntryhPosX->SetValue(manual_offsets[0][2].v[0]);
+		CalibrationEntryhPosY->SetValue(manual_offsets[0][2].v[1]);
+		CalibrationEntryhPosZ->SetValue(manual_offsets[0][2].v[2]);
 
-		CalibrationEntryhRotX->SetValue(moffsets[1][2].v[0]);
-		CalibrationEntryhRotY->SetValue(moffsets[1][2].v[1]);
-		CalibrationEntryhRotZ->SetValue(moffsets[1][2].v[2]);
+		CalibrationEntryhRotX->SetValue(manual_offsets[1][2].v[0]);
+		CalibrationEntryhRotY->SetValue(manual_offsets[1][2].v[1]);
+		CalibrationEntryhRotZ->SetValue(manual_offsets[1][2].v[2]);
 	}
 
 	void setCalibrationSignal()
 	{
 		CalibrationEntryrPosX->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
 			{
-				KinectSettings::moffsets[0][0].v[0] = CalibrationEntryrPosX->GetValue();
+				KinectSettings::manual_offsets[0][0].v[0] = CalibrationEntryrPosX->GetValue();
 				KinectSettings::sensorConfigChanged = true;
 			}
 		);
 		CalibrationEntryrPosY->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
 			{
-				KinectSettings::moffsets[0][0].v[1] = CalibrationEntryrPosY->GetValue();
+				KinectSettings::manual_offsets[0][0].v[1] = CalibrationEntryrPosY->GetValue();
 				KinectSettings::sensorConfigChanged = true;
 			}
 		);
 		CalibrationEntryrPosZ->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
 			{
-				KinectSettings::moffsets[0][0].v[2] = CalibrationEntryrPosZ->GetValue();
+				KinectSettings::manual_offsets[0][0].v[2] = CalibrationEntryrPosZ->GetValue();
 				KinectSettings::sensorConfigChanged = true;
 			}
 		);
 
 		CalibrationEntrylPosX->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
 			{
-				KinectSettings::moffsets[0][1].v[0] = CalibrationEntrylPosX->GetValue();
+				KinectSettings::manual_offsets[0][1].v[0] = CalibrationEntrylPosX->GetValue();
 				KinectSettings::sensorConfigChanged = true;
 			}
 		);
 		CalibrationEntrylPosY->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
 			{
-				KinectSettings::moffsets[0][1].v[1] = CalibrationEntrylPosY->GetValue();
+				KinectSettings::manual_offsets[0][1].v[1] = CalibrationEntrylPosY->GetValue();
 				KinectSettings::sensorConfigChanged = true;
 			}
 		);
 		CalibrationEntrylPosZ->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
 			{
-				KinectSettings::moffsets[0][1].v[2] = CalibrationEntrylPosZ->GetValue();
+				KinectSettings::manual_offsets[0][1].v[2] = CalibrationEntrylPosZ->GetValue();
 				KinectSettings::sensorConfigChanged = true;
 			}
 		);
 
 		CalibrationEntryhPosX->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
 			{
-				KinectSettings::moffsets[0][2].v[0] = CalibrationEntryhPosX->GetValue();
+				KinectSettings::manual_offsets[0][2].v[0] = CalibrationEntryhPosX->GetValue();
 				KinectSettings::sensorConfigChanged = true;
 			}
 		);
 		CalibrationEntryhPosY->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
 			{
-				KinectSettings::moffsets[0][2].v[1] = CalibrationEntryhPosY->GetValue();
+				KinectSettings::manual_offsets[0][2].v[1] = CalibrationEntryhPosY->GetValue();
 				KinectSettings::sensorConfigChanged = true;
 			}
 		);
 		CalibrationEntryhPosZ->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
 			{
-				KinectSettings::moffsets[0][2].v[2] = CalibrationEntryhPosZ->GetValue();
+				KinectSettings::manual_offsets[0][2].v[2] = CalibrationEntryhPosZ->GetValue();
 				KinectSettings::sensorConfigChanged = true;
 			}
 		);
 
 		CalibrationEntryrRotX->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
 			{
-				KinectSettings::moffsets[1][0].v[0] = CalibrationEntryrRotX->GetValue();
+				KinectSettings::manual_offsets[1][0].v[0] = CalibrationEntryrRotX->GetValue();
 				KinectSettings::updateKinectQuaternion();
 				KinectSettings::sensorConfigChanged = true;
 			}
 		);
 		CalibrationEntryrRotY->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
 			{
-				KinectSettings::moffsets[1][0].v[1] = CalibrationEntryrRotY->GetValue();
+				KinectSettings::manual_offsets[1][0].v[1] = CalibrationEntryrRotY->GetValue();
 				KinectSettings::updateKinectQuaternion();
 				KinectSettings::sensorConfigChanged = true;
 			}
 		);
 		CalibrationEntryrRotZ->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
 			{
-				KinectSettings::moffsets[1][0].v[2] = CalibrationEntryrRotZ->GetValue();
+				KinectSettings::manual_offsets[1][0].v[2] = CalibrationEntryrRotZ->GetValue();
 				KinectSettings::updateKinectQuaternion();
 				KinectSettings::sensorConfigChanged = true;
 			}
@@ -940,21 +940,21 @@ public:
 
 		CalibrationEntrylRotX->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
 			{
-				KinectSettings::moffsets[1][1].v[0] = CalibrationEntrylRotX->GetValue();
+				KinectSettings::manual_offsets[1][1].v[0] = CalibrationEntrylRotX->GetValue();
 				KinectSettings::updateKinectQuaternion();
 				KinectSettings::sensorConfigChanged = true;
 			}
 		);
 		CalibrationEntrylRotY->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
 			{
-				KinectSettings::moffsets[1][1].v[1] = CalibrationEntrylRotY->GetValue();
+				KinectSettings::manual_offsets[1][1].v[1] = CalibrationEntrylRotY->GetValue();
 				KinectSettings::updateKinectQuaternion();
 				KinectSettings::sensorConfigChanged = true;
 			}
 		);
 		CalibrationEntrylRotZ->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
 			{
-				KinectSettings::moffsets[1][1].v[2] = CalibrationEntrylRotZ->GetValue();
+				KinectSettings::manual_offsets[1][1].v[2] = CalibrationEntrylRotZ->GetValue();
 				KinectSettings::updateKinectQuaternion();
 				KinectSettings::sensorConfigChanged = true;
 			}
@@ -962,21 +962,21 @@ public:
 
 		CalibrationEntryhRotX->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
 			{
-				KinectSettings::moffsets[1][2].v[0] = CalibrationEntryhRotX->GetValue();
+				KinectSettings::manual_offsets[1][2].v[0] = CalibrationEntryhRotX->GetValue();
 				KinectSettings::updateKinectQuaternion();
 				KinectSettings::sensorConfigChanged = true;
 			}
 		);
 		CalibrationEntryhRotY->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
 			{
-				KinectSettings::moffsets[1][2].v[1] = CalibrationEntryhRotY->GetValue();
+				KinectSettings::manual_offsets[1][2].v[1] = CalibrationEntryhRotY->GetValue();
 				KinectSettings::updateKinectQuaternion();
 				KinectSettings::sensorConfigChanged = true;
 			}
 		);
 		CalibrationEntryhRotZ->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
 			{
-				KinectSettings::moffsets[1][2].v[2] = CalibrationEntryhRotZ->GetValue();
+				KinectSettings::manual_offsets[1][2].v[2] = CalibrationEntryhRotZ->GetValue();
 				KinectSettings::updateKinectQuaternion();
 				KinectSettings::sensorConfigChanged = true;
 			}
@@ -1538,16 +1538,16 @@ public:
 					glm::f32(glm::radians(KinectSettings::hroffset)));*/
 
 				/*glm::vec3 fixedpos = glm::rotateY(glm::vec4(
-					glm::vec3(KinectSettings::mposes[0].v[0], KinectSettings::mposes[0].v[1], KinectSettings::mposes[0].v[2]), 1),
+					glm::vec3(KinectSettings::kinect_m_positions[0].v[0], KinectSettings::kinect_m_positions[0].v[1], KinectSettings::kinect_m_positions[0].v[2]), 1),
 					glm::f32(glm::radians(KinectSettings::hroffset)));*/
 
 				//glm::vec3 diff = glm::vec3(
-				//    KinectSettings::mposes[0].v[0] - fixedpos.x,
-				//    KinectSettings::mposes[0].v[1] - fixedpos.y,
-				//    KinectSettings::mposes[0].v[2] - fixedpos.z);
+				//    KinectSettings::kinect_m_positions[0].v[0] - fixedpos.x,
+				//    KinectSettings::kinect_m_positions[0].v[1] - fixedpos.y,
+				//    KinectSettings::kinect_m_positions[0].v[2] - fixedpos.z);
 
 				//KinectSettings::hoffsets.v[0] = -svrposes[0].vecPosition[0];
-				//KinectSettings::hoffsets.v[1] = 0.f;// -KinectSettings::mposes[0].v[1];
+				//KinectSettings::hoffsets.v[1] = 0.f;// -KinectSettings::kinect_m_positions[0].v[1];
 				//KinectSettings::hoffsets.v[2] = -svrposes[0].vecPosition[2];
 
 				//HeadTrackingCalibButton->SetLabel(std::string("Calibrate: Look at Kinect and stand still").c_str());
@@ -2628,7 +2628,7 @@ public:
 				{
 					std::thread* t1 = new std::thread([this]()
 					{
-						KinectSettings::rtcalibrated = true;
+						KinectSettings::matrixes_calibrated = true;
 						KinectSettings::jcalib = true;
 
 						Eigen::AngleAxisd rollAngle(0.f, Eigen::Vector3d::UnitZ());
@@ -2637,7 +2637,7 @@ public:
 						Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
 
 						Eigen::Matrix3d rotationMatrix = q.matrix();
-						KinectSettings::R_matT = rotationMatrix.cast<float>();
+						KinectSettings::calibration_rotation = rotationMatrix.cast<float>();
 
 						bool firstTime = true;
 						double yawtmp = 0, pitchtmp = 0;
@@ -2656,15 +2656,15 @@ public:
 							{
 								if (!KinectSettings::isGripPressed[1])
 								{
-									KinectSettings::T_matT(0) += VRInput::trackpadpose[1].x * .01f;
-									KinectSettings::T_matT(1) += VRInput::trackpadpose[0].y * .01f;
-									KinectSettings::T_matT(2) += -VRInput::trackpadpose[1].y * .01f;
+									KinectSettings::calibration_translation(0) += VRInput::trackpadpose[1].x * .01f;
+									KinectSettings::calibration_translation(1) += VRInput::trackpadpose[0].y * .01f;
+									KinectSettings::calibration_translation(2) += -VRInput::trackpadpose[1].y * .01f;
 								}
 								else
 								{
-									KinectSettings::T_matT(0) += VRInput::trackpadpose[1].x * .001f;
-									KinectSettings::T_matT(1) += VRInput::trackpadpose[0].y * .001f;
-									KinectSettings::T_matT(2) += -VRInput::trackpadpose[1].y * .001f;
+									KinectSettings::calibration_translation(0) += VRInput::trackpadpose[1].x * .001f;
+									KinectSettings::calibration_translation(1) += VRInput::trackpadpose[0].y * .001f;
+									KinectSettings::calibration_translation(2) += -VRInput::trackpadpose[1].y * .001f;
 								}
 
 								std::this_thread::sleep_for(std::chrono::milliseconds(5));
@@ -2672,9 +2672,9 @@ public:
 							}
 
 							if (firstTime)
-								KinectSettings::calorigin = Eigen::Vector3f(
-									KinectSettings::mposes[2].v[0], KinectSettings::mposes[2].v[1],
-									KinectSettings::mposes[2].v[2]);
+								KinectSettings::calibration_origin = Eigen::Vector3f(
+									KinectSettings::kinect_m_positions[2].v[0], KinectSettings::kinect_m_positions[2].v[1],
+									KinectSettings::kinect_m_positions[2].v[2]);
 							firstTime = false;
 
 							std::this_thread::sleep_for(std::chrono::milliseconds(300));
@@ -2705,21 +2705,21 @@ public:
 								Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
 
 								Eigen::Matrix3d rotationMatrix = q.matrix();
-								KinectSettings::R_matT = rotationMatrix.cast<float>();
+								KinectSettings::calibration_rotation = rotationMatrix.cast<float>();
 
 								std::this_thread::sleep_for(std::chrono::milliseconds(5));
-								KinectSettings::tryaw = glm::degrees(yawtmp);
+								KinectSettings::calibration_trackers_yaw = glm::degrees(yawtmp);
 								if (!KinectSettings::isCalibrating) break;
 							}
 
 							if (!KinectSettings::isCalibrating)
 							{
-								KinectSettings::calorigin = settings.caliborigin;
-								KinectSettings::R_matT = settings.rcR_matT;
-								KinectSettings::T_matT = settings.rcT_matT;
-								KinectSettings::tryaw = settings.tryawst;
+								KinectSettings::calibration_origin = settings.caliborigin;
+								KinectSettings::calibration_rotation = settings.rcR_matT;
+								KinectSettings::calibration_translation = settings.rcT_matT;
+								KinectSettings::calibration_trackers_yaw = settings.tryawst;
 
-								KinectSettings::kinpitch = settings.kinpitchst;
+								KinectSettings::calibration_kinect_pitch = settings.kinpitchst;
 								break;
 							}
 						}
@@ -2728,17 +2728,17 @@ public:
 						
 						if (!KinectSettings::isCalibrating)
 						{
-							settings.caliborigin = KinectSettings::calorigin;
-							settings.rcR_matT = KinectSettings::R_matT;
-							settings.rcT_matT = KinectSettings::T_matT;
+							settings.caliborigin = KinectSettings::calibration_origin;
+							settings.rcR_matT = KinectSettings::calibration_rotation;
+							settings.rcT_matT = KinectSettings::calibration_translation;
 							settings.tryawst = glm::degrees(yawtmp);
 							
-							KinectSettings::kinpitch = 
-								(glm::degrees(eulerAngles(KinectSettings::trackerRoth).x) + glm::degrees(eulerAngles(KinectSettings::trackerRoth).y)) / 2;
-							settings.kinpitchst = KinectSettings::kinpitch;
+							KinectSettings::calibration_kinect_pitch = 
+								(glm::degrees(eulerAngles(KinectSettings::left_tracker_rot).x) + glm::degrees(eulerAngles(KinectSettings::left_tracker_rot).y)) / 2;
+							settings.kinpitchst = KinectSettings::calibration_kinect_pitch;
 						}
 
-						KinectSettings::rtcalibrated = true;
+						KinectSettings::matrixes_calibrated = true;
 						settings.rtcalib = true;
 
 						TrackersCalibButton->SetLabel(
@@ -2767,9 +2767,9 @@ public:
 						std::vector<vr::HmdVector3d_t> hpose;
 
 						KinectSettings::ismatrixcalibrated = false;
-						KinectSettings::rtcalibrated = false;
-						KinectSettings::calorigin = Eigen::Vector3f(0, 0, 0);
-						settings.caliborigin = KinectSettings::calorigin;
+						KinectSettings::matrixes_calibrated = false;
+						KinectSettings::calibration_origin = Eigen::Vector3f(0, 0, 0);
+						settings.caliborigin = KinectSettings::calibration_origin;
 
 						for (int ipoint = 1; ipoint <= KinectSettings::cpoints; ipoint++)
 						{
@@ -2817,7 +2817,7 @@ public:
 							ispose.vecPosition[1] = out(1);
 							ispose.vecPosition[2] = out(2);
 
-							for (auto i = 0; i < 3; i++)ihpose.v[i] = KinectSettings::mposes[0].v[i];
+							for (auto i = 0; i < 3; i++)ihpose.v[i] = KinectSettings::kinect_m_positions[0].v[i];
 							TrackersCalibButton->SetLabel(
 								std::string("Position captured: Point " + boost::lexical_cast<std::string>(ipoint) + "")
 								.c_str());
@@ -2830,12 +2830,12 @@ public:
 						}
 						if (!KinectSettings::isCalibrating)
 						{
-							KinectSettings::calorigin = settings.caliborigin;
-							KinectSettings::R_matT = settings.rcR_matT;
-							KinectSettings::T_matT = settings.rcT_matT;
-							KinectSettings::tryaw = settings.tryawst;
+							KinectSettings::calibration_origin = settings.caliborigin;
+							KinectSettings::calibration_rotation = settings.rcR_matT;
+							KinectSettings::calibration_translation = settings.rcT_matT;
+							KinectSettings::calibration_trackers_yaw = settings.tryawst;
 
-							KinectSettings::kinpitch = settings.kinpitchst;
+							KinectSettings::calibration_kinect_pitch = settings.kinpitchst;
 						}
 
 						if (KinectSettings::isCalibrating)
@@ -2879,8 +2879,8 @@ public:
 							xht << 0, 0, 3;
 							Eigen::Matrix<float, 3, 1> xht2 = (ret_R * xht).colwise() + ret_t;*/
 
-							KinectSettings::R_matT = ret_R;
-							KinectSettings::T_matT = ret_t;
+							KinectSettings::calibration_rotation = ret_R;
+							KinectSettings::calibration_translation = ret_t;
 
 							settings.rcR_matT = ret_R;
 							settings.rcT_matT = ret_t;
@@ -2900,12 +2900,12 @@ public:
 						}
 						if (!KinectSettings::isCalibrating)
 						{
-							KinectSettings::calorigin = settings.caliborigin;
-							KinectSettings::R_matT = settings.rcR_matT;
-							KinectSettings::T_matT = settings.rcT_matT;
-							KinectSettings::tryaw = settings.tryawst;
+							KinectSettings::calibration_origin = settings.caliborigin;
+							KinectSettings::calibration_rotation = settings.rcR_matT;
+							KinectSettings::calibration_translation = settings.rcT_matT;
+							KinectSettings::calibration_trackers_yaw = settings.tryawst;
 
-							KinectSettings::kinpitch = settings.kinpitchst;
+							KinectSettings::calibration_kinect_pitch = settings.kinpitchst;
 						}
 
 						if (KinectSettings::isCalibrating)
@@ -2927,18 +2927,18 @@ public:
 								yaw = 2 * M_PI + yaw;
 							}
 
-							KinectSettings::tryaw = glm::degrees(yaw);
+							KinectSettings::calibration_trackers_yaw = glm::degrees(yaw);
 							settings.tryawst = glm::degrees(yaw);
 
-							KinectSettings::kinpitch =
-								(glm::degrees(eulerAngles(KinectSettings::trackerRoth).x) + glm::degrees(eulerAngles(KinectSettings::trackerRoth).y)) / 2;
-							settings.kinpitchst = KinectSettings::kinpitch;
+							KinectSettings::calibration_kinect_pitch =
+								(glm::degrees(eulerAngles(KinectSettings::left_tracker_rot).x) + glm::degrees(eulerAngles(KinectSettings::left_tracker_rot).y)) / 2;
+							settings.kinpitchst = KinectSettings::calibration_kinect_pitch;
 
-							KinectSettings::calorigin = Eigen::Vector3f(0, 0, 0);
-							settings.caliborigin = KinectSettings::calorigin;
+							KinectSettings::calibration_origin = Eigen::Vector3f(0, 0, 0);
+							settings.caliborigin = KinectSettings::calibration_origin;
 						}
 
-						KinectSettings::rtcalibrated = true;
+						KinectSettings::matrixes_calibrated = true;
 						settings.rtcalib = true;
 
 						TrackersCalibButton->SetLabel(
@@ -3172,51 +3172,51 @@ private:
 		"This tab allows you to (manually) offset every one of your trackers. It will aeffect real calibration values, but it will not change them directly.\nYou may need it for example when your right foot will be upper than left, etc.\nRotation is in degrees and position is declared in meters.");
 	sfg::Label::Ptr CalibrationrPosLabel = sfg::Label::Create("Right Foot Position x, y, z");
 	sfg::SpinButton::Ptr CalibrationEntryrPosX = sfg::SpinButton::Create(
-		sfg::Adjustment::Create(KinectSettings::moffsets[0][0].v[0], -1000.f, 1000.f, .01f, .2f));
+		sfg::Adjustment::Create(KinectSettings::manual_offsets[0][0].v[0], -1000.f, 1000.f, .01f, .2f));
 	sfg::SpinButton::Ptr CalibrationEntryrPosY = sfg::SpinButton::Create(
-		sfg::Adjustment::Create(KinectSettings::moffsets[0][0].v[1], -1000.f, 1000.f, .01f, .2f));
+		sfg::Adjustment::Create(KinectSettings::manual_offsets[0][0].v[1], -1000.f, 1000.f, .01f, .2f));
 	sfg::SpinButton::Ptr CalibrationEntryrPosZ = sfg::SpinButton::Create(
-		sfg::Adjustment::Create(KinectSettings::moffsets[0][0].v[2], -1000.f, 1000.f, .01f, .2f));
+		sfg::Adjustment::Create(KinectSettings::manual_offsets[0][0].v[2], -1000.f, 1000.f, .01f, .2f));
 
 	sfg::Label::Ptr CalibrationrRotLabel = sfg::Label::Create("Right Foot Rotation x, y, z");
 	sfg::SpinButton::Ptr CalibrationEntryrRotX = sfg::SpinButton::Create(
-		sfg::Adjustment::Create(KinectSettings::moffsets[1][0].v[0], -360.f, 360.f, .01f, .2f));
+		sfg::Adjustment::Create(KinectSettings::manual_offsets[1][0].v[0], -360.f, 360.f, .01f, .2f));
 	sfg::SpinButton::Ptr CalibrationEntryrRotY = sfg::SpinButton::Create(
-		sfg::Adjustment::Create(KinectSettings::moffsets[1][0].v[1], -360.f, 360.f, .01f, .2f));
+		sfg::Adjustment::Create(KinectSettings::manual_offsets[1][0].v[1], -360.f, 360.f, .01f, .2f));
 	sfg::SpinButton::Ptr CalibrationEntryrRotZ = sfg::SpinButton::Create(
-		sfg::Adjustment::Create(KinectSettings::moffsets[1][0].v[2], -360.f, 360.f, .01f, .2f));
+		sfg::Adjustment::Create(KinectSettings::manual_offsets[1][0].v[2], -360.f, 360.f, .01f, .2f));
 
 	sfg::Label::Ptr CalibrationlPosLabel = sfg::Label::Create("Left Foot Position x, y, z ");
 	sfg::SpinButton::Ptr CalibrationEntrylPosX = sfg::SpinButton::Create(
-		sfg::Adjustment::Create(KinectSettings::moffsets[0][1].v[0], -1000.f, 1000.f, .01f, .2f));
+		sfg::Adjustment::Create(KinectSettings::manual_offsets[0][1].v[0], -1000.f, 1000.f, .01f, .2f));
 	sfg::SpinButton::Ptr CalibrationEntrylPosY = sfg::SpinButton::Create(
-		sfg::Adjustment::Create(KinectSettings::moffsets[0][1].v[1], -1000.f, 1000.f, .01f, .2f));
+		sfg::Adjustment::Create(KinectSettings::manual_offsets[0][1].v[1], -1000.f, 1000.f, .01f, .2f));
 	sfg::SpinButton::Ptr CalibrationEntrylPosZ = sfg::SpinButton::Create(
-		sfg::Adjustment::Create(KinectSettings::moffsets[0][1].v[2], -1000.f, 1000.f, .01f, .2f));
+		sfg::Adjustment::Create(KinectSettings::manual_offsets[0][1].v[2], -1000.f, 1000.f, .01f, .2f));
 
 	sfg::Label::Ptr CalibrationlRotLabel = sfg::Label::Create("Left Foot Rotation x, y, z ");
 	sfg::SpinButton::Ptr CalibrationEntrylRotX = sfg::SpinButton::Create(
-		sfg::Adjustment::Create(KinectSettings::moffsets[1][1].v[0], -360.f, 360.f, .01f, .2f));
+		sfg::Adjustment::Create(KinectSettings::manual_offsets[1][1].v[0], -360.f, 360.f, .01f, .2f));
 	sfg::SpinButton::Ptr CalibrationEntrylRotY = sfg::SpinButton::Create(
-		sfg::Adjustment::Create(KinectSettings::moffsets[1][1].v[1], -360.f, 360.f, .01f, .2f));
+		sfg::Adjustment::Create(KinectSettings::manual_offsets[1][1].v[1], -360.f, 360.f, .01f, .2f));
 	sfg::SpinButton::Ptr CalibrationEntrylRotZ = sfg::SpinButton::Create(
-		sfg::Adjustment::Create(KinectSettings::moffsets[1][1].v[2], -360.f, 360.f, .01f, .2f));
+		sfg::Adjustment::Create(KinectSettings::manual_offsets[1][1].v[2], -360.f, 360.f, .01f, .2f));
 
 	sfg::Label::Ptr CalibrationhPosLabel = sfg::Label::Create("Hips Position x, y, z       ");
 	sfg::SpinButton::Ptr CalibrationEntryhPosX = sfg::SpinButton::Create(
-		sfg::Adjustment::Create(KinectSettings::moffsets[0][2].v[0], -1000.f, 1000.f, .01f, .2f));
+		sfg::Adjustment::Create(KinectSettings::manual_offsets[0][2].v[0], -1000.f, 1000.f, .01f, .2f));
 	sfg::SpinButton::Ptr CalibrationEntryhPosY = sfg::SpinButton::Create(
-		sfg::Adjustment::Create(KinectSettings::moffsets[0][2].v[1], -1000.f, 1000.f, .01f, .2f));
+		sfg::Adjustment::Create(KinectSettings::manual_offsets[0][2].v[1], -1000.f, 1000.f, .01f, .2f));
 	sfg::SpinButton::Ptr CalibrationEntryhPosZ = sfg::SpinButton::Create(
-		sfg::Adjustment::Create(KinectSettings::moffsets[0][2].v[2], -1000.f, 1000.f, .01f, .2f));
+		sfg::Adjustment::Create(KinectSettings::manual_offsets[0][2].v[2], -1000.f, 1000.f, .01f, .2f));
 
 	sfg::Label::Ptr CalibrationhRotLabel = sfg::Label::Create("Hips Rotation x, y, z       ");
 	sfg::SpinButton::Ptr CalibrationEntryhRotX = sfg::SpinButton::Create(
-		sfg::Adjustment::Create(KinectSettings::moffsets[1][2].v[0], -360.f, 360.f, .01f, .2f));
+		sfg::Adjustment::Create(KinectSettings::manual_offsets[1][2].v[0], -360.f, 360.f, .01f, .2f));
 	sfg::SpinButton::Ptr CalibrationEntryhRotY = sfg::SpinButton::Create(
-		sfg::Adjustment::Create(KinectSettings::moffsets[1][2].v[1], -360.f, 360.f, .01f, .2f));
+		sfg::Adjustment::Create(KinectSettings::manual_offsets[1][2].v[1], -360.f, 360.f, .01f, .2f));
 	sfg::SpinButton::Ptr CalibrationEntryhRotZ = sfg::SpinButton::Create(
-		sfg::Adjustment::Create(KinectSettings::moffsets[1][2].v[2], -360.f, 360.f, .01f, .2f));
+		sfg::Adjustment::Create(KinectSettings::manual_offsets[1][2].v[2], -360.f, 360.f, .01f, .2f));
 
 	sfg::Button::Ptr CalibrationSaveButton = sfg::Button::Create("Save Calibration Values");
 

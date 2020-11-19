@@ -556,12 +556,12 @@ void processLoop(KinectHandlerBase& kinect)
 
 			/***********************************************************************************************
 			std::cout <<
-				"Left: " << KinectSettings::hidariashimove.Pose.Position.x << ' ' << KinectSettings::hidariashimove.Pose
-				.Position.y << ' ' << KinectSettings::hidariashimove.Pose.Position.z << '\n' <<
-				"Right: " << KinectSettings::migiashimove.Pose.Position.x << ' ' << KinectSettings::migiashimove.Pose.
-				Position.y << ' ' << KinectSettings::migiashimove.Pose.Position.z << '\n' <<
-				"Waist: " << KinectSettings::yobumove.Pose.Position.x << ' ' << KinectSettings::yobumove.Pose.Position.y
-				<< ' ' << KinectSettings::yobumove.Pose.Position.z << "\n\n";
+				"Left: " << KinectSettings::left_foot_psmove.Pose.Position.x << ' ' << KinectSettings::left_foot_psmove.Pose
+				.Position.y << ' ' << KinectSettings::left_foot_psmove.Pose.Position.z << '\n' <<
+				"Right: " << KinectSettings::right_foot_psmove.Pose.Position.x << ' ' << KinectSettings::right_foot_psmove.Pose.
+				Position.y << ' ' << KinectSettings::right_foot_psmove.Pose.Position.z << '\n' <<
+				"Waist: " << KinectSettings::waist_psmove.Pose.Position.x << ' ' << KinectSettings::waist_psmove.Pose.Position.y
+				<< ' ' << KinectSettings::waist_psmove.Pose.Position.z << "\n\n";
 			***********************************************************************************************/
 
 			VRInput::trackpadpose[0].x = rightController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad).x;
@@ -703,11 +703,11 @@ void processLoop(KinectHandlerBase& kinect)
 		else
 			guiRef.psmidbox1->Show(false);
 
-		KinectSettings::footOption = VirtualHips::settings.footOption;
-		KinectSettings::hipsOption = VirtualHips::settings.hipsOption;
+		KinectSettings::feet_rotation_option = VirtualHips::settings.footOption;
+		KinectSettings::hips_rotation_option = VirtualHips::settings.hipsOption;
 		KinectSettings::posOption = VirtualHips::settings.posOption;
 		KinectSettings::conOption = VirtualHips::settings.conOption;
-		KinectSettings::bodytrackingoption = VirtualHips::settings.bodyTrackingOption;
+		KinectSettings::positional_tracking_option = VirtualHips::settings.bodyTrackingOption;
 		KinectSettings::headtrackingoption = VirtualHips::settings.headTrackingOption;
 
 		//KinectSettings::footRotationFilterOption::k_EnableOrientationFilter;

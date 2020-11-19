@@ -963,7 +963,7 @@ private:
 				if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::psmh
 					&& wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid))
 				{
-					KinectSettings::hidariMove = controller;
+					KinectSettings::left_move_controller = controller;
 					if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::flashnow[0] &&
 						KinectSettings::flashnow[1])
 					{
@@ -975,7 +975,7 @@ private:
 				if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::psmm
 					&& wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid))
 				{
-					KinectSettings::migiMove = controller;
+					KinectSettings::right_move_controller = controller;
 					if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::flashnow[0] &&
 						KinectSettings::flashnow[1])
 					{
@@ -987,7 +987,7 @@ private:
 				if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::psmhidari
 					&& wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid))
 				{
-					KinectSettings::hidariashimove = controller;
+					KinectSettings::left_foot_psmove = controller;
 					if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::flashnow[0] &&
 						KinectSettings::flashnow[1])
 					{
@@ -999,7 +999,7 @@ private:
 				if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::psmmigi
 					&& wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid))
 				{
-					KinectSettings::migiashimove = controller;
+					KinectSettings::right_foot_psmove = controller;
 					if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::flashnow[0] &&
 						KinectSettings::flashnow[1])
 					{
@@ -1011,7 +1011,7 @@ private:
 				if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::psmyobu
 					&& wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid))
 				{
-					KinectSettings::yobumove = controller;
+					KinectSettings::waist_psmove = controller;
 					if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::flashnow[0] &&
 						KinectSettings::flashnow[1])
 					{
