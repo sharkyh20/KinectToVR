@@ -41,5 +41,5 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: KinectV1Process-${{ steps.slug.outputs.slug }}.exe
-        path: D:/a/KinectToVR/KinectToVR/x64/Release/KinectV1Process.exe
+        path: x64/Release/KinectV1Process.exe
         if-no-files-found: error
