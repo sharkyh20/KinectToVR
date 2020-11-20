@@ -17,9 +17,6 @@ jobs:
     - name: Install Wget
       run: choco install wget --no-progress
 
-    - name: Change working dir
-      run: cd $GITHUB_WORKSPACE
-
     - name: Setup Dependiences (Repos)
       run: |
         git clone https://github.com/USCiLab/cereal external/cereal
@@ -34,9 +31,7 @@ jobs:
         
     - name: Run MSBuild
       id: run_msbuild
-      run: |
-        dir
-        msbuild "/p:Configuration=Release;Platform=x64;WindowsTargetPlatformVersion=10.0"
+      run: msbuild "/p:Configuration=Release;Platform=x64;WindowsTargetPlatformVersion=10.0"
 
     - name: Get short commit SHA
       id: slug
@@ -45,14 +40,6 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: |
-          - driver_KinectToVR-${{ steps.slug.outputs.slug }}.exe
-          - KinectV1Process-${{ steps.slug.outputs.slug }}.exe
-          - KinectV2Process-${{ steps.slug.outputs.slug }}.exe
-          - PSMSProcess-${{ steps.slug.outputs.slug }}.exe
-        path: |
-          - KinectToVR\KinectToVR\x64\Release\driver_KinectToVR.dll
-          - KinectToVR\KinectToVR\x64\Release\KinectV1Process.exe
-          - KinectToVR\KinectToVR\x64\Release\KinectV2Process.exe
-          - KinectToVR\KinectToVR\x64\Release\PSMSProcess.exe
+        name: driver_KinectToVR-${{ steps.slug.outputs.slug }}.exe
+        path: KinectToVR\KinectToVR\x64\Release\driver_KinectToVR.dll
         if-no-files-found: error
