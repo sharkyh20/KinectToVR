@@ -40,6 +40,14 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: KinectV1Process-${{ steps.slug.outputs.slug }}.exe
-        path: x64/Release/KinectV1Process.exe
+        name: | 
+          driver_KinectToVR-${{ steps.slug.outputs.slug }}.dll
+          KinectV1Process-${{ steps.slug.outputs.slug }}.exe
+          KinectV2Process-${{ steps.slug.outputs.slug }}.exe
+          PSMSProcess-${{ steps.slug.outputs.slug }}.exe
+        path: |
+          x64/Release/driver_KinectToVR.exe
+          x64/Release/KinectV1Process.exe
+          x64/Release/KinectV2Process.exe
+          x64/Release/PSMSProcess.exe
         if-no-files-found: error
