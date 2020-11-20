@@ -23,7 +23,7 @@
     <ProjectGuid>{7895A29E-E1A6-464E-BE29-EA03CB3D4EC1}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>softknuckles</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>driver_KinectToVR</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -158,9 +158,9 @@ copy /Y "C:\Users\AkaYa!\Desktop\soft_knuckles-master\x64\Debug\soft_knuckles.dl
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;SOFTKNUCKLES_EXPORTS;_WINDOWS;_USRDLL;BOOST_USE_WINDOWS_H;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_CRT_SECURE_NO_WARNINGS;NDEBUG;SOFTKNUCKLES_EXPORTS;_WINDOWS;_USRDLL;BOOST_USE_WINDOWS_H;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\PSMoveService;$(SolutionDir)external\opencv\include;$(ProjectDir)/inc;$(SolutionDir)external\glm_glm;$(SolutionDir)external\eigen-3.3.7;$(SolutionDir)external\Glew;$(SolutionDir)external\InputEmulator\;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\SFML\include;$(SolutionDir)external\sfgui;$(SolutionDir)external\easylogging\src;$(SolutionDir)SFMLProject\inc\;$(AdditionalIncludeDirectories);$(SolutionDir)external\KinectSDK\kinect_v1\_inc;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\boost_1_74_0;$(SolutionDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\PSMoveService;$(SolutionDir)external\opencv\include;$(ProjectDir)/inc;$(SolutionDir)external\Glew;$(SolutionDir)external\InputEmulator\;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\SFML\include;$(SolutionDir)external\sfgui;$(SolutionDir)external\easylogging\src;$(SolutionDir)SFMLProject\inc\;$(AdditionalIncludeDirectories);$(SolutionDir)external\KinectSDK\kinect_v1\_inc;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\boost_1_74_0;$(SolutionDir)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalUsingDirectories>
       </AdditionalUsingDirectories>
@@ -249,6 +249,8 @@ copy /Y "C:\Users\AkaYa!\Desktop\soft_knuckles-master\x64\Debug\soft_knuckles.dl
     <Import Project="..\packages\boost_wserialization-vc142.1.72.0.0\build\boost_wserialization-vc142.targets" Condition="Exists('..\packages\boost_wserialization-vc142.1.72.0.0\build\boost_wserialization-vc142.targets')" />
     <Import Project="..\packages\boost_zlib-vc142.1.72.0.0\build\boost_zlib-vc142.targets" Condition="Exists('..\packages\boost_zlib-vc142.1.72.0.0\build\boost_zlib-vc142.targets')" />
     <Import Project="..\packages\boost-vc142.1.72.0.0\build\boost-vc142.targets" Condition="Exists('..\packages\boost-vc142.1.72.0.0\build\boost-vc142.targets')" />
+    <Import Project="..\packages\glm.0.9.9.800\build\native\glm.targets" Condition="Exists('..\packages\glm.0.9.9.800\build\native\glm.targets')" />
+    <Import Project="..\packages\Eigen.3.3.3\build\native\Eigen.targets" Condition="Exists('..\packages\Eigen.3.3.3\build\native\Eigen.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -296,5 +298,7 @@ copy /Y "C:\Users\AkaYa!\Desktop\soft_knuckles-master\x64\Debug\soft_knuckles.dl
     <Error Condition="!Exists('..\packages\boost_wserialization-vc142.1.72.0.0\build\boost_wserialization-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_wserialization-vc142.1.72.0.0\build\boost_wserialization-vc142.targets'))" />
     <Error Condition="!Exists('..\packages\boost_zlib-vc142.1.72.0.0\build\boost_zlib-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_zlib-vc142.1.72.0.0\build\boost_zlib-vc142.targets'))" />
     <Error Condition="!Exists('..\packages\boost-vc142.1.72.0.0\build\boost-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost-vc142.1.72.0.0\build\boost-vc142.targets'))" />
+    <Error Condition="!Exists('..\packages\glm.0.9.9.800\build\native\glm.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\glm.0.9.9.800\build\native\glm.targets'))" />
+    <Error Condition="!Exists('..\packages\Eigen.3.3.3\build\native\Eigen.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Eigen.3.3.3\build\native\Eigen.targets'))" />
   </Target>
 </Project>

@@ -17,10 +17,8 @@ jobs:
     - name: Install Wget
       run: choco install wget --no-progress
 
-    - name: Setup Dependiences (Repos)
-      run: |
-        git clone https://github.com/USCiLab/cereal external/cereal
-        git clone https://github.com/ValveSoftware/openvr external/openvr
+    - name: Setup OpenVR
+      run: git clone https://github.com/ValveSoftware/openvr external/openvr
 
     - name: Setup Dependiences (Custom)
       run: |

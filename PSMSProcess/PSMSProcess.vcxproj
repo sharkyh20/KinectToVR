@@ -23,7 +23,7 @@
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{2da272cb-690f-4ed0-a788-103cbd2af0e1}</ProjectGuid>
     <RootNamespace>PSMSProcess</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -132,9 +132,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>BOOST_USE_WINDOWS_H;NOMINMAX;NDEBUG;_CONSOLE%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BOOST_USE_WINDOWS_H;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_CRT_SECURE_NO_WARNINGS;NOMINMAX;NDEBUG;_CONSOLE%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\PSMoveService;$(SolutionDir)external\opencv\include;$(ProjectDir)/inc;$(SolutionDir)external\glm_glm;$(SolutionDir)external\eigen-3.3.7;$(SolutionDir)external\Glew;$(SolutionDir)external\InputEmulator\;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\SFML\include;$(SolutionDir)external\sfgui;$(SolutionDir)external\easylogging\src;$(SolutionDir)SFMLProject\inc\;$(AdditionalIncludeDirectories);$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\boost_1_74_0</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\PSMoveService;$(SolutionDir)external\opencv\include;$(ProjectDir)/inc;$(SolutionDir)external\Glew;$(SolutionDir)external\InputEmulator\;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\SFML\include;$(SolutionDir)external\sfgui;$(SolutionDir)external\easylogging\src;$(SolutionDir)SFMLProject\inc\;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\boost_1_74_0</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -212,6 +212,9 @@
     <Import Project="..\packages\boost_wserialization-vc142.1.72.0.0\build\boost_wserialization-vc142.targets" Condition="Exists('..\packages\boost_wserialization-vc142.1.72.0.0\build\boost_wserialization-vc142.targets')" />
     <Import Project="..\packages\boost_zlib-vc142.1.72.0.0\build\boost_zlib-vc142.targets" Condition="Exists('..\packages\boost_zlib-vc142.1.72.0.0\build\boost_zlib-vc142.targets')" />
     <Import Project="..\packages\boost-vc142.1.72.0.0\build\boost-vc142.targets" Condition="Exists('..\packages\boost-vc142.1.72.0.0\build\boost-vc142.targets')" />
+    <Import Project="..\packages\glm.0.9.9.800\build\native\glm.targets" Condition="Exists('..\packages\glm.0.9.9.800\build\native\glm.targets')" />
+    <Import Project="..\packages\Eigen.3.3.3\build\native\Eigen.targets" Condition="Exists('..\packages\Eigen.3.3.3\build\native\Eigen.targets')" />
+    <Import Project="..\packages\unofficial-flayan-cereal.1.2.2\build\native\unofficial-flayan-cereal.targets" Condition="Exists('..\packages\unofficial-flayan-cereal.1.2.2\build\native\unofficial-flayan-cereal.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -259,5 +262,8 @@
     <Error Condition="!Exists('..\packages\boost_wserialization-vc142.1.72.0.0\build\boost_wserialization-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_wserialization-vc142.1.72.0.0\build\boost_wserialization-vc142.targets'))" />
     <Error Condition="!Exists('..\packages\boost_zlib-vc142.1.72.0.0\build\boost_zlib-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_zlib-vc142.1.72.0.0\build\boost_zlib-vc142.targets'))" />
     <Error Condition="!Exists('..\packages\boost-vc142.1.72.0.0\build\boost-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost-vc142.1.72.0.0\build\boost-vc142.targets'))" />
+    <Error Condition="!Exists('..\packages\glm.0.9.9.800\build\native\glm.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\glm.0.9.9.800\build\native\glm.targets'))" />
+    <Error Condition="!Exists('..\packages\Eigen.3.3.3\build\native\Eigen.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Eigen.3.3.3\build\native\Eigen.targets'))" />
+    <Error Condition="!Exists('..\packages\unofficial-flayan-cereal.1.2.2\build\native\unofficial-flayan-cereal.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\unofficial-flayan-cereal.1.2.2\build\native\unofficial-flayan-cereal.targets'))" />
   </Target>
 </Project>
