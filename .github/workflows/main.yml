@@ -21,8 +21,8 @@ jobs:
       run: |
         git clone https://github.com/USCiLab/cereal external/cereal
         git clone https://github.com/ValveSoftware/openvr external/openvr
-        wget "https://www.dropbox.com/s/9qledlbsehcywri/boost_1_74_0.7z?dl=1" -O ./external/boost_1_74_0.7z
-        wget "https://drive.google.com/uc?export=download&id=14TBSyxF9AfTd5n05guthFRfpxeh0nxLX" -O ./external/kinectlib.7z
+        wget -q "https://www.dropbox.com/s/9qledlbsehcywri/boost_1_74_0.7z?dl=1" -O ./external/boost_1_74_0.7z
+        wget -q "https://drive.google.com/uc?export=download&id=14TBSyxF9AfTd5n05guthFRfpxeh0nxLX" -O ./external/kinectlib.7z
         7z x ./external/boost_1_74_0.7z -oexternal
         7z x ./external/kinectlib.7z -oexternal
         
@@ -31,3 +31,22 @@ jobs:
       run: |
         dir
         msbuild "/p:Configuration=Release;Platform=x64;WindowsTargetPlatformVersion=10.0"
+
+    - name: Set outputs
+      id: vars
+      run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: |
+          - driver_KinectToVR-${{ steps.vars.outputs.sha_short }}.exe
+          - KinectV1Process-${{ steps.vars.outputs.sha_short }}.exe
+          - KinectV2Process-${{ steps.vars.outputs.sha_short }}.exe
+          - PSMSProcess-${{ steps.vars.outputs.sha_short }}.exe
+        path: |
+          - D:\a\KinectToVR\KinectToVR\x64\Release\driver_KinectToVR.dll
+          - D:\a\KinectToVR\KinectToVR\x64\Release\KinectV1Process.exe
+          - D:\a\KinectToVR\KinectToVR\x64\Release\KinectV2Process.exe
+          - D:\a\KinectToVR\KinectToVR\x64\Release\PSMSProcess.exe
+        if-no-files-found: error
