@@ -26,6 +26,9 @@ jobs:
         wget -q "https://drive.google.com/uc?export=download&id=14TBSyxF9AfTd5n05guthFRfpxeh0nxLX" -O ./external/kinectlib.7z
         7z x ./external/boost_1_74_0.7z -oexternal
         7z x ./external/kinectlib.7z -oexternal
+
+    - name: NuGet Restore
+      run: nuget.exe restore KinectToVR.sln
         
     - name: Run MSBuild
       id: run_msbuild
