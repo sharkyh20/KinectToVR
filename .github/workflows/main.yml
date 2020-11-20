@@ -32,18 +32,18 @@ jobs:
         dir
         msbuild "/p:Configuration=Release;Platform=x64;WindowsTargetPlatformVersion=10.0"
 
-    - name: Set outputs
-      id: vars
-      run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+    - name: Get short commit SHA
+      id: slug
+      run: "$slug = '::set-output name=slug::' + $env:GITHUB_SHA.SubString(0,7); echo $slug"
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
         name: |
-          - driver_KinectToVR-${{ steps.vars.outputs.sha_short }}.exe
-          - KinectV1Process-${{ steps.vars.outputs.sha_short }}.exe
-          - KinectV2Process-${{ steps.vars.outputs.sha_short }}.exe
-          - PSMSProcess-${{ steps.vars.outputs.sha_short }}.exe
+          - driver_KinectToVR-${{ steps.slug.outputs.slug }}.exe
+          - KinectV1Process-${{ steps.slug.outputs.slug }}.exe
+          - KinectV2Process-${{ steps.slug.outputs.slug }}.exe
+          - PSMSProcess-${{ steps.slug.outputs.slug }}.exe
         path: |
           - D:\a\KinectToVR\KinectToVR\x64\Release\driver_KinectToVR.dll
           - D:\a\KinectToVR\KinectToVR\x64\Release\KinectV1Process.exe
