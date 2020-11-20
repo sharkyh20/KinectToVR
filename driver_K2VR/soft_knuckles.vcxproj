@@ -160,7 +160,7 @@ copy /Y "C:\Users\AkaYa!\Desktop\soft_knuckles-master\x64\Debug\soft_knuckles.dl
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_CRT_SECURE_NO_WARNINGS;NDEBUG;SOFTKNUCKLES_EXPORTS;_WINDOWS;_USRDLL;BOOST_USE_WINDOWS_H;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\PSMoveService;$(SolutionDir)external\opencv\include;$(ProjectDir)/inc;$(SolutionDir)external\Glew;$(SolutionDir)external\InputEmulator\;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\SFML\include;$(SolutionDir)external\sfgui;$(SolutionDir)external\easylogging\src;$(SolutionDir)SFMLProject\inc\;$(AdditionalIncludeDirectories);$(SolutionDir)external\KinectSDK\kinect_v1\_inc;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\boost_1_74_0;$(SolutionDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\PSMoveService;$(SolutionDir)external\opencv\include;$(ProjectDir)/inc;$(SolutionDir)external\Glew;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\SFML\include;$(SolutionDir)external\sfgui;$(SolutionDir)external\easylogging\src;$(SolutionDir)SFMLProject\inc\;$(AdditionalIncludeDirectories);$(SolutionDir)external\KinectSDK\kinect_v1\_inc;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\boost_1_74_0;$(SolutionDir)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalUsingDirectories>
       </AdditionalUsingDirectories>
@@ -171,7 +171,7 @@ copy /Y "C:\Users\AkaYa!\Desktop\soft_knuckles-master\x64\Debug\soft_knuckles.dl
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>openvr_api.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)external\boost_1_74_0\lib64-msvc-14.2;$(SolutionDir)lib;$(SolutionDir)\external\InputEmulator;$(SolutionDir)\external\openvr\lib\win64;$(SolutionDir)\external\Glew;$(SolutionDir)external\sfml\lib\release;$(SolutionDir)external\sfgui\;$(SolutionDir)external\opencv\lib;$(SolutionDir)external\PSMoveService\lib;$(SolutionDir)\external\KVRlib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)external\boost_1_74_0\lib64-msvc-14.2;$(SolutionDir)lib;$(SolutionDir)\external\openvr\lib\win64;$(SolutionDir)\external\Glew;$(SolutionDir)external\sfml\lib\release;$(SolutionDir)external\sfgui\;$(SolutionDir)external\opencv\lib;$(SolutionDir)external\PSMoveService\lib;$(SolutionDir)\external\KVRlib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

@@ -108,7 +108,7 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>NOMINMAX;_DEBUG;_CONSOLE;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(IncludePath);$(ProjectDir);$(ProjectDir)inc;$(SolutionDir)external\eigen-3.3.7;$(SolutionDir)external\glm_glm\;$(SolutionDir)external\cereal\include;$(SolutionDir)external\inputemulator\;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\SFML\include\;$(SolutionDir)external\glew\;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\boost_1_74_0;$(SolutionDir)external\easylogging\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(IncludePath);$(ProjectDir);$(ProjectDir)inc;$(SolutionDir)external\eigen-3.3.7;$(SolutionDir)external\glm_glm\;$(SolutionDir)external\cereal\include;$(SolutionDir)external\inputemulator\lib_vrinputemulator\include;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\SFML\include\;$(SolutionDir)external\glew\;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\boost_1_74_0;$(SolutionDir)external\easylogging\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ShowIncludes>true</ShowIncludes>
       <ForcedIncludeFiles>
       </ForcedIncludeFiles>
@@ -117,7 +117,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <AdditionalLibraryDirectories>$(SolutionDir)Includes\glew;$(SolutionDir)Includes\sfGui\;$(SolutionDir)Includes\openvr;$(SolutionDir)Includes\Kinect2\lib;$(KINECTSDK10_DIR)\lib\amd64;$(SolutionDir)external\SFML\lib;$(SolutionDir)external\InputEmulator;$(SolutionDir)external\boost_1_74_0\lib64-msvc-14.2;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Debug\sfml-audio-d.lib;Debug\sfml-graphics-d.lib;Debug\sfml-window-d.lib;Debug\sfml-system-d.lib;libvrinputemulator_d.lib;openvr_api64.lib;Kinect10.lib;OpenGL32.lib;glew32.lib;sfgui-d.lib;Kinect20.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Debug\sfml-audio-d.lib;Debug\sfml-graphics-d.lib;Debug\sfml-window-d.lib;Debug\sfml-system-d.lib;libvrinputemulator.lib;openvr_api64.lib;Kinect10.lib;OpenGL32.lib;glew32.lib;sfgui-d.lib;Kinect20.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(TargetPath)" "$(SolutionDir)external\KVRlib\" /I /Y
@@ -159,7 +159,7 @@ xcopy "$(SolutionDir)external\dlls\release\*.dll" "$(TargetDir)"  /Y</Command>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NOMINMAX;NDEBUG;_CONSOLE;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(IncludePath);$(ProjectDir);$(ProjectDir)inc;$(SolutionDir)external\inputemulator\;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\SFML\include\;$(SolutionDir)external\glew\;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\easylogging\src;$(SolutionDir)external\boost_1_74_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(IncludePath);$(ProjectDir);$(ProjectDir)inc;$(SolutionDir)external\inputemulator\lib_vrinputemulator\include;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\SFML\include\;$(SolutionDir)external\glew\;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\easylogging\src;$(SolutionDir)external\boost_1_74_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ForcedIncludeFiles>%(ForcedIncludeFiles)</ForcedIncludeFiles>

@@ -14,23 +14,30 @@ jobs:
       uses: microsoft/setup-msbuild@v1.0.2
       id: setup_msbuild
       
-    - name: Install Wget
-      run: choco install wget --no-progress
+    - name: Add MSYS64 bin to PATH
+      run: echo "C:\msys64\usr\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
     - name: Setup OpenVR
       run: git clone https://github.com/ValveSoftware/openvr external/openvr
 
-    - name: Setup Dependiences (Custom)
+    - name: Setup Kinect SDK
       run: |
-        wget -q "https://www.dropbox.com/s/9qledlbsehcywri/boost_1_74_0.7z?dl=1" -O ./external/boost_1_74_0.7z
         wget -q "https://drive.google.com/uc?export=download&id=14TBSyxF9AfTd5n05guthFRfpxeh0nxLX" -O ./external/kinectlib.7z
-        7z x ./external/boost_1_74_0.7z -oexternal
         7z x ./external/kinectlib.7z -oexternal
 
-    - name: NuGet Restore
+    - name: NuGet Restore KinectToVR
       run: nuget.exe restore KinectToVR.sln
+
+    - name: NuGet Restore InputEmulator
+      run: nuget.exe restore external/inputemulator/VRInputEmulator.sln
+
+    - name: Build InputEmulator
+      id: run_msbuild
+      run: |
+        cd external/inputemulator/
+        msbuild "/p:Configuration=Release;Platform=x64;WindowsTargetPlatformVersion=10.0"
         
-    - name: Run MSBuild
+    - name: Build KinectToVR
       id: run_msbuild
       run: msbuild "/p:Configuration=Release;Platform=x64;WindowsTargetPlatformVersion=10.0"
 
@@ -38,18 +45,11 @@ jobs:
       id: slug
       run: "$slug = '::set-output name=slug::' + $env:GITHUB_SHA.SubString(0,7); echo $slug"
 
-    - name: Upload driver artifact
+    - name: Upload PSMS artifact
       uses: actions/upload-artifact@v2
       with:
-        name: driver_KinectToVR-${{ steps.slug.outputs.slug }}.dll
-        path: x64/Release/driver_KinectToVR.dll
-        if-no-files-found: error
-
-    - name: Upload KV1 artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: KinectV1Process-${{ steps.slug.outputs.slug }}.exe
-        path: x64/Release/KinectV1Process.exe
+        name: PSMSProcess-${{ steps.slug.outputs.slug }}.exe
+        path: x64/Release/PSMSProcess.exe
         if-no-files-found: error
 
     - name: Upload KV2 artifact
@@ -59,9 +59,16 @@ jobs:
         path: x64/Release/KinectV2Process.exe
         if-no-files-found: error
 
-    - name: Upload PSMS artifact
+    - name: Upload KV1 artifact
       uses: actions/upload-artifact@v2
       with:
-        name: PSMSProcess-${{ steps.slug.outputs.slug }}.exe
-        path: x64/Release/PSMSProcess.exe
+        name: KinectV1Process-${{ steps.slug.outputs.slug }}.exe
+        path: x64/Release/KinectV1Process.exe
+        if-no-files-found: error
+
+    - name: Upload driver artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: driver_KinectToVR-${{ steps.slug.outputs.slug }}.dll
+        path: x64/Release/driver_KinectToVR.dll
         if-no-files-found: error
