@@ -40,6 +40,6 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: driver_KinectToVR-${{ steps.slug.outputs.slug }}.dll
-        path: KinectToVR\x64\Release\driver_KinectToVR.dll
+        name: KinectV1Process-${{ steps.slug.outputs.slug }}.exe
+        path: KinectToVR\x64\Release\KinectV1Process.exe
         if-no-files-found: error
