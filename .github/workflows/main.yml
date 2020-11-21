@@ -38,14 +38,6 @@ jobs:
         
         Start-Process msiexec -ArgumentList "/a ${{ github.workspace }}\KinectSDK-v2.0\AttachedContainer\KinectSDK-v2.0_1409-x64.msi /qn TARGETDIR=${{ github.workspace }}\KinectSDK-v2.0\AttachedContainer\SDK20" -Wait -NoNewWindow
 
-    - name: Add Kinect SDKs to path
-      shell: powershell
-      run: |
-        $env:Path += ";${{ github.workspace }}\KinectSDK-v1.8\AttachedContainer\SDK18\Microsoft SDKs\Kinect\v1.8\inc"
-        $env:Path += ";${{ github.workspace }}\KinectSDK-v1.8\AttachedContainer\SDK18\Microsoft SDKs\Kinect\v1.8\lib\amd64"
-        $env:Path += ";${{ github.workspace }}\KinectSDK-v2.0\AttachedContainer\SDK20\Microsoft SDKs\Kinect\v2.0_1409\inc"
-        $env:Path += ";${{ github.workspace }}\KinectSDK-v2.0\AttachedContainer\SDK20\Microsoft SDKs\Kinect\v2.0_1409\Lib\x64"
-
     - name: NuGet Restore KinectToVR
       run: nuget.exe restore KinectToVR.sln
 
