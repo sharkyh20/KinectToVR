@@ -10,6 +10,18 @@ jobs:
       uses: actions/checkout@v2.1.0
       id: checkout_code
 
+    - name: Load Kinect SDK 1.8
+      uses: actions/cache@v2
+      with:
+        path: KinectSDK-v1.8
+        key: KinectSDK-v1.8-Setup
+
+    - name: Load Kinect SDK 2.0
+      uses: actions/cache@v2
+      with:
+        path: KinectSDK-v2.0
+        key: KinectSDK-v2.0_1409-Setup
+
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1.0.2
       id: setup_msbuild
@@ -24,19 +36,29 @@ jobs:
       shell: powershell
       run: |
         Set-Location ${{ github.workspace }}
-        wget "https://download.microsoft.com/download/E/1/D/E1DEC243-0389-4A23-87BF-F47DE869FC1A/KinectSDK-v1.8-Setup.exe" -OutFile KinectSDK-v1.8-Setup.exe
-        & "C:\Program Files (x86)\WiX Toolset v3.11\bin\dark.exe" KinectSDK-v1.8-Setup.exe -x KinectSDK-v1.8
+
+        # Unpack the SDK if it hasn't been restored from cache
+        if (!(Test-Path -PathType Container KinectSDK-v1.8)) {
+            New-Item -ItemType directory KinectSDK-v1.8 | Out-Null
+            wget "https://download.microsoft.com/download/E/1/D/E1DEC243-0389-4A23-87BF-F47DE869FC1A/KinectSDK-v1.8-Setup.exe" -OutFile KinectSDK-v1.8-Setup.exe
+            & "C:\Program Files (x86)\WiX Toolset v3.11\bin\dark.exe" KinectSDK-v1.8-Setup.exe -x KinectSDK-v1.8
         
-        Start-Process msiexec -ArgumentList "/a ${{ github.workspace }}\KinectSDK-v1.8\AttachedContainer\KinectSDK-v1.8-x64.msi /qn TARGETDIR=${{ github.workspace }}\KinectSDK-v1.8\AttachedContainer\SDK18" -Wait -NoNewWindow
+            Start-Process msiexec -ArgumentList "/a ${{ github.workspace }}\KinectSDK-v1.8\AttachedContainer\KinectSDK-v1.8-x64.msi /qn TARGETDIR=${{ github.workspace }}\KinectSDK-v1.8\AttachedContainer\SDK18" -Wait -NoNewWindow
+        }
 
     - name: Install Kinect SDK20
       shell: powershell
       run: |
         Set-Location ${{ github.workspace }}
-        wget "https://download.microsoft.com/download/F/2/D/F2D1012E-3BC6-49C5-B8B3-5ACFF58AF7B8/KinectSDK-v2.0_1409-Setup.exe" -OutFile KinectSDK-v2.0_1409-Setup.exe
-        & "C:\Program Files (x86)\WiX Toolset v3.11\bin\dark.exe" KinectSDK-v2.0_1409-Setup.exe -x KinectSDK-v2.0
-        
-        Start-Process msiexec -ArgumentList "/a ${{ github.workspace }}\KinectSDK-v2.0\AttachedContainer\KinectSDK-v2.0_1409-x64.msi /qn TARGETDIR=${{ github.workspace }}\KinectSDK-v2.0\AttachedContainer\SDK20" -Wait -NoNewWindow
+
+        # Unpack the SDK if it hasn't been restored from cache
+        if (!(Test-Path -PathType Container KinectSDK-v2.0)) {
+            New-Item -ItemType directory KinectSDK-v2.0 | Out-Null
+            wget "https://download.microsoft.com/download/F/2/D/F2D1012E-3BC6-49C5-B8B3-5ACFF58AF7B8/KinectSDK-v2.0_1409-Setup.exe" -OutFile KinectSDK-v2.0_1409-Setup.exe
+            & "C:\Program Files (x86)\WiX Toolset v3.11\bin\dark.exe" KinectSDK-v2.0_1409-Setup.exe -x KinectSDK-v2.0
+            
+            Start-Process msiexec -ArgumentList "/a ${{ github.workspace }}\KinectSDK-v2.0\AttachedContainer\KinectSDK-v2.0_1409-x64.msi /qn TARGETDIR=${{ github.workspace }}\KinectSDK-v2.0\AttachedContainer\SDK20" -Wait -NoNewWindow
+        }
 
     - name: NuGet Restore KinectToVR
       run: nuget.exe restore KinectToVR.sln
