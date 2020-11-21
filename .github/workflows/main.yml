@@ -28,7 +28,6 @@ jobs:
         & "C:\Program Files (x86)\WiX Toolset v3.11\bin\dark.exe" KinectSDK-v1.8-Setup.exe -x KinectSDK-v1.8
         
         Start-Process msiexec -ArgumentList "/a ${{ github.workspace }}\KinectSDK-v1.8\AttachedContainer\KinectSDK-v1.8-x64.msi /qn TARGETDIR=${{ github.workspace }}\KinectSDK-v1.8\AttachedContainer\SDK18" -Wait -NoNewWindow
-        $Env:KINECTSDK10_DIR = "${{ github.workspace }}\KinectSDK-v1.8\AttachedContainer\SDK18\Microsoft SDKs\Kinect\v1.8"
 
     - name: Install Kinect SDK20
       shell: powershell
@@ -38,8 +37,14 @@ jobs:
         & "C:\Program Files (x86)\WiX Toolset v3.11\bin\dark.exe" KinectSDK-v2.0_1409-Setup.exe -x KinectSDK-v2.0
         
         Start-Process msiexec -ArgumentList "/a ${{ github.workspace }}\KinectSDK-v2.0\AttachedContainer\KinectSDK-v2.0_1409-x64.msi /qn TARGETDIR=${{ github.workspace }}\KinectSDK-v2.0\AttachedContainer\SDK20" -Wait -NoNewWindow
-        $Env:KINECTSDK20_DIR = "${{ github.workspace }}\KinectSDK-v1.8\AttachedContainer\SDK20\Microsoft SDKs\Kinect\v2.0_1409"
 
+    - name: Add Kinect SDKs to path
+      shell: powershell
+      run: |
+        $env:Path += ";${{ github.workspace }}\KinectSDK-v1.8\AttachedContainer\SDK18\Microsoft SDKs\Kinect\v1.8\inc"
+        $env:Path += ";${{ github.workspace }}\KinectSDK-v1.8\AttachedContainer\SDK18\Microsoft SDKs\Kinect\v1.8\lib\amd64"
+        $env:Path += ";${{ github.workspace }}\KinectSDK-v2.0\AttachedContainer\SDK20\Microsoft SDKs\Kinect\v2.0_1409\inc"
+        $env:Path += ";${{ github.workspace }}\KinectSDK-v2.0\AttachedContainer\SDK20\Microsoft SDKs\Kinect\v2.0_1409\Lib\x64"
 
     - name: NuGet Restore KinectToVR
       run: nuget.exe restore KinectToVR.sln
