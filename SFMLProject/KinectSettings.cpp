@@ -584,7 +584,7 @@ namespace KinectSettings
 				/*******************************************************/
 				if (matrixes_calibrated && positional_tracking_option == k_KinectFullTracking && flip)
 				{
-					glm::quat tune_quat(glm::vec3(-calibration_kinect_pitch, 2 * M_PI, 0.f)),
+					glm::quat tune_quat(glm::vec3(-calibration_kinect_pitch / 4, 2 * M_PI, 0.f)),
 						tune_quat_w(glm::vec3(0.f, 2 * M_PI, 0.f));
 					if (feet_rotation_option == k_EnableOrientationFilter ||
 						feet_rotation_option == k_EnableOrientationFilter_WithoutYaw) {
