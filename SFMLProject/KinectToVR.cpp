@@ -754,7 +754,6 @@ void processLoop(KinectHandlerBase& kinect)
 	kinect.terminateDepth();
 	kinect.terminateSkeleton();
 
-	//playspaceMovementAdjuster.resetPlayspaceAdjustments();
 	if (eError == vr::EVRInitError::VRInitError_None)
 	{
 		removeTrackerRolesInVRSettings();
