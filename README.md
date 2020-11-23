@@ -1,5 +1,4 @@
 ## <ins>__[Discord server](https://discord.gg/YBQCRDG)__</ins> | <ins>__[Site](https://k2vr.tech/)__</ins>
-<br>
 
 ![Build](https://github.com/KimihikoAkayasaki/KinectToVR/workflows/Build/badge.svg)
 
@@ -20,9 +19,9 @@ You'll need:
 
 Follow **[GitHub Actions script](https://github.com/KimihikoAkayasaki/KinectToVR/blob/master/.github/workflows/main.yml)**, or:<br>
 
-- Clone Valve's ```OpenVR``` to external (eventually remove ```-master``` from folder name)<br>
+- Clone Valve's ```OpenVR``` to ```external/``` (eventually remove ```-master``` from folder name)<br>
 - Restore NuGet packages for ```VRInputEmulator``` and ```KinectToVR```
-- Build ```lib_vrinputemulator``` (another solution in ```external```) in x64/Release
+- Build ```lib_vrinputemulator``` (another solution in ```external/```) in x64/Release
 - Build all in ```KinectToVR``` in x64/Release
 
 ## Deploy
