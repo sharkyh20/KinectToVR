@@ -1,6 +1,7 @@
-## __**[Discord server](https://discord.gg/YBQCRDG)**__
+## <ins>__[Discord server](https://discord.gg/YBQCRDG)__</ins> | <ins>__[Site](https://k2vr.tech/)__</ins>
+<br>
 
-[![Build Status](https://travis-ci.com/KimihikoAkayasaki/KinectToVR.svg?branch=master)](https://travis-ci.com/KimihikoAkayasaki/KinectToVR)
+![Build](https://github.com/KimihikoAkayasaki/KinectToVR/workflows/Build/badge.svg)
 
 Automatic calibration scripts are written by **[コレヂャン](https://github.com/korejan)**<br>
 (Also general help with just everything related to real programming)<br>
@@ -12,13 +13,18 @@ Rest is probably written by **[公彦赤屋先](https://github.com/KimihikoAkaya
 This project is licensed under the GNU GPL v3 License 
 
 ## Build
-Follow **[travis script](https://github.com/KimihikoAkayasaki/KinectToVR/blob/master/.travis.yml)**, or:<br>
+You'll need:
+ - Visual Studio 2019 (with: C++, v142 tools, ATL)<br>or just build tools for same (see GitHub Actions script)
+ - Kinect SDK 1.8 & 2.0 installed and visible in PATH
+ - Working installation of SteamVR for testing
 
-- Download boost 1.74 and extract it to ```/external/```, making path like ```/external/boost_1_74_0/boost/any.hpp``` available.<br>
-- Download OpenVR and put it to ```/external/```, making path like ```/external/openvr/headers/openvr.h``` available.<br>
-- Download cereal and extract it to ```/external/```, making path similar to ```/external/cereal/include/cereal/``` available.<br>
-- Build in Release mode for x64 architecture.
+Follow **[GitHub Actions script](https://github.com/KimihikoAkayasaki/KinectToVR/blob/master/.github/workflows/main.yml)**, or:<br>
+
+- Clone Valve's ```OpenVR``` to external (eventually remove ```-master``` from folder name)<br>
+- Restore NuGet packages for ```VRInputEmulator``` and ```KinectToVR```
+- Build ```lib_vrinputemulator``` (another solution in ```external```) in x64/Release
+- Build all in ```KinectToVR``` in x64/Release
 
 ## Deploy
-Copy ```openvr_api.dll```, ```opencv_world341.dll``` to deploy directory,<br>
-or grab pack of dlls from program directory created by the installer.
+Grab all needed files from your current KinecToVR installation folder.<br>
+This also applies to OpenVR driver folders structure and files.
