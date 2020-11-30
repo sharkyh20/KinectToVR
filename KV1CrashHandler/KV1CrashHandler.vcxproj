@@ -152,6 +152,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="KV1ModHandler.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="KV1CrashHandler.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
