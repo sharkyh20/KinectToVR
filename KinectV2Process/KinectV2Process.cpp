@@ -109,6 +109,12 @@ int main(int argc, char* argv[])
 */
 int main(int argc, char* argv[])
 {
+    // Set up the 'crash handler'
+    std::thread([] {
+        auto _pid = GetCurrentProcessId();
+        system(std::string("KV2CrashHandler.exe " + std::to_string(_pid)).c_str());
+        }).detach();
+	
 	START_EASYLOGGINGPP(argc, argv);
 	init_logging();
 	HWND hWnd = GetConsoleWindow();
