@@ -51,7 +51,7 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 51,4,30,96
+ FILEVERSION 51,4,30,97
  PRODUCTVERSION 0,8,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
@@ -69,7 +69,7 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "KinectToVR"
             VALUE "FileDescription", "KinectToVR-CE for KV2"
-            VALUE "FileVersion", "51.4.30.96"
+            VALUE "FileVersion", "51.4.30.97"
             VALUE "InternalName", "KV2CrashHandler.exe"
             VALUE "LegalCopyright", "Copyright (C) 2020"
             VALUE "OriginalFilename", "KV2CrashHandler.exe"
@@ -82,6 +82,16 @@ BEGIN
         VALUE "Translation", 0x409, 1200
     END
 END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON1               ICON                    "..\\external\\icons\\modicon.ico"
 
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////

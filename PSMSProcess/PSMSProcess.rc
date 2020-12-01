@@ -61,7 +61,7 @@ IDI_ICON1               ICON                    "..\\external\\icons\\icon.ico"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 51,4,30,96
+ FILEVERSION 51,4,30,97
  PRODUCTVERSION 0,8,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
@@ -79,7 +79,7 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "KinectToVR"
             VALUE "FileDescription", "KinectToVR for PSMS"
-            VALUE "FileVersion", "51.4.30.96"
+            VALUE "FileVersion", "51.4.30.97"
             VALUE "InternalName", "PSMSProcess.exe"
             VALUE "LegalCopyright", "Copyright (C) 2020"
             VALUE "OriginalFilename", "PSMSProcess.exe"

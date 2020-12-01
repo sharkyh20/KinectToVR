@@ -21,9 +21,9 @@ Follow **[GitHub Actions script](https://github.com/KimihikoAkayasaki/KinectToVR
 
 - Clone Valve's ```OpenVR``` to ```external/``` (eventually remove ```-master``` from folder name)<br>
 - Restore NuGet packages for ```VRInputEmulator``` and ```KinectToVR```
-- Build ```lib_vrinputemulator``` (another solution in ```external/```) in x64/Release
-- Build all in ```KinectToVR``` in x64/Release
+- Build ```lib_vrinputemulator``` (another solution in ```external/```) in ```x64/Release```
+- Build all in ```KinectToVR``` in ```x64/Release```
 
 ## Deploy
-Grab all needed files from your current KinecToVR installation folder.<br>
+Grab all needed files from your current KinectToVR installation folder.<br>
 This also applies to OpenVR driver folders structure and files.
