@@ -80,6 +80,20 @@ jobs:
       id: slug
       run: "$slug = '::set-output name=slug::' + $env:GITHUB_SHA.SubString(0,7); echo $slug"
 
+    - name: Upload KV2 Close Handler artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: KV2CrashHandler-${{ steps.slug.outputs.slug }}.exe
+        path: x64/Release/KV2CrashHandler.exe
+        if-no-files-found: error
+
+    - name: Upload KV1 Close Handler artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: KV1CrashHandler-${{ steps.slug.outputs.slug }}.exe
+        path: x64/Release/KV1CrashHandler.exe
+        if-no-files-found: error
+
     - name: Upload PSMS artifact
       uses: actions/upload-artifact@v2
       with:
