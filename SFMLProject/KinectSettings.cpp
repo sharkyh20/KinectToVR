@@ -146,7 +146,7 @@ namespace KinectSettings
 	bool flip;
 	PSMQuatf offset[2];
 	Eigen::Quaternionf quatf[2];
-	glm::quat move_ori_offset[3];
+	glm::quat move_ori_offset[3] = {glm::quat(1,0,0,0),glm::quat(1,0,0,0),glm::quat(1,0,0,0)};
 	glm::vec3 joy[2] = {glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)};
 	glm::quat left_tracker_rot, right_tracker_rot, waist_tracker_rot;
 
