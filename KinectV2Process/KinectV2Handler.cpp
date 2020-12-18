@@ -659,7 +659,7 @@ void KinectV2Handler::updateSkeletalFilters()
 	normalize(mFootRotF);
 
 	//smooth with lowpass filter
-	hFootRotF.w = lowPassFilter[0][0].update(hFootRotF.w);
+	/*hFootRotF.w = lowPassFilter[0][0].update(hFootRotF.w);
 	hFootRotF.x = lowPassFilter[0][1].update(hFootRotF.x);
 	hFootRotF.y = lowPassFilter[0][2].update(hFootRotF.y);
 	hFootRotF.z = lowPassFilter[0][3].update(hFootRotF.z);
@@ -667,7 +667,7 @@ void KinectV2Handler::updateSkeletalFilters()
 	mFootRotF.w = lowPassFilter[1][0].update(mFootRotF.w);
 	mFootRotF.x = lowPassFilter[1][1].update(mFootRotF.x);
 	mFootRotF.y = lowPassFilter[1][2].update(mFootRotF.y);
-	mFootRotF.z = lowPassFilter[1][3].update(mFootRotF.z);
+	mFootRotF.z = lowPassFilter[1][3].update(mFootRotF.z);*/
 
 	KinectSettings::trackerSoftRot[0] = hFootRotF;
 	KinectSettings::trackerSoftRot[1] = mFootRotF;
