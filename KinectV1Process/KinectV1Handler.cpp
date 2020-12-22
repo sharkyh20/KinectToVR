@@ -93,12 +93,16 @@ std::string KinectV1Handler::statusResultString(HRESULT stat)
 	case S_OK: return "S_OK";
 	case S_NUI_INITIALIZING: return "S_NUI_INITIALIZING The device is connected, but still initializing.";
 	case E_NUI_NOTCONNECTED: return "E_NUI_NOTCONNECTED The device is not connected.";
-	case E_NUI_NOTGENUINE: return "E_NUI_NOTGENUINE The device is not a valid Kinect.";
-	case E_NUI_NOTSUPPORTED: return "E_NUI_NOTSUPPORTED The device is an unsupported model.";
-	case E_NUI_INSUFFICIENTBANDWIDTH: return
-			"E_NUI_INSUFFICIENTBANDWIDTH The device is connected to a hub without the necessary bandwidth requirements.";
-	case E_NUI_NOTPOWERED: return "E_NUI_NOTPOWERED The device is connected, but unpowered.";
-	case E_NUI_NOTREADY: return "E_NUI_NOTREADY There was some other unspecified error.";
+	// case E_NUI_NOTGENUINE: return "E_NUI_NOTGENUINE The device is not a valid Kinect.";
+	case E_NUI_NOTGENUINE: return "E_NUI_NOTGENUINE The Kinect for Windows SDK is reporting your device as invalid, try reconnecting it physically to the computer or restarting, then click \"Reconnect Kinect\".";
+	// case E_NUI_NOTSUPPORTED: return "E_NUI_NOTSUPPORTED The device is an unsupported model.";
+	case E_NUI_NOTSUPPORTED: return "E_NUI_NOTSUPPORTED Xbox 360 Kinect requires the Kinect for Windows SDK 1.8 to function. You only have the runtime installed.";
+	// case E_NUI_INSUFFICIENTBANDWIDTH: return "E_NUI_INSUFFICIENTBANDWIDTH The device is connected to a hub without the necessary bandwidth requirements.";
+	case E_NUI_INSUFFICIENTBANDWIDTH: return "E_NUI_INSUFFICIENTBANDWIDTH A USB error occured! Try reconnecting the device physically or restarting your computer.";
+	// case E_NUI_NOTPOWERED: return "E_NUI_NOTPOWERED The device is connected, but unpowered.";
+	case E_NUI_NOTPOWERED: return "E_NUI_NOTPOWERED Check that your adapter is lit up. If it is, look in Device Manager under \"other devices\" and as a last resort, try reinstalling the Kinect drivers entirely.";
+	// case E_NUI_NOTREADY: return "E_NUI_NOTREADY There was some other unspecified error.";
+	case E_NUI_NOTREADY: return "E_NUI_NOTREADY Try reconnecting the USB port of the device or restarting your PC, if it doesn't work, reinstall the Kinect for Windows SDK.";
 	default: return "Uh Oh undefined kinect error! " + std::to_string(stat);
 	}
 }
