@@ -135,6 +135,18 @@
     <ClInclude Include="inc\VRDeviceHandler.h">
       <Filter>Header Files\DeviceHandlers</Filter>
     </ClInclude>
+    <ClInclude Include="MathEigen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Math_Utility.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LowPassFilter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EKF_Filter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -161,5 +173,14 @@
     <ClCompile Include="TrackingPoolManager.cpp">
       <Filter>Header Files\DeviceHandlers</Filter>
     </ClCompile>
+    <ClCompile Include="MathEigen.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Math_Utility.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>
