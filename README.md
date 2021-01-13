@@ -1,30 +1,31 @@
-## <ins>__[Discord server](https://discord.gg/YBQCRDG)__</ins> | <ins>__[Site](https://k2vr.tech/)__</ins>
+[![alt text](https://raytracing-benchmarks.are-really.cool/2BPWpjH.png "Go to k2vr.tech")](https://k2vr.tech)
+## [Join the Discord](https://discord.gg/YBGCRDQ)<br><br>
+# KinectToVR SFML Version
+This repository contains the original source of KinectToVR from Version 0.1 to 0.8 prior to the Qt rewrite.
 
-![Build](https://github.com/KimihikoAkayasaki/KinectToVR/workflows/Build/badge.svg)
+KinectToVR is an application for emulative the functionality of Vive trackers using skeleton tracking from a Kinect for Xbox 360 or Xbox One, or using tracked devices from PSMoveService.
 
-Automatic calibration scripts are written by **[コレヂャン](https://github.com/korejan)**<br>
-(Also general help with just everything related to real programming)<br>
-KinectToVR base is **[Sharky's](https://github.com/sharkyh20/)**<br>
-Rest is probably written by **[公彦赤屋先](https://github.com/KimihikoAkayasaki)**<br>
-**[Triping](https://github.com/TripingPC)** organizes the whole project.<br>
-
-## License
-This project is licensed under the GNU GPL v3 License 
+![main window](https://raytracing-benchmarks.are-really.cool/3g4jtCf.png)
 
 ## Build
-If you want to build but see no code, you're on the landing-page branch, make sure to switch and pull from master!
 You'll need:
  - Visual Studio 2019 (with: C++, v142 tools, ATL)<br>or just build tools for same (see GitHub Actions script)
  - Kinect SDK 1.8 & 2.0 installed and visible in PATH
- - Working installation of SteamVR for testing
 
-Follow **[GitHub Actions script](https://github.com/KimihikoAkayasaki/KinectToVR/blob/master/.github/workflows/main.yml)**, or:<br>
+ Follow **[GitHub Actions script](https://github.com/KimihikoAkayasaki/KinectToVR/blob/master/.github/workflows/main.yml)**, or:<br>
 
-- Clone Valve's ```OpenVR``` to ```external/``` (eventually remove ```-master``` from folder name)<br>
+- Clone Valve's [```OpenVR```](https://github.com/valvesoftware/openvr) to ```external/``` (eventually remove ```-master``` from folder name)<br>
 - Restore NuGet packages for ```VRInputEmulator``` and ```KinectToVR```
-- Build ```lib_vrinputemulator``` (another solution in ```external/```) in ```x64/Release```
+- Build ```lib_vrinputemulator``` (another solution in ```external/```) in ```x64/Release``` (It's set to Debug by default)
 - Build all in ```KinectToVR``` in ```x64/Release```
 
 ## Deploy
-Grab all needed files from your current KinectToVR installation folder.<br>
+Retrieve the needed libraries either from your own KinectToVR installation folder or from the latest release<br>
 This also applies to OpenVR driver folders structure and files.
+
+## Credits
+- [Sharkyh20](https://github.com/sharkyh20) Original developer
+- [公彦赤屋先](https://github.com/KimihikoAkayasaki) Maintenance and updates after 0.6.0r2
+- [TripingPC](https://github.com/TripingPC) Old installer, website and support
+- [Himbeersaft](https://github.com/Himbeersaft) Installer and support
+- [コレヂャン](https://github.com/korejan) Help with calibration maths
