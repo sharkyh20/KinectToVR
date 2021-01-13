@@ -1,9 +1,10 @@
 [![alt text](https://raytracing-benchmarks.are-really.cool/2BPWpjH.png "Go to k2vr.tech")](https://k2vr.tech)
 ## [Join the Discord](https://discord.gg/YBGCRDQ)<br><br>
 # KinectToVR SFML Version
-This repository contains the original source of KinectToVR from Version 0.1 to 0.8 prior to the Qt rewrite.
+This repository contains the original source of KinectToVR from Version 0.1 to 0.8 prior to the Qt rewrite.<br>
+[Active development is done in the GitHub organization](https://github.com/kinecttovr)
 
-KinectToVR is an application for emulative the functionality of Vive trackers using skeleton tracking from a Kinect for Xbox 360 or Xbox One, or using tracked devices from PSMoveService.
+KinectToVR is an application for emulating the functionality of Vive trackers using skeleton tracking from a Kinect for Xbox 360 or Xbox One, or using tracked devices from PSMoveService.
 
 ![main window](https://raytracing-benchmarks.are-really.cool/3g4jtCf.png)
 
