@@ -12,6 +12,7 @@ Rest is probably written by **[公彦赤屋先](https://github.com/KimihikoAkaya
 This project is licensed under the GNU GPL v3 License 
 
 ## Build
+If you want to build but see no code, you're on the landing-page branch, make sure to switch and pull from master!
 You'll need:
  - Visual Studio 2019 (with: C++, v142 tools, ATL)<br>or just build tools for same (see GitHub Actions script)
  - Kinect SDK 1.8 & 2.0 installed and visible in PATH
