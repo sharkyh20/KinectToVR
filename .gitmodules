@@ -1,6 +1,0 @@
-[submodule "cereal"]
-	path = external/cereal
-	url = https://github.com/USCiLab/cereal
-[submodule "external/openvr"]
-	path = external/openvr
-	url = https://github.com/ValveSoftware/openvr

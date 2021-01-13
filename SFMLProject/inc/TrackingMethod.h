@@ -8,29 +8,45 @@
 #include "KinectTrackedDevice.h"
 #include "TrackedDeviceInputData.h"
 
-class TrackingMethod {
+class TrackingMethod
+{
 public:
-    TrackingMethod() {}
-    virtual ~TrackingMethod() {}
+	TrackingMethod()
+	{
+	}
 
-    virtual void initialise() {}
+	virtual ~TrackingMethod()
+	{
+	}
 
-    virtual void activate() {}
+	virtual void initialise()
+	{
+	}
 
-    virtual void terminate() {}
+	virtual void activate()
+	{
+	}
 
-    virtual void update(
-        KinectHandlerBase& kinect,
-        std::vector<KVR::KinectTrackedDevice> & v_trackers
-    ) {}
+	virtual void terminate()
+	{
+	}
 
-    virtual void updateTrackers(
-        KinectHandlerBase& kinect, 
-        std::vector<KVR::KinectTrackedDevice> & v_trackers
-    ) {}
+	virtual void update(
+		KinectHandlerBase& kinect,
+		std::vector<KVR::KinectTrackedDevice>& v_trackers
+	)
+	{
+	}
+
+	virtual void updateTrackers(
+		KinectHandlerBase& kinect,
+		std::vector<KVR::KinectTrackedDevice>& v_trackers
+	)
+	{
+	}
 
 
-    bool isActive() { return active; }
+	bool isActive() { return active; }
 protected:
-    bool active = false;
+	bool active = false;
 };

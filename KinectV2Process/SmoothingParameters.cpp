@@ -8,30 +8,35 @@
 //m_fJitterRadius Size of the radius where jitter is removed. Can do too much smoothing when too high
 //m_fPrediction Amount of prediction into the future to use. Can over shoot when too high
 
-SmoothingParameters getDefaultSmoothingParams() {
-    SmoothingParameters params;
-    params.smoothing = .25f;
-    params.correction = .25f;
-    params.maxDeviationRadius = .05f;
-    params.jitterRadius = 0.03f;
-    params.prediction = .25f;
-    return params;
+SmoothingParameters getDefaultSmoothingParams()
+{
+	SmoothingParameters params;
+	params.smoothing = .25f;
+	params.correction = .25f;
+	params.maxDeviationRadius = .05f;
+	params.jitterRadius = 0.03f;
+	params.prediction = .25f;
+	return params;
 }
-SmoothingParameters getAggressiveSmoothingParams() {
-    SmoothingParameters params;
-    params.smoothing = .25f;
-    params.correction = .25f;
-    params.maxDeviationRadius = .15f;
-    params.jitterRadius = 0.2f;
-    params.prediction = .25f;
-    return params;
+
+SmoothingParameters getAggressiveSmoothingParams()
+{
+	SmoothingParameters params;
+	params.smoothing = .25f;
+	params.correction = .25f;
+	params.maxDeviationRadius = .15f;
+	params.jitterRadius = 0.2f;
+	params.prediction = .25f;
+	return params;
 }
-SmoothingParameters getRotationSmoothingParams() {
-    SmoothingParameters params;
-    params.smoothing = .6f;
-    params.correction = .4f;
-    params.maxDeviationRadius = .3f;
-    params.jitterRadius = 0.5f;
-    params.prediction = .25f;
-    return params;
+
+SmoothingParameters getRotationSmoothingParams()
+{
+	SmoothingParameters params;
+	params.smoothing = .6f;
+	params.correction = .4f;
+	params.maxDeviationRadius = .3f;
+	params.jitterRadius = 0.5f;
+	params.prediction = .25f;
+	return params;
 }
